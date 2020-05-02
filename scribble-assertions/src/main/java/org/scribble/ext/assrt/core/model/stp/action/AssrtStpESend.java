@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.model.stp.action;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,7 +26,8 @@ public class AssrtStpESend extends AssrtCoreESend implements AssrtStpEAction
 			Payload payload, Map<AssrtIntVarFormula, AssrtSmtFormula<?>> sigma,
 			AssrtBFormula A)
 	{
-		super(mf, peer, mid, payload, A, Collections.emptyList());
+		super(mf, peer, mid, payload, A, Collections.emptyList(),
+				new LinkedHashMap<>());
 		this.sigma = Collections.unmodifiableMap(sigma);
 		this.A = A;
 	}

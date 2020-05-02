@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.model.endpoint.action;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.scribble.core.model.ModelFactory;
@@ -12,6 +13,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSRecv;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtERecv;
 
 public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
@@ -20,28 +22,32 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	/*public final AssrtDataTypeVar annot;  // Not null (by AssrtCoreGProtocolTranslator)
 	public final AssrtArithFormula expr;*/
 	public final List<AssrtAFormula> stateexprs;  // N.B. state args ignored for recv fireable and firing (msgs don't carry state args)
-	
+
+	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+
 	public AssrtCoreERecv(ModelFactory mf, Role peer, MsgId<?> mid,
-			Payload payload, AssrtBFormula bf, List<AssrtAFormula> stateexprs)
+			Payload payload, AssrtBFormula bf, List<AssrtAFormula> stateexprs,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		super(mf, peer, mid, payload, bf);
 		//this.annot = annot;list)
 	
 		this.stateexprs = Collections.unmodifiableList(stateexprs);
+		this.phantom = phantom;
 	}
 	
 	// msg does not carry state args -- recv getFireable and fire follows accordingly
 	public AssrtCoreERecv dropStateArgs()
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreERecv(this.peer, this.mid,
-				this.payload, this.ass, Collections.emptyList());
+				this.payload, this.ass, Collections.emptyList(), new LinkedHashMap<>());
 	}
 	
 	@Override
 	public AssrtCoreESend toDual(Role self)
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreESend(self, this.mid,
-				this.payload, this.ass, this.stateexprs);
+				this.payload, this.ass, this.stateexprs, new LinkedHashMap<>());
 	}
 
 	@Override
@@ -64,12 +70,20 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		//return this.expr;
 		return this.stateexprs;
 	}
+
+	@Override
+	public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
+	{
+		return this.phantom;
+	}
 	
 	@Override
 	public String toString()
 	{
 		//return super.toString() + "@" + this.ass + ";";
-		return super.toString() + stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
+		return super.toString()
+				+ phantomsToString()
+				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
 				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.expr + ">");  // FIXME
 				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");
 		/*return this.obj + getCommSymbol() + this.mid + this.payload

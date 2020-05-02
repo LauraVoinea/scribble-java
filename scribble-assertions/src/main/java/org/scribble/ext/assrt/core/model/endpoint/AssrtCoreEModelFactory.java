@@ -1,5 +1,6 @@
 package org.scribble.ext.assrt.core.model.endpoint;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,15 +21,18 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.model.endpoint.AssrtEModelFactory;
 
 public interface AssrtCoreEModelFactory extends AssrtEModelFactory
 {
 
 	AssrtCoreESend AssrtCoreESend(Role peer, MsgId<?> mid, Payload pay,
-			AssrtBFormula ass, List<AssrtAFormula> sexprs);
+			AssrtBFormula ass, List<AssrtAFormula> sexprs,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms);
 	AssrtCoreERecv AssrtCoreERecv(Role peer, MsgId<?> mid, Payload pay,
-			AssrtBFormula ass, List<AssrtAFormula> sexprs);
+			AssrtBFormula ass, List<AssrtAFormula> sexprs,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms);
 	AssrtCoreEReq AssrtCoreEReq(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs);
 	AssrtCoreEAcc AssrtCoreEAcc(Role peer, MsgId<?> mid, Payload pay,

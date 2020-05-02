@@ -62,20 +62,22 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 		this.util.setEntry(((AssrtCoreEModelFactory) this.core.config.mf.local)
 				.newAssrtEState(Collections.emptySet(), svars, ass));
 		
-		build(lt, this.util.getEntry(), this.util.getExit(), new HashMap<>());
+		build(lt, this.util.getEntry(), this.util.getExit(), new HashMap<>(),
+				new LinkedHashMap<>());
 		return this.util.finalise();
 	}
 	
 	private void build(AssrtCoreLType lt, AssrtEState s1, AssrtEState s2,
-			Map<RecVar, AssrtEState> recs)
+			Map<RecVar, AssrtEState> recs,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		if (lt instanceof AssrtCoreLChoice)
 		{
 			AssrtCoreLChoice lc = (AssrtCoreLChoice) lt;
 			AssrtCoreLActionKind k = lc.getKind();
-			lc.cases.entrySet().stream().forEach(e ->
-			buildEdgeAndContinuation(s1, s2, recs, lc.role, k, e.getKey(),
-					e.getValue()));
+			lc.cases.entrySet().stream()
+					.forEach(e -> buildEdgeAndContinuation(s1, s2, recs, lc.role, k,
+							e.getKey(), e.getValue(), phantom));
 		}
 		else if (lt instanceof AssrtCoreLRec)
 		{
@@ -86,7 +88,10 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 
 			Map<RecVar, AssrtEState> tmp = new HashMap<>(recs);
 			tmp.put(lr.recvar, s1);
-			build(lr.body, s1, s2, tmp);
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> tmp2 = new LinkedHashMap<>(
+					phantom);
+			tmp2.putAll(lr.phantom);
+			build(lr.body, s1, s2, tmp, tmp2);
 		}
 		else
 		{
@@ -96,11 +101,12 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 
 	private void buildEdgeAndContinuation(AssrtEState s1, AssrtEState s2,
 			Map<RecVar, AssrtEState> recs, Role r, AssrtCoreLActionKind k,
-			AssrtCoreMsg a, AssrtCoreLType cont)
+			AssrtCoreMsg a, AssrtCoreLType cont,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		if (cont instanceof AssrtCoreLEnd)
 		{
-			this.util.addEdge(s1, toEAction(r, k, a), s2);
+			this.util.addEdge(s1, toEAction(r, k, a, phantom), s2);
 		}
 		else if (cont instanceof AssrtCoreRecVar)
 		{
@@ -113,7 +119,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			//List<AssrtDataTypeVar> annotvars = s.getAnnotVars().keySet().stream().collect(Collectors.toList());
 
 			this.util.addEdge(s1, toEAction(r, k, a, //annotvars,
-					annotexprs), s);
+					annotexprs, phantom), s);
 		}
 		else
 		{
@@ -126,26 +132,28 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			{
 				// Cf. AssrtCoreGDo.inline, f/w rec statevar expr inlining
 				LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = ((AssrtCoreLRec) cont).statevars;
-				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()));
+				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()), phantom);
 			}
 			else
 			{
-				tmp = toEAction(r, k, a);
+				tmp = toEAction(r, k, a, phantom);
 			}
 			this.util.addEdge(s1, tmp, s);
-			build(cont, s, s2, recs);
+			build(cont, s, s2, recs, new LinkedHashMap<>());  // phantoms cleared
 		}
 	}
 	
-	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a)
+	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		//return toEAction(r, k, a, AssrtCoreESend.DUMMY_VAR, AssrtCoreESend.ZERO);
-		return toEAction(r, k, a, Collections.emptyList());
+		return toEAction(r, k, a, Collections.emptyList(), phantom);
 	}
 
 	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
 			//AssrtDataTypeVar annot, AssrtArithFormula expr)
-			List<AssrtAFormula> annotexprs)
+			List<AssrtAFormula> annotexprs,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		AssrtCoreEModelFactory ef = (AssrtCoreEModelFactory) this.util.mf.local;  // FIXME: factor out
 		if (k.equals(AssrtCoreLActionKind.SEND))
@@ -156,7 +164,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
 					a.ass, //annot,
-					annotexprs);
+					annotexprs, phantom);
 
 		}
 		else if (k.equals(AssrtCoreLActionKind.RECV))
@@ -168,13 +176,17 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
 					a.ass, //annot,
-					annotexprs);
+					annotexprs, phantom);
 
 			// FIXME: local receive assertions -- why needed exactly?  should WF imply receive assertion always true?
 
 		}
 		else if (k.equals(AssrtCoreLActionKind.REQ))
 		{
+			if (!phantom.isEmpty())
+			{
+				throw new RuntimeException("TODO");
+			}
 			return ef.AssrtCoreEReq(r, a.op,
 					//new Payload(Arrays.asList(a.pays)),
 					new Payload(
@@ -185,6 +197,10 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 		}
 		else if (k.equals(AssrtCoreLActionKind.ACC))
 		{
+			if (!phantom.isEmpty())
+			{
+				throw new RuntimeException("TODO");
+			}
 			return ef.AssrtCoreEAcc(r, a.op,
 					//new Payload(Arrays.asList(a.pays)),
 					new Payload(

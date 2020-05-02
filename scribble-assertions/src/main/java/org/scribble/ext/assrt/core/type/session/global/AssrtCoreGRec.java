@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -91,13 +92,28 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		tmp.put(this.recvar, this.located);
 
 		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
-		this.statevars.entrySet().stream()  // ordered
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		/*this.statevars.entrySet().stream()  // ordered
 				.filter(x ->
 					{
 						Role r = this.located.get(x.getKey());
 						return r == null || r.equals(self);
 					})
-				.forEach(x -> svars.put(x.getKey(), x.getValue()));
+				.forEach(x -> svars.put(x.getKey(), x.getValue()));*/
+		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
+		{
+			AssrtIntVar v = e.getKey();
+			AssrtAFormula a = e.getValue();
+			Role r = this.located.get(v);
+			if (r == null || r.equals(self))
+			{
+				svars.put(v, a);
+			}
+			else
+			{
+				phantom.put(v, a);
+			}
+		}
 
 		Map<Role, Set<AssrtIntVar>> tmp2 = new HashMap<>(known);
 		Set<AssrtIntVar> tmp3 = tmp2.get(self);
@@ -108,7 +124,7 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		Set<AssrtIntVar> assVars = this.assertion.getIntVars();
 		Set<AssrtIntVar> k = known.get(self);
 		AssrtBFormula ass = this.assertion;
-		if (!k.containsAll(assVars))
+		if (!k.containsAll(assVars))  // FIXME: phantoms -- HERE: treat phantoms as known, i.e., assvars not really "projected" any more  // similarly in model building
 		{
 			assVars.retainAll(k);
 			if (!assVars.isEmpty())
@@ -124,8 +140,8 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 
 		return (proj instanceof AssrtCoreLRecVar) 
 				? AssrtCoreLEnd.END
-				: ((AssrtCoreLTypeFactory) core.config.tf.local).AssrtCoreLRec(null,
-						this.recvar, svars, proj, ass);
+				: ((AssrtCoreLTypeFactory) core.config.tf.local)
+						.AssrtCoreLRec(null, this.recvar, svars, proj, ass, phantom);
 	}
 
 	@Override

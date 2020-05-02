@@ -40,10 +40,11 @@ public class AssrtCoreLTypeFactory extends LTypeFactoryImpl
 	}
 
 	public AssrtCoreLRec AssrtCoreLRec(CommonTree source, RecVar rv,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> avars,
-			AssrtCoreLType body, AssrtBFormula bform)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
+			AssrtCoreLType body, AssrtBFormula bform,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
-		return new AssrtCoreLRec(source, rv, body, avars, bform);
+		return new AssrtCoreLRec(source, rv, body, svars, bform, phantom);
 	}
 
 	public AssrtCoreLRecVar AssrtCoreLRecVar(CommonTree source, RecVar rv,

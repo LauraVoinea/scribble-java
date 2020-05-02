@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.model.endpoint.action;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.scribble.core.model.ModelFactory;
@@ -12,6 +13,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSAcc;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtEAcc;
 
 public class AssrtCoreEAcc extends AssrtEAcc implements AssrtCoreEAction
@@ -54,6 +56,12 @@ public class AssrtCoreEAcc extends AssrtEAcc implements AssrtCoreEAction
 	{
 		//return this.expr;
 		return this.stateexprs;
+	}
+
+	@Override
+	public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
+	{
+		throw new RuntimeException("TODO");
 	}
 	
 	@Override

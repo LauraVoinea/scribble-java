@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.model.global;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.type.name.MsgId;
@@ -26,7 +27,8 @@ public class AssrtCoreEMsg extends AssrtCoreESend
 			Payload pay, AssrtBFormula ass)//, List<AssrtAFormula> sexprs)
 	{
 		//this(mf, peer, mid, pay, ass, sexprs, Collections.emptyMap());
-		super(mf, peer, mid, pay, ass, Collections.emptyList());  // TODO: empty state exprs, refactor
+		super(mf, peer, mid, pay, ass, Collections.emptyList(),
+				new LinkedHashMap<>());  // TODO: empty state exprs, refactor
 	}
 
 	/*public AssrtCoreEMsg(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay,
