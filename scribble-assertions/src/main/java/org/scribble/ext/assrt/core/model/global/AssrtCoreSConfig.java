@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1148,6 +1149,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		AssrtCoreLProjection proj = (AssrtCoreLProjection) core.getContext()
 				.getProjectedInlined(fullname, self);
 		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = proj.statevars;
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = null; // HERE FIXME
 		AssrtCoreLType body = proj.type;  // Guaranteed AssrtCoreLRec?
 		// Also need to collect svars from (immediately) nested recs -- i.e., svars from a subproto that actually becomes the top-level init state due to projection
 		while (body instanceof AssrtCoreLRec)  // CHECKME: loop necessary?
@@ -1160,10 +1162,13 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		Map<AssrtIntVar, AssrtAFormula> Vself = this.V.get(self);
 		if (!Vself.isEmpty())
 		{
+			Function<AssrtIntVar, AssrtAFormula> getInit = x -> svars.containsKey(x)
+					? svars.get(x) : phantom.get(x);
 			AssrtBFormula Vconj = Vself.entrySet().stream().map(x -> (AssrtBFormula)  // Cast needed
 					AssrtFormulaFactory.AssrtBinComp(AssrtBinCompFormula.Op.Eq,
 					AssrtFormulaFactory.AssrtIntVar(x.getKey().toString()), //x.getValue()
-					svars.get(x.getKey())))
+					//svars.get(x.getKey())
+					getInit.apply(x.getKey())))
 					// Special case treatment of statevar init exprs and "constants" deprecated from model building
 					// So have to look up init exprs "manually"
 					// Original intuition was to model "base case" and "induction step", but this is incompatible with unsat checking + (e.g.) loop counting
@@ -1175,6 +1180,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			toCheck = AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.Imply,
 					Vconj, toCheck);
 		}
+		System.out
+				.println("111: " + self + " ,, " + Vself + " ,, " + toCheck + " .. ");
 		return forallQuantifyFreeVars(core, fullname, toCheck).squash();
 	}			
 
@@ -1331,11 +1338,29 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 							(x1, x2) -> (AssrtBFormula) AssrtFormulaFactory
 									.AssrtBinBool(AssrtBinBFormula.Op.And, x1, x2)
 				).get();
-			System.out.println("111: " + Vself + " ;; " + Vconj);
 			lhs = (lhs == null) 
 					? Vconj
 					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, lhs,
 							Vconj);
+		}
+
+		// Phantoms -- HACK: Vphan hardcoded to succ's phantom initialisers
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = succ.getPhantoms();
+		if (!phantom.isEmpty())
+		{
+			AssrtBFormula Vphan = phantom.entrySet().stream()
+					.map(x -> (AssrtBFormula) AssrtFormulaFactory.AssrtBinComp(  // Cast needed for reduce
+							AssrtBinCompFormula.Op.Eq,
+							AssrtFormulaFactory.AssrtIntVar(x.getKey().toString()),
+							x.getValue()))
+					.reduce(
+							(x1, x2) -> (AssrtBFormula) AssrtFormulaFactory
+									.AssrtBinBool(AssrtBinBFormula.Op.And, x1, x2))
+					.get();
+			lhs = (lhs == null)
+					? Vphan
+					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, lhs,
+							Vphan);
 		}
 		
 		// Next, assertion from action (carried by msg for input actions)
