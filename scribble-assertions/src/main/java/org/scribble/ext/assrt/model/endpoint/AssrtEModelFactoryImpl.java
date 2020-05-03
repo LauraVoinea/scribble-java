@@ -73,7 +73,7 @@ public class AssrtEModelFactoryImpl extends EModelFactoryImpl
 	public EState EState(Set<RecVar> labs)  // Used in a more places than above "disabled" actions -- e.g., LInteractionSeqDel, to be uniform need to make an AssrtLInteractionSeqDel
 	{
 		return newAssrtEState(labs, new LinkedHashMap<>(),
-				AssrtTrueFormula.TRUE);
+				AssrtTrueFormula.TRUE, new LinkedHashMap<>());
 	}
 
 	
@@ -82,9 +82,9 @@ public class AssrtEModelFactoryImpl extends EModelFactoryImpl
 	@Override
 	public AssrtEState newAssrtEState(Set<RecVar> labs,
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,  // CHECKME: AssrtIntVar?
-			AssrtBFormula ass)
+			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
-		return new AssrtEState(labs, svars, ass);
+		return new AssrtEState(labs, svars, ass, phantom);
 	}
 
 	@Override

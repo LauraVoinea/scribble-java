@@ -117,8 +117,10 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 
 		Map<Role, Set<AssrtIntVar>> tmp2 = new HashMap<>(known);
 		Set<AssrtIntVar> tmp3 = tmp2.get(self);
-		tmp2.put(self, tmp3);
 		tmp3.addAll(svars.keySet());  // Agnostic to shadowing -- cf. AssrtCoreGProtocol and inserted top-level rec
+		tmp3.addAll(phantom.keySet());
+		tmp2.put(self, tmp3);
+
 		AssrtCoreLType proj = this.body.projectInlined(core, self, f, tmp2, tmp);
 
 		Set<AssrtIntVar> assVars = this.assertion.getIntVars();

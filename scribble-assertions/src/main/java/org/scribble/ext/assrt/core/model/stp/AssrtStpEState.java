@@ -21,11 +21,9 @@ import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEAction;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreERecv;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreESend;
 import org.scribble.ext.assrt.core.model.stp.action.AssrtStpEAction;
-import org.scribble.ext.assrt.core.model.stp.action.AssrtStpEReceive;
-import org.scribble.ext.assrt.core.model.stp.action.AssrtStpESend;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinCompFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
@@ -40,7 +38,8 @@ public class AssrtStpEState extends AssrtEState
 {
 	public AssrtStpEState(Set<RecVar> labs)
 	{
-		super(labs, new LinkedHashMap<>(), AssrtTrueFormula.TRUE);  // State-vars and rec-assertions not supported
+		super(labs, new LinkedHashMap<>(), AssrtTrueFormula.TRUE,
+				new LinkedHashMap<>());  // State-vars and rec-assertions not supported
 	}
 
 	public static AssrtStpEState from(AssrtCoreEModelFactory ef, AssrtEState init)
@@ -121,12 +120,12 @@ public class AssrtStpEState extends AssrtEState
 		if (a instanceof AssrtCoreESend)
 		{
 			AssrtCoreESend es = (AssrtCoreESend) a;
-			return (AssrtStpESend) barfoo(ef, vs, (EAction) es);
+			return barfoo(ef, vs, es);
 		}
 		else if (a instanceof AssrtCoreERecv)
 		{
 			AssrtCoreERecv er = (AssrtCoreERecv) a;
-			return (AssrtStpEReceive) barfoo(ef, vs, (EAction) er);
+			return barfoo(ef, vs, er);
 		}
 		else
 		{

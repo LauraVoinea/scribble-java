@@ -47,11 +47,12 @@ public class AssrtCoreLRec extends AssrtCoreRec<Local, AssrtCoreLType>
 						.map(x -> x.getKey() + " := " + x.getValue()).collect(  // FIXME: sort
 								Collectors.joining(", "))
 				+ ">"
-				+ "[" + this.phantom.keySet().stream().map(x -> x.toString())  // FIXME: sort
+				+ "[" + this.phantom.entrySet().stream()
+						.map(x -> x.getKey() + ":=" + x.getValue())  // FIXME: sort
 						.collect(Collectors.joining(", "))
 				+ "]"
 				+ this.assertion
-				//+ this.phantom.entrySet().stream().map(x -> "&&" + x.getValue()).collect(Collectors.joining())  // No: currently assertion is already monolithic
+				//+ this.phantom.entrySet().stream().map(x -> "&&" + x.getValue()).collect(Collectors.joining())  // No: currently actual assertion is already monolithic (here is init expr)
 				+ "." + this.body;
 	}
 

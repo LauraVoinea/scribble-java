@@ -188,13 +188,13 @@ global protocol Proto1(role A, role B, role C) @'<x:B=0> x=0' {  // FIXME: local
 }
 //*/
 
-global protocol Proto1(role A, role B, role C) {  // FIXME: localise assertion
+global protocol Proto1(role A, role B, role C) {
 	1() from A to B;
 	2() from B to C;
 	do Proto1Aux(A, B, C); @'<1>'
 }
 
-aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {  // FIXME: localise assertion
+aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {
 	3() from A to B;
 	4() from B to C;
 }

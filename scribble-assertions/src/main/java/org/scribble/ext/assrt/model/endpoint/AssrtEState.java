@@ -23,8 +23,8 @@ import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
@@ -32,26 +32,29 @@ import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 public class AssrtEState extends EState
 {
 	private final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars; // Note: even with syntactic single var per rec, nested recs can lead to mulitple vars per state
-			// CHECKME: supported outside of assrt-core?
+	// CHECKME: supported outside of assrt-core?  // TODO: should be core, and core should be primary
+
+	private final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
 	
 	private //final
 			AssrtBFormula ass;  // TODO FIXME: make Set -- and eliminate placeholder True from various, use empty set instead
 
 	// FIXME: make AssrtIntTypeVar?
 	protected AssrtEState(Set<RecVar> labs, LinkedHashMap<AssrtIntVar, AssrtAFormula> vars,
-			AssrtBFormula ass)  // FIXME: currently syntactically restricted to one annot var
+			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)  // FIXME: currently syntactically restricted to one annot var
 	{
 		super(labs);
 		//this.vars = Collections.unmodifiableMap(vars);
 		this.statevars = new LinkedHashMap<>(vars);  // N.B. mutated by addStateVars
 		this.ass = ass;
+		this.phantom = new LinkedHashMap<>(phantom);
 	}
 	
 	@Override
 	protected AssrtEState cloneNode(ModelFactory mf, Set<RecVar> labs)
 	{
 		return ((AssrtEModelFactory) mf.local).newAssrtEState(labs, this.statevars,
-				this.ass);
+				this.ass, this.phantom);
 	}
 	
 	public LinkedHashMap<AssrtIntVar, AssrtAFormula> getStateVars()
@@ -62,6 +65,11 @@ public class AssrtEState extends EState
 	public AssrtBFormula getAssertion()
 	{
 		return this.ass;
+	}
+
+	public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
+	{
+		return this.phantom;
 	}
 
 	// For public access, do via AssrtEGraphBuilderUtil
@@ -76,6 +84,13 @@ public class AssrtEState extends EState
 						: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, this.ass, ass);  // FIXME: make Set
 	}
 
+	// For public access, do via AssrtEGraphBuilderUtil
+	protected final void addPhantoms(
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+	{
+		this.phantom.putAll(phantom);  // FIXME: ordering w.r.t. nested recs (i.e., multiple calls to here)
+	}
+
 	@Override
 	protected String getNodeLabel()
 	{
@@ -86,7 +101,12 @@ public class AssrtEState extends EState
 				+ " <" + this.statevars.entrySet().stream()
 						.map(x -> x.getKey() + ":=" + x.getValue())
 						.collect(Collectors.joining(", "))
-				+ "> " + this.ass
+				+ ">"
+				+ "[" + this.phantom.entrySet().stream()
+						.map(x -> x.getKey() + ":=" + x.getValue())
+						.collect(Collectors.joining(", "))
+				+ "] "
+				+ this.ass
 				+ "\"";  // FIXME: would be more convenient for this method to return only the label body
 	}
 
@@ -110,6 +130,7 @@ public class AssrtEState extends EState
 		hash = 31 * hash + super.hashCode();  // N.B. uses state ID only -- following super pattern
 		hash = 31 * hash + this.statevars.hashCode();
 		hash = 31 * hash + this.ass.hashCode();
+		hash = 31 * hash + this.phantom.hashCode();
 		return hash;
 	}
 
@@ -125,8 +146,9 @@ public class AssrtEState extends EState
 			return false;
 		}
 		AssrtEState them = (AssrtEState) o;
-		return super.equals(o) && this.statevars.equals(them.statevars)
-				&& this.ass.equals(them.ass);  // Checks canEquals
+		return super.equals(o)  // Checks canEquals
+				&& this.statevars.equals(them.statevars)
+				&& this.ass.equals(them.ass) && this.phantom.equals(them.phantom);
 	}
 
 	@Override

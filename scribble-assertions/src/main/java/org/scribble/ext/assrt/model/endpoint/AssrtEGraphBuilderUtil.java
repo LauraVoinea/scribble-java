@@ -24,6 +24,12 @@ public class AssrtEGraphBuilderUtil extends EGraphBuilderUtil
 		//((AssrtEState) this.entry).addAnnotVars(vars);
 		s.addStateVars(svars, ass);
 	}
+
+	public void addPhantoms(AssrtEState s,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+	{
+		s.addPhantoms(phantom);
+	}
 	
 	@Override
 	public AssrtEState getEntry()

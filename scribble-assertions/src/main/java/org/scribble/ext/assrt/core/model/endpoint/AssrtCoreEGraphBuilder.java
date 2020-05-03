@@ -60,7 +60,8 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			AssrtBFormula ass, AssrtCoreLType lt)
 	{
 		this.util.setEntry(((AssrtCoreEModelFactory) this.core.config.mf.local)
-				.newAssrtEState(Collections.emptySet(), svars, ass));
+				.newAssrtEState(Collections.emptySet(), svars, ass,
+						new LinkedHashMap<>()));
 		
 		build(lt, this.util.getEntry(), this.util.getExit(), new HashMap<>(),
 				new LinkedHashMap<>());
@@ -85,6 +86,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 
 			//this.util.addAnnotVarInits(s1, Stream.of(lr.annot).collect(Collectors.toMap(a -> a, a -> lr.init)));
 			this.util.addStateVars(s1, lr.statevars, lr.assertion);
+			this.util.addPhantoms(s1, lr.phantom);
 
 			Map<RecVar, AssrtEState> tmp = new HashMap<>(recs);
 			tmp.put(lr.recvar, s1);
@@ -124,7 +126,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 		else
 		{
 			AssrtEState s = (AssrtEState) ((AssrtCoreEModelFactory) this.util.mf.local)
-					.EState(Collections.emptySet());
+					.EState(Collections.emptySet());  // statevars added by upcoming build
 					// FIXME: call Assrt directly? -- no "vars" here though (intermediate sequence states), only on rec states
 
 			EAction tmp;

@@ -33,7 +33,7 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 		super(mf, peer, mid, payload, ass);
 		//this.annot = annot;
 		this.sexprs = Collections.unmodifiableList(stateexprs);
-		this.phantom = phantom;
+		this.phantom = new LinkedHashMap<>(phantom);
 	}
 	
 	@Deprecated

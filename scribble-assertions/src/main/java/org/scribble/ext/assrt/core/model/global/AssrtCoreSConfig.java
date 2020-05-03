@@ -308,15 +308,16 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 
 		// "forward" recs will have state vars (svars) but no action state-exprs (aexprs)
 		AssrtEState s = (AssrtEState) succ.curr;
+		Map<AssrtIntVar, AssrtAFormula> Vself = V.get(self);
+		Set<AssrtBFormula> Rself = R.get(self);  // Cf. Fself
+
 		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = s.getStateVars();
 		List<AssrtAFormula> aexprs = a.getStateExprs();
 				// Following must come after F update (addAnnotBexprToF)
 				// Update R from state -- entering a rec "forwards", i.e., not via a continue
 		if (!svars.isEmpty() || !aexprs.isEmpty())
 		{
-			Map<AssrtIntVar, AssrtAFormula> Vself = V.get(self);
-			Map<AssrtIntVar, AssrtAFormula> Vself_orig = new HashMap<>(Vself);
-			Set<AssrtBFormula> Rself = R.get(self);  // Cf. Fself
+			//Map<AssrtIntVar, AssrtAFormula> Vself_orig = new HashMap<>(Vself);
 			//boolean isEntry = aexprs.isEmpty() && !svars.isEmpty();  
 			boolean isContinue = !aexprs.isEmpty();
 					// Rec-entry: expr args already inlined into the rec statevars (i.e., by proto inlining) -- CHECKME: means "forwards entry?" robust?  refactor?
@@ -372,12 +373,31 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 					&& sexpr.toString().equals(svar.toString()))*/  // Now disabled, related to deprecating special case treatment of state var init exprs and "constants" from model building
 				)
 					{
+					// CHECKME: inside loop?
 						gcVR(Vself, Rself, svar);  // GC V , sexpr may be different than that removed
 						gcF(Fself, svar);
 				}
 				Vself.put(svar, sexpr);
 			}
-			Rself.add(s.getAssertion());
+		}
+
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = s.getPhantoms();
+		if (!phantom.isEmpty())
+		{
+			for (Entry<AssrtIntVar, AssrtAFormula> e : phantom.entrySet())
+			{
+				AssrtIntVar v = e.getKey();
+				AssrtAFormula sexpr = AssrtCoreSGraphBuilderUtil
+						.renameIntVarAsFormula(v);  // Initialiser discarded
+				Vself.put(v, sexpr);
+				// CHECKME: gc? cf. above
+			}
+		}
+		
+		//if (!svars.isEmpty() || !aexprs.isEmpty() || !phantom.isEmpty())  // CHECKME
+		{
+			AssrtBFormula tmp = s.getAssertion();
+			Rself.add(tmp);
 			//compactR(Rself);  // TODO? (see above)
 			compactF(Rself);
 		}
@@ -1311,6 +1331,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 							(x1, x2) -> (AssrtBFormula) AssrtFormulaFactory
 									.AssrtBinBool(AssrtBinBFormula.Op.And, x1, x2)
 				).get();
+			System.out.println("111: " + Vself + " ;; " + Vconj);
 			lhs = (lhs == null) 
 					? Vconj
 					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, lhs,

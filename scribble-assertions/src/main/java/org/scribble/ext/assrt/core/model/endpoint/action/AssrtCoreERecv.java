@@ -33,7 +33,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		//this.annot = annot;list)
 	
 		this.stateexprs = Collections.unmodifiableList(stateexprs);
-		this.phantom = phantom;
+		this.phantom = new LinkedHashMap<>(phantom);
 	}
 	
 	// msg does not carry state args -- recv getFireable and fire follows accordingly

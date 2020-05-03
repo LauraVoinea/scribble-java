@@ -84,7 +84,7 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 	private static Map<Role, Map<AssrtIntVar, AssrtAFormula>> makeV(
 			Map<Role, EFsm> P)
 	{
-		Map<Role, Map<AssrtIntVar, AssrtAFormula>> R = P.entrySet()
+		Map<Role, Map<AssrtIntVar, AssrtAFormula>> V = P.entrySet()
 				.stream().collect(Collectors.toMap(
 						Entry::getKey,
 						e -> new HashMap<>(
@@ -93,14 +93,25 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 										.entrySet().stream().collect(Collectors.toMap(
 												Entry::getKey,
 												//x -> renameIntVarAsFormula(x.getKey())
-												x -> x.getValue()
+												Entry::getValue
 												)))));
 		/*Map<Role, Map<AssrtDataTypeVar, AssrtArithFormula>> R = P.keySet().stream().collect(Collectors.toMap(r -> r, r ->
 				Stream.of(false).collect(Collectors.toMap(
 						x -> AssrtCoreESend.DUMMY_VAR,
 						x -> AssrtCoreESend.ZERO))
 			));*/
-		return R;
+		for (Role r : P.keySet())
+		{
+			Map<AssrtIntVar, AssrtAFormula> tmp = new HashMap<>();
+			V.put(r, tmp);
+			for (Entry<AssrtIntVar, AssrtAFormula> e : ((AssrtEState) P
+					.get(r).graph.init).getPhantoms().entrySet())
+			{
+				tmp.put(e.getKey(), e.getValue());
+			}
+		}
+
+		return V;
 	}
 
 	private static Map<Role, Set<AssrtBFormula>> makeR(Map<Role, EFsm> P)

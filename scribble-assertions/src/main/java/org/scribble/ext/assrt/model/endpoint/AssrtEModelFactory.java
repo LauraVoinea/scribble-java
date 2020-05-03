@@ -21,7 +21,7 @@ public interface AssrtEModelFactory extends EModelFactory
 	
 	AssrtEState newAssrtEState(Set<RecVar> labs,
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula ass);
+			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom);
 
 	AssrtESend newAssrtESend(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula bf);
