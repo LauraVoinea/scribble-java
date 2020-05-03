@@ -47,16 +47,19 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars;
 	public final AssrtBFormula assertion;  // non-null (True)
 	
+	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+
 	public AssrtCoreLProjection(List<ProtoMod> mods, LProtoName fullname,
 			List<Role> rs, Role self, List<MemberName<? extends NonRoleParamKind>> ps,
 			GProtoName global, AssrtCoreLType type,
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula ass)
+			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		super(mods, fullname, rs, self, ps, global, null);
 		this.type = type;
 		this.statevars = new LinkedHashMap<>(svars);  // TODO: unmod
 		this.assertion = ass;
+		this.phantom = new LinkedHashMap<>(phantom);
 	}
 
 	@Override
@@ -70,10 +73,11 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 	public LProjection reconstruct(CommonTree source, List<ProtoMod> mods,
 			LProtoName fullname, List<Role> rs, Role self,
 			List<MemberName<? extends NonRoleParamKind>> ps, AssrtCoreLType type,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		return new AssrtCoreLProjection(mods, fullname, rs, this.self, ps,
-				this.global, type, svars, ass);
+				this.global, type, svars, ass, phantom);
 	}
 
 	// Pre: stack.peek is the sig for the calling Do (or top-level entry)
@@ -107,13 +111,16 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 				+ paramsToString()
 				+ rolesToString()
 				+ " projects " + this.global
-				+ " @<"
-				+ this.statevars.entrySet().stream()
+				+ " @<" + this.statevars.entrySet().stream()
 						//.map(x -> x.getKey() + " := \"" + x.getValue() + "\"")
 						.map(x -> x.getKey() + " := " + x.getValue())
 						.collect(Collectors.joining(", "))
-				//+ "> \"" + this.assertion + "\""
-				+ "> " + this.assertion
+				+ ">"
+				+ "[" + this.phantom.entrySet().stream()
+						.map(x -> x.getKey() + " := " + x.getValue())
+						.collect(Collectors.joining(", "))
+				+ "] "
+				+ this.assertion //"\"" + this.assertion + "\""
 				+ " {\n" + this.type + "\n}";
 	}
 
@@ -129,6 +136,7 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 		hash = 31 * hash + this.type.hashCode();
 		hash = 31 * hash + this.statevars.hashCode();
 		hash = 31 * hash + this.assertion.hashCode();
+		hash = 31 * hash + this.phantom.hashCode();
 		return hash;
 	}
 
@@ -149,7 +157,8 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 				&& this.self.equals(them.self) && this.params.equals(them.params)
 				&& this.global.equals(them.global) && this.type.equals(them.type)
 				&& this.statevars.equals(them.statevars)
-				&& this.assertion.equals(them.assertion);
+				&& this.assertion.equals(them.assertion)
+				&& this.phantom.equals(them.phantom);
 	}
 
 	@Override

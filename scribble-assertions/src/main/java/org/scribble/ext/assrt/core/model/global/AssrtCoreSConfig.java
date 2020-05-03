@@ -1148,8 +1148,10 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 
 		AssrtCoreLProjection proj = (AssrtCoreLProjection) core.getContext()
 				.getProjectedInlined(fullname, self);
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = proj.statevars;
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = null; // HERE FIXME
+		// CHECKME: some redundancy between nested top-level LRec and LProjection info
+		AssrtCoreLRec top = (AssrtCoreLRec) proj.type;
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = top.statevars;
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = top.phantom;
 		AssrtCoreLType body = proj.type;  // Guaranteed AssrtCoreLRec?
 		// Also need to collect svars from (immediately) nested recs -- i.e., svars from a subproto that actually becomes the top-level init state due to projection
 		while (body instanceof AssrtCoreLRec)  // CHECKME: loop necessary?
@@ -1180,8 +1182,6 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			toCheck = AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.Imply,
 					Vconj, toCheck);
 		}
-		System.out
-				.println("111: " + self + " ,, " + Vself + " ,, " + toCheck + " .. ");
 		return forallQuantifyFreeVars(core, fullname, toCheck).squash();
 	}			
 

@@ -203,7 +203,7 @@ aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {  // Testi
 //*/
 
 
-//*
+/*
 global protocol Proto1(role A, role B, role C) {  // Testing phantom statevars
 	1() from A to B;
 	do Proto1Aux(A, B, C); @'<1>'
@@ -217,14 +217,14 @@ aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {
 
 
 
-/*
+//*
 global protocol Proto1(role A, role B, role C)
 {
 	start(n0:int, t0:int) from A to B;  @'(0<=n0 && n0<100) && 0<t0'
 	do Aux(A, B, C);  @'<n0, t0>'
 }
 
-aux global protocol Aux(role A, role B, role C) @'<n:B=0, t:B=0> (0 <= n && n < 100) && 0 < t'
+aux global protocol Aux(role A, role B, role C) @'<n:B=0, t:B=1> (0 <= n && n < 100) && 0 < t'
 //aux global protocol Aux(role A, role B, role C) @'B<n:int=0 (0 <= n && n < 100)> B<t:int=0 (0 < t)>'
 //aux global protocol Aux(role A, role B, role C) @'B<n:int{0 <= n && n < 100}=0, t:int{0 < t}=0>'
 {

@@ -188,17 +188,32 @@ public class AssrtCoreGProtocol extends GProtocol
 		LProtoName fullname = InlinedProjector
 				.getFullProjectionName(this.fullname, self);
 
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();  // Corresponds to known, but need LinkedHashMap here
-		this.statevars.entrySet().stream()  // ordered
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();  // Corresponds to known (modulo phantom), but need LinkedHashMap here
+		/*this.statevars.entrySet().stream()  // ordered
 				.filter(x ->
 					{
 						Role r = this.located.get(x.getKey());
 						return r == null || r.equals(self);
 					})
-				.forEach(x -> svars.put(x.getKey(), x.getValue()));
+				.forEach(x -> svars.put(x.getKey(), x.getValue()));*/
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
+		{
+			AssrtIntVar k = e.getKey();
+			AssrtAFormula v = e.getValue();
+			Role r = this.located.get(k);
+			if (r == null || r.equals(self))
+			{
+				svars.put(k, v);
+			}
+			else
+			{
+				phantom.put(k, v);
+			}
+		}
 
 		return new AssrtCoreLProjection(this.mods, fullname, this.roles, self,
-				this.params, this.fullname, proj, svars, this.assertion);
+				this.params, this.fullname, proj, svars, this.assertion, phantom);
 	}
 
 	// N.B. no "fixing" passes done here -- need breadth-first passes to be sequentialised for subproto visiting
