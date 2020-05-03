@@ -102,8 +102,7 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 			));*/
 		for (Role r : P.keySet())
 		{
-			Map<AssrtIntVar, AssrtAFormula> tmp = new HashMap<>();
-			V.put(r, tmp);
+			Map<AssrtIntVar, AssrtAFormula> tmp = V.get(r);
 			for (Entry<AssrtIntVar, AssrtAFormula> e : ((AssrtEState) P
 					.get(r).graph.init).getPhantoms().entrySet())
 			{

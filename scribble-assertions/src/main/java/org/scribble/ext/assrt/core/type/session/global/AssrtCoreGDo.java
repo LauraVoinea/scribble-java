@@ -108,8 +108,11 @@ public class AssrtCoreGDo extends AssrtCoreDo<Global, AssrtCoreGType>
 		gpro.statevars.keySet().forEach(x -> svars.put(x, sexprs.next()));  // gpro.statevars keyset is ordered
 				// Do-inlining is implicitly a f/w entry: also "inline" (i.e., replace) target svar exprs by this.sexprs -- sexprs o/w only carried by recvar (which f/w entry is not) 
 		// Cf. AssrtCoreEGraphBuilder.buildEdgeAndContinuation, AssrtCoreLRec `cont` f/w rec
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		gpro.statevars.keySet().stream().filter(x -> gpro.located.get(x) != null)
+				.forEach(x -> phantom.put(x, gpro.statevars.get(x)));
 		return tf.AssrtCoreGRec(null, rv, inlined, svars, gpro.assertion,
-				gpro.located);
+				gpro.located, phantom);
 	}
 
 	@Override

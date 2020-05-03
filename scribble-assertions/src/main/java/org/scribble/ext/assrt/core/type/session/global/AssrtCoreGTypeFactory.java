@@ -45,9 +45,10 @@ public class AssrtCoreGTypeFactory extends GTypeFactoryImpl
 	
 	public AssrtCoreGRec AssrtCoreGRec(CommonTree source, RecVar rv,
 			AssrtCoreGType body, LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, Role> located)
+			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, Role> located,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
-		return new AssrtCoreGRec(source, rv, body, svars, ass, located);
+		return new AssrtCoreGRec(source, rv, body, svars, ass, located, phantom);
 	}
 	
 	public AssrtCoreGRecVar AssrtCoreGRecVar(CommonTree source, RecVar rv,

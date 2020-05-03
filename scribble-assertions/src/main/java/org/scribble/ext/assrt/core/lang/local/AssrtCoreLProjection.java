@@ -99,7 +99,7 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 		}
 		AssrtCoreEGraphBuilder b = (AssrtCoreEGraphBuilder) core.config.vf.local
 				.EGraphBuilder(core);  // N.B. currently, does not actually implement the visitor pattern
-		return b.build(this.statevars, this.assertion, this.type);
+		return b.build(this.statevars, this.assertion, this.type, this.phantom);
 	}
 	
 	@Override

@@ -1146,18 +1146,19 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			return AssrtTrueFormula.TRUE;
 		}
 
+		// CHECKME: using proj (local type, not only CFSM)
 		AssrtCoreLProjection proj = (AssrtCoreLProjection) core.getContext()
 				.getProjectedInlined(fullname, self);
-		// CHECKME: some redundancy between nested top-level LRec and LProjection info
-		AssrtCoreLRec top = (AssrtCoreLRec) proj.type;
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = top.statevars;
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = top.phantom;
+		// CHECKME: some redundancy between nested top-level LRec and LProjection info -- but maybe conflict with rec pruning
 		AssrtCoreLType body = proj.type;  // Guaranteed AssrtCoreLRec?
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = proj.statevars;
 		// Also need to collect svars from (immediately) nested recs -- i.e., svars from a subproto that actually becomes the top-level init state due to projection
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = proj.phantom;
 		while (body instanceof AssrtCoreLRec)  // CHECKME: loop necessary?
 		{
 			AssrtCoreLRec cast = (AssrtCoreLRec) body;
 			svars.putAll(cast.statevars);
+			phantom.putAll(cast.phantom);
 			body = cast.body;
 		}
 

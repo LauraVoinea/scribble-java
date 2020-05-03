@@ -180,9 +180,10 @@ global protocol HighLow(role A, role B, role C) {
 //*/
 
 
-/*
+//*
 //global protocol Proto1(role A, role B, role C) @'<n:B=1, t:B=1> (0 <= n && n < 100) && 0 < t' {
-global protocol Proto1(role A, role B, role C) @'<x:B=0> x=0' {  // FIXME: localise assertion
+global protocol Proto1(role A, role B, role C) @'<x:B=0> x=0' {  // FIXME: rec pruning?
+//global protocol Proto1(role A, role B, role C) @'<x:=0> x=0' {  // testing initial makeV
 	1() from A to B;
 	2() from B to C;
 }
@@ -217,7 +218,7 @@ aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {
 
 
 
-//*
+/*
 global protocol Proto1(role A, role B, role C)
 {
 	start(n0:int, t0:int) from A to B;  @'(0<=n0 && n0<100) && 0<t0'

@@ -128,10 +128,13 @@ public class AssrtCoreGProtocol extends GProtocol
 		AssrtCoreGType inlined = this.type.inline(v);  
 				// CHECKME: refactor type.inline back into visitor pattern?  // No: cannot, because AssrtCoreSTypes do not extend base Choice/etc
 		RecVar rv = v.getInlinedRecVar(sig);
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		this.statevars.keySet().stream().filter(x -> this.located.get(x) != null)
+				.forEach(x -> phantom.put(x, this.statevars.get(x)));
 		AssrtCoreGTypeFactory tf = (AssrtCoreGTypeFactory) v.core.config.tf.global;
 		AssrtCoreGRec rec = tf.AssrtCoreGRec(null, rv, inlined,
 				//new LinkedHashMap<>(), AssrtTrueFormula.TRUE, new LinkedHashMap<>());
-				this.statevars, this.assertion, this.located);
+				this.statevars, this.assertion, this.located, phantom);
 		AssrtCoreGType pruned = rec.pruneRecs((AssrtCore) v.core);  // Empty statevars/located here; recorded by parent proto
 
 		// TODO

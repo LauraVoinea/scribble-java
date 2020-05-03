@@ -57,11 +57,11 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	
 	// Not LProtocol arg, LProjection currently not subtype of LProtocol
 	public EGraph build(LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula ass, AssrtCoreLType lt)
+			AssrtBFormula ass, AssrtCoreLType lt,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		this.util.setEntry(((AssrtCoreEModelFactory) this.core.config.mf.local)
-				.newAssrtEState(Collections.emptySet(), svars, ass,
-						new LinkedHashMap<>()));
+				.newAssrtEState(Collections.emptySet(), svars, ass, phantom));
 		
 		build(lt, this.util.getEntry(), this.util.getExit(), new HashMap<>(),
 				new LinkedHashMap<>());

@@ -36,12 +36,16 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 	// Pre: same keys as super.statevars
 	public final LinkedHashMap<AssrtIntVar, Role> located;  // maps to null for "global" (back compat)
 
+	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+
 	protected AssrtCoreGRec(CommonTree source, RecVar rv, AssrtCoreGType body,
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
-			LinkedHashMap<AssrtIntVar, Role> located)
+			LinkedHashMap<AssrtIntVar, Role> located,
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
 	{
 		super(source, rv, body, svars, ass);
-		this.located = located;
+		this.located = new LinkedHashMap<>(located);
+		this.phantom = new LinkedHashMap<>(phantom);
 	}
 
 	@Override
@@ -53,9 +57,14 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
 		this.statevars.entrySet().forEach(x -> svars.put(x.getKey(),
 				(AssrtAFormula) x.getValue().disamb(env1)));  // Unnecessary, disallow mutual var refs?
+		this.phantom.entrySet()
+				.forEach(x -> env1.put(x.getKey(), x.getValue().getSort(env1)));
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		this.phantom.entrySet().forEach(x -> phantom.put(x.getKey(),
+				(AssrtAFormula) x.getValue().disamb(env1)));
 		return ((AssrtCoreGTypeFactory) core.config.tf.global).AssrtCoreGRec(
 				getSource(), this.recvar, this.body.disamb(core, env1), svars,
-				(AssrtBFormula) this.assertion.disamb(env1), this.located);
+				(AssrtBFormula) this.assertion.disamb(env1), this.located, phantom);
 	}
 
 	@Override
@@ -63,7 +72,7 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 	{
 		return ((AssrtCoreGTypeFactory) core.config.tf.global).AssrtCoreGRec(
 				getSource(), this.recvar, this.body.substitute(core, subs), this.statevars,
-				this.assertion, this.located);
+				this.assertion, this.located, this.phantom);
 	}
 
 	@Override
@@ -103,14 +112,15 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
 		{
 			AssrtIntVar v = e.getKey();
-			AssrtAFormula a = e.getValue();
 			Role r = this.located.get(v);
 			if (r == null || r.equals(self))
 			{
+				AssrtAFormula a = e.getValue();
 				svars.put(v, a);
 			}
 			else
 			{
+				AssrtAFormula a = this.phantom.get(v);
 				phantom.put(v, a);
 			}
 		}
@@ -175,7 +185,12 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 										: ":" + this.located.get(x.getKey()) + " ")
 								+ "= " + x.getValue())
 						.collect(Collectors.joining(", "))
-				+ ">" + this.assertion + "." + this.body;
+				+ ">["
+				+ this.phantom.entrySet().stream()
+						.map(x -> x.getKey() + ":=" + x.getValue())
+						.collect(Collectors.joining(", "))
+				+ "]"
+				+ this.assertion + "." + this.body;
 	}
 
 	@Override
@@ -190,7 +205,9 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 			return false;
 		}
 		AssrtCoreGRec them = (AssrtCoreGRec) obj;
-		return super.equals(obj) && this.located.equals(them.located);  // Does canEquals
+		return super.equals(obj)  // Does canEquals
+				&& this.located.equals(them.located)
+				&& this.phantom.equals(them.phantom);
 	}
 	
 	@Override
@@ -205,6 +222,7 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		int hash = 2333;
 		hash = 31 * hash + super.hashCode();
 		hash = 31 * hash + this.located.hashCode();
+		hash = 31 * hash + this.phantom.hashCode();
 		return hash;
 	}
 }
