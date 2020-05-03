@@ -26,6 +26,9 @@ import org.scribble.core.visit.local.EGraphBuilder;
 import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.kind.AssrtAnnotDataKind;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
@@ -58,19 +61,19 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	// Not LProtocol arg, LProjection currently not subtype of LProtocol
 	public EGraph build(LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
 			AssrtBFormula ass, AssrtCoreLType lt,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)  // Phantoms from init state
 	{
 		this.util.setEntry(((AssrtCoreEModelFactory) this.core.config.mf.local)
-				.newAssrtEState(Collections.emptySet(), svars, ass, phantom));
+				.newAssrtEState(Collections.emptySet(), svars, ass, phantom));  // "Working" phantoms -- carry over from states to edges
 		
 		build(lt, this.util.getEntry(), this.util.getExit(), new HashMap<>(),
-				new LinkedHashMap<>());
+				new LinkedHashMap<>(), AssrtTrueFormula.TRUE);
 		return this.util.finalise();
 	}
 	
 	private void build(AssrtCoreLType lt, AssrtEState s1, AssrtEState s2,
 			Map<RecVar, AssrtEState> recs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // "Working" phantoms -- carry over from states to edges
 	{
 		if (lt instanceof AssrtCoreLChoice)
 		{
@@ -78,7 +81,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			AssrtCoreLActionKind k = lc.getKind();
 			lc.cases.entrySet().stream()
 					.forEach(e -> buildEdgeAndContinuation(s1, s2, recs, lc.role, k,
-							e.getKey(), e.getValue(), phantom));
+							e.getKey(), e.getValue(), phantom, phantAss));
 		}
 		else if (lt instanceof AssrtCoreLRec)
 		{
@@ -93,7 +96,18 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> tmp2 = new LinkedHashMap<>(
 					phantom);
 			tmp2.putAll(lr.phantom);
-			build(lr.body, s1, s2, tmp, tmp2);
+
+			AssrtBFormula tmp3 = phantAss;
+			if (!lr.assertion.equals(AssrtTrueFormula.TRUE))
+			{
+				tmp3 = phantAss.equals(AssrtTrueFormula.TRUE)
+						? lr.assertion
+						: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And,
+								phantAss, lr.assertion);
+			}
+			tmp3 = AssrtTrueFormula.TRUE;  // TODO FIXME -- getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
+
+			build(lr.body, s1, s2, tmp, tmp2, tmp3);
 		}
 		else
 		{
@@ -104,11 +118,11 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	private void buildEdgeAndContinuation(AssrtEState s1, AssrtEState s2,
 			Map<RecVar, AssrtEState> recs, Role r, AssrtCoreLActionKind k,
 			AssrtCoreMsg a, AssrtCoreLType cont,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
 	{
 		if (cont instanceof AssrtCoreLEnd)
 		{
-			this.util.addEdge(s1, toEAction(r, k, a, phantom), s2);
+			this.util.addEdge(s1, toEAction(r, k, a, phantom, phantAss), s2);
 		}
 		else if (cont instanceof AssrtCoreRecVar)
 		{
@@ -121,7 +135,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			//List<AssrtDataTypeVar> annotvars = s.getAnnotVars().keySet().stream().collect(Collectors.toList());
 
 			this.util.addEdge(s1, toEAction(r, k, a, //annotvars,
-					annotexprs, phantom), s);
+					annotexprs, phantom, phantAss), s);
 		}
 		else
 		{
@@ -134,30 +148,39 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			{
 				// Cf. AssrtCoreGDo.inline, f/w rec statevar expr inlining
 				LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = ((AssrtCoreLRec) cont).statevars;
-				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()), phantom);
+				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()), phantom,
+						phantAss);
 			}
 			else
 			{
-				tmp = toEAction(r, k, a, phantom);
+				tmp = toEAction(r, k, a, phantom, phantAss);
 			}
 			this.util.addEdge(s1, tmp, s);
-			build(cont, s, s2, recs, new LinkedHashMap<>());  // phantoms cleared
+			build(cont, s, s2, recs, new LinkedHashMap<>(), AssrtTrueFormula.TRUE);  // phantoms cleared
 		}
 	}
 	
 	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
 	{
 		//return toEAction(r, k, a, AssrtCoreESend.DUMMY_VAR, AssrtCoreESend.ZERO);
-		return toEAction(r, k, a, Collections.emptyList(), phantom);
+		return toEAction(r, k, a, Collections.emptyList(), phantom, phantAss);
 	}
 
 	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
 			//AssrtDataTypeVar annot, AssrtArithFormula expr)
 			List<AssrtAFormula> annotexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
 	{
 		AssrtCoreEModelFactory ef = (AssrtCoreEModelFactory) this.util.mf.local;  // FIXME: factor out
+		AssrtBFormula ass = a.ass;
+		if (!phantAss.equals(AssrtTrueFormula.TRUE))
+		{
+			ass = ass.equals(AssrtTrueFormula.TRUE)
+					? phantAss
+					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, a.ass,
+							phantAss);
+		}
 		if (k.equals(AssrtCoreLActionKind.SEND))
 		{
 			return ef.AssrtCoreESend(r, a.op, 
@@ -165,7 +188,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 					new Payload(
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
-					a.ass, //annot,
+					ass, //annot,
 					annotexprs, phantom);
 
 		}
@@ -177,10 +200,10 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 					new Payload(
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
-					a.ass, //annot,
+					ass, //annot,
 					annotexprs, phantom);
 
-			// FIXME: local receive assertions -- why needed exactly?  should WF imply receive assertion always true?
+			// CHECKME: local receive assertions -- why needed exactly?  should WF imply receive assertion always true?
 
 		}
 		else if (k.equals(AssrtCoreLActionKind.REQ))
