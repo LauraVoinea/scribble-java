@@ -172,8 +172,19 @@ type <dotnet> "..." from "..." as bool;
 
 
 /*
-// testing phantom for payload vars
-global protocol HighLow(role A, role B, role C) {
+global protocol Proto1(role A, role B, role C) {
+	1(x:int) from A to B;  @'x>3'
+	2(y:int) from B to C;  @'y>x'
+	//3(z:int) from C to A;  @'z>x'  // Testing unknown
+	3(z:int) from C to A;  @'z>y'
+}
+//*/
+
+// A->B x . C->D y -- sync vs. async phantom? -- edge phantoms: recursion, terminal? reordering
+
+/*
+// testing phantom for payload vars -- TODO
+global protocol Proto1(role A, role B, role C) {
 	1(x:int) from A to B; @'x>0'
 	2() from B to C;
 }
