@@ -106,8 +106,8 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 								phantAss, lr.assertion);
 			}
 
-			tmp3 = AssrtTrueFormula.TRUE;  // TODO FIXME -- getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
-			// ...TODO: add phantoms in model construction
+			//tmp3 = AssrtTrueFormula.TRUE;  // TODO FIXME -- getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
+			// ...TODO: add phantoms in model construction -- no vars are ever unknown? but cannot validate, e.g., x = phantom?
 
 			build(lr.body, s1, s2, tmp, tmp2, tmp3);
 		}
