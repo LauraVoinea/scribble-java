@@ -173,14 +173,14 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
 	{
 		AssrtCoreEModelFactory ef = (AssrtCoreEModelFactory) this.util.mf.local;  // FIXME: factor out
-		AssrtBFormula ass = a.ass;
+		/*AssrtBFormula ass = a.ass;
 		if (!phantAss.equals(AssrtTrueFormula.TRUE))
 		{
 			ass = ass.equals(AssrtTrueFormula.TRUE)
 					? phantAss
 					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, a.ass,
 							phantAss);
-		}
+		}*/
 		if (k.equals(AssrtCoreLActionKind.SEND))
 		{
 			return ef.AssrtCoreESend(r, a.op, 
@@ -188,8 +188,8 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 					new Payload(
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
-					ass, //annot,
-					annotexprs, phantom);
+					a.ass, //annot,
+					annotexprs, phantom, phantAss);
 
 		}
 		else if (k.equals(AssrtCoreLActionKind.RECV))
@@ -200,8 +200,8 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 					new Payload(
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
-					ass, //annot,
-					annotexprs, phantom);
+					a.ass, //annot,
+					annotexprs, phantom, phantAss);
 
 			// CHECKME: local receive assertions -- why needed exactly?  should WF imply receive assertion always true?
 

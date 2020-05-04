@@ -37,17 +37,19 @@ public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
 	@Override
 	public AssrtCoreESend AssrtCoreESend(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
 	{
-		return new AssrtCoreESend(this.mf, peer, mid, pay, ass, sexprs, phantom);
+		return new AssrtCoreESend(this.mf, peer, mid, pay, ass, sexprs, phantom,
+				phantAss);
 	}
 
 	@Override
 	public AssrtCoreERecv AssrtCoreERecv(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
 	{
-		return new AssrtCoreERecv(this.mf, peer, mid, pay, ass, sexprs, phantom);
+		return new AssrtCoreERecv(this.mf, peer, mid, pay, ass, sexprs, phantom,
+				phantAss);
 	}
 
 	@Override

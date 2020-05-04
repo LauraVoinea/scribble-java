@@ -29,10 +29,12 @@ public interface AssrtCoreEModelFactory extends AssrtEModelFactory
 
 	AssrtCoreESend AssrtCoreESend(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms);
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms,
+			AssrtBFormula phantAss);
 	AssrtCoreERecv AssrtCoreERecv(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms);
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms,
+			AssrtBFormula phantAss);
 	AssrtCoreEReq AssrtCoreEReq(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs);
 	AssrtCoreEAcc AssrtCoreEAcc(Role peer, MsgId<?> mid, Payload pay,

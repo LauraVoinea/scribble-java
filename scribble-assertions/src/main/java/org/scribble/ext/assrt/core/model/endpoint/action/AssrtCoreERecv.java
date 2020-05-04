@@ -13,6 +13,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSRecv;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtERecv;
 
@@ -24,37 +25,41 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	public final List<AssrtAFormula> stateexprs;  // N.B. state args ignored for recv fireable and firing (msgs don't carry state args)
 
 	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	public final AssrtBFormula phantAss;
 
 	public AssrtCoreERecv(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload payload, AssrtBFormula bf, List<AssrtAFormula> stateexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
 	{
 		super(mf, peer, mid, payload, bf);
 		//this.annot = annot;list)
 	
 		this.stateexprs = Collections.unmodifiableList(stateexprs);
 		this.phantom = new LinkedHashMap<>(phantom);
+		this.phantAss = phantAss;
 	}
 	
-	// msg does not carry state args -- recv getFireable and fire follows accordingly
+	// Used by AssrtCoreSSingleBuffers.canReceive -- msg does not carry state args -- recv getFireable and fire follows accordingly
 	public AssrtCoreERecv dropStateArgs()
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreERecv(this.peer, this.mid,
-				this.payload, this.ass, Collections.emptyList(), new LinkedHashMap<>());
+				this.payload, this.ass, Collections.emptyList(),
+				new LinkedHashMap<>(), AssrtTrueFormula.TRUE);  // CHECKME
 	}
 	
 	@Override
 	public AssrtCoreESend toDual(Role self)
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreESend(self, this.mid,
-				this.payload, this.ass, this.stateexprs, new LinkedHashMap<>());
+				this.payload, this.ass, this.stateexprs,
+				this.phantom, this.phantAss);
 	}
 
 	@Override
 	public AssrtCoreSRecv toGlobal(Role self)
 	{
 		return ((AssrtCoreSModelFactory) this.mf.global).AssrtCoreSRecv(self,
-				this.peer, this.mid, this.payload, this.ass, this.stateexprs);
+				this.peer, this.mid, this.payload, this.ass, this.stateexprs);  // FIXME: phantoms
 	}
 
 	/*@Override
@@ -83,6 +88,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		//return super.toString() + "@" + this.ass + ";";
 		return super.toString()
 				+ phantomsToString()
+				+ "{" + this.phantAss + "}"  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
 				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.expr + ">");  // FIXME
 				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");
@@ -97,6 +103,8 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		hash = 31 * hash + super.hashCode();
 		//hash = 31 * hash + this.annot.hashCode();
 		hash = 31 * hash + this.stateexprs.hashCode();
+		hash = 31 * hash + this.phantom.hashCode();
+		hash = 31 * hash + this.phantAss.hashCode();
 		return hash;
 	}
 
@@ -114,7 +122,9 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		AssrtCoreERecv as = (AssrtCoreERecv) o;
 		return super.equals(o)  // Does canEquals
 				//&& this.annot.equals(as.annot)
-				&& this.stateexprs.equals(as.stateexprs);
+				&& this.stateexprs.equals(as.stateexprs)
+				&& this.phantom.equals(as.phantom)
+				&& this.phantAss.equals(as.phantAss);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreESend;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 
 // N.B. EMsg, but in global package because purpose is in SModel building (cf. SSingleBuffers, global view of local queues)
 // Enqueued message
@@ -27,8 +28,8 @@ public class AssrtCoreEMsg extends AssrtCoreESend
 			Payload pay, AssrtBFormula ass)//, List<AssrtAFormula> sexprs)
 	{
 		//this(mf, peer, mid, pay, ass, sexprs, Collections.emptyMap());
-		super(mf, peer, mid, pay, ass, Collections.emptyList(),
-				new LinkedHashMap<>());  // TODO: empty state exprs, refactor
+		super(mf, peer, mid, pay, ass, Collections.emptyList(),  // TODO: empty state exprs, refactor
+				new LinkedHashMap<>(), AssrtTrueFormula.TRUE);  // CHECKME
 	}
 
 	/*public AssrtCoreEMsg(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay,

@@ -16,6 +16,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 
 public class AssrtStpESend extends AssrtCoreESend implements AssrtStpEAction
 {
@@ -27,7 +28,7 @@ public class AssrtStpESend extends AssrtCoreESend implements AssrtStpEAction
 			AssrtBFormula A)
 	{
 		super(mf, peer, mid, payload, A, Collections.emptyList(),
-				new LinkedHashMap<>());
+				new LinkedHashMap<>(), AssrtTrueFormula.TRUE);
 		this.sigma = Collections.unmodifiableMap(sigma);
 		this.A = A;
 	}

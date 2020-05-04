@@ -25,15 +25,17 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	public final List<AssrtAFormula> sexprs;  // State exprs
 
 	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	public final AssrtBFormula phantAss;
 
 	public AssrtCoreESend(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload payload, AssrtBFormula ass, List<AssrtAFormula> stateexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
 	{
 		super(mf, peer, mid, payload, ass);
 		//this.annot = annot;
 		this.sexprs = Collections.unmodifiableList(stateexprs);
 		this.phantom = new LinkedHashMap<>(phantom);
+		this.phantAss = phantAss;
 	}
 	
 	@Deprecated
@@ -44,18 +46,19 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	
 	// Used by AssrtCoreSSingleBuffers.canReceive and AssrtCoreSConfig.getStuckMessages
 	@Override
-	public AssrtCoreESend toTrueAssertion()  // FIXME: for model building, currently need send assertion to match (syntactical equal) receive assertion (which is always True) to be fireable
+	public AssrtCoreESend toTrueAssertion()  // CHECKME: for model building, currently need send assertion to match (syntactical equal) receive assertion -- which is always True(?), to be fireable
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreESend(this.peer,
 				this.mid, this.payload, AssrtTrueFormula.TRUE, this.sexprs,
-				this.phantom);
+				this.phantom, AssrtTrueFormula.TRUE);  // CHECKME
 	}
 
 	@Override
 	public AssrtCoreERecv toDual(Role self)
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreERecv(self,
-				this.mid, this.payload, this.ass, this.sexprs, this.phantom);
+				this.mid, this.payload, this.ass, this.sexprs,
+				this.phantom, this.phantAss);
 	}
 
 	@Override
@@ -87,14 +90,10 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	@Override
 	public String toString()
 	{
-		//return super.toString() + "@" + this.ass + ";";
 		return super.toString()
 				+ phantomsToString()
+				+ "{" + this.phantAss + "}"  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
-				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.annotexprs + ">");  // FIXME
-				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");
-		/*return this.obj + getCommSymbol() + this.mid + this.payload
-				+ stateExprsToString() + assertionToString();*/
 	}
 	
 	@Override
@@ -104,6 +103,8 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 		hash = 31 * hash + super.hashCode();
 		//hash = 31 * hash + this.annot.hashCode();
 		hash = 31 * hash + this.sexprs.hashCode();
+		hash = 31 * hash + this.phantom.hashCode();
+		hash = 31 * hash + this.phantAss.hashCode();
 		return hash;
 	}
 
@@ -121,7 +122,9 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 		AssrtCoreESend as = (AssrtCoreESend) o;
 		return super.equals(o)  // Does canEquals
 				//&& this.annot.equals(as.annot) 
-				&& this.sexprs.equals(as.sexprs);
+				&& this.sexprs.equals(as.sexprs)
+				&& this.phantom.equals(as.phantom)
+				&& this.phantAss.equals(as.phantAss);
 	}
 
 	@Override
