@@ -186,8 +186,11 @@ public class AssrtCoreGProtocol extends GProtocol
 				.map(y -> y.getKey())
 				.collect(Collectors.toSet())));  // FIXME? will be overwritten by inserted top-level rec anway
 
+		List<AssrtIntVar> phantom = Collections.emptyList();  // Phantoms added for locals (see below)
+		AssrtBFormula phantAss = AssrtTrueFormula.TRUE;
 		AssrtCoreLType proj = this.type.projectInlined((AssrtCore) core, self,
-				AssrtTrueFormula.TRUE, known, Collections.emptyMap());
+				AssrtTrueFormula.TRUE, known, Collections.emptyMap(), phantom,
+				phantAss);
 		LProtoName fullname = InlinedProjector
 				.getFullProjectionName(this.fullname, self);
 
@@ -199,7 +202,7 @@ public class AssrtCoreGProtocol extends GProtocol
 						return r == null || r.equals(self);
 					})
 				.forEach(x -> svars.put(x.getKey(), x.getValue()));*/
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> projPhantom = new LinkedHashMap<>();
 		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
 		{
 			AssrtIntVar k = e.getKey();
@@ -211,12 +214,12 @@ public class AssrtCoreGProtocol extends GProtocol
 			}
 			else
 			{
-				phantom.put(k, v);
+				projPhantom.put(k, v);
 			}
 		}
 
 		return new AssrtCoreLProjection(this.mods, fullname, this.roles, self,
-				this.params, this.fullname, proj, svars, this.assertion, phantom);
+				this.params, this.fullname, proj, svars, this.assertion, projPhantom);
 	}
 
 	// N.B. no "fixing" passes done here -- need breadth-first passes to be sequentialised for subproto visiting

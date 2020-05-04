@@ -35,7 +35,8 @@ public interface AssrtCoreGType extends AssrtCoreSType<Global, AssrtCoreGType>
 
 	AssrtCoreLType projectInlined(AssrtCore core, Role self, AssrtBFormula f,
 			Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located)
+			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			List<AssrtIntVar> phantom, AssrtBFormula phantAss)  // N.B. phantom payvars have no init exprs (cf. statevars) -- FIXME: phantom should map sorts
 			throws AssrtCoreSyntaxException;  // N.B. checking "mergability"
 	
 	List<AssrtAnnotDataName> collectAnnotDataVarDecls(

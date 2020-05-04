@@ -66,7 +66,8 @@ public class AssrtCoreGRecVar extends AssrtCoreRecVar<Global, AssrtCoreGType>
 	@Override
 	public AssrtCoreLRecVar projectInlined(AssrtCore core, Role self,
 			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located)
+			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			List<AssrtIntVar> phantom, AssrtBFormula phantAss)  // CHECKME: phantoms discarded for recvar?
 	{
 		Iterator<Entry<AssrtIntVar, Role>> it = located.get(this.recvar).entrySet()
 				.iterator();

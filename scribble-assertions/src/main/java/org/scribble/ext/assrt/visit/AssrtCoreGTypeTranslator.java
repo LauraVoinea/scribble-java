@@ -356,7 +356,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		Op op = parseOp(n);
 		List<AssrtAnnotDataName> pay = parsePayload(n);
 		AssrtBExprNode bexpr = parseAssertion(n);
-		AssrtCoreMsg a = this.tf.AssrtCoreAction(op, pay, bexpr.getFormula());
+		AssrtCoreMsg a = this.tf.AssrtCoreAction(op, pay, bexpr.getFormula());  // phantoms null for globals
 		Role src = parseSrcRole(n);
 		Role dst = parseDstRole(n);
 		AssrtCoreGActionKind kind = AssrtCoreGActionKind.MSG_TRANSFER;

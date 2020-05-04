@@ -94,14 +94,15 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 	@Override
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
 			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located)
+			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
 		Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> tmp = new HashMap<>(located);
 		tmp.put(this.recvar, this.located);
 
 		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantomSVars = new LinkedHashMap<>();
 		/*this.statevars.entrySet().stream()  // ordered
 				.filter(x ->
 					{
@@ -121,17 +122,18 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 			else
 			{
 				AssrtAFormula a = this.phantom.get(v);
-				phantom.put(v, a);
+				phantomSVars.put(v, a);
 			}
 		}
 
 		Map<Role, Set<AssrtIntVar>> tmp2 = new HashMap<>(known);
 		Set<AssrtIntVar> tmp3 = tmp2.get(self);
 		tmp3.addAll(svars.keySet());  // Agnostic to shadowing -- cf. AssrtCoreGProtocol and inserted top-level rec
-		tmp3.addAll(phantom.keySet());
+		tmp3.addAll(phantomSVars.keySet());
 		tmp2.put(self, tmp3);
 
-		AssrtCoreLType proj = this.body.projectInlined(core, self, f, tmp2, tmp);
+		AssrtCoreLType proj = this.body.projectInlined(core, self, f, tmp2, tmp,
+				phantom, phantAss);  // CHECKME: "reordering" of phantom/phantAss and phantomSVars
 
 		Set<AssrtIntVar> assVars = this.assertion.getIntVars();
 		Set<AssrtIntVar> k = known.get(self);
@@ -153,7 +155,7 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		return (proj instanceof AssrtCoreLRecVar) 
 				? AssrtCoreLEnd.END
 				: ((AssrtCoreLTypeFactory) core.config.tf.local)
-						.AssrtCoreLRec(null, this.recvar, svars, proj, ass, phantom);
+						.AssrtCoreLRec(null, this.recvar, svars, proj, ass, phantomSVars);
 	}
 
 	@Override

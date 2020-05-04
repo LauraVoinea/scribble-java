@@ -1,8 +1,10 @@
 package org.scribble.ext.assrt.core.type.session.global;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -20,11 +22,13 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreActionKind;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreChoice;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
+import org.scribble.ext.assrt.core.type.session.AssrtCoreSTypeFactory;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLActionKind;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLChoice;
@@ -107,7 +111,8 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 	@Override
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
 			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located)
+			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
 		AssrtCoreLTypeFactory tf = (AssrtCoreLTypeFactory) core.config.tf.local;
@@ -143,12 +148,27 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 				Set<AssrtIntVar> tmp2 = new HashSet<>(tmp.get(self));
 				tmp.put(self, tmp2);
 				a.pay.stream().forEach(x -> tmp2.add(x.var));
-			}
 
-			projs.put(a,
-					e.getValue().projectInlined(core, self, fproj, tmp, located));
-					// N.B. local actions directly preserved from globals -- so core-receive also has assertion (cf. AssrtGMessageTransfer.project, currently no AssrtLReceive)
-					// FIXME: receive assertion projection -- should not be the same as send?
+				AssrtCoreMsg a1 = ((AssrtCoreSTypeFactory) core.config.tf)
+						.AssrtCoreAction(a.op, a.pay, a.ass, phantom, phantAss);
+				projs.put(a1,
+						e.getValue().projectInlined(core, self, fproj, tmp, located,
+								Collections.emptyList(), AssrtTrueFormula.TRUE));
+				// N.B. local actions directly preserved from globals -- so core-receive also has assertion (cf. AssrtGMessageTransfer.project, currently no AssrtLReceive)
+				// FIXME: receive assertion projection -- should not be the same as send?
+			}
+			else
+			{
+				List<AssrtIntVar> phantom1 = new LinkedList<>(phantom);
+				a.pay.stream().forEach(x -> phantom1.add(x.var));
+				AssrtBFormula phantAss1 = phantAss.equals(AssrtTrueFormula.TRUE)
+						? (a.ass.equals(AssrtTrueFormula.TRUE)
+								? AssrtTrueFormula.TRUE : a.ass)
+						: AssrtFormulaFactory
+								.AssrtBinBool(AssrtBinBFormula.Op.And, phantAss, a.ass);
+				projs.put(a, e.getValue().projectInlined(core, self, fproj, tmp,
+						located, phantom1, phantAss1));
+			}
 		}
 		
 		// "Simple" cases
@@ -159,7 +179,7 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 					null, role, getKind().project(this.src, self), projs);
 		}
 
-		// "Merge"
+		// "Merge" -- simply disregard phantoms, assume incorporated downstream (or discarded by end) -- CHECKME: recvar?
 		if (projs.values().stream().anyMatch(v -> (v instanceof AssrtCoreLRecVar)))
 		{
 			if (projs.values().stream()
