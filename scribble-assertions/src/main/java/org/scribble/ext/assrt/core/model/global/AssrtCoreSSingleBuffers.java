@@ -50,17 +50,19 @@ public class AssrtCoreSSingleBuffers extends SSingleBuffers
 	}
 
   // N.B. state args ignored for recv fireable and firing (msgs don't carry state args)
+	@Override
 	public boolean canReceive(Role self, ERecv a)
 	{
 		AssrtCoreESend msg = (AssrtCoreESend) this.buffs.get(self).get(a.peer);
 		return isConnected(self, a.peer)  // Other direction doesn't matter, local can still receive after peer disconnected
 				&& msg != null && msg//.toTrueAssertion()
 						.toDual(a.peer)
-						.equals(((AssrtCoreERecv) a).dropStateArgs());  
+						.equals(((AssrtCoreERecv) a).dropStateArgs());   // Cf. AssrtCoreEMsg constructor -- also AssrtSConfig.async -> AssrtCoreESend.toTrueAssertion
 						// Ignore state args for firing, msg doesn't carry state args, cf. A->B.A->C.X<123> w.r.t. A/B duality
 	}
 
 	// N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canRequest
+	@Override
 	public boolean canAccept(Role self, EAcc a)
 	{
 		throw new RuntimeException(

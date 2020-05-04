@@ -105,7 +105,9 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 						: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And,
 								phantAss, lr.assertion);
 			}
+
 			tmp3 = AssrtTrueFormula.TRUE;  // TODO FIXME -- getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
+			// ...TODO: add phantoms in model construction
 
 			build(lr.body, s1, s2, tmp, tmp2, tmp3);
 		}

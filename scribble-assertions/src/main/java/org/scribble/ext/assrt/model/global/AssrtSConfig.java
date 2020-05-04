@@ -77,11 +77,12 @@ public class AssrtSConfig extends SConfig
 			}*/
 			SSingleBuffers tmp2 = 
 						//a.isSend()       ? this.buffs.send(r, (ESend) a)
-						a.isSend()       ? this.queues.send(r, ((AssrtESend) a).toTrueAssertion())  // HACK FIXME: project receive assertion properly and check implication 
-					
-					: a.isReceive()    ? this.queues.receive(r, (ERecv) a)
-					//: a.isDisconnect() ? this.buffs.disconnect(r, (EDisconnect) a)
-					: null;
+					a.isSend()
+							? this.queues.send(r, ((AssrtESend) a).toTrueAssertion())  // CHECKME: still needed?  // project receive assertion properly and check implication 
+							: a.isReceive()
+									? this.queues.receive(r, (ERecv) a)
+									//: a.isDisconnect() ? this.buffs.disconnect(r, (EDisconnect) a)
+									: null;
 			if (tmp2 == null)
 			{
 				throw new RuntimeException("Shouldn't get in here: " + a);

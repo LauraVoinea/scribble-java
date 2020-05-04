@@ -40,6 +40,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	}
 	
 	// Used by AssrtCoreSSingleBuffers.canReceive -- msg does not carry state args -- recv getFireable and fire follows accordingly
+	// Also: AssrtSConfig.async -> AssrtCoreESend.toTrueAssertion
 	public AssrtCoreERecv dropStateArgs()
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreERecv(this.peer, this.mid,

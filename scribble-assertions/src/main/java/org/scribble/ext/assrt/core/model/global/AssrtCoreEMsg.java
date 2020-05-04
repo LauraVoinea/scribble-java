@@ -28,7 +28,9 @@ public class AssrtCoreEMsg extends AssrtCoreESend
 			Payload pay, AssrtBFormula ass)//, List<AssrtAFormula> sexprs)
 	{
 		//this(mf, peer, mid, pay, ass, sexprs, Collections.emptyMap());
-		super(mf, peer, mid, pay, ass, Collections.emptyList(),  // TODO: empty state exprs, refactor
+		super(mf, peer, mid, pay, ass,
+				// Cf. AssrtCoreERecv.dropStateArgs, AssrtCoreSSingleBuffers.canReceive
+				Collections.emptyList(),  // TODO: empty state exprs, refactor
 				new LinkedHashMap<>(), AssrtTrueFormula.TRUE);  // CHECKME
 	}
 
