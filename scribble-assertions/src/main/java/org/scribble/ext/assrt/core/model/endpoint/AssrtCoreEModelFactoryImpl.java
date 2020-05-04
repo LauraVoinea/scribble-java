@@ -1,6 +1,5 @@
 package org.scribble.ext.assrt.core.model.endpoint;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +36,7 @@ public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
 	@Override
 	public AssrtCoreESend AssrtCoreESend(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
+			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
 	{
 		return new AssrtCoreESend(this.mf, peer, mid, pay, ass, sexprs, phantom,
 				phantAss);
@@ -46,7 +45,7 @@ public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
 	@Override
 	public AssrtCoreERecv AssrtCoreERecv(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
+			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
 	{
 		return new AssrtCoreERecv(this.mf, peer, mid, pay, ass, sexprs, phantom,
 				phantAss);

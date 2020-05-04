@@ -26,8 +26,6 @@ import org.scribble.core.visit.local.EGraphBuilder;
 import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.kind.AssrtAnnotDataKind;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
@@ -95,16 +93,16 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			tmp.put(lr.recvar, s1);
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> tmp2 = new LinkedHashMap<>(
 					phantom);
-			tmp2.putAll(lr.phantom);
+			//tmp2.putAll(lr.phantom);
 
 			AssrtBFormula tmp3 = phantAss;
-			if (!lr.assertion.equals(AssrtTrueFormula.TRUE))
+			/*if (!lr.assertion.equals(AssrtTrueFormula.TRUE))
 			{
 				tmp3 = phantAss.equals(AssrtTrueFormula.TRUE)
 						? lr.assertion
 						: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And,
 								phantAss, lr.assertion);
-			}
+			}*/
 
 			//tmp3 = AssrtTrueFormula.TRUE;  // TODO FIXME -- getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
 			// ...TODO: add phantoms in model construction -- no vars are ever unknown? but cannot validate, e.g., x = phantom?
@@ -150,8 +148,8 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			{
 				// Cf. AssrtCoreGDo.inline, f/w rec statevar expr inlining
 				LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = ((AssrtCoreLRec) cont).statevars;
-				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()), phantom,
-						phantAss);
+				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()),
+						phantom, phantAss);
 			}
 			else
 			{
@@ -191,7 +189,9 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
 					a.ass, //annot,
-					annotexprs, phantom, phantAss);
+					annotexprs,
+					//phantom, phantAss);
+					a.phantom, a.phantAss);
 
 		}
 		else if (k.equals(AssrtCoreLActionKind.RECV))
@@ -203,7 +203,9 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
 					a.ass, //annot,
-					annotexprs, phantom, phantAss);
+					annotexprs,
+					//phantom, phantAss);
+					a.phantom, a.phantAss);
 
 			// CHECKME: local receive assertions -- why needed exactly?  should WF imply receive assertion always true?
 

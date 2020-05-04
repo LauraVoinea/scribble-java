@@ -1,7 +1,7 @@
 package org.scribble.ext.assrt.core.model.endpoint.action;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.scribble.core.model.ModelFactory;
@@ -24,17 +24,21 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	public final AssrtArithFormula expr;*/
 	public final List<AssrtAFormula> sexprs;  // State exprs
 
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	//public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	public final List<AssrtIntVar> phantom;
 	public final AssrtBFormula phantAss;
 
 	public AssrtCoreESend(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload payload, AssrtBFormula ass, List<AssrtAFormula> stateexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
+			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom,
+			List<AssrtIntVar> phantom,  // TODO: sorts
+			AssrtBFormula phantAss)
 	{
 		super(mf, peer, mid, payload, ass);
 		//this.annot = annot;
 		this.sexprs = Collections.unmodifiableList(stateexprs);
-		this.phantom = new LinkedHashMap<>(phantom);
+		//this.phantom = new LinkedHashMap<>(phantom);
+		this.phantom = new LinkedList<>(phantom);
 		this.phantAss = phantAss;
 	}
 	
@@ -82,7 +86,8 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	}
 
 	@Override
-	public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
+	//public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
+	public List<AssrtIntVar> getPhantoms()
 	{
 		return this.phantom;
 	}

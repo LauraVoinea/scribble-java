@@ -1,6 +1,5 @@
 package org.scribble.ext.assrt.core.model.endpoint.action;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,8 @@ public interface AssrtCoreEAction extends AssrtEAction
 	List<AssrtAFormula> getStateExprs();  // Any edge may be a continue-edge with state exprs
 			// Cf. AssrtStateVarArgAnnotNode::getAnnotExprs
 
-	LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms();
+	//LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms();
+	List<AssrtIntVar> getPhantoms();
 
 	default String stateExprsToString()
 	{
@@ -33,8 +33,9 @@ public interface AssrtCoreEAction extends AssrtEAction
 	// FIXME: take Map<AssrtIntVar, String> env
 	default String phantomsToString()
 	{
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = getPhantoms();
-		return "[" + phantom.keySet().stream().map(v -> v + ":int")
-				.collect(Collectors.joining(", ")) + "]"; // FIXME: int
+		//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = getPhantoms();
+		List<AssrtIntVar> phantom = getPhantoms();
+		return "[" + phantom.stream().map(v -> v + ":int") // FIXME: int
+				.collect(Collectors.joining(", ")) + "]";
 	}
 }

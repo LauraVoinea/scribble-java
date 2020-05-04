@@ -55,7 +55,7 @@ public class AssrtCoreMsg
 		return this.op + "(" + pays + ")" + this.ass
 				+ (this.phantom == null ? ""
 						: "[" + this.phantom.stream().map(x -> x + ":int")
-								.collect(Collectors.joining()) + "]")  // FIXME: int
+								.collect(Collectors.joining(", ")) + "]")  // FIXME: int
 				+ (this.phantAss == null ? "" : this.phantAss);
 	}
 
