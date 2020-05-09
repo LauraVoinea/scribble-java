@@ -298,8 +298,22 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 						// Regular DataType pay elems have been given fresh annot vars (AssrtCoreGProtoDeclTranslator.parsePayload) -- no other pay elems allowed
 			}
 		}
-		Fself.add(ass);  // (Source of) `ass` is the difference between output and input
-		compactF(Fself);
+
+		// Phantom payvars
+		List<AssrtAnnotDataName> payPhant = a.getPhantoms();
+		for (AssrtAnnotDataName p : payPhant)
+		{
+			// Duplicated from above for regular payvars
+			AssrtIntVar v = p.var;
+			gcF(Fself, v);
+			Kself.add(v);
+
+			Env.put(v, p.data);
+
+		}
+
+		Fself.add(ass);  // (Source of) `ass` is the difference between output and input -- CHECKME: payvar vs. msg? or old?
+		compactF(Fself);  // GC's true -- CHECKME: old "_" vars still relevant?
 
 		//- then V, R
 		//- for each state var
@@ -382,17 +396,15 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			}
 		}
 
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = s.getPhantoms();
-		if (!phantom.isEmpty())
+		// State phantoms
+		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = s.getPhantoms();  // TODO: hardcoded to int (no syntax for sorts)
+		for (Entry<AssrtIntVar, AssrtAFormula> e : phantom.entrySet())
 		{
-			for (Entry<AssrtIntVar, AssrtAFormula> e : phantom.entrySet())
-			{
-				AssrtIntVar v = e.getKey();
-				AssrtAFormula sexpr = AssrtCoreSGraphBuilderUtil
-						.renameIntVarAsFormula(v);  // Initialiser discarded
-				Vself.put(v, sexpr);
-				// CHECKME: gc? cf. above
-			}
+			AssrtIntVar v = e.getKey();
+			AssrtAFormula sexpr = AssrtCoreSGraphBuilderUtil
+					.renameIntVarAsFormula(v);  // Initialiser discarded
+			Vself.put(v, sexpr);
+			// CHECKME: compact? gc? cf. above
 		}
 		
 		//if (!svars.isEmpty() || !aexprs.isEmpty() || !phantom.isEmpty())  // CHECKME
@@ -463,7 +475,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		{
 			AssrtBFormula f = i.next();
 			if (f.equals(AssrtTrueFormula.TRUE) 
-					|| f.getIntVars().stream().anyMatch(x -> x.toString().startsWith("_"))
+					|| f.getIntVars().stream().anyMatch(x -> x.toString().startsWith("_"))  // CHECKME: still needed?
 					) 
 			// Pruning if formula contains "old" var renamed by renameOldVarsInF -- FIXME refactor to renameOldVarsInF? -- old
 			// CHECKME: other sources of renaming? makeFreshIntVar, and AssrtCoreSGraphBuilderUtil::renameFormula
