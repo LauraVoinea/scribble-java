@@ -21,17 +21,18 @@ public class AssrtCoreMsg
 	public final AssrtBFormula ass;  // cnf?  Set?  // Not null -- empty ass set to True by AssrtCoreGProtocolDeclTranslator
 	
 	// null for globals
-	public final List<AssrtIntVar> phantom;
+	public final List<AssrtAnnotDataName> phantom;
 	public final AssrtBFormula phantAss;
 
 	public AssrtCoreMsg(Op op, List<AssrtAnnotDataName> pay, AssrtBFormula ass,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
 		this.op = op;
-		this.pay = Collections.unmodifiableList(pay);
+		this.pay = Collections.unmodifiableList(new LinkedList<>(pay));
 		this.ass = ass;
 
-		this.phantom = phantom == null ? null : new LinkedList<>(phantom);
+		this.phantom = phantom == null
+				? null : Collections.unmodifiableList(new LinkedList<>(phantom));
 		this.phantAss = phantAss;
 	}
 	

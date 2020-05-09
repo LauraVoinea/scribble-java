@@ -14,7 +14,7 @@ import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtESend;
 
 public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
@@ -25,13 +25,13 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	public final List<AssrtAFormula> sexprs;  // State exprs
 
 	//public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
-	public final List<AssrtIntVar> phantom;
+	public final List<AssrtAnnotDataName> phantom;
 	public final AssrtBFormula phantAss;
 
 	public AssrtCoreESend(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload payload, AssrtBFormula ass, List<AssrtAFormula> stateexprs,
 			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom,
-			List<AssrtIntVar> phantom,  // TODO: sorts
+			List<AssrtAnnotDataName> phantom,
 			AssrtBFormula phantAss)
 	{
 		super(mf, peer, mid, payload, ass);
@@ -87,7 +87,7 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 
 	@Override
 	//public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
-	public List<AssrtIntVar> getPhantoms()
+	public List<AssrtAnnotDataName> getPhantoms()
 	{
 		return this.phantom;
 	}

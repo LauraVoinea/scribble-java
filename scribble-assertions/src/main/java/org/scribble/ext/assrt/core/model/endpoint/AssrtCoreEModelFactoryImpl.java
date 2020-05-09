@@ -21,7 +21,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.AssrtEModelFactoryImpl;
 
 public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
@@ -36,7 +36,7 @@ public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
 	@Override
 	public AssrtCoreESend AssrtCoreESend(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
 		return new AssrtCoreESend(this.mf, peer, mid, pay, ass, sexprs, phantom,
 				phantAss);
@@ -45,7 +45,7 @@ public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
 	@Override
 	public AssrtCoreERecv AssrtCoreERecv(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
 		return new AssrtCoreERecv(this.mf, peer, mid, pay, ass, sexprs, phantom,
 				phantAss);

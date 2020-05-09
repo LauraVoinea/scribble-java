@@ -12,7 +12,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSAcc;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtEAcc;
 
 public class AssrtCoreEAcc extends AssrtEAcc implements AssrtCoreEAction
@@ -58,7 +58,7 @@ public class AssrtCoreEAcc extends AssrtEAcc implements AssrtCoreEAction
 	}
 
 	@Override
-	public List<AssrtIntVar> getPhantoms()
+	public List<AssrtAnnotDataName> getPhantoms()
 	{
 		throw new RuntimeException("TODO");
 	}

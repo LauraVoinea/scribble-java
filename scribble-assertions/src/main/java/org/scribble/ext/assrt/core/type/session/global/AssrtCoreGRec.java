@@ -95,7 +95,7 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
 			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
 			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
 		Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> tmp = new HashMap<>(located);

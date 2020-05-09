@@ -20,7 +20,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.AssrtEModelFactory;
 
 public interface AssrtCoreEModelFactory extends AssrtEModelFactory
@@ -29,12 +29,12 @@ public interface AssrtCoreEModelFactory extends AssrtEModelFactory
 	AssrtCoreESend AssrtCoreESend(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs,
 			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms,
-			List<AssrtIntVar> phantoms,  // TODO: sorts
+			List<AssrtAnnotDataName> phantoms,
 			AssrtBFormula phantAss);
 	AssrtCoreERecv AssrtCoreERecv(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs,
 			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms,
-			List<AssrtIntVar> phantoms,  // TODO: sorts
+			List<AssrtAnnotDataName> phantoms,
 			AssrtBFormula phantAss);
 	AssrtCoreEReq AssrtCoreEReq(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs);

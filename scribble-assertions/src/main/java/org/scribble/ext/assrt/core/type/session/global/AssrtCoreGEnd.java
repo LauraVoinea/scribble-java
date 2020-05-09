@@ -59,7 +59,7 @@ public class AssrtCoreGEnd extends AssrtCoreEnd<Global, AssrtCoreGType>
 	public AssrtCoreLEnd projectInlined(AssrtCore core, Role self,
 			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
 			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
 		return ((AssrtCoreLTypeFactory) core.config.tf.local).AssrtCoreLEnd();
 	}

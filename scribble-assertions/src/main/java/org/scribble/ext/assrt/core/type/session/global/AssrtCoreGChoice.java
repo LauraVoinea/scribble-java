@@ -112,7 +112,7 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
 			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
 			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
 		AssrtCoreLTypeFactory tf = (AssrtCoreLTypeFactory) core.config.tf.local;
@@ -159,8 +159,8 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 			}
 			else
 			{
-				List<AssrtIntVar> phantom1 = new LinkedList<>(phantom);
-				a.pay.stream().forEach(x -> phantom1.add(x.var));
+				List<AssrtAnnotDataName> phantom1 = new LinkedList<>(phantom);
+				a.pay.stream().forEach(x -> phantom1.add(x));
 				AssrtBFormula phantAss1 = phantAss.equals(AssrtTrueFormula.TRUE)
 						? (a.ass.equals(AssrtTrueFormula.TRUE)
 								? AssrtTrueFormula.TRUE : a.ass)

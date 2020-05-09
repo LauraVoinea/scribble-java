@@ -14,7 +14,7 @@ import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSRecv;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtERecv;
 
 public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
@@ -25,18 +25,19 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	public final List<AssrtAFormula> stateexprs;  // N.B. state args ignored for recv fireable and firing (msgs don't carry state args)
 
 	//public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
-	public final List<AssrtIntVar> phantom;  // TODO: sorts
+	public final List<AssrtAnnotDataName> phantom;  // TODO: sorts
 	public final AssrtBFormula phantAss;
 
 	public AssrtCoreERecv(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload payload, AssrtBFormula bf, List<AssrtAFormula> stateexprs,
-			List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
 		super(mf, peer, mid, payload, bf);
 		//this.annot = annot;list)
 	
-		this.stateexprs = Collections.unmodifiableList(stateexprs);
-		this.phantom = new LinkedList<>(phantom);
+		this.stateexprs = Collections
+				.unmodifiableList(new LinkedList<>(stateexprs));
+		this.phantom = Collections.unmodifiableList(new LinkedList<>(phantom));
 		this.phantAss = phantAss;
 	}
 	
@@ -79,7 +80,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	}
 
 	@Override
-	public List<AssrtIntVar> getPhantoms()
+	public List<AssrtAnnotDataName> getPhantoms()
 	{
 		return this.phantom;
 	}

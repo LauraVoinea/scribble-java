@@ -6,7 +6,6 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.session.STypeFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGTypeFactory;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLTypeFactory;
 
@@ -34,7 +33,8 @@ public class AssrtCoreSTypeFactory extends STypeFactory
 
 	// Locals
 	public AssrtCoreMsg AssrtCoreAction(Op op, List<AssrtAnnotDataName> pay,
-			AssrtBFormula bform, List<AssrtIntVar> phantom, AssrtBFormula phantAss)
+			AssrtBFormula bform, List<AssrtAnnotDataName> phantom,
+			AssrtBFormula phantAss)
 	{
 		return new AssrtCoreMsg(op, pay, bform, phantom, phantAss);
 	}

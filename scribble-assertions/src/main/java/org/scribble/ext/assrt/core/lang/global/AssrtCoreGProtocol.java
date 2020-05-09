@@ -46,6 +46,7 @@ import org.scribble.ext.assrt.core.lang.local.AssrtCoreLProjection;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.core.type.session.NoSeq;
 import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGRec;
@@ -186,7 +187,7 @@ public class AssrtCoreGProtocol extends GProtocol
 				.map(y -> y.getKey())
 				.collect(Collectors.toSet())));  // FIXME? will be overwritten by inserted top-level rec anway
 
-		List<AssrtIntVar> phantom = Collections.emptyList();  // Phantoms added for locals (see below)
+		List<AssrtAnnotDataName> phantom = Collections.emptyList();  // Phantoms added for locals (see below)
 		AssrtBFormula phantAss = AssrtTrueFormula.TRUE;
 		AssrtCoreLType proj = this.type.projectInlined((AssrtCore) core, self,
 				AssrtTrueFormula.TRUE, known, Collections.emptyMap(), phantom,
