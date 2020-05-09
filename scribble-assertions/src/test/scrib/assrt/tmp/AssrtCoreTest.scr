@@ -171,6 +171,12 @@ type <dotnet> "..." from "..." as bool;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
+global protocol Proto1(role A, role B, role C) {
+	1(x:String) from A to B;	
+	2() from B to C;	
+}
+
+
 /*
 global protocol Proto1(role A, role B, role C) {
 	1(x:int) from A to B;  @'x>3'
@@ -183,7 +189,7 @@ global protocol Proto1(role A, role B, role C) {
 // A->B x . C->D y -- sync vs. async phantom? -- edge phantoms: recursion, terminal? reordering
 
 /*
-// testing phantom for payload vars -- TODO
+// testing phantom for payload vars
 global protocol Proto1(role A, role B, role C) {
 	1(x:int) from A to B; @'x>0'
 	2() from B to C;
@@ -195,7 +201,8 @@ global protocol Proto1(role A, role B, role C) {
 //global protocol Proto1(role A, role B, role C) @'<n:B=1, t:B=1> (0 <= n && n < 100) && 0 < t' {
 global protocol Proto1(role A, role B, role C) @'<x:B=0> x=0' {
 //global protocol Proto1(role A, role B, role C) @'<x:=0> x=0' {  // testing initial makeV
-	1() from A to B;
+	1
+	() from A to B;
 	2() from B to C;
 }
 //*/
@@ -255,7 +262,7 @@ aux global protocol Aux(role A, role B, role C) @'<n:B=0, t:B=1> (0 <= n && n < 
 }
 //*/
 
-//*
+/*
 global protocol Proto1(role A, role B, role C)
 {
 	start(n0:int, t0:int) from A to B;  @'(0<=n0 && n0<100) && 0<t0'

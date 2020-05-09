@@ -179,7 +179,7 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 					null, role, getKind().project(this.src, self), projs);
 		}
 
-		// "Merge" -- simply disregard phantoms, assume incorporated downstream (or discarded by end) -- CHECKME: recvar?
+		// "Merge" -- simply disregard phantoms now, assume incorporated downstream (or discarded by end) -- CHECKME: recvar?
 		if (projs.values().stream().anyMatch(v -> (v instanceof AssrtCoreLRecVar)))
 		{
 			if (projs.values().stream()
