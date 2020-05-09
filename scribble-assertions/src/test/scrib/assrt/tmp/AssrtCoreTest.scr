@@ -171,7 +171,14 @@ type <dotnet> "..." from "..." as bool;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
-//*
+global protocol Proto1(role A, role B, role C) {
+	1(x:int) from A to B;
+	2(y:int) from C to B; @'y>x'  // CHECKME: x is phantom for C, despite no causality between A and C
+	// ^but caught by async model checking, because K update is *post* condition of send
+}
+
+
+/*
 global protocol Proto1(role A, role B, role C) {  // Testing phantom payvar re. K (phantom helloworld)
 	1(x:int) from A to B;
 	2(y:int) from B to C; @'y=x'  // x phantom payvar, but y=x concrete assertion -- cf. refactoring assertions as actual payload refinements

@@ -9,5 +9,7 @@ global protocol Proto1(role A, role B, role C)
 {
 	1(x:int) from A to B; @"(x>3)"
 	2(y:int) from C to B; @"(y>x)"  // Not HS
+	// CHECKME: x is phantom for C, despite no causality between A and C
+	// ^but caught by async model checking, because K update is *post* condition of send
 }
 //*/
