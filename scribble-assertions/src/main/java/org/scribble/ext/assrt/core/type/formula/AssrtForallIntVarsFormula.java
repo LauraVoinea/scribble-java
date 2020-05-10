@@ -169,13 +169,14 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 
 	/* Static helpers */
 
+	// Cf. AssrtCoreGTypeTranslator.parsePayload, AssrtCoreSConfg.getAssVars, AssrtAmbigVarFormula.disamb
 	protected static String toSmt2Sort(DataName data)
 	{
-		String sort;
 		switch (data.toString())
 		{
 		case "int":
 			return "Int";
+		case "string":  // TODO factor out
 		case "String":
 			return "String";
 		default:

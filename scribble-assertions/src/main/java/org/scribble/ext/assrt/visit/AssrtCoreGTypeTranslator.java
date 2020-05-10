@@ -468,7 +468,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 				AssrtAnnotDataName data = ((AssrtAnnotDataElem) e).toPayloadType();
 				String type = data.data.toString();
 				if (!type.equals("int") && !type.endsWith(".int")  // HACK FIXME (currently "int" for F# -- because STP takes dot)
-						&& !type.equals("String"))
+						&& !type.equals("String") && !type.equals("string"))  // Cf. AssrtAmbigVarFormula.disamb, AssrtCoreSConfg.getAssVars, AssrtForallFormula.toSmt2Sort
 				{
 					throw new AssrtCoreSyntaxException(e.getSource(),
 							"[assrt-core] Payload annotations not supported for non- \"int\" type kind: "

@@ -938,6 +938,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			{
 			case "int":
 			case "String":
+			case "string":
 				assVars.add(AssrtFormulaFactory.AssrtIntVar(d.var.toString()));
 				break;
 			/*assVars.add(AssrtFormulaFactory.AssrtStrVar(d.var.toString()));

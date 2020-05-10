@@ -144,9 +144,15 @@
 module assrt.tmp.AssrtCoreTest;
 
 
-type <dotnet> "System.UInt32" from "..." as int;
+/*type <dotnet> "System.UInt32" from "..." as int;
 type <dotnet> "System.String" from "..." as String;
-type <dotnet> "..." from "..." as bool;
+type <dotnet> "..." from "..." as bool;*/
+
+// TODO: refactor "primitives",  cf. AssrtCoreGTypeTranslator.parsePayload, AssrtAmbigVarFormula.disamb, AssrtCoreSConfg.getAssVars, AssrtForallFormula.toSmt2Sort
+type <fstar> "int" from "..." as int;
+//type <fstar> "string" from "..." as string;  // N.B. Z3 needs String
+type <fstar> "string" from "..." as String;
+
 
 
 // TODO HERE
@@ -171,11 +177,13 @@ type <dotnet> "..." from "..." as bool;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
-global protocol Proto1(role A, role B, role C) {
+/*
+global protocol Proto1(role A, role B, role C) {  // Bad
 	1(x:int) from A to B;
 	2(y:int) from C to B; @'y>x'  // CHECKME: x is phantom for C, despite no causality between A and C
 	// ^but caught by async model checking, because K update is *post* condition of send
 }
+//*/
 
 
 /*
@@ -205,9 +213,9 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-/*
+//*
 global protocol Proto1(role A, role B, role C) {
-	1(x:String) from A to B;	 // Testing phantom payvar sorts
+	1(x:String) from A to B; @'x="abc"' // Testing phantom payvar sorts
 	2() from B to C;	
 }
 //*/

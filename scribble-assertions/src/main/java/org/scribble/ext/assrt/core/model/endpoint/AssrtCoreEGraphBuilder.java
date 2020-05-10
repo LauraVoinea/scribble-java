@@ -167,6 +167,19 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 		return toEAction(r, k, a, Collections.emptyList(), phantom, phantAss);
 	}
 
+	/*// TODO FIXME: need access to data decls -- in general, need to extend Core with this info (n.b. job is not visible from core)
+	private Payload convertPayToExtNames(AssrtCoreMsg m)
+	{
+		List<AssrtAnnotDataName> es = new LinkedList<>();
+		for (AssrtAnnotDataName e : m.pay) {
+			if (e.data.toString.equals("...String..."))  // 
+		}
+		new Payload(
+				m.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
+						.collect(Collectors.toList()));
+	}
+	*/
+
 	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
 			//AssrtDataTypeVar annot, AssrtArithFormula expr)
 			List<AssrtAFormula> annotexprs,

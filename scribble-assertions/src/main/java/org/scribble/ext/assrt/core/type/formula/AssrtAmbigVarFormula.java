@@ -26,6 +26,7 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 		{
 		case "int":
 		case "String":
+		case "string": // Cf. AssrtCoreGTypeTranslator.parsePayload, AssrtCoreSConfg.getAssVars, AssrtForallFormula.toSmt2Sort
 			return new AssrtIntVarFormula(name);
 		//return new AssrtStrVarFormula(name);
 		default:

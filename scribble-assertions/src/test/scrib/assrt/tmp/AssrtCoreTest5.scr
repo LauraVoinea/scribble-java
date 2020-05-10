@@ -8,7 +8,7 @@ module assrt.tmp.AssrtCoreTest5;
 
 type <fstar> "int" from "" as int;
 //type <fstar> "bool" from "" as bool;
-type <fstar> "string" from "" as String;
+type <fstar> "string" from "" as string;
 
 
 
@@ -118,21 +118,21 @@ global protocol DbC(role Buyer, role Seller, role Bank) @"<pvo:=100>"
 
 
 global protocol OnlineWallet(role S, role C, role A) {
- login(id: String, pw: String) from C to A;
+ login(id: string, pw: string) from C to A;
  choice at A {
    login_ok() from A to C;
    login_ok() from A to S;
    account(balance: int, overdraft: int) from S to C; @"balance>=0 && overdraft>=0"
    do Authenticated(S, C, A); @"<balance + overdraft>"
  } or {
-   login_fail(error: String) from A to C;
+   login_fail(error: string) from A to C;
    login_fail() from A to S;
  }
 }
 
 aux global protocol Authenticated(role S, role C, role A) @"<allowance:C=0> allowance>=0" {
  choice at C {
-   pay(payee: String, amount: int) from C to S; @"amount<=allowance"
+   pay(payee: string, amount: int) from C to S; @"amount<=allowance"
    account(newbalance: int, newoverdraft: int) from S to C; @"newbalance>=0 && newoverdraft>=0"
    dummy1() from C to A;
    do Authenticated(S, C, A); @"<newbalance + newoverdraft>"
