@@ -71,6 +71,12 @@ public class AssrtCoreEReq extends AssrtEReq implements AssrtCoreEAction
 	{
 		throw new RuntimeException("TODO");
 	}
+
+	@Override
+	public AssrtBFormula getPhantomAssertion()
+	{
+		throw new RuntimeException("TODO");
+	}
 	
 	@Override
 	public String toString()

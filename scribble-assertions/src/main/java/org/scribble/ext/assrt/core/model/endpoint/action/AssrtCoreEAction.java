@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.action.AssrtEAction;
 
@@ -18,6 +19,7 @@ public interface AssrtCoreEAction extends AssrtEAction
 
 	//LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms();
 	List<AssrtAnnotDataName> getPhantoms();
+	AssrtBFormula getPhantomAssertion();
 
 	default String stateExprsToString()
 	{
@@ -38,4 +40,10 @@ public interface AssrtCoreEAction extends AssrtEAction
 		return "[" + phantom.stream().map(Object::toString)
 				.collect(Collectors.joining(", ")) + "]";
 	}
+	
+	default String phantomAssertionToString()
+	{
+		return "{" + getPhantomAssertion() + "}";
+	}
 }
+

@@ -262,7 +262,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 	}
 
 	// TODO: pass `Kself`, `Fself`, etc. directly (and not `self`)
-	// `ass` is the difference between output/input
+	// N.B. `ass` is the difference between output/input (output from a, input from msg), hence a parameter
 	private void updateKFVR(Role self, AssrtCoreEAction a, AssrtBFormula ass, EFsm succ,
 			Map<Role, Set<AssrtIntVar>> K, 
 			Map<Role, Set<AssrtBFormula>> F,
@@ -312,7 +312,9 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 
 		}
 
-		Fself.add(ass);  // (Source of) `ass` is the difference between output and input -- CHECKME: payvar vs. msg? or old?
+		// (Source of) `ass` is the difference between output and input -- CHECKME: payvar vs. msg? or old?
+		Fself.add(ass);  // N.B. must come after adding phantoms (specifically, gcF; cf. AssrtCoreTest2, Test034)
+		//Fself.add(a.getPhantomAssertion());
 		compactF(Fself);  // GC's true -- CHECKME: old "_" vars still relevant?
 
 		//- then V, R
@@ -1359,25 +1361,6 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, lhs,
 							Vconj);
 		}
-
-		// Phantoms -- HACK: Vphan hardcoded to succ's phantom initialisers -- NO: need to exists quant phantoms, see below
-		/*LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = succ.getPhantoms();
-		if (!phantom.isEmpty())
-		{
-			AssrtBFormula Vphan = phantom.entrySet().stream()
-					.map(x -> (AssrtBFormula) AssrtFormulaFactory.AssrtBinComp(  // Cast needed for reduce
-							AssrtBinCompFormula.Op.Eq,
-							AssrtFormulaFactory.AssrtIntVar(x.getKey().toString()),
-							x.getValue()))
-					.reduce(
-							(x1, x2) -> (AssrtBFormula) AssrtFormulaFactory
-									.AssrtBinBool(AssrtBinBFormula.Op.And, x1, x2))
-					.get();
-			lhs = (lhs == null)
-					? Vphan
-					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, lhs,
-							Vphan);
-		}*/
 		
 		// Next, assertion from action (carried by msg for input actions)
 		AssrtBFormula aass = /*(cast.isSend() || cast.isRequest())  // CHECKME: AssrtEAction doesn't have those methods, refactor?
@@ -1431,7 +1414,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			// rhs = target state (succ) assertion
 			AssrtBFormula rhs = sass;
 
-			// Phantoms -- CHECKME: factor out with below
+			// Phantoms -- (non-phantom) statevars exist quantified above, now also exist quant phantoms (morally do not need to show phantoms constructively, but may need assertion)
+			// TODO: factor out with below
 			List<AssrtAVarFormula> phants = succ.getPhantoms().keySet().stream()
 					.map(x -> AssrtFormulaFactory.AssrtIntVar(x.toString()))  // convert from AssrtIntVar to AssrtIntVarFormula -- N.B. AssrtIntVar now means var of any sort
 					.collect(Collectors.toList());
@@ -1503,7 +1487,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 							.collect(Collectors.toList()),
 					rhs);
 
-			// Phantoms
+			// Phantoms -- (non-phantom) statevars exist quantified above, now also exist quant phantoms (morally do not need to show phantoms constructively, but may need assertion)
+			// TODO: factor out with prev case
 			List<AssrtAVarFormula> phants = succ.getPhantoms().keySet().stream()
 					.map(x -> AssrtFormulaFactory.AssrtIntVar(x.toString()))  // convert from AssrtIntVar to AssrtIntVarFormula -- N.B. AssrtIntVar now means var of any sort
 					.collect(Collectors.toList());

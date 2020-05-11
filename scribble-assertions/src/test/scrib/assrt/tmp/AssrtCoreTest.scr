@@ -177,8 +177,42 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
+
+global protocol OAuth(role U, role S, role A) {
+  login(redir: String) from S to U;  // Message name unclear?
+  //credential(userid: int, password: String, redirresp : String) from U to A; @"redir = redirresp"
+  credential(userid: int) from U to A;
+  pw(password: String) from U to A;
+  re(redirresp : String) from U to A; @"redir = redirresp"
+  choice at A {
+    authed(token: String) from A to U;
+    authed(tokenresp: String) from U to S; @"token = tokenresp"
+    request_resource_token(authtoken: String) from S to A; @"authtoken = tokenresp"
+    resource_token(restoken: String) from A to S;
+  } or {
+    not_authed() from A to U;
+    not_authed() from U to S;
+  }
+}
+
+
+
 /*
-global protocol Proto1(role A, role B) {
+global protocol Ticket(role S, role C) @"<creditC:C=1000, creditS:S=0, count:S=0> creditC>=0" {  // TODO: "global" assertion, "all-or-nothing" fvs
+  Offer(x: int) from C to S; @"x>=0 && creditC>=x" // TODO: use creditC>=x phantom for S, open affordable offers
+  choice at S {
+    Ok(y: int) from S to C; @"count<1000 && y=count"  // count, for loops
+    do Ticket(S, C); @"<creditC-x, creditS+x, count+1>"
+  } or {
+    Ko() from S to C;
+    do Ticket(S, C); @"<creditC, creditS, count>"
+  }
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B) {  // Cf. OnlineWallet
 	0(b:int) from B to A;  @'b>=-100'
 	do Proto1Aux(A, B);  @'<b, 100>'
 }
@@ -218,11 +252,13 @@ aux global protocol Proto1Aux(role A, role B)  @'<balance:B=0, overdraft:B=0> ba
 //*/
 
 /*
-global protocol Proto1(role A, role B) {
+global protocol Proto1(role A, role B) {  // Cf. OnlineWallet
 	0(b:int) from B to A;  @'b>=-100'
 	do Proto1Aux(A, B);    @'<b+100, b, 100>'
 }
-aux global protocol Proto1Aux(role A, role B)  @'<allow:A=100, balance:B=0, overdraft:B=100> allow=balance+overdraft && balance>=(0-overdraft) && overdraft>=0' {
+aux global protocol Proto1Aux(role A, role B)  // Testing exist quant phantom statevars in state assertions (allow w.r.t. C)
+			@'<allow:A=100, balance:B=0, overdraft:B=100> allow=balance+overdraft && balance>=(0-overdraft) && overdraft>=0' {
+
 	choice at A {
 		1(x:int) from A to B;  @'0<x && x<=allow'
 		do Proto1Aux(A, B);    @'<allow-x, balance-x, overdraft>'
@@ -231,40 +267,6 @@ aux global protocol Proto1Aux(role A, role B)  @'<allow:A=100, balance:B=0, over
 	}
 }
 //*/
-
-
-
-
-global protocol HLLimit(role A, role B, role C) {
-  start(n:int) from A to B;  @'0<=n && n<100'
-  limit(t:int) from A to B;  @'t>0'
-  do HLLimitAux(A, B, C);     @'<n, t>'
-}
-
-aux global protocol HLLimitAux(role A, role B, role C)
-		@'<n1:B=0, t1:B=1> 0<=n1 && n1<100 && t1>0' {
-
-  1() from A to C;
-  guess(x:int) from C to B;  @'0<=x && x<100'  // Added this refinement
-  choice at B {
-    higher() from B to C;    @'n1>x && t1>1'
-    higher() from B to A;
-    do HLLimitAux(A, B, C);   @'<n1, t1-1>'
-  } or {
-    win() from B to C;       @'n1=x'
-    lose() from B to A;
-  } or {
-    lose() from B to C;      //@'(!(n1=x)) && t1=1'  // FIXME: ! precedence
-                             @'((n1<x || n1>x) && t1=1)'
-    win() from B to A;
-  } or {
-    lower() from B to C;     @'n1<x && t1>1'
-    lower() from B to A;
-    do HLLimitAux(A, B, C);   @'<n1, t1-1>'
-  }
-}
-//*/
-
 
 
 
@@ -279,97 +281,8 @@ global protocol Proto1(role A, role B, role C) {  // Bad
 //*/
 
 
-/*
-global protocol Proto1(role A, role B, role C) {  // Testing phantom payvar re. K (phantom helloworld)
-	1(x:int) from A to B;
-	2(y:int) from B to C; @'y=x'  // x phantom payvar, but y=x concrete assertion -- cf. refactoring assertions as actual payload refinements
-	3(z:int) from C to A; @'z=x'
-}
-//*/
-
-/*
-global protocol Proto1(role A, role B, role C, role D) {
-	1(x:int) from A to B;
-	2(y:int) from B to C;  @'y=x'  // phantom assertion for D -- CHECKME: just treat all knowledge "globally"
-	3(z:int) from C to D;  @'z=y'
-	4(x1:int) from C to A; //@'x1=x'
-}
-//*/
-
-/*
-global protocol Proto1(role A, role B, role C) {
-	1(x:int) from A to B; @'x>0'
-	2(y:int) from B to C; @'y>x'
-	3(z:int) from C to A; @'z>x'
-}
-//*/
 
 
-
-/*
-global protocol Proto1(role A, role B, role C) {
-	1(x:String) from A to B; @'x="abc"' // Testing phantom payvar sorts
-	2() from B to C;	
-}
-//*/
-
-
-/*
-global protocol Proto1(role A, role B, role C) {
-	1(x:int) from A to B;  @'x>3'
-	2(y:int) from B to C;  @'y>x'
-	//3(z:int) from C to A;  @'z>x'  // Testing unknown
-	3(z:int) from C to A;  @'z>y'
-}
-//*/
-
-// A->B x . C->D y -- sync vs. async phantom? -- edge phantoms: recursion, terminal? reordering
-
-/*
-// testing phantom for payload vars
-global protocol Proto1(role A, role B, role C) {
-	1(x:int) from A to B; @'x>0'
-	2() from B to C;
-}
-//*/
-
-
-/*
-//global protocol Proto1(role A, role B, role C) @'<n:B=1, t:B=1> (0 <= n && n < 100) && 0 < t' {
-global protocol Proto1(role A, role B, role C) @'<x:B=0> x=0' {
-//global protocol Proto1(role A, role B, role C) @'<x:=0> x=0' {  // testing initial makeV
-	1
-	() from A to B;
-	2() from B to C;
-}
-//*/
-
-
-/*
-global protocol Proto1(role A, role B, role C) {
-	1() from A to B;
-	2() from B to C;
-	do Proto1Aux(A, B, C); @'<1>'
-}
-
-aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {  // Testing phantom statevars
-	3() from A to B;
-	4() from B to C;
-}
-//*/
-
-
-/*
-global protocol Proto1(role A, role B, role C) {  // Testing phantom statevars
-	1() from A to B;
-	do Proto1Aux(A, B, C); @'<1>'
-}
-
-aux global protocol Proto1Aux(role A, role B, role C) @'<x:B=1> x>0' {
-	2() from B to A;
-	3() from B to C;
-}
-//*/
 
 
 /*

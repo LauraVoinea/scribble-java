@@ -91,13 +91,19 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	{
 		return this.phantom;
 	}
+
+	@Override
+	public AssrtBFormula getPhantomAssertion()
+	{
+		return this.phantAss;
+	}
 	
 	@Override
 	public String toString()
 	{
 		return super.toString()
 				+ phantomsToString()
-				+ "{" + this.phantAss + "}"  // cf. super.assertionToString
+				+ phantomAssertionToString()  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
 	}
 	

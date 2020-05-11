@@ -84,6 +84,12 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	{
 		return this.phantom;
 	}
+
+	@Override
+	public AssrtBFormula getPhantomAssertion()
+	{
+		return this.phantAss;
+	}
 	
 	@Override
 	public String toString()
@@ -91,7 +97,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		//return super.toString() + "@" + this.ass + ";";
 		return super.toString()
 				+ phantomsToString()
-				+ "{" + this.phantAss + "}"  // cf. super.assertionToString
+				+ phantomAssertionToString()  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
 				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.expr + ">");  // FIXME
 				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");

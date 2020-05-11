@@ -62,6 +62,12 @@ public class AssrtCoreEAcc extends AssrtEAcc implements AssrtCoreEAction
 	{
 		throw new RuntimeException("TODO");
 	}
+
+	@Override
+	public AssrtBFormula getPhantomAssertion()
+	{
+		throw new RuntimeException("TODO");
+	}
 	
 	@Override
 	public String toString()
