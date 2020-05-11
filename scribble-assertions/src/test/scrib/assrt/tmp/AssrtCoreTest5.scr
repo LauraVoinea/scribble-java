@@ -43,7 +43,7 @@ global protocol HLLimit(role A, role B, role C) {
   do HLLimitAux(A, B, C);     @'<n, t>'
 }
 
-aux global protocol HLLimitAux(role A, role B, role C) @'<n1:B=0, t1:B=1> t1>0' {
+aux global protocol HLLimitAux(role A, role B, role C) @'<n1:B=0, t1:B=1> 0<=n1 && n1<100 && t1>0' {
   guess(x:int) from C to B;  @'0<=x && x<100'  // Added this refinement
   choice at B {
     higher() from B to C;    @'n1>x && t1>1'

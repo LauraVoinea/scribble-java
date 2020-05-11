@@ -925,7 +925,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 
 		AssrtBFormula impli = AssrtFormulaFactory
 				.AssrtBinBool(AssrtBinBFormula.Op.Imply, lhs, rhs);
-		return forallQuantifyFreeVars(core, fullname, impli).squash();  // Finally, fa-quantify all free vars
+		return forallQuantifyFreeVars(core, fullname, impli)
+				.squash();  // Finally, fa-quantify all free vars
 	}
 
 	private Set<AssrtAVarFormula> getAssVars(EAction a)
@@ -1179,7 +1180,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		if (!Vself.isEmpty())
 		{
 			Function<AssrtIntVar, AssrtAFormula> getInit = x -> svars.containsKey(x)
-					? svars.get(x) : phantom.get(x);
+					? svars.get(x) : phantom.get(x);  // CHECKME: use initialiser for phantom, should be exist quant instead?
 			AssrtBFormula Vconj = Vself.entrySet().stream().map(x -> (AssrtBFormula)  // Cast needed
 					AssrtFormulaFactory.AssrtBinComp(AssrtBinCompFormula.Op.Eq,
 					AssrtFormulaFactory.AssrtIntVar(x.getKey().toString()), //x.getValue()
@@ -1298,6 +1299,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		return res;
 	}
 
+	// N.B. curr is the state before the rec-entry: curr -a-> rec-entry
 	// Pre: 'curr/a' is output kind, or 'curr' is input kind and 'a' is toDual of enqueued message
 	// formula: isNotRecursionAssertionSatisfied (i.e., true = OK)
 	protected AssrtBFormula getRecAssertCheck(AssrtCore core, GProtoName fullname,
@@ -1358,8 +1360,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 							Vconj);
 		}
 
-		// Phantoms -- HACK: Vphan hardcoded to succ's phantom initialisers
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = succ.getPhantoms();
+		// Phantoms -- HACK: Vphan hardcoded to succ's phantom initialisers -- NO: need to exists quant phantoms, see below
+		/*LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = succ.getPhantoms();
 		if (!phantom.isEmpty())
 		{
 			AssrtBFormula Vphan = phantom.entrySet().stream()
@@ -1375,7 +1377,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 					? Vphan
 					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, lhs,
 							Vphan);
-		}
+		}*/
 		
 		// Next, assertion from action (carried by msg for input actions)
 		AssrtBFormula aass = /*(cast.isSend() || cast.isRequest())  // CHECKME: AssrtEAction doesn't have those methods, refactor?
@@ -1428,6 +1430,12 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 
 			// rhs = target state (succ) assertion
 			AssrtBFormula rhs = sass;
+
+			// Phantoms -- CHECKME: factor out with below
+			List<AssrtAVarFormula> phants = succ.getPhantoms().keySet().stream()
+					.map(x -> AssrtFormulaFactory.AssrtIntVar(x.toString()))  // convert from AssrtIntVar to AssrtIntVarFormula -- N.B. AssrtIntVar now means var of any sort
+					.collect(Collectors.toList());
+			rhs = AssrtFormulaFactory.AssrtExistsFormula(phants, rhs);
 			
 			// CHECKME: factor out with below
 			AssrtBFormula impli = (lhs == null) 
@@ -1494,6 +1502,12 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 					fresh.stream().map(x -> AssrtFormulaFactory.AssrtIntVar(x.toString()))  // HERE: factor out with getAssVars -- refactor to return AssrtAVar
 							.collect(Collectors.toList()),
 					rhs);
+
+			// Phantoms
+			List<AssrtAVarFormula> phants = succ.getPhantoms().keySet().stream()
+					.map(x -> AssrtFormulaFactory.AssrtIntVar(x.toString()))  // convert from AssrtIntVar to AssrtIntVarFormula -- N.B. AssrtIntVar now means var of any sort
+					.collect(Collectors.toList());
+			rhs = AssrtFormulaFactory.AssrtExistsFormula(phants, rhs);
 
 			AssrtBFormula impli = AssrtFormulaFactory
 					.AssrtBinBool(AssrtBinBFormula.Op.Imply, lhs, rhs);

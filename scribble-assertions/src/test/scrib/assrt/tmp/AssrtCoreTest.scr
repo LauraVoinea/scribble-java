@@ -1,5 +1,5 @@
 //Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rhu1-assrt/scribble-java
-//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtCoreTest.scr -fair -z3 -assrt -modelpng Proto1 Proto1.png -fsmpng Proto1 A Proto1_A.png -fsmpng Proto1 B Proto1_B.png
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtCoreTest.scr -fair -assrt -z3 -batch -modelpng Proto1 Proto1.png -fsmpng Proto1 A Proto1_A.png -fsmpng Proto1 B Proto1_B.png
 
 
 // http://sandbox.kidstrythisathome.com/erdos/
@@ -178,6 +178,99 @@ type <fstar> "string" from "..." as String;
 
 
 /*
+global protocol Proto1(role A, role B) {
+	0(b:int) from B to A;  @'b>=-100'
+	do Proto1Aux(A, B);  @'<b, 100>'
+}
+aux global protocol Proto1Aux(role A, role B)  @'<balance:=0, overdraft:=0> balance>=(0-overdraft) && overdraft>=0' {
+	1(x:int) from A to B;  @'0<=x && x<=(balance+overdraft)'
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+	0(b:int) from B to A;  @'b>=-100'
+	do Proto1Aux(A, B);  @'<b, 100>'
+}
+aux global protocol Proto1Aux(role A, role B)  @'<balance:=0, overdraft:=0> balance>=(0-overdraft) && overdraft>=0' {
+	choice at A {
+		1(x:int) from A to B;  @'0<x && x<=(balance+overdraft)'
+	} or {
+		2() from A to B;
+	}
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+	0(b:int) from B to A;  @'b>=-100'
+	do Proto1Aux(A, B);    @'<b, 100>'
+}
+//aux global protocol Proto1Aux(role A, role B)  @'<balance=0, overdraft=0> balance>=(0-overdraft) && overdraft>=0' {
+aux global protocol Proto1Aux(role A, role B)  @'<balance:B=0, overdraft:B=0> balance>=(0-overdraft) && overdraft>=0' {
+	choice at A {
+		1(x:int) from A to B;  @'0<x && x<=(balance+overdraft)'
+		do Proto1Aux(A, B);    @'<balance-x, overdraft>'
+	} or {
+		2() from A to B;
+	}
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+	0(b:int) from B to A;  @'b>=-100'
+	do Proto1Aux(A, B);    @'<b+100, b, 100>'
+}
+aux global protocol Proto1Aux(role A, role B)  @'<allow:A=100, balance:B=0, overdraft:B=100> allow=balance+overdraft && balance>=(0-overdraft) && overdraft>=0' {
+	choice at A {
+		1(x:int) from A to B;  @'0<x && x<=allow'
+		do Proto1Aux(A, B);    @'<allow-x, balance-x, overdraft>'
+	} or {
+		2() from A to B;
+	}
+}
+//*/
+
+
+
+
+global protocol HLLimit(role A, role B, role C) {
+  start(n:int) from A to B;  @'0<=n && n<100'
+  limit(t:int) from A to B;  @'t>0'
+  do HLLimitAux(A, B, C);     @'<n, t>'
+}
+
+aux global protocol HLLimitAux(role A, role B, role C)
+		@'<n1:B=0, t1:B=1> 0<=n1 && n1<100 && t1>0' {
+
+  1() from A to C;
+  guess(x:int) from C to B;  @'0<=x && x<100'  // Added this refinement
+  choice at B {
+    higher() from B to C;    @'n1>x && t1>1'
+    higher() from B to A;
+    do HLLimitAux(A, B, C);   @'<n1, t1-1>'
+  } or {
+    win() from B to C;       @'n1=x'
+    lose() from B to A;
+  } or {
+    lose() from B to C;      //@'(!(n1=x)) && t1=1'  // FIXME: ! precedence
+                             @'((n1<x || n1>x) && t1=1)'
+    win() from B to A;
+  } or {
+    lower() from B to C;     @'n1<x && t1>1'
+    lower() from B to A;
+    do HLLimitAux(A, B, C);   @'<n1, t1-1>'
+  }
+}
+//*/
+
+
+
+
+
+
+/*
 global protocol Proto1(role A, role B, role C) {  // Bad
 	1(x:int) from A to B;
 	2(y:int) from C to B; @'y>x'  // CHECKME: x is phantom for C, despite no causality between A and C
@@ -213,7 +306,7 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-//*
+/*
 global protocol Proto1(role A, role B, role C) {
 	1(x:String) from A to B; @'x="abc"' // Testing phantom payvar sorts
 	2() from B to C;	
