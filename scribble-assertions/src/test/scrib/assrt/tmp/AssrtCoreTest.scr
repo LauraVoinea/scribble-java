@@ -1,6 +1,8 @@
 //Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rhu1-assrt/scribble-java
 //$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtCoreTest.scr -fair -assrt -z3 -batch -modelpng Proto1 Proto1.png -fsmpng Proto1 A Proto1_A.png -fsmpng Proto1 B Proto1_B.png
 
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ -fair -assrt -z3 -batch c:/Users/rhu/myroot/home/rhu1/code/docker/fluidsess-dev/opam/scribbler/fluidsess/github.com/rhu1/fluidsess-examples/oopsla20/Adder/Adder.scr
+
 
 // http://sandbox.kidstrythisathome.com/erdos/
 
@@ -177,38 +179,11 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
-
-global protocol OAuth(role U, role S, role A) {
-  login(redir: String) from S to U;  // Message name unclear?
-  //credential(userid: int, password: String, redirresp : String) from U to A; @"redir = redirresp"
-  credential(userid: int) from U to A;
-  pw(password: String) from U to A;
-  re(redirresp : String) from U to A; @"redir = redirresp"
-  choice at A {
-    authed(token: String) from A to U;
-    authed(tokenresp: String) from U to S; @"token = tokenresp"
-    request_resource_token(authtoken: String) from S to A; @"authtoken = tokenresp"
-    resource_token(restoken: String) from A to S;
-  } or {
-    not_authed() from A to U;
-    not_authed() from U to S;
-  }
+global protocol Proto1(role A, role B) {
+	1() from A to B;
 }
 
 
-
-/*
-global protocol Ticket(role S, role C) @"<creditC:C=1000, creditS:S=0, count:S=0> creditC>=0" {  // TODO: "global" assertion, "all-or-nothing" fvs
-  Offer(x: int) from C to S; @"x>=0 && creditC>=x" // TODO: use creditC>=x phantom for S, open affordable offers
-  choice at S {
-    Ok(y: int) from S to C; @"count<1000 && y=count"  // count, for loops
-    do Ticket(S, C); @"<creditC-x, creditS+x, count+1>"
-  } or {
-    Ko() from S to C;
-    do Ticket(S, C); @"<creditC, creditS, count>"
-  }
-}
-//*/
 
 
 /*

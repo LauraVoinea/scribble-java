@@ -314,7 +314,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 
 		// (Source of) `ass` is the difference between output and input -- CHECKME: payvar vs. msg? or old?
 		Fself.add(ass);  // N.B. must come after adding phantoms (specifically, gcF; cf. AssrtCoreTest2, Test034)
-		//Fself.add(a.getPhantomAssertion());
+		Fself.add(a.getPhantomAssertion());
 		compactF(Fself);  // GC's true -- CHECKME: old "_" vars still relevant?
 
 		//- then V, R

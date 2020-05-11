@@ -15,6 +15,7 @@ type <fstar> "string" from "" as string;
 
 
 
+//*
 global protocol HigherLower(role A, role B, role C) {
   start(n:int) from A to B;  @'0<=n && n<100'
   do HigherLowerAux(A, B, C);     @'<n>'
@@ -35,8 +36,10 @@ aux global protocol HigherLowerAux(role A, role B, role C) @'<n1:B=0>' {
     do HigherLowerAux(A, B, C);  @'<n1>'
   }
 }
+//*/
 
 
+//*
 global protocol HLLimit(role A, role B, role C) {
   start(n:int) from A to B;  @'0<=n && n<100'
   limit(t:int) from A to B;  @'t>0'
@@ -62,35 +65,7 @@ aux global protocol HLLimitAux(role A, role B, role C) @'<n1:B=0, t1:B=1> 0<=n1 
     do HLLimitAux(A, B, C);   @'<n1, t1-1>'
   }
 }
-
-
-global protocol HLCrefine(role A, role B, role C) {
-  start(n:int) from A to B;     @'0<=n && n<100'
-  limit(t:int) from A to B;     @'t>0'
-  guess(x:int) from C to B;
-  do HLCrefineAux(A, B, C);        @'<n, t, x, x>'
-}
-
-aux global protocol HLCrefineAux(role A, role B, role C) 
-                                @'<n1:B=0, t1:B=0, xB:B=0, xC:C=0> t1>=0' {
-  choice at B {
-    higher() from B to C;       @'n1>xB && t1>0'
-    higher() from B to A;
-    guess(x2:int) from C to B;  @'x2>xC'  // TODO: add guess interval
-    do HLCrefineAux(A, B, C);      @'<n1, t1-1, x2, x2>'
-  } or {
-    win() from B to C;          @'n1=xB'
-    lose() from B to A;
-  } or {
-    lose() from B to C;         @'(!(n1=xB)) && t1=0'  // FIXME: ! precedence
-    win() from B to A;
-  } or {
-    lower() from B to C;        @'n1<xB && t1>0'
-    lower() from B to A;
-    guess(x3:int) from C to B;  @'x3<xC'
-    do HLCrefineAux(A, B, C);      @'<n1, t1-1, x3, x3>'
-  }
-}
+//*/
 
 
 
