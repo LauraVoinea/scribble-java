@@ -252,11 +252,13 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 			{
 				AssrtCoreMsg k = e.getKey();
 				AssrtCoreLType b = e.getValue();
-				if (merged.containsKey(k)) //&& !b.equals(merged.get(k))) // TODO
+						//if (merged.containsKey(k))                //&& !b.equals(merged.get(k))) // TODO
+						if (merged.keySet().stream().anyMatch(x -> x.op.equals(k.op)))
 				{
 							throw new RuntimeException(
 									"[assrt-core] Cannot project \n" + this + "\n onto " + self
-											+ ": cannot merge: " + b + " and " + merged.get(k));
+							//+ ": cannot merge: " + b + " and " + merged.get(k));
+											+ ": cannot merge: " + k + " and " + merged.keySet());
 						}
 				merged.put(k, b);
 			});

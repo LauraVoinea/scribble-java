@@ -179,10 +179,19 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
-global protocol Proto1(role A, role B) {
-	1() from A to B;
+global protocol P(role A, role B, role C)
+{
+ choice at A
+ {
+   Nat(x: int) from A to B; //@"x>=0"
+   Ok() from B to C;
+ }
+ or
+ {
+   Neg(y: int) from A to B; //@"y<0"
+   Ok() from B to C;
+ }
 }
-
 
 
 
