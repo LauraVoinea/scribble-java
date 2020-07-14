@@ -249,19 +249,26 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 				throw new RuntimeException("[assrt-core] Shouldn't get here: " + v);  // By role-enabling?
 			}
 			v.cases.entrySet().forEach(e ->
-			{
-				AssrtCoreMsg k = e.getKey();
-				AssrtCoreLType b = e.getValue();
+					{
+						AssrtCoreMsg k = e.getKey();
+						AssrtCoreLType b = e.getValue();
 						//if (merged.containsKey(k))                //&& !b.equals(merged.get(k))) // TODO
-						if (merged.keySet().stream().anyMatch(x -> x.op.equals(k.op)))
-				{
-							throw new RuntimeException(
-									"[assrt-core] Cannot project \n" + this + "\n onto " + self
-							//+ ": cannot merge: " + b + " and " + merged.get(k));
-											+ ": cannot merge: " + k + " and " + merged.keySet());
+						List<AssrtCoreMsg> collect = merged.keySet().stream()
+								.filter(x -> x.op.equals(k.op))
+								.collect(Collectors.toList());
+						if (!collect.isEmpty())
+						{
+							/*if (!(k.ass.equals(AssrtTrueFormula.TRUE) 
+									&& collect.stream().allMatch(x -> x.ass.equals(AssrtTrueFormula.TRUE)))) // Should be singleton ...TODO: check continuations equal*/
+							{
+								throw new RuntimeException(
+										"[assrt-core] Cannot project \n" + this + "\n onto " + self
+												+ ": cannot merge labels of: " + k + " and "
+												+ merged.keySet());
+							}
 						}
-				merged.put(k, b);
-			});
+						merged.put(k, b);
+					});
 		});
 		
 		return tf.AssrtCoreLChoice(null, roles.iterator().next(),

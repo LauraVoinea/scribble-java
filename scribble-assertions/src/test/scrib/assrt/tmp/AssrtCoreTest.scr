@@ -183,12 +183,12 @@ global protocol P(role A, role B, role C)
 {
  choice at A
  {
-   Nat(x: int) from A to B; //@"x>=0"
+   Nat(x: int) from A to B; @"x>=0"
    Ok() from B to C;
  }
  or
  {
-   Neg(y: int) from A to B; //@"y<0"
+   Neg(y: int) from A to B; @"y<0"
    Ok() from B to C;
  }
 }
