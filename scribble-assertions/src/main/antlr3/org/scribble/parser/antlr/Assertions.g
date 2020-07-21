@@ -162,7 +162,7 @@ tokens
 			CommonTree last = (CommonTree) tmp.getChild(count - 1);
 			boolean hasExpr = !(last instanceof AssrtStateVarDeclList);  // assertion still just a CommonTree (converted notAssrtBExprNode below)
 			for (int i = 1; i < (hasExpr ? count - 1 : count); i++) {
-				AssrtStateVarDeclList next = (AssrtStateVarDeclList) tmp.getChild(1);
+				AssrtStateVarDeclList next = (AssrtStateVarDeclList) tmp.getChild(1);  // N.B. 1, not i
 				next.getDeclChildren().forEach(c -> first.addChild(c));
 				tmp.deleteChild(1);
 			}
@@ -199,8 +199,24 @@ tokens
 		AssertionsLexer lexer = new AssertionsLexer(new ANTLRStringStream(source));
 		AssertionsParser parser = new AssertionsParser(new CommonTokenStream(lexer));
 		parser.setTreeAdaptor(new AssertionsTreeAdaptor());
+		
+		CommonTree bar = (CommonTree) parser.assrt_locatedstatevarargs_temp().getTree();
+		if (!(bar instanceof AssrtStateVarArgList)) { // Multiple
+			AssrtStateVarArgList first = (AssrtStateVarArgList) bar.getChild(0);
+			for (int i = 1; i < bar.getChildCount(); i++) {
+				//((CommonTree) bar.getChild(1)).getChildren().forEach(x -> first.addChild((AssrtAExprNode) x));  // N.B. 1, not i // getChildren broken by ScribNode override
+				AssrtStateVarArgList next = (AssrtStateVarArgList) bar.getChild(1);
+				for (int j = 0; j < next.getChildCount(); j++) {
+					first.addChild(next.getChild(j));  // N.B. 1, not i
+				}
+				bar.deleteChild(1);
+			}
+			bar = first;
+		}
+		
 		AssrtStateVarArgList tmp = (AssrtStateVarArgList) 
-				parser.assrt_statevarargs().getTree();
+				//parser.assrt_statevarargs().getTree();
+				bar;
 		for (int i = 0; i < tmp.getChildCount(); i++)
 		{
 			CommonTree arith_expr = (CommonTree) tmp.getChild(i);
@@ -435,8 +451,17 @@ ambigname: t=IDENTIFIER -> IDENTIFIER<AmbigNameNode>[$t] ;
 rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
 assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
+// An intermediary category, resolved by bar
+assrt_locatedstatevarargs_temp:
+	(rolename assrt_statevarargs)+
+->
+	//{bar($rolename.tree, $assrt_statevardecls.tree)}
+	assrt_statevarargs+
+;
+
 assrt_statevarargs:
-	'<' assrt_statevararg (',' assrt_statevararg)* '>'
+	//'<' assrt_statevararg (',' assrt_statevararg)* '>'
+	'[' assrt_statevararg (',' assrt_statevararg)* ']'
 ->
 	^(ASSRT_STATEVARARG_LIST assrt_statevararg+)
 ;

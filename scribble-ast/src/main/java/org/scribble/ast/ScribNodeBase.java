@@ -78,7 +78,7 @@ public abstract class ScribNodeBase extends CommonTree implements ScribNode
 	}*/
 	
 	// N.B. "overriding" base ANTLR behaviour of (sometimes?) returning null when
-	// getChildCount() == 0 by returning an empty list instead
+	// getChildCount() == 0 by returning an empty list instead -- TODO: revert? e.g., can be bad during parsing (when intermediate values aren't ScribNode yet)
 	@Override
 	public List<? extends ScribNode> getChildren()
 	{
