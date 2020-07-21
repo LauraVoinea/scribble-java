@@ -336,13 +336,13 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 			throw new AssrtCoreSyntaxException(n.getSource(),
 					"[assrt-core] Unguarded in recursion: " + n);
 		}
-		List<AssrtAFormula> sexprs = n.getAnnotExprChildren().stream()
-				.map(x -> x.getFormula()).collect(Collectors.toList());
 		if (!n.getNonRoleListChild().isEmpty())
 		{
 			throw new RuntimeException(
 					"[assrt-core] [TODO] Non-role do-args:\n\t" + this);
 		}
+		List<AssrtAFormula> sexprs = n.getAnnotExprChildren().stream()
+				.map(x -> x.getFormula()).collect(Collectors.toList());
 		return this.tf.global.AssrtCoreGDo(n.getSource(),
 				n.getProtoNameChild().toName(), n.getRoleListChild().getRoles(),
 				n.getNonRoleListChild().getParamKindArgs(), sexprs);
