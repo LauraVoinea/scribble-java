@@ -65,7 +65,8 @@ public class AssrtStateVarDeclList extends ParamDeclList<AssrtIntVarKind>
 	@Override
 	public String toString()
 	{
-		return "<" + super.toString() + ">";
+		//return "<" + super.toString() + ">";
+		return "[" + super.toString() + "]";
 	}
 }
 

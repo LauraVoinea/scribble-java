@@ -155,6 +155,19 @@ tokens
 		parser.setTreeAdaptor(new AssertionsTreeAdaptor());
 		AssrtStateVarHeaderAnnot tmp = (AssrtStateVarHeaderAnnot) 
 				parser.assrt_headerannot().getTree();
+		
+		int count = tmp.getChildCount();
+		if (count > 2) {
+			AssrtStateVarDeclList first = (AssrtStateVarDeclList) tmp.getChild(0);
+			CommonTree last = (CommonTree) tmp.getChild(count - 1);
+			boolean hasExpr = !(last instanceof AssrtStateVarDeclList);  // assertion still just a CommonTree (converted notAssrtBExprNode below)
+			for (int i = 1; i < (hasExpr ? count - 1 : count); i++) {
+				AssrtStateVarDeclList next = (AssrtStateVarDeclList) tmp.getChild(1);
+				next.getDeclChildren().forEach(c -> first.addChild(c));
+				tmp.deleteChild(1);
+			}
+		}
+		
 		AssrtStateVarDeclList svars = (AssrtStateVarDeclList)
 				tmp.getChild(AssrtStateVarHeaderAnnot.ASSRT_STATEVARDECLLIST_CHILD_INDEX);
 		for (int i = 0; i < svars.getChildCount(); i++)
@@ -380,21 +393,9 @@ assrt_headerannot:
 /*	assrt_statevardecls bool_expr?
 ->
 	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader*/
-	assrt_locatedstatevardecls_temp bool_expr?
+	assrt_locatedstatevardecls_temp+ bool_expr?
 ->
-	^(ASSRT_HEADERANNOT assrt_locatedstatevardecls_temp bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
-;
-
-/*assrt_statevardecls:
-	'<' assrt_statevardecl (',' assrt_statevardecl)* '>'
-->
-	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
-;*/
-assrt_statevardecls:
-	'[' assrt_statevardecl (',' assrt_statevardecl)* ']'
-->
-	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
-	//^(ASSRT_STATEVARDECL_LIST_TEMP rolename assrt_statevardecl+)
+	^(ASSRT_HEADERANNOT assrt_locatedstatevardecls_temp+ bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 ;
 
 // An intermediary category, resolved by foo
@@ -402,6 +403,12 @@ assrt_locatedstatevardecls_temp:
 	rolename assrt_statevardecls
 ->
 	{foo($rolename.tree, $assrt_statevardecls.tree)}
+;
+
+assrt_statevardecls:
+	'[' assrt_statevardecl (',' assrt_statevardecl)* ']'
+->
+	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
 ;
 
 /*assrt_statevardecl:  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader

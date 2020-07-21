@@ -158,7 +158,8 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	{
 		RoleNode role = getRoleNodeChild();
 		return getDeclName().toString()
-				+ (role == null ? " := " : " :" + role + " = ")
+				//+ (role == null ? " := " : " :" + role + " = ")
+				+ (role == null ? "" : "@" + role) + ": " + getDataNameChild() + " = "
 				+ getStateVarExprChild();
 	}
 }
