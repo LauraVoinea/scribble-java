@@ -16,11 +16,13 @@ import org.scribble.ast.RoleArgList;
 import org.scribble.ast.RoleDeclList;
 import org.scribble.ast.global.GProtoBlock;
 import org.scribble.ast.local.LProtoBlock;
+import org.scribble.ast.name.PayElemNameNode;
 import org.scribble.ast.name.qualified.DataNameNode;
 import org.scribble.ast.name.qualified.GProtoNameNode;
 import org.scribble.ast.name.qualified.LProtoNameNode;
 import org.scribble.ast.name.simple.RecVarNode;
 import org.scribble.ast.name.simple.RoleNode;
+import org.scribble.core.type.kind.DataKind;
 import org.scribble.del.DelFactory;
 import org.scribble.ext.assrt.ast.global.AssrtGConnect;
 import org.scribble.ext.assrt.ast.global.AssrtGContinue;
@@ -232,11 +234,11 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 
 	@Override
 	public AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtIntVarNameNode svar,
-			AssrtAExprNode sexpr, RoleNode role)
+			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role)
 	{
 		t = newToken(t, this.tokens.getType("ASSRT_STATEVARDECL"));
 		AssrtStateVarDecl n = new AssrtStateVarDecl(t);
-		n.addScribChildren(svar, sexpr, role);
+		n.addScribChildren(svar, data, sexpr, role);
 		n.decorateDel(this.df);
 		return n;
 	}

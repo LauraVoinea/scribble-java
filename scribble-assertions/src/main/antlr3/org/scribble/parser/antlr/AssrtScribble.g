@@ -502,7 +502,6 @@ payelem:
 -> 
 	^(ASSRT_ANNOTDATAELEM assrt_intvarname qualifieddataname)
 ;
-// TODO: assrt_intvarname ':' ambigname -- for simplenames
 
 
 /**

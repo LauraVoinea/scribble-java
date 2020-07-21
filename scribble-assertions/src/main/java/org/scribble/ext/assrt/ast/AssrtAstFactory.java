@@ -15,11 +15,13 @@ import org.scribble.ast.RoleArgList;
 import org.scribble.ast.RoleDeclList;
 import org.scribble.ast.global.GProtoBlock;
 import org.scribble.ast.local.LProtoBlock;
+import org.scribble.ast.name.PayElemNameNode;
 import org.scribble.ast.name.qualified.DataNameNode;
 import org.scribble.ast.name.qualified.GProtoNameNode;
 import org.scribble.ast.name.qualified.LProtoNameNode;
 import org.scribble.ast.name.simple.RecVarNode;
 import org.scribble.ast.name.simple.RoleNode;
+import org.scribble.core.type.kind.DataKind;
 import org.scribble.ext.assrt.ast.global.AssrtGConnect;
 import org.scribble.ext.assrt.ast.global.AssrtGContinue;
 import org.scribble.ext.assrt.ast.global.AssrtGDo;
@@ -63,7 +65,7 @@ public interface AssrtAstFactory extends AstFactory
 			List<AssrtStateVarDecl> svars);
 
 	AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtIntVarNameNode svar,
-			AssrtAExprNode sexpr, RoleNode role);
+			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role);
 
 	AssrtAssertDecl AssrtAssertDecl(Token t, AssrtAssertNameNode name,
 			List<AssrtSortNode> ps, AssrtSortNode ret, AssrtSmtFormula<?> expr);

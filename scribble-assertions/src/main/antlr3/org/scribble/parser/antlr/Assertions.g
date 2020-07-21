@@ -64,6 +64,8 @@ tokens
 	ASSRT_STATEVARDECL_LIST;
 	ASSRT_STATEVARDECL;
 	ASSRT_STATEVARARG_LIST;
+
+	ASSRT_STATEVARDECL_LIST_TEMP;
 	
 	/*UNFUN;
 	UNFUNARGLIST;*/
@@ -78,6 +80,7 @@ tokens
 	import org.antlr.runtime.tree.CommonTree;
 
   import org.scribble.ast.ScribNodeBase;
+  import org.scribble.ast.name.simple.AmbigNameNode;
   import org.scribble.ast.name.simple.RoleNode;
 
   import org.scribble.ext.assrt.ast.AssrtAExprNode;
@@ -193,6 +196,17 @@ tokens
 			tmp.setChild(i, arg);
 		}
 		return tmp;
+	}
+
+	public static AssrtStateVarDeclList foo(CommonTree r,  CommonTree s) 
+			throws RecognitionException
+	{
+		RoleNode rn = (RoleNode) r;
+		AssrtStateVarDeclList svars = (AssrtStateVarDeclList) s;
+		for (AssrtStateVarDecl svar : svars.getDeclChildren()) {
+			svar.addChild(rn);  // AssrtStateVarDecl.ASSRT_ROLE_CHILD_INDEX
+		}
+		return svars;
 	}
 
 	public static CommonTree parseStringLit(Token t) 
@@ -363,31 +377,56 @@ assrt_headerannot:
 ->
 	^(ASSRT_HEADERANNOT ^(ASSRT_STATEVARDECL_LIST) bool_expr)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 |
-	assrt_statevardecls bool_expr?
+/*	assrt_statevardecls bool_expr?
 ->
-	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
+	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader*/
+	assrt_locatedstatevardecls_temp bool_expr?
+->
+	^(ASSRT_HEADERANNOT assrt_locatedstatevardecls_temp bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 ;
 
-assrt_statevardecls:
+/*assrt_statevardecls:
 	'<' assrt_statevardecl (',' assrt_statevardecl)* '>'
 ->
 	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
+;*/
+assrt_statevardecls:
+	'[' assrt_statevardecl (',' assrt_statevardecl)* ']'
+->
+	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
+	//^(ASSRT_STATEVARDECL_LIST_TEMP rolename assrt_statevardecl+)
 ;
 
-assrt_statevardecl:
-	assrt_intvarname ':=' arith_expr  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+// An intermediary category, resolved by foo
+assrt_locatedstatevardecls_temp:
+	rolename assrt_statevardecls
+->
+	{foo($rolename.tree, $assrt_statevardecls.tree)}
+;
+
+/*assrt_statevardecl:  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+	assrt_intvarname ':=' arith_expr
 ->
 	^(ASSRT_STATEVARDECL assrt_intvarname arith_expr)
 |
-	assrt_intvarname ':' rolename '=' arith_expr  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+	assrt_intvarname ':' rolename '=' arith_expr
 ->
 	^(ASSRT_STATEVARDECL assrt_intvarname arith_expr rolename)
+;*/
+assrt_statevardecl:  // cf. payelem
+	assrt_intvarname ':' ambigname '=' arith_expr  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+->
+	^(ASSRT_STATEVARDECL assrt_intvarname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
+/*|
+	assrt_intvarname ':' qualifieddataname '=' arith_expr  // TODO: qualifieddataname
+->
+	^(ASSRT_STATEVARDECL assrt_intvarname qualifieddataname arith_expr)*/
 ;
 
 // Duplicated from AssrtScribble.g
+ambigname: t=IDENTIFIER -> IDENTIFIER<AmbigNameNode>[$t] ;
 rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
-//assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
-assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
+assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
 assrt_statevarargs:
 	'<' assrt_statevararg (',' assrt_statevararg)* '>'

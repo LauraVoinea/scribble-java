@@ -16,7 +16,9 @@ package org.scribble.ext.assrt.ast;
 import org.antlr.runtime.Token;
 import org.scribble.ast.ParamDecl;
 import org.scribble.ast.name.NameNode;
+import org.scribble.ast.name.PayElemNameNode;
 import org.scribble.ast.name.simple.RoleNode;
+import org.scribble.core.type.kind.DataKind;
 import org.scribble.del.DelFactory;
 import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
 import org.scribble.ext.assrt.core.type.kind.AssrtIntVarKind;
@@ -30,9 +32,9 @@ import org.scribble.visit.AstVisitor;
 public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 {
 	//public static final int NAMENODE_CHILD_INDEX = 0;  // Cf. NameDeclNode
-	public static final int ASSRT_STATEVAREXPR_CHILD_INDEX = 1;
-
-	public static final int ASSRT_ROLE_CHILD_INDEX = 2;  // null means "all roles" ("global" statevar) -- back compat
+	public static final int DATA_CHILD_INDEX = 1;  // cf. AssrtAnnotDataElem
+	public static final int ASSRT_STATEVAREXPR_CHILD_INDEX = 2;
+	public static final int ASSRT_ROLE_CHILD_INDEX = 3;  // null means "all roles" ("global" statevar) -- back compat
 	// Cf. AssrtGMsgTransfer.DST_CHILD_INDEX, RoleNode
 
 	// ScribTreeAdaptor#create constructor
@@ -52,7 +54,13 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	{
 		return (AssrtIntVarNameNode) getRawNameNodeChild();  // NameDeclNode.NAMENODE_CHILD_INDEX == 0
 	}
-	
+
+	// cf. AssrtAnnotDataElem
+	public PayElemNameNode<DataKind> getDataNameChild()
+	{
+		return (PayElemNameNode<DataKind>) getChild(DATA_CHILD_INDEX);
+	}
+
 	public AssrtAExprNode getStateVarExprChild()
 	{
 		return (AssrtAExprNode) getChild(ASSRT_STATEVAREXPR_CHILD_INDEX);
@@ -64,10 +72,11 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 		return (RoleNode) getChild(ASSRT_ROLE_CHILD_INDEX);
 	}
 
+	// TODO: refactor, role child now mandatory 
 	public boolean hasRoleNodeChild()
 	{
 		//return getChild(ASSRT_ROLE_CHILD_INDEX) != null;
-		return getChildCount() > 2;
+		return getChildCount() > ASSRT_ROLE_CHILD_INDEX;
 	}
 
 	@Override
@@ -78,10 +87,11 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 
 	// "add", not "set"
 	public void addScribChildren(NameNode<AssrtIntVarKind> name,
-			AssrtAExprNode sexpr, RoleNode role)
+			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role)
 	{
 		// Cf. above getters and Scribble.g children order
 		super.addScribChildren(name);
+		addChild(data);
 		addChild(sexpr);
 		addChild(role);
 	}
@@ -105,11 +115,11 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	}
 
 	public ParamDecl<AssrtIntVarKind> reconstruct(NameNode<AssrtIntVarKind> name,
-			AssrtAExprNode sexpr, RoleNode role)
+			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role)
 			// Always a "simple" name (e.g., like Role), but Type/Sig names are not SimpleNames
 	{
 		AssrtStateVarDecl dup = dupNode();
-		dup.addScribChildren(name, sexpr, role);
+		dup.addScribChildren(name, data, sexpr, role);
 		dup.setDel(del());  // No copy
 		return dup;
 	}
@@ -120,13 +130,15 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	{
 		NameNode<AssrtIntVarKind> svar = 
 				visitChildWithClassEqualityCheck(this, getNameNodeChild(), v);
+		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(  // Cf. UnaryPayElem
+				getDataNameChild(), v);
 		AssrtAExprNode sexpr = (AssrtAExprNode) visitChild(getStateVarExprChild(), v);
 		RoleNode role = getRoleNodeChild();
 		if (role != null)
 		{
 			role = (RoleNode) visitChild(role, v);
 		}
-		return reconstruct(svar, sexpr, role);
+		return reconstruct(svar, data, sexpr, role);
 	}
 
 	@Override
