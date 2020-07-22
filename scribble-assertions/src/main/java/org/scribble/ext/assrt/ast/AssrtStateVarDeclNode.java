@@ -31,7 +31,10 @@ public interface AssrtStateVarDeclNode
 		{
 			return "";
 		}
-		return " @" + (svars == null || svars.isEmpty()
-				? "" : svars + (ass == null ? "" : " ")) + (ass == null ? "" : ass);
+		return " @'"
+				+ (svars == null || svars.isEmpty() ? ""
+						: svars + (ass == null ? "" : " "))
+				+ (ass == null ? "" : ass)
+				+ "'";
 	}
 }

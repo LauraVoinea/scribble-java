@@ -179,11 +179,18 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
+global protocol Proto1(role A, role B)  @'A[x1: String = 1]'
+{
+	1() from A to B; @'x1 = 1'
+}
 
-//global protocol Proto1(role A, role B, role C) @'<x:A = 1, x:B = 1> x>0' {  // Phantom statevar for C
-//global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] x>0' {
-//global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] B[x: int = 1] x>0' {  // TODO: test string sort (cf. getSmt2VarDecl, env)  // FIXME: varnames should be disjoint
-global protocol Proto1(role A, role B, role C)  @'A[x1: int = 1] B[x2: int = 1] x1>0 && x2>0' {
+
+/*
+//global protocol Proto1(role A, role B, role C) @'<x:A = 1, x:B = 1> x>0'  // Phantom statevar for C
+//global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] x>0'
+//global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] B[x: int = 1] x>0'  // TODO: test string sort (cf. getSmt2VarDecl, env)  // FIXME: varnames should be disjoint
+global protocol Proto1(role A, role B, role C)  @'A[x1: int = 1] B[x2: int = 1] x1>0 && x2>0'
+{
 	//1(y: int) from A to B;  @'y>x'	
 	1(y: int) from A to B;  @'y>x1'	
 	2() from B to C;	
@@ -191,6 +198,7 @@ global protocol Proto1(role A, role B, role C)  @'A[x1: int = 1] B[x2: int = 1] 
 	//do Proto1(A, B, C);  @'A[1]'
 	do Proto1(A, B, C);  @'A[1] B[1]'  // TODO: projection -- record/use rolename?
 }
+*/
 
 /*
 global protocol Proto1(role A, role B, role C) @'<x:A = 1, x:B = 2> x>0' {
