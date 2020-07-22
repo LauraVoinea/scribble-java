@@ -179,8 +179,85 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	1() from A to B;
+	do Proto1Aux(A, B);  @'A[5]'
+	//do Proto1Aux(A, B);  @'A[2]'
+}
+
+//aux global protocol Proto1Aux(role A, role B) @'A[x: int = 3] x>4'  // CHECKME: currently allowed
+aux global protocol Proto1Aux(role A, role B) @'A[x: int = 5] x>4'
+{
+	2() from B to A;//  @'x=z'
+}
+//*/
+
 //*
-global protocol Proto1(role A, role B)  @'A[x1: String = 1]'
+global protocol Proto1(role A, role B)
+{
+	1() from A to B;
+	do Proto1Aux(A, B);  @'C[2]'
+}
+
+aux global protocol Proto1Aux(role C, role B) @'C[x: int = 5] x>4'
+{
+	2() from B to C;//  @'x=z'
+}
+//*/
+
+
+
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	1() from A to B;
+	do Proto1Aux(A, B);  @'A[2] B[0]'
+	//do Proto1Aux(A, B);  @'B[0] A[2]'  // TODO: role annotations currently ignored -- only order matters
+}
+
+aux global protocol Proto1Aux(role A, role B) @'A[x: int = 3] B[y: int = 0] x>1'
+{
+	2() from B to A;//  @'x=z'
+}
+//*/
+
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	1() from A to B;
+	do Proto1Aux(A, B);  @'D[1]'  // N.B. D, not B
+}
+
+aux global protocol Proto1Aux(role C, role D) @'D[x: int = 0]'
+{
+	2() from D to C;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B)  @'A[xa: int = 1]'  // Testing parser
+//global protocol Proto1(role A, role B)  @'A[xa: int = 1] True'
+//global protocol Proto1(role A, role B)  @'A[xa: int = 1] B[xb: int = 1] True'
+//global protocol Proto1(role A, role B)  @'A[xa: int = 1] B[xb: int = 1]'
+{
+	1() from A to B; @'xa = 1'
+}
+//*/
+
+
+
+
+/*
+global protocol Proto1(role A, role B)  @'A[xa: String = 1]'  // TODO: statevars currently hardcoded to int
 {
 	1() from A to B; @'x1 = 1'
 }
@@ -192,10 +269,10 @@ global protocol Proto1(role A, role B)  @'A[x1: String = 1]'
 //global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] x>0'
 //global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] B[x: int = 1] x>0'  // TODO: test string sort (cf. AssrtForallIntVars: getSmt2VarDecl, env; toSmt2Sort)  
 		// TODO: disjoint varnames
-global protocol Proto1(role A, role B, role C)  @'A[x1: int = 1] B[x2: int = 1] x1>0 && x2>0'
+global protocol Proto1(role A, role B, role C)  @'A[xa: int = 1] B[xb: int = 1] xa>0 && xb>0'
 {
 	//1(y: int) from A to B;  @'y>x'	
-	1(y: int) from A to B;  @'y>x1'	
+	1(y: int) from A to B;  @'y>xa'	
 	2() from B to C;	
 	//do Proto1(A, B, C);  @'<1>'
 	//do Proto1(A, B, C);  @'A[1]'

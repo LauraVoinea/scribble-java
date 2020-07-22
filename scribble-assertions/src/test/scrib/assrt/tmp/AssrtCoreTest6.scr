@@ -66,7 +66,7 @@ global protocol Test007(role A, role B, role C) {
 
 
 //global protocol Proto1(role A, role B, role C) @'<n:B=1, t:B=1> (0 <= n && n < 100) && 0 < t' {
-global protocol Test008(role A, role B, role C) @'<x:B=0> x=0' {
+global protocol Test008(role A, role B, role C) @'B[x: int =0] x=0' {
 //global protocol Proto1(role A, role B, role C) @'<x:=0> x=0' {  // testing initial makeV
 	1
 	() from A to B;
@@ -77,10 +77,10 @@ global protocol Test008(role A, role B, role C) @'<x:B=0> x=0' {
 global protocol Test009(role A, role B, role C) {
 	1() from A to B;
 	2() from B to C;
-	do Test009Aux(A, B, C); @'<1>'
+	do Test009Aux(A, B, C); @'B[1]'
 }
 
-aux global protocol Test009Aux(role A, role B, role C) @'<x:B=1> x>0' {  // Testing phantom statevars
+aux global protocol Test009Aux(role A, role B, role C) @'B[x: int = 1] x>0' {  // Testing phantom statevars
 	3() from A to B;
 	4() from B to C;
 }
@@ -88,10 +88,10 @@ aux global protocol Test009Aux(role A, role B, role C) @'<x:B=1> x>0' {  // Test
 
 global protocol Test010(role A, role B, role C) {  // Testing phantom statevars
 	1() from A to B;
-	do Test010Aux(A, B, C); @'<1>'
+	do Test010Aux(A, B, C); @'B[1]'
 }
 
-aux global protocol Test010Aux(role A, role B, role C) @'<x:B=1> x>0' {
+aux global protocol Test010Aux(role A, role B, role C) @'B[x: int = 1] x>0' {
 	2() from B to A;
 	3() from B to C;
 }
@@ -105,15 +105,15 @@ aux global protocol Test010Aux(role A, role B, role C) @'<x:B=1> x>0' {
 global protocol OnlineWallet(role A, role B, role C) {  // Cf. OnlineWallet
 	0(b:int) from B to A;  @'b>=-100'
 	foo() from B to C;
-	do OnlineWalletAux(A, B, C);    @'<b+100, b, 100>'
+	do OnlineWalletAux(A, B, C);    @'A[b+100] B[b, 100]'
 }
 aux global protocol OnlineWalletAux(role A, role B, role C)  // Testing exist quant phantom statevars in state assertions (allow w.r.t. C)
-			@'<allow:A=100, balance:B=0, overdraft:B=100> allow=balance+overdraft && balance>=(0-overdraft) && overdraft>=0' {
+			@'A[allow: int = 100] B[balance: int = 0, overdraft: int = 100] allow=balance+overdraft && balance>=(0-overdraft) && overdraft>=0' {
 
 	choice at A {
 		1(x:int) from A to B;  @'0<x && x<=allow'
 		bar1() from B to C;
-		do OnlineWalletAux(A, B, C);    @'<allow-x, balance-x, overdraft>'
+		do OnlineWalletAux(A, B, C);    @'A[allow-x] B[balance-x, overdraft]'
 	} or {
 		2() from A to B;
 		bar2() from B to C;
@@ -124,15 +124,15 @@ aux global protocol OnlineWalletAux(role A, role B, role C)  // Testing exist qu
 global protocol HighLow(role A, role B, role C) {
   start(n:int) from A to B;  @'0<=n && n<100'
   limit(t:int) from A to B;  @'t>0'
-  do HighLowAux(A, B, C);     @'<n, t>'
+  do HighLowAux(A, B, C);     @'B[n, t]'
 }
 
-aux global protocol HighLowAux(role A, role B, role C) @'<n1:B=0, t1:B=1> t1>0' {
+aux global protocol HighLowAux(role A, role B, role C) @'B[n1: int = 0, t1: int =1] t1>0' {
   guess(x:int) from C to B;
   choice at B {
     higher() from B to C;   @'n1>x && t1>1'
     higher() from B to A;
-    do HighLowAux(A, B, C);  @'<n1, t1-1>'
+    do HighLowAux(A, B, C);  @'B[n1, t1-1]'
   } or {
     win() from B to C;      @'n1=x'
     lose() from B to A;
@@ -142,6 +142,6 @@ aux global protocol HighLowAux(role A, role B, role C) @'<n1:B=0, t1:B=1> t1>0' 
   } or {
     lower() from B to C;    @'n1<x && t1>1'
     lower() from B to A;
-    do HighLowAux(A, B, C);  @'<n1, t1-1>'
+    do HighLowAux(A, B, C);  @'B[n1, t1-1]'
   }
 }

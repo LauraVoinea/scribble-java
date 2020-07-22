@@ -136,7 +136,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 			tmp1.getDeclChildren().forEach(x ->
 				{
 					PayElemType<DataKind> pt = x.getDataNameChild().toPayloadType();
-					if (pt.toString() != "int")  // TODO
+					if (!pt.toString().equals("int"))  // TODO
 					{
 						throw new RuntimeException(
 								"[TODO] Statevar sort not supported: " + pt);

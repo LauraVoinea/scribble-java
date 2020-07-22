@@ -157,7 +157,7 @@ tokens
 				parser.assrt_headerannot().getTree();
 		
 		int count = tmp.getChildCount();
-		if (count > 2) {
+		if (count > 1) {
 			AssrtStateVarDeclList first = (AssrtStateVarDeclList) tmp.getChild(0);
 			CommonTree last = (CommonTree) tmp.getChild(count - 1);
 			boolean hasExpr = !(last instanceof AssrtStateVarDeclList);  // assertion still just a CommonTree (converted notAssrtBExprNode below)

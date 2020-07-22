@@ -71,12 +71,12 @@ global protocol Test010(role A, role B)  @"True"
 	1() from A to B;
 }
 
-global protocol Test011(role A, role B)  @"<x := 1> True"
+global protocol Test011(role A, role B)  @"A[xa: int = 1] B[xb: int = 1] True"
 {
 	1() from A to B;
 }
 
-global protocol Test012(role A, role B)  @"<x := 1>"
+global protocol Test012(role A, role B)  @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1() from A to B;
 }
@@ -104,10 +104,10 @@ aux global protocol Test014Aux(role A, role B)
 
 global protocol Test015(role A, role B)
 {
-	do Test015Aux(A, B);  @"<0>"  // TODO CHECKME: OK to f/w entry "override" default sexprs?  (depends if default sexprs are for "init" only or not)
+	do Test015Aux(A, B);  @"A[0] B[0]"  // TODO CHECKME: OK to f/w entry "override" default sexprs?  (depends if default sexprs are for "init" only or not)
 }
 
-aux global protocol Test015Aux(role A, role B)  @"<x := 1>"
+aux global protocol Test015Aux(role A, role B)  @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1() from A to B;	
 }
@@ -119,7 +119,7 @@ global protocol Test016(role A, role B)
 	do Test016Aux(A, B);  // TODO FIXME? conversely, OK to not supply sexprs?  (o/w rec statevar decl exprs only for root?)
 }
 
-aux global protocol Test016Aux(role A, role B)  @<x := "1">
+aux global protocol Test016Aux(role A, role B)  @"A[xa := 1] B[xb := 1]"
 {
 	1() from A to B;	
 }
@@ -127,17 +127,17 @@ aux global protocol Test016Aux(role A, role B)  @<x := "1">
 
 
 //*
-global protocol Test017(role A, role B)  @"<x := 0>"
+global protocol Test017(role A, role B)  @"A[xa: int = 0] B[xb: int = 0]"
 {
-	do Test017(A, B);  @"<1>"  // FIXME: A, B, not used
+	do Test017(A, B);  @"A[1] B[1]"  // FIXME: A, B, not used
 }
 //*/
 
 
-global protocol Test018(role A, role B)  @"<x := 0>"
+global protocol Test018(role A, role B)  @"A[xa: int = 0] B[xb: int = 0]"
 {
 	1() from A to B;
-	do Test018(A, B);  @"<1>"
+	do Test018(A, B);  @"A[1] B[1]"
 }
 
 
@@ -155,29 +155,29 @@ global protocol Test018(role A, role B)  @"<x := 0>"
 global protocol Test020(role A, role B)
 {
 	1() from A to B;	
-	do Test020Aux(A, B);  @"<1>"
+	do Test020Aux(A, B);  @"A[1] B[1]"
 }
 
-aux global protocol Test020Aux(role A, role B)  @"<x := 1> x>0"  // Testing getRecAssertCheck lhs building
+aux global protocol Test020Aux(role A, role B)  @"A[xa: int = 1] B[xb: int = 1] xa > 0 && xb > 0"  // Testing getRecAssertCheck lhs building
 {
 	2() from B to A;	
 }
 
 
-global protocol Test021(role A, role B) @"<x := 1>"
+global protocol Test021(role A, role B) @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1() from A to B;
-	do Test021(A, B);  @"<2>"  // Testing svar initial and update values
+	do Test021(A, B);  @"A[2] B[2]"  // Testing svar initial and update values
 }
 
 
 global protocol Test022(role A, role B)
 {
 	1() from A to B;	
-	do Test022Aux(A, B);  @"<2>"  // Testing "inlining" of do-sexpr args as rec-svar exprs by proto inlining
+	do Test022Aux(A, B);  @"A[2] B[2]"  // Testing "inlining" of do-sexpr args as rec-svar exprs by proto inlining
 }
 
-aux global protocol Test022Aux(role A, role B)  @"<x := 1> x>0"
+aux global protocol Test022Aux(role A, role B)  @"A[xa: int = 1] B[xb: int = 1] xa > 0 && xb > 0"
 {
 	2() from B to A;	
 }
@@ -186,7 +186,7 @@ aux global protocol Test022Aux(role A, role B)  @"<x := 1> x>0"
 global protocol Test023(role A, role B)
 {
 	1() from A to B;	
-	do Test023Aux(A, B);  @"<2>"  // FIXME: no target satate var
+	do Test023Aux(A, B);  @"A[2] B[2]"  // FIXME: no target satate var
 }
 
 aux global protocol Test023Aux(role A, role B)  //@"x>0"
@@ -202,32 +202,32 @@ global protocol Test025(role A, role B)
 }
 
 
-global protocol Test026(role A, role B) @"<x := 1>"
+global protocol Test026(role A, role B) @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1(y:int) from A to B;  @"y>1"
-	do Test026(A, B);  @"<y>"  // TODO: testing F var renaming/compacting and V/R renaming
+	do Test026(A, B);  @"A[y] B[y]"  // TODO: testing F var renaming/compacting and V/R renaming
 }
 
 
-global protocol Test027(role A, role B) @"<x := 1>"
+global protocol Test027(role A, role B) @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1() from A to B;
 	2() from B to A;
-	do Test027(A, B);  @"<2>"
+	do Test027(A, B);  @"A[2] B[2]"
 }
 
 
-global protocol Test028(role A, role B) @"<x := 1>"
+global protocol Test028(role A, role B) @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1() from A to B;  // Testing removal of _dum1 : _Unit translation for empty payload -- reduces model size
-	do Test028(A, B);  @"<2>"
+	do Test028(A, B);  @"A[2] B[2]"
 }
 
 
-global protocol Test029(role A, role B) @"<x := 1>"
+global protocol Test029(role A, role B) @"A[xa: int = 1] B[xb: int = 1]"
 {
 	1() from A to B;  // Testing removal of _dum1 : _Unit translation for empty payload -- reduces model size
-	do Test029(A, B);  @"<1>"  // Testing .toTrueAssertion state exprs
+	do Test029(A, B);  @"A[1] B[1]"  // Testing .toTrueAssertion state exprs
 }
 
 
@@ -241,18 +241,18 @@ global protocol Test029(role A, role B) @"<x := 1>"
 
 
 // Testing rec assertion
-global protocol Test032(role A, role B) @"<x:=0> x>=0"
+global protocol Test032(role A, role B) @"A[xa: int = 0] B[xb: int = 0] xa >= 0 && xb >= 0"
 {
 	1(y: int) from A to B; @"y>0"  // Comment annotation is bad
-	do Test032(A, B); @"<y>"
+	do Test032(A, B); @"A[y] B[y]"
 }
 
 
 // Testing rec assertion
-global protocol Test033(role A, role B) @"<x:=0> x>=0"
+global protocol Test033(role A, role B) @"A[xa: int = 0] B[xb: int = 0] xa >= 0 && xb >= 0"
 {
-	1(y: int) from A to B; @"y>x"  // Comment annotation is bad
-	do Test033(A, B); @"<y>"
+	1(y: int) from A to B; @"y>xa"  // Comment annotation is bad
+	do Test033(A, B); @"A[y] B[y]"
 }
 
 
@@ -297,9 +297,9 @@ global protocol Test036Aux(role A, role B) @<y:="4">
 
 
 // Testing (removal of) state args from messages, cf. duality between A and B (w.r.t. <1>)
-global protocol Proto37(role A, role B, role C) @"<x := 0>"
+global protocol Proto37(role A, role B, role C) @"A[xa: int = 0] B[xb: int = 0]"
 {
 	1() from A to B;
 	2() from A to C;
-	do Proto37(A, B, C); @"<1>"  // TODO: add test
+	do Proto37(A, B, C); @"A[1] B[1]"  // TODO: add test
 }
