@@ -178,6 +178,45 @@ type <fstar> "string" from "..." as String;
 // - fix syntax -- TODO: deprecate AssrtStateVarAnnotNode for an intermediary CommonTree
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
+global protocol Proto1(role A, role B) @"[z: int = 3]"
+{
+	1(x:int) from A to B; @"(x=3)"
+	2(y:int) from A to B; @"(y>x)"
+	do Proto1(A, B);  // FIXME: missing statevar args -- basically arity check missing, cf. RuntimeException when too many
+}
+
+
+
+global protocol Proto1(role A, role B)
+{
+	1(x:int) from A to B;
+	//do Proto2(A, B);
+	do Proto2(A, B); @"[x]"
+}
+
+aux global protocol Proto1Aux(role A, role B) @"[x1: int = -1]"  // N.B. x1
+{
+	2(y:int) from A to B; @"(y>x1)"
+	do Proto1Aux(A, B);  // FIXME: missing statevar args not detected
+}
+
+
+
+/*
+global protocol Proto1(role A, role B)  @'[x: int = 0]' {
+	1() from A to B;
+	do Proto1(A, B); @'[x]'
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B)  @'A[x: int = 0]' {
+	1() from A to B;
+	2(y: int) from B to A;  @'y>x'  // CHECKME: OK for B to do that? -- not in general: cf. located statevar x=1, phantom x=0, pay assertion y=x (y picked by phantom guy)
+}
+//*/
+
 
 
 
@@ -196,7 +235,7 @@ aux global protocol Proto1Aux(role A, role B) @'A[x: int = 5] x>4'
 }
 //*/
 
-//*
+/*
 global protocol Proto1(role A, role B)
 {
 	1() from A to B;

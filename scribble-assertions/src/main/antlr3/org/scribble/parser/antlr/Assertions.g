@@ -65,7 +65,7 @@ tokens
 	ASSRT_STATEVARDECL;
 	ASSRT_STATEVARARG_LIST;
 
-	ASSRT_STATEVARDECL_LIST_TEMP;
+	ASSRT_LOCATEDSTATEVARARGS_TEMP;
 	
 	/*UNFUN;
 	UNFUNARGLIST;*/
@@ -200,8 +200,8 @@ tokens
 		AssertionsParser parser = new AssertionsParser(new CommonTokenStream(lexer));
 		parser.setTreeAdaptor(new AssertionsTreeAdaptor());
 		
-		CommonTree bar = (CommonTree) parser.assrt_locatedstatevarargs_temp().getTree();
-		if (!(bar instanceof AssrtStateVarArgList)) { // Multiple
+		CommonTree bar = (CommonTree) parser.assrt_statevarargs().getTree();
+		if (bar.getText().equals("ASSRT_LOCATEDSTATEVARARGS_TEMP")) { // Located, and potentially multiple  // TODO: record rolename
 			AssrtStateVarArgList first = (AssrtStateVarArgList) bar.getChild(0);
 			for (int i = 1; i < bar.getChildCount(); i++) {
 				//((CommonTree) bar.getChild(1)).getChildren().forEach(x -> first.addChild((AssrtAExprNode) x));  // N.B. 1, not i // getChildren broken by ScribNode override
@@ -401,17 +401,19 @@ unint_fun_arg_list:
 ;
 */
 	
+// bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 assrt_headerannot:
 	bool_expr
 ->
-	^(ASSRT_HEADERANNOT ^(ASSRT_STATEVARDECL_LIST) bool_expr)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
+	^(ASSRT_HEADERANNOT ^(ASSRT_STATEVARDECL_LIST) bool_expr)
 |
-/*	assrt_statevardecls bool_expr?
+	assrt_statevardecls bool_expr?
 ->
-	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader*/
+	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)
+|
 	assrt_locatedstatevardecls_temp+ bool_expr?
 ->
-	^(ASSRT_HEADERANNOT assrt_locatedstatevardecls_temp+ bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
+	^(ASSRT_HEADERANNOT assrt_locatedstatevardecls_temp+ bool_expr?)
 ;
 
 // An intermediary category, resolved by foo
@@ -427,17 +429,9 @@ assrt_statevardecls:
 	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
 ;
 
-/*assrt_statevardecl:  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
-	assrt_intvarname ':=' arith_expr
-->
-	^(ASSRT_STATEVARDECL assrt_intvarname arith_expr)
-|
-	assrt_intvarname ':' rolename '=' arith_expr
-->
-	^(ASSRT_STATEVARDECL assrt_intvarname arith_expr rolename)
-;*/
+// arith_expr parsed to AssrtAExprNode by parseStateVarHeader
 assrt_statevardecl:  // cf. payelem
-	assrt_intvarname ':' ambigname '=' arith_expr  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+	assrt_intvarname ':' ambigname '=' arith_expr
 ->
 	^(ASSRT_STATEVARDECL assrt_intvarname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
 /*|
@@ -452,14 +446,18 @@ rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
 assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
 // An intermediary category, resolved by bar
-assrt_locatedstatevarargs_temp:
-	(rolename assrt_statevarargs)+
+assrt_statevarargs:
+	assrt_nonlocatedstatevarargs
+-> 
+	assrt_nonlocatedstatevarargs
+|
+	(rolename assrt_nonlocatedstatevarargs)+
 ->
-	//{bar($rolename.tree, $assrt_statevardecls.tree)}
-	assrt_statevarargs+
+	//{bar($rolename.tree, $assrt_statevardecls.tree)}  // TODO: record rolename
+	^(ASSRT_LOCATEDSTATEVARARGS_TEMP assrt_nonlocatedstatevarargs+)
 ;
 
-assrt_statevarargs:
+assrt_nonlocatedstatevarargs:
 	//'<' assrt_statevararg (',' assrt_statevararg)* '>'
 	'[' assrt_statevararg (',' assrt_statevararg)* ']'
 ->

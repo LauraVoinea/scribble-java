@@ -9,7 +9,7 @@ global protocol Proto1(role A, role B)
 {
 	1(x:int) from A to B;
 	//do Proto2(A, B);
-	do Proto2(A, B); @"<x>"
+	do Proto2(A, B); @"[x]"
 }
 
 /*aux global protocol Proto2(role A, role B)
@@ -21,9 +21,10 @@ global protocol Proto1(role A, role B)
 }
 */
 
-aux global protocol Proto2(role A, role B) @"<x1:=-1>"  // N.B. x1
+aux global protocol Proto2(role A, role B) @"[x1: int = -1]"  // N.B. x1
 {
 	2(y:int) from A to B; @"(y>x1)"
-	do Proto2(A, B);
+	//do Proto2(A, B);  // FIXME: missing statevar args not detected
+	do Proto2(A, B);  @"[x1]"
 }
 //*/

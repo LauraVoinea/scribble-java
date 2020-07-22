@@ -113,7 +113,8 @@ public class AssrtCoreGDo extends AssrtCoreDo<Global, AssrtCoreGType>
 				.forEach(x -> phantom.put(x, gpro.statevars.get(x)));
 		LinkedHashMap<AssrtIntVar, Role> located = new LinkedHashMap<>();
 		gpro.located.entrySet().stream()
-				.forEach(x -> located.put(x.getKey(), subs.subsRole(x.getValue())));
+				.forEach(x -> located.put(x.getKey(),
+						x.getValue() == null ? null : subs.subsRole(x.getValue())));
 		return tf.AssrtCoreGRec(null, rv, inlined, svars, gpro.assertion,
 				located, phantom);
 	}

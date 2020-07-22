@@ -72,7 +72,6 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 		return (RoleNode) getChild(ASSRT_ROLE_CHILD_INDEX);
 	}
 
-	// TODO: refactor, role child now mandatory 
 	public boolean hasRoleNodeChild()
 	{
 		//return getChild(ASSRT_ROLE_CHILD_INDEX) != null;

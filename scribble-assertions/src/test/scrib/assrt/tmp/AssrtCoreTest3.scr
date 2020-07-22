@@ -219,8 +219,25 @@ global protocol Knowledge(role A, role B, role C)
 
 
 //*  Cf. Fib.scr
-//global protocol Fib(role C, role S)  @"C[x: int = 0, y: int = 1] y>0 && x>=0"
-global protocol Fib(role C, role S)  @"C[x: int = 0, y: int = 1] S[xs: int = 0, ys: int = 1] y>0 && x>=0 && ys>0 && xs>=0"
+global protocol Fib(role C, role S)  @"[x: int = 0, y: int = 1] y>0 && x>=0"
+		//@"(x := 0, y := 1) y>0 && x>0"  // Bad initial Rass (and later unsat)
+		//@"(x := 0, y := 1) (y>0))"
+{
+	choice at C
+	{
+		Val(x1:int) from C to S;  @"x1 = x"
+		Add(y1:int) from C to S;  @"y1 = y"
+		Sum(z:int) from S to C;   @"z = (x1+y1)"
+		do Fib(C, S);          @"[y1, z]"  // FIXME
+	}
+	or
+	{
+		Bye() from C to S;
+	}
+}
+//*/
+
+global protocol Fiba(role C, role S)  @"C[x: int = 0, y: int = 1] S[xs: int = 0, ys: int = 1] y>0 && x>=0 && ys>0 && xs>=0"
 		//@"(x := 0, y := 1) y>0 && x>0"  // Bad initial Rass (and later unsat)
 		//@"(x := 0, y := 1) (y>0))"
 {
@@ -231,13 +248,11 @@ global protocol Fib(role C, role S)  @"C[x: int = 0, y: int = 1] S[xs: int = 0, 
 		/*Sum(z:int) from S to C;   @"z = (x1+y1)"
 		do Fib(C, S);          @"C[y1, z]"  // FIXME*/
 		Sum(z:int) from S to C;   @"z = (xs+ys)"
-		do Fib(C, S);          @"C[y1, z] S[ys, z]"
+		do Fiba(C, S);          @"C[y1, z] S[ys, z]"
 	}
 	or
 	{
 		Bye() from C to S;
 	}
 }
-//*/
-
 
