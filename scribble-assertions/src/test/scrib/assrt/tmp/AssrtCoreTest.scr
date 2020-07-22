@@ -200,7 +200,8 @@ aux global protocol Proto1Aux(role A, role B) @'A[x: int = 5] x>4'
 global protocol Proto1(role A, role B)
 {
 	1() from A to B;
-	do Proto1Aux(A, B);  @'C[2]'
+	do Proto1Aux(A, B);  @'C[5]'
+	//do Proto1Aux(A, B);  @'C[2]'  // Testing statevar role inlining substitution
 }
 
 aux global protocol Proto1Aux(role C, role B) @'C[x: int = 5] x>4'

@@ -35,7 +35,7 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 {
 	// Pre: same keys as super.statevars
 	public final LinkedHashMap<AssrtIntVar, Role> located;  // maps to null for "global" (back compat)  // TODO: sorts (currently hardcoded around int)
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;  // Record init exprs for potential local phantoms, e.g., for forwards-do
 
 	protected AssrtCoreGRec(CommonTree source, RecVar rv, AssrtCoreGType body,
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
