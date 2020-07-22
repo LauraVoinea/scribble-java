@@ -7,7 +7,7 @@ public interface AssrtStateVarArgNode
 {
 	List<AssrtAExprNode> getAnnotExprChildren();
 
-	// CHECKME: used by AssrtG/LContinue and AssrtLDo, but not AssrtGDo?  (cf. AssrtStateVarArgList)
+	// CHECKME: used by AssrtG/LContinue and AssrtLDo, but not AssrtGDo?  (cf. AssrtStateVarArgList, currently directly stores AExprs)
 	default String annotToString()
 	{
 		List<AssrtAExprNode> sexprs = getAnnotExprChildren();

@@ -62,9 +62,9 @@ public class AssrtCoreGProtocol extends GProtocol
 	public final AssrtCoreGType type;  // N.B. super.def Seq set to null -- here, body is a "type", not a "seq"
 	
 	// Cf. AssrtCoreRec
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars;
+	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars;  // TODO: sorts (currently hardcoded around int)
 	public final AssrtBFormula assertion;  // non-null (True)
-	
+
 	// Pre: same keys as statevars
 	public final LinkedHashMap<AssrtIntVar, Role> located;  // maps to null for "global" (back compat)
 

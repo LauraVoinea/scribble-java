@@ -40,6 +40,7 @@ import org.scribble.ast.global.GSimpleSessionNode;
 import org.scribble.ast.name.simple.RoleNode;
 import org.scribble.core.lang.ProtoMod;
 import org.scribble.core.lang.global.GNode;
+import org.scribble.core.type.kind.DataKind;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.kind.NonRoleParamKind;
 import org.scribble.core.type.name.DataName;
@@ -134,6 +135,12 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		{
 			tmp1.getDeclChildren().forEach(x ->
 				{
+					PayElemType<DataKind> pt = x.getDataNameChild().toPayloadType();
+					if (pt.toString() != "int")  // TODO
+					{
+						throw new RuntimeException(
+								"[TODO] Statevar sort not supported: " + pt);
+					}
 					AssrtIntVar v = x.getDeclName();
 					svars.put(v, x.getStateVarExprChild().expr);
 					RoleNode r = x.getRoleNodeChild();  // null if no explicit role
