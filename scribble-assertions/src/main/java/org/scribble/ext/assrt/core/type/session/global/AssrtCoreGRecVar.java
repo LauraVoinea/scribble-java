@@ -75,7 +75,7 @@ public class AssrtCoreGRecVar extends AssrtCoreRecVar<Global, AssrtCoreGType>
 				.filter(x ->
 					{
 						Role r = it.next().getValue();
-						return r == null || r.equals(self);  // TODO null
+						return r == null || r.equals(self);
 					})
 				.collect(Collectors.toList());
 		return ((AssrtCoreLTypeFactory) core.config.tf.local).AssrtCoreLRecVar(null,
