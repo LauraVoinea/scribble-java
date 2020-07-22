@@ -4,10 +4,10 @@ module bad.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest08d;
 type <java> "java.lang.Integer" from "rt.jar" as int;  // FIXME: int keyword
 
 
-//*
-global protocol Proto1(role A, role B) @"<x:=3> x>2"
+//*  // N.B. state-assertion error
+global protocol Proto1(role A, role B) @"[x: int = 3] x>2"
 {
 	1() from A to B; @"(x>2)"
-	do Proto1(A, B); @"<(x-1)>"  // Morally unsat -- cf. 8c
+	do Proto1(A, B); @"[(x-1)]"  // Morally unsat -- cf. 8c
 }
 //*/
