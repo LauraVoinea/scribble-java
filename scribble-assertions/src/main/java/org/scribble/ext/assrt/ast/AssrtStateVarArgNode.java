@@ -7,12 +7,13 @@ public interface AssrtStateVarArgNode
 {
 	List<AssrtAExprNode> getAnnotExprChildren();
 
+	// CHECKME: used by AssrtG/LContinue and AssrtLDo, but not AssrtGDo?  (cf. AssrtStateVarArgList)
 	default String annotToString()
 	{
 		List<AssrtAExprNode> sexprs = getAnnotExprChildren();
 		return sexprs.isEmpty() 
 				? ""
-				: " @<" + getAnnotExprChildren().stream().map(Object::toString)
-						.collect(Collectors.joining(", ")) + ">;";
+				: " @'[" + getAnnotExprChildren().stream().map(Object::toString)
+						.collect(Collectors.joining(", ")) + "]';";
 	}
 }

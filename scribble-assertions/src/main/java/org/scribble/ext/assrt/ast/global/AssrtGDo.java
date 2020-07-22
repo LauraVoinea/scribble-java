@@ -106,7 +106,7 @@ public class AssrtGDo extends GDo implements AssrtStateVarArgNode
 	{
 		AssrtStateVarArgList sexprs = getStateVarArgListChild();
 		return super.toString() //+ annotToString();
-				+ (sexprs != null ? sexprs : "");
+				+ " " + (sexprs != null ? sexprs : "");
 	}
 }
 
