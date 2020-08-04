@@ -36,12 +36,9 @@ import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
 import org.scribble.ext.assrt.ast.local.AssrtLRecursion;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.qualified.AssrtAssertNameNode;
 import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
-import org.scribble.ext.assrt.ast.name.simple.AssrtSortNode;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.parser.ScribAntlrTokens;
 
 
@@ -167,11 +164,11 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 	public AssrtModule AssrtModule(Token t, ModuleDecl modd,
 			List<? extends ImportDecl<?>> impds,
 			List<? extends NonProtoDecl<?>> nprods,
-			List<AssrtAssertDecl> assds, List<? extends ProtoDecl<?>> prods)
+			List<? extends ProtoDecl<?>> prods)
 	{
 		t = newToken(t, this.tokens.getType("MODULE"));
 		AssrtModule n = new AssrtModule(t);
-		n.addScribChildren(modd, impds, nprods, assds, prods);
+		n.addScribChildren(modd, impds, nprods, prods);
 		n.decorateDel(this.df);
 		return n;
 	}
@@ -195,17 +192,6 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 		AssrtBExprNode n = new AssrtBExprNode(type, t, bform);
 		n.decorateDel(this.df);
 		return n;
-	}
-
-	@Override
-	public AssrtAssertDecl AssrtAssertDecl(Token t, AssrtAssertNameNode name,
-			List<AssrtSortNode> ps, AssrtSortNode ret, AssrtSmtFormula<?> expr)
-	{
-		/*t = newToken(t, ...);
-		AssrtAssertDecl n = new AssrtAssertDecl(t, expr);
-		n.decorateDel(this.df);
-		return n;*/
-		throw new RuntimeException("[TODO] : " + t);
 	}
 
 	@Override

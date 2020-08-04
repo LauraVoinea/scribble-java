@@ -34,12 +34,9 @@ import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
 import org.scribble.ext.assrt.ast.local.AssrtLRecursion;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.qualified.AssrtAssertNameNode;
 import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
-import org.scribble.ext.assrt.ast.name.simple.AssrtSortNode;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 
 
 public interface AssrtAstFactory extends AstFactory
@@ -55,7 +52,7 @@ public interface AssrtAstFactory extends AstFactory
 	AssrtModule AssrtModule(Token t, ModuleDecl modd,
 			List<? extends ImportDecl<?>> impds,
 			List<? extends NonProtoDecl<?>> nprods,
-			List<AssrtAssertDecl> assds, List<? extends ProtoDecl<?>> prods);
+			List<? extends ProtoDecl<?>> prods);
 
 	// FIXME: should not be an AssrtAssertion -- should be just an (integer) var decl expr (which is not a bool expr)
 	AssrtGProtoHeader AssrtGProtoHeader(Token t, GProtoNameNode name,
@@ -66,9 +63,6 @@ public interface AssrtAstFactory extends AstFactory
 
 	AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtIntVarNameNode svar,
 			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role);
-
-	AssrtAssertDecl AssrtAssertDecl(Token t, AssrtAssertNameNode name,
-			List<AssrtSortNode> ps, AssrtSortNode ret, AssrtSmtFormula<?> expr);
 
 	AssrtAnnotDataElem AssrtAnnotDataTypeElem(Token t,
 			AssrtIntVarNameNode var, DataNameNode data);

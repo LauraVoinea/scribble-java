@@ -18,9 +18,6 @@ import java.util.Map;
 import org.scribble.ast.Module;
 import org.scribble.core.job.ScribNames;
 import org.scribble.core.type.name.ModuleName;
-import org.scribble.ext.assrt.ast.AssrtAssertDecl;
-import org.scribble.ext.assrt.ast.AssrtModule;
-import org.scribble.ext.assrt.core.type.name.AssrtAssertName;
 import org.scribble.job.ModuleContextBuilder;
 import org.scribble.util.ScribException;
 
@@ -31,13 +28,6 @@ public class AssrtModuleContextBuilder extends ModuleContextBuilder
 	protected void addModule(ScribNames names, Module mod, ModuleName modname)
 	{
 		super.addModule(names, mod, modname);
-
-		AssrtScribNames ns = (AssrtScribNames) names;
-		for (AssrtAssertDecl assd : ((AssrtModule) mod).getAssertDeclChildren())
-		{
-			AssrtAssertName qualif = new AssrtAssertName(modname, assd.getDeclName());
-			ns.asserts.put(qualif, assd.getFullMemberName(mod));
-		}
 	}
 
 	@Override
@@ -45,13 +35,5 @@ public class AssrtModuleContextBuilder extends ModuleContextBuilder
 			throws ScribException
 	{
 		super.addVisible(parsed, root);
-
-		AssrtScribNames vs = (AssrtScribNames) this.visible;
-		for (AssrtAssertDecl assd : ((AssrtModule) root).getAssertDeclChildren())
-		{
-			AssrtAssertName visname = new AssrtAssertName(
-					assd.getDeclName().toString());
-			vs.asserts.put(visname, assd.getFullMemberName(root));
-		}
 	}
 }

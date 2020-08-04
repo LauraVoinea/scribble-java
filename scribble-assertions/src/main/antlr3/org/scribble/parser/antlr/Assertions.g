@@ -8,14 +8,6 @@
 grammar Assertions;  // TODO: rename AssrtExt(Id), or AssrtAnnotation
 
 
-/*
- * TODO: 
- * - refactor AssrtAntlrToFormulaParser ito AssertionsTreeAdaptor?
- * - and set ASTLabelType=ScribNodeBase? -- would need to refactor, e.g., 
- *   AssrtBExprNode wrapping of AssrtBFormula from AssrtScribble.g into here,
- *   cf. EXTID<AssrtBExprNode>[$t, AssertionsParser.parseAssertion($t.text)]
- */
-
 options
 {
 	language = Java;
@@ -42,7 +34,6 @@ tokens
 	 * 
 	 * These token names are cased on by AssrtAntlrToFormulaParser.
 	 */
-	//EMPTY_LIST = 'EMPTY_LIST';
 	
 	// TODO: rename EXT_... (or ANNOT_...)
 	ROOT; 
@@ -52,7 +43,7 @@ tokens
 	ARITHEXPR; 
 	NEGEXPR;
 
-	INTVAR;  // FIXME: rename Ambig
+	INTVAR;  // TODO: rename Ambig
 	INTVAL; 
 	NEGINTVAL; 
 	STRVAL; 
@@ -66,9 +57,6 @@ tokens
 	ASSRT_STATEVARARG_LIST;
 
 	ASSRT_LOCATEDSTATEVARARGS_TEMP;
-	
-	/*UNFUN;
-	UNFUNARGLIST;*/
 }
 
 
@@ -386,20 +374,6 @@ literal:
 |
 	stringlit
 ;
-
-/*
-unint_fun:
-	IDENTIFIER unint_fun_arg_list
-->
-	^(UNFUN IDENTIFIER unint_fun_arg_list)
-; 
-	
-unint_fun_arg_list:
-	'(' (arith_expr (',' arith_expr )*)? ')'
-->
-	^(UNFUNARGLIST arith_expr*)
-;
-*/
 	
 // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 assrt_headerannot:
@@ -453,12 +427,10 @@ assrt_statevarargs:
 |
 	(rolename assrt_nonlocatedstatevarargs)+
 ->
-	//{bar($rolename.tree, $assrt_statevardecls.tree)}  // TODO: record rolename
 	^(ASSRT_LOCATEDSTATEVARARGS_TEMP assrt_nonlocatedstatevarargs+)
 ;
 
 assrt_nonlocatedstatevarargs:
-	//'<' assrt_statevararg (',' assrt_statevararg)* '>'
 	'[' assrt_statevararg (',' assrt_statevararg)* ']'
 ->
 	^(ASSRT_STATEVARARG_LIST assrt_statevararg+)
@@ -468,3 +440,36 @@ assrt_statevararg:
 	arith_expr  // Parsed to AssrtAExprNode by parseStateVarArgList
 ;
 	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+/*
+unint_fun:
+	IDENTIFIER unint_fun_arg_list
+->
+	^(UNFUN IDENTIFIER unint_fun_arg_list)
+; 
+	
+unint_fun_arg_list:
+	'(' (arith_expr (',' arith_expr )*)? ')'
+->
+	^(UNFUNARGLIST arith_expr*)
+;
+*/
