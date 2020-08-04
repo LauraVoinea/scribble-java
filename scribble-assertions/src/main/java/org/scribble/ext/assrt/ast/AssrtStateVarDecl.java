@@ -55,7 +55,7 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 		return (AssrtIntVarNameNode) getRawNameNodeChild();  // NameDeclNode.NAMENODE_CHILD_INDEX == 0
 	}
 
-	// cf. AssrtAnnotDataElem
+	// TODO: <DataKind> incompatible with AmbigNameNode -- cf. AssrtAnnotDataElem
 	public PayElemNameNode<DataKind> getDataNameChild()
 	{
 		return (PayElemNameNode<DataKind>) getChild(DATA_CHILD_INDEX);

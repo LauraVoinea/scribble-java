@@ -39,7 +39,7 @@ public class AssrtAnnotDataElem extends ScribNodeBase
 		return (AssrtIntVarNameNode) getChild(VAR_CHILD_INDEX);
 	}
 	
-	// FIXME: <DataKind> incompatible with AmbigNameNode -- cf. UnaryPayElem
+	// TODO: <DataKind> incompatible with AmbigNameNode -- cf. UnaryPayElem
 	public PayElemNameNode<DataKind> getDataNameChild()
 	{
 		return (PayElemNameNode<DataKind>) getChild(DATA_CHILD_INDEX);
