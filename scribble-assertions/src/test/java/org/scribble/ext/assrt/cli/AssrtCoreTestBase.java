@@ -50,9 +50,9 @@ public abstract class AssrtCoreTestBase extends ScribTestBase
 	{
 		new AssrtCommandLine(this.example, CLFlags.JUNIT_FLAG,
 				CLFlags.IMPORT_PATH_FLAG, dir, CLFlags.FAIR_FLAG,
-				AssrtCoreCLFlags.ASSRT_CORE_NATIVE_Z3_FLAG,
-				AssrtCoreCLFlags.ASSRT_CORE_BATCH_Z3_FLAG,
-				AssrtCoreCLFlags.ASSRT_CORE_FLAG)//, "[AssrtCoreAllTest]")  // HACK: for AssrtCommandLine (assrt-core mode)
+				AssrtCLFlags.ASSRT_CORE_NATIVE_Z3_FLAG,
+				AssrtCLFlags.ASSRT_CORE_BATCH_Z3_FLAG,
+				AssrtCLFlags.ASSRT_CORE_FLAG)//, "[AssrtCoreAllTest]")  // HACK: for AssrtCommandLine (assrt-core mode)
 			.run();
 	}
 

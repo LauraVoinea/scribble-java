@@ -5,7 +5,7 @@ import java.util.Map;
 import org.scribble.cli.CLFlag;
 import org.scribble.cli.CLFlags;
 
-public class AssrtCoreCLFlags extends CLFlags
+public class AssrtCLFlags extends CLFlags
 {
 	// Unique flags
 	public static final String ASSRT_CORE_FLAG = "-assrt";
