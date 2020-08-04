@@ -99,7 +99,7 @@ public class Z3Wrapper
 				.range(0, rs.size()).mapToObj(i -> "(declare-const " + rs.get(i)
 						+ " Int)\n(assert (= " + rs.get(i) + " " + i + "))\n")
 				.collect(Collectors.joining(""));
-						// FIXME: make a Role sort?
+		// TODO: make a Role sort?
 
 		/*Set<AssrtUnintPredicateFormula> preds = bforms.stream()
 				.flatMap(f -> getUnintPreds.func.apply(f).stream())

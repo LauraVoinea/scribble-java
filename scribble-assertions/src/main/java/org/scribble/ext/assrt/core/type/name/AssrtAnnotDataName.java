@@ -7,9 +7,8 @@ import org.scribble.ext.assrt.core.type.kind.AssrtAnnotDataKind;
 public class AssrtAnnotDataName
 		implements AssrtPayElemType<AssrtAnnotDataKind>
 {
-	// TODO: currently hardcoded to int data
 	public final AssrtVar var;
-	public final DataName data;  // currently only int
+	public final DataName data;
 			// CHECKME: generalise beyond data?
 	
 	public AssrtAnnotDataName(AssrtVar varName, DataName data)
