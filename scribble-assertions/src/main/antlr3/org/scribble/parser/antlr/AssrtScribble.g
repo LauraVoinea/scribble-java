@@ -349,7 +349,7 @@ rolename: t=ID -> ID<RoleNode>[$t] ;
 sigparamname: t=ID -> ID<SigParamNode>[$t] ;
 
 // Assrt
-assrt_intvarname: t=ID -> ID<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
+assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
 
 
 /**
@@ -451,13 +451,13 @@ payelem:
 
 // Assrt
 |
-	assrt_intvarname ':' ambigname
+	assrt_varname ':' ambigname
 ->
-	^(ASSRT_ANNOTDATAELEM assrt_intvarname ambigname)
+	^(ASSRT_ANNOTDATAELEM assrt_varname ambigname)
 |
-	assrt_intvarname ':' qualifieddataname
+	assrt_varname ':' qualifieddataname
 -> 
-	^(ASSRT_ANNOTDATAELEM assrt_intvarname qualifieddataname)
+	^(ASSRT_ANNOTDATAELEM assrt_varname qualifieddataname)
 
 // TODO	
 |

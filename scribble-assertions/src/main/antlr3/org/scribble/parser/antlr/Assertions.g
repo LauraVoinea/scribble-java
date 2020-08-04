@@ -43,7 +43,7 @@ tokens
 	ARITHEXPR; 
 	NEGEXPR;
 
-	INTVAR;  // TODO: rename Ambig
+	VAR;  // TODO: rename Ambig
 	INTVAL; 
 	NEGINTVAL; 
 	STRVAL; 
@@ -243,6 +243,9 @@ WHITESPACE:
 	}
 ;
 
+
+/* Duplicated from AssrtScribble.g */
+
 IDENTIFIER:
 	LETTER (LETTER | DIGIT)*
 ;  
@@ -265,9 +268,16 @@ fragment DIGIT:
 	'0'..'9'
 ;
 
+ambigname: t=IDENTIFIER -> IDENTIFIER<AmbigNameNode>[$t] ;
+rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
+
+
+/* Assrt */
+
+assrt_varname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
-	IDENTIFIER -> ^(INTVAR IDENTIFIER)
+	IDENTIFIER -> ^(VAR IDENTIFIER)
 ; 	  
 
 intlit: 
@@ -405,19 +415,14 @@ assrt_statevardecls:
 
 // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
 assrt_statevardecl:  // cf. payelem
-	assrt_intvarname ':' ambigname '=' arith_expr
+	assrt_varname ':' ambigname '=' arith_expr
 ->
-	^(ASSRT_STATEVARDECL assrt_intvarname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
+	^(ASSRT_STATEVARDECL assrt_varname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
 /*|
-	assrt_intvarname ':' qualifieddataname '=' arith_expr  // TODO: qualifieddataname
+	assrt_varname ':' qualifieddataname '=' arith_expr  // TODO: qualifieddataname
 ->
-	^(ASSRT_STATEVARDECL assrt_intvarname qualifieddataname arith_expr)*/
+	^(ASSRT_STATEVARDECL assrt_varname qualifieddataname arith_expr)*/
 ;
-
-// Duplicated from AssrtScribble.g
-ambigname: t=IDENTIFIER -> IDENTIFIER<AmbigNameNode>[$t] ;
-rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
-assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
 // An intermediary category, resolved by bar
 assrt_statevarargs:

@@ -2,9 +2,11 @@ package org.scribble.ext.assrt.core.type.formula;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.util.RuntimeScribException;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // TODO deprecate -- All vars should now be AssrtIntVar (and rename from Int)
@@ -18,8 +20,13 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 	@Override
 	public AssrtSmtFormula<IntegerFormula> disamb(Map<AssrtIntVar, DataName> env)
 	{
-		Entry<AssrtIntVar, DataName> e = env.entrySet().stream()
-				.filter(x -> x.getKey().toString().equals(this.name)).findAny().get();
+		Optional<Entry<AssrtIntVar, DataName>> findAny = env.entrySet().stream()
+				.filter(x -> x.getKey().toString().equals(this.name)).findAny();
+		if (!findAny.isPresent())
+		{
+			throw new RuntimeScribException("Unknown variable: " + this.name);
+		}
+		Entry<AssrtIntVar, DataName> e = findAny.get();
 		String type = e.getValue().toString();
 		String name = e.getKey().toString();
 		switch (type)  // HACK
@@ -30,8 +37,8 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 			return new AssrtIntVarFormula(name);
 		//return new AssrtStrVarFormula(name);
 		default:
-			throw new RuntimeException("Unsupported payload/state var type: " +
-					type);
+			throw new RuntimeScribException("Unsupported payload/state var type: "
+					+ type);
 		}
 	}
 	
