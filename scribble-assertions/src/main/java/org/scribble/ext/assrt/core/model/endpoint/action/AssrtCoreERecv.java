@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.endpoint.actions.ERecv;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
@@ -15,10 +16,12 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.model.endpoint.action.AssrtERecv;
 
-public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
+public class AssrtCoreERecv extends ERecv implements AssrtCoreEAction
 {
+	//public final AssrtAssertion assertion;  // Cf., e.g., ALSend
+	public final AssrtBFormula ass;  // Not null -- empty set to True by parsing
+
 	// Annot needed -- e.g. mu X(x:=..) . mu Y(y:=..) ... X<123> -- rec var X will be discarded, so edge action needs to record which var is being updated
 	/*public final AssrtDataTypeVar annot;  // Not null (by AssrtCoreGProtocolTranslator)
 	public final AssrtArithFormula expr;*/
@@ -29,18 +32,24 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	public final AssrtBFormula phantAss;
 
 	public AssrtCoreERecv(ModelFactory mf, Role peer, MsgId<?> mid,
-			Payload payload, AssrtBFormula bf, List<AssrtAFormula> stateexprs,
+			Payload payload, AssrtBFormula ass, List<AssrtAFormula> stateexprs,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
-		super(mf, peer, mid, payload, bf);
-		//this.annot = annot;list)
-	
+		super(mf, peer, mid, payload);
+		this.ass = ass;
+		//this.annot = annot;
 		this.stateexprs = Collections
 				.unmodifiableList(new LinkedList<>(stateexprs));
 		this.phantom = Collections.unmodifiableList(new LinkedList<>(phantom));
 		this.phantAss = phantAss;
 	}
 	
+	@Override
+	public AssrtBFormula getAssertion()
+	{
+		return this.ass;
+	}
+
 	// Used by AssrtCoreSSingleBuffers.canReceive -- msg does not carry state args -- recv getFireable and fire follows accordingly
 	// Also: AssrtSConfig.async -> AssrtCoreESend.toTrueAssertion
 	public AssrtCoreERecv dropStateArgs()
@@ -96,6 +105,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 	{
 		//return super.toString() + "@" + this.ass + ";";
 		return super.toString()
+				+ assertionToString()
 				+ phantomsToString()
 				+ phantomAssertionToString()  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
@@ -111,6 +121,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		int hash = 6763;
 		hash = 31 * hash + super.hashCode();
 		//hash = 31 * hash + this.annot.hashCode();
+		hash = 31 * hash + this.ass.toString().hashCode();  // TODO: treating as String (cf. AssrtESend), fix
 		hash = 31 * hash + this.stateexprs.hashCode();
 		hash = 31 * hash + this.phantom.hashCode();
 		hash = 31 * hash + this.phantAss.hashCode();
@@ -131,6 +142,7 @@ public class AssrtCoreERecv extends AssrtERecv implements AssrtCoreEAction
 		AssrtCoreERecv as = (AssrtCoreERecv) o;
 		return super.equals(o)  // Does canEquals
 				//&& this.annot.equals(as.annot)
+				&& this.ass.toString().equals(as.ass.toString())  // TODO: treating as String (cf. AssrtESend), fix
 				&& this.stateexprs.equals(as.stateexprs)
 				&& this.phantom.equals(as.phantom)
 				&& this.phantAss.equals(as.phantAss);

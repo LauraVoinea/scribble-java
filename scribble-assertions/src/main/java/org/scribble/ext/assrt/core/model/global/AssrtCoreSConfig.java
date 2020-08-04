@@ -33,10 +33,8 @@ import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
 import org.scribble.ext.assrt.core.lang.local.AssrtCoreLProjection;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEModelFactory;
-import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEAcc;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEAction;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreERecv;
-import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEReq;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreESend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtAVarFormula;
@@ -44,8 +42,8 @@ import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinCompFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
-import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLRec;
@@ -581,7 +579,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		*/
 	}
 
-	// FIXME: V
+	/*// FIXME: V
 	private void fireAcc(Map<Role, EFsm> P, SSingleBuffers Q,
 			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
@@ -590,18 +588,18 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			Role self, AssrtCoreEAcc a, EFsm succ)
 	{
 		throw new RuntimeException("[TODO] : " + a);
-		/*P.put(self, succ);
-		AssrtCoreEPendingRequest pr = (AssrtCoreEPendingRequest) Q.get(self)
-				.put(a.peer, null);
-		AssrtCoreEReq msg = pr.getMsg();  // CHECKME
-		Q.get(a.peer).put(self, null);
+	//		P.put(self, succ);
+	//		AssrtCoreEPendingRequest pr = (AssrtCoreEPendingRequest) Q.get(self)
+	//				.put(a.peer, null);
+	//		AssrtCoreEReq msg = pr.getMsg();  // CHECKME
+	//		Q.get(a.peer).put(self, null);
+	//
+	//		updateInput(self, a, pr,  // msg?
+	//				pr.shadow, succ, 
+	//				K, F, V, R, rename);
+	}*/
 
-		updateInput(self, a, pr,  // msg?
-				pr.shadow, succ, 
-				K, F, V, R, rename);*/
-	}
-
-	private void fireReq(Map<Role, EFsm> P, SSingleBuffers Q,
+	/*private void fireReq(Map<Role, EFsm> P, SSingleBuffers Q,
 			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
 			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F,
@@ -609,12 +607,12 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			Role self, AssrtCoreEReq a, EFsm succ)
 	{
 		throw new RuntimeException("[TODO] : " + a);
-		/*P.put(self, succ);
-
-		updateOutput(self, a, succ, K, F, V, R, rename);
-
-		Q.get(a.peer).put(self, new AssrtCoreEPendingRequest(a, rename.get(self)));  // Now doing toTrueAssertion on accept side*/
-	}
+	//		P.put(self, succ);
+	//
+	//		updateOutput(self, a, succ, K, F, V, R, rename);
+	//
+	//		Q.get(a.peer).put(self, new AssrtCoreEPendingRequest(a, rename.get(self)));  // Now doing toTrueAssertion on accept side
+	}*/
 
 	/*// Doesn't include pending requests, checks isInputQueueEstablished
 	private boolean hasMsg(Role self, Role peer)
@@ -897,7 +895,7 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		AssrtBFormula rhs = null;
 		for (EAction a : as)
 		{
-			if (!(a instanceof AssrtCoreESend) && !(a instanceof AssrtCoreEReq))
+			if (!(a instanceof AssrtCoreESend)) // TODO: && !(a instanceof AssrtCoreEReq))
 			{
 				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + a);
 			}

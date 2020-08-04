@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
@@ -15,10 +16,12 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.model.endpoint.action.AssrtESend;
 
-public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
+public class AssrtCoreESend extends ESend implements AssrtCoreEAction
 {
+	//public final AssrtAssertion assertion;  // Cf., e.g., ALSend
+	public final AssrtBFormula ass;  // Not null -- empty set to True by parsing
+
 	// Annot needed -- e.g. mu X(x:=..) . mu Y(y:=..) ... X<123> -- rec var X will be discarded, so edge action needs to record which var is being updated -- no: now relying on surface syntax to only allow subprotos with proper var scoping and annotvar arity checks, etc.
 	/*public final AssrtDataTypeVar annot;  // Not null (by AssrtCoreGProtocolTranslator)
 	public final AssrtArithFormula expr;*/
@@ -34,7 +37,8 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 			List<AssrtAnnotDataName> phantom,
 			AssrtBFormula phantAss)
 	{
-		super(mf, peer, mid, payload, ass);
+		super(mf, peer, mid, payload);
+		this.ass = ass;
 		//this.annot = annot;
 		this.sexprs = Collections.unmodifiableList(stateexprs);
 		//this.phantom = new LinkedHashMap<>(phantom);
@@ -48,8 +52,13 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 		return this.mf;
 	}
 	
-	// Used by AssrtCoreSSingleBuffers.canReceive and AssrtCoreSConfig.getStuckMessages
 	@Override
+	public AssrtBFormula getAssertion()
+	{
+		return this.ass;
+	}
+
+	// Used by AssrtCoreSSingleBuffers.canReceive and AssrtCoreSConfig.getStuckMessages
 	public AssrtCoreESend toTrueAssertion()  // CHECKME: for model building, currently need send assertion to match (syntactical equal) receive assertion -- which is always True(?), to be fireable
 	{
 		return ((AssrtCoreEModelFactory) this.mf.local).AssrtCoreESend(this.peer,
@@ -102,6 +111,7 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	public String toString()
 	{
 		return super.toString()
+				+ assertionToString()
 				+ phantomsToString()
 				+ phantomAssertionToString()  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
@@ -112,6 +122,7 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 	{
 		int hash = 6779;
 		hash = 31 * hash + super.hashCode();
+		hash = 31 * hash + this.ass.toString().hashCode();  // TODO: treating as String, fix
 		//hash = 31 * hash + this.annot.hashCode();
 		hash = 31 * hash + this.sexprs.hashCode();
 		hash = 31 * hash + this.phantom.hashCode();
@@ -133,6 +144,7 @@ public class AssrtCoreESend extends AssrtESend implements AssrtCoreEAction
 		AssrtCoreESend as = (AssrtCoreESend) o;
 		return super.equals(o)  // Does canEquals
 				//&& this.annot.equals(as.annot) 
+				&& this.ass.toString().equals(as.ass.toString())  // TODO: treating as String, fix
 				&& this.sexprs.equals(as.sexprs)
 				&& this.phantom.equals(as.phantom)
 				&& this.phantAss.equals(as.phantAss);

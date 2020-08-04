@@ -22,6 +22,7 @@ import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEModelFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
@@ -40,7 +41,9 @@ public class AssrtEState extends EState
 			AssrtBFormula ass;  // TODO FIXME: make Set -- and eliminate placeholder True from various, use empty set instead
 
 	// FIXME: make AssrtIntTypeVar?
-	protected AssrtEState(Set<RecVar> labs, LinkedHashMap<AssrtVar, AssrtAFormula> vars,
+	//protected 
+	public AssrtEState(Set<RecVar> labs,
+			LinkedHashMap<AssrtVar, AssrtAFormula> vars,
 			AssrtBFormula ass, LinkedHashMap<AssrtVar, AssrtAFormula> phantom)  // FIXME: currently syntactically restricted to one annot var
 	{
 		super(labs);
@@ -53,7 +56,8 @@ public class AssrtEState extends EState
 	@Override
 	protected AssrtEState cloneNode(ModelFactory mf, Set<RecVar> labs)
 	{
-		return ((AssrtEModelFactory) mf.local).newAssrtEState(labs, this.statevars,
+		return ((AssrtCoreEModelFactory) mf.local).newAssrtEState(labs,
+				this.statevars,
 				this.ass, this.phantom);
 	}
 	

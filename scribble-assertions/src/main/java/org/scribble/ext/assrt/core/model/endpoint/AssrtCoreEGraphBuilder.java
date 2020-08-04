@@ -185,15 +185,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			List<AssrtAFormula> annotexprs,
 			LinkedHashMap<AssrtVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
 	{
-		AssrtCoreEModelFactory ef = (AssrtCoreEModelFactory) this.util.mf.local;  // FIXME: factor out
-		/*AssrtBFormula ass = a.ass;
-		if (!phantAss.equals(AssrtTrueFormula.TRUE))
-		{
-			ass = ass.equals(AssrtTrueFormula.TRUE)
-					? phantAss
-					: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, a.ass,
-							phantAss);
-		}*/
+		AssrtCoreEModelFactory ef = (AssrtCoreEModelFactory) this.util.mf.local;  // TODO: factor out
 		if (k.equals(AssrtCoreLActionKind.SEND))
 		{
 			return ef.AssrtCoreESend(r, a.op, 
@@ -225,7 +217,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 		}
 		else if (k.equals(AssrtCoreLActionKind.REQ))
 		{
-			if (!phantom.isEmpty())
+			/*if (!phantom.isEmpty())
 			{
 				throw new RuntimeException("TODO");
 			}
@@ -235,11 +227,12 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
 					a.ass, //annot,
-					annotexprs);
+					annotexprs);*/
+			throw new RuntimeException("TODO");
 		}
 		else if (k.equals(AssrtCoreLActionKind.ACC))
 		{
-			if (!phantom.isEmpty())
+			/*if (!phantom.isEmpty())
 			{
 				throw new RuntimeException("TODO");
 			}
@@ -249,7 +242,8 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
 									.collect(Collectors.toList())),
 					a.ass, //annot,
-					annotexprs);
+					annotexprs);*/
+			throw new RuntimeException("TODO");
 		}
 		/*else if (a instanceof AssrtCoreLDisconnect)
 		{

@@ -6,10 +6,18 @@ import java.util.stream.Collectors;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.model.endpoint.action.AssrtEAction;
 
-public interface AssrtCoreEAction extends AssrtEAction
+public interface AssrtCoreEAction
 {
+
+	AssrtBFormula getAssertion();
+
+	default String assertionToString()
+	{
+		AssrtBFormula ass = getAssertion();
+		return "{" + ass.toString() + "}";
+	}
+
 	//AssrtDataTypeVar DUMMY_VAR = new AssrtDataTypeVar("_dum0");  // for statevars -- cf. actionvars, AssrtCoreGProtocolTranslator::makeFreshDataTypeVar starts from 1
 
 	/*AssrtDataTypeVar getAnnotVar();
