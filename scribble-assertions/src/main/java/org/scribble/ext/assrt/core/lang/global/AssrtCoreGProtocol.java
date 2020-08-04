@@ -47,7 +47,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.NoSeq;
 import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGRec;
 import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGType;
@@ -62,17 +62,17 @@ public class AssrtCoreGProtocol extends GProtocol
 	public final AssrtCoreGType type;  // N.B. super.def Seq set to null -- here, body is a "type", not a "seq"
 	
 	// Cf. AssrtCoreRec
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars;  // TODO: sorts (currently hardcoded around int)
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> statevars;  // TODO: sorts (currently hardcoded around int)
 	public final AssrtBFormula assertion;  // non-null (True)
 
 	// Pre: same keys as statevars
-	public final LinkedHashMap<AssrtIntVar, Role> located;  // maps to null for "global" (back compat)
+	public final LinkedHashMap<AssrtVar, Role> located;  // maps to null for "global" (back compat)
 
 	public AssrtCoreGProtocol(CommonTree source, List<ProtoMod> mods,
 			GProtoName fullname, List<Role> rs,
 			List<MemberName<? extends NonRoleParamKind>> ps, AssrtCoreGType type,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula assrt, LinkedHashMap<AssrtIntVar, Role> located)
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars,
+			AssrtBFormula assrt, LinkedHashMap<AssrtVar, Role> located)
 	{
 		super(source, mods, fullname, rs, ps, null);  // N.B. null Seq as super.def
 		this.type = type;
@@ -83,10 +83,10 @@ public class AssrtCoreGProtocol extends GProtocol
 
 	// Get all var->sort from proto statically -- assumes unique var names
 	// Implicit empty context -- cf. AssrtCoreSType#getSortEnv
-	public Map<AssrtIntVar, DataName> getSortEnv()
+	public Map<AssrtVar, DataName> getSortEnv()
 	{
-		Map<AssrtIntVar, DataName> sorts = new HashMap<>();
-		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
+		Map<AssrtVar, DataName> sorts = new HashMap<>();
+		for (Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet())
 		{
 			// statevar sorts -- left-to-right scoping (cf. LinkedHashMap)
 			DataName sort = e.getValue().getSort(sorts);
@@ -108,8 +108,8 @@ public class AssrtCoreGProtocol extends GProtocol
 	public AssrtCoreGProtocol reconstruct(CommonTree source, List<ProtoMod> mods,
 			GProtoName fullname, List<Role> rs,
 			List<MemberName<? extends NonRoleParamKind>> ps, AssrtCoreGType type,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
-			LinkedHashMap<AssrtIntVar, Role> located)
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars, AssrtBFormula ass,
+			LinkedHashMap<AssrtVar, Role> located)
 	{
 		return new AssrtCoreGProtocol(source, mods, fullname, rs, ps, type, svars,
 				ass, located);
@@ -129,7 +129,7 @@ public class AssrtCoreGProtocol extends GProtocol
 		AssrtCoreGType inlined = this.type.inline(v);  
 				// CHECKME: refactor type.inline back into visitor pattern?  // No: cannot, because AssrtCoreSTypes do not extend base Choice/etc
 		RecVar rv = v.getInlinedRecVar(sig);
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> phantom = new LinkedHashMap<>();
 		this.statevars.keySet().stream().filter(x -> this.located.get(x) != null)
 				.forEach(x -> phantom.put(x, this.statevars.get(x)));
 		AssrtCoreGTypeFactory tf = (AssrtCoreGTypeFactory) v.core.config.tf.global;
@@ -175,7 +175,7 @@ public class AssrtCoreGProtocol extends GProtocol
 	@Override
 	public AssrtCoreLProjection projectInlined(Core core, Role self)
 	{
-		Map<Role, Set<AssrtIntVar>> known = new HashMap<>();
+		Map<Role, Set<AssrtVar>> known = new HashMap<>();
 		this.roles.forEach(x -> known.put(x, this.located.entrySet().stream()
 				.filter(y ->
 					{
@@ -193,7 +193,7 @@ public class AssrtCoreGProtocol extends GProtocol
 		LProtoName fullname = InlinedProjector
 				.getFullProjectionName(this.fullname, self);
 
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();  // Corresponds to known (modulo phantom), but need LinkedHashMap here
+		LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();  // Corresponds to known (modulo phantom), but need LinkedHashMap here
 		/*this.statevars.entrySet().stream()  // ordered
 				.filter(x ->
 					{
@@ -201,10 +201,10 @@ public class AssrtCoreGProtocol extends GProtocol
 						return r == null || r.equals(self);
 					})
 				.forEach(x -> svars.put(x.getKey(), x.getValue()));*/
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> projPhantom = new LinkedHashMap<>();
-		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
+		LinkedHashMap<AssrtVar, AssrtAFormula> projPhantom = new LinkedHashMap<>();
+		for (Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet())
 		{
-			AssrtIntVar k = e.getKey();
+			AssrtVar k = e.getKey();
 			AssrtAFormula v = e.getValue();
 			Role r = this.located.get(k);
 			if (r == null || r.equals(self))

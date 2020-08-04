@@ -14,7 +14,7 @@ import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public abstract class AssrtCoreRec<K extends ProtoKind, 
 			B extends AssrtCoreSType<K, B>>  // Without Seq complication, take kinded Type directly
@@ -22,11 +22,11 @@ public abstract class AssrtCoreRec<K extends ProtoKind,
 {
 	public final RecVar recvar;  // CHECKME: RecVarNode?  (Cf. AssrtCoreAction.op/pay)
 	public final B body;
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars;  // Int  // Non-null  // CHECKME: factor out with AssrtCore(G)Protocol?
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> statevars;  // Int  // Non-null  // CHECKME: factor out with AssrtCore(G)Protocol?
 	public final AssrtBFormula assertion;
 	
 	protected AssrtCoreRec(CommonTree source, RecVar recvar,
-			B body, LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
+			B body, LinkedHashMap<AssrtVar, AssrtAFormula> svars,
 			AssrtBFormula ass)
 	{
 		super(source);
@@ -44,15 +44,15 @@ public abstract class AssrtCoreRec<K extends ProtoKind,
 	}
 
 	@Override
-	public Map<AssrtIntVar, DataName> getBoundSortEnv(Map<AssrtIntVar, DataName> ctxt)
+	public Map<AssrtVar, DataName> getBoundSortEnv(Map<AssrtVar, DataName> ctxt)
 	{
-		Map<AssrtIntVar, DataName> sorts = new HashMap<>();
-		Map<AssrtIntVar, DataName> tmp = new HashMap<>(ctxt);
-		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())  // statevar sorts
+		Map<AssrtVar, DataName> sorts = new HashMap<>();
+		Map<AssrtVar, DataName> tmp = new HashMap<>(ctxt);
+		for (Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet())  // statevar sorts
 		{
 			// statevar sorts -- left-to-right scoping (cf. LinkedHashMap)
 			DataName sort = e.getValue().getSort(tmp);
-			AssrtIntVar svar = e.getKey();
+			AssrtVar svar = e.getKey();
 			sorts.put(svar, sort);
 			tmp.put(svar, sort);
 		}

@@ -12,7 +12,7 @@ import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 
 public abstract class AssrtCoreRecVar<K extends ProtoKind, 
@@ -38,7 +38,7 @@ public abstract class AssrtCoreRecVar<K extends ProtoKind,
 	}
 
 	@Override
-	public Map<AssrtIntVar, DataName> getBoundSortEnv(Map<AssrtIntVar, DataName> ctxt)
+	public Map<AssrtVar, DataName> getBoundSortEnv(Map<AssrtVar, DataName> ctxt)
 	{
 		return Collections.emptyMap();
 	}

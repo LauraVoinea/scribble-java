@@ -29,7 +29,7 @@ import org.scribble.ext.assrt.ast.local.AssrtLDo;
 import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.parser.ScribAntlrTokens;
@@ -80,11 +80,11 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 	 */
 
 	@Override
-	public AssrtIntVarNameNode AssrtIntVarNameNode(Token t, String text)
+	public AssrtVarNameNode AssrtIntVarNameNode(Token t, String text)
 	{
 		int type = this.tokens.getType("ID");
 		t = newIdToken(t, text);
-		AssrtIntVarNameNode n = new AssrtIntVarNameNode(type, t);  // Cf. Scribble.g, ID<...Node>[$ID]
+		AssrtVarNameNode n = new AssrtVarNameNode(type, t);  // Cf. Scribble.g, ID<...Node>[$ID]
 		n.decorateDel(this.df);
 		return n;
 	}
@@ -153,7 +153,7 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 	}
 
 	@Override
-	public AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtIntVarNameNode svar,
+	public AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtVarNameNode svar,
 			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role)
 	{
 		t = newToken(t, this.tokens.getType("ASSRT_STATEVARDECL"));
@@ -166,7 +166,7 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 	// An "additional" category, does not "replace" an existing one -- cf. AssrtGMessageTransfer
 	@Override
 	public AssrtAnnotDataElem AssrtAnnotDataTypeElem(Token t,
-			AssrtIntVarNameNode var, DataNameNode data)
+			AssrtVarNameNode var, DataNameNode data)
 	{
 		t = newToken(t, this.tokens.getType("ASSRT_ANNOTPAYLOADELEM"));
 		AssrtAnnotDataElem n = new AssrtAnnotDataElem(t);

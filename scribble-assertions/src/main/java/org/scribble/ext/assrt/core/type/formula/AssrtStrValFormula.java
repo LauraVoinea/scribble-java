@@ -5,13 +5,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.IntegerFormulaManager;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
-// FIXME: factor out with Int -- record "type" as a field
 // String literal
+// TODO: factor out with Int -- record "type" as a field
 public class AssrtStrValFormula extends AssrtAFormula
 {
 	public final String val;
@@ -22,7 +22,7 @@ public class AssrtStrValFormula extends AssrtAFormula
 	}
 
 	@Override
-	public AssrtStrValFormula disamb(Map<AssrtIntVar, DataName> env)  // FIXME: not Integer -- sosy_lab stuff should be removed?
+	public AssrtStrValFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return this;
 	}
@@ -34,13 +34,13 @@ public class AssrtStrValFormula extends AssrtAFormula
 	}
 
 	@Override
-	public AssrtStrValFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)  // FIXME: mismatch between Str and ArithFormula?
+	public AssrtStrValFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)  // FIXME: mismatch between Str and ArithFormula
 	{
 		return this;
 	}
 
 	@Override
-	public DataName getSort(Map<AssrtIntVar, DataName> env)
+	public DataName getSort(Map<AssrtVar, DataName> env)
 	{
 		return new DataName("String");  // TODO: factor out constant
 	}
@@ -52,7 +52,7 @@ public class AssrtStrValFormula extends AssrtAFormula
 	}
 		
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		return "\"" + this.val + "\"";
 	}
@@ -65,7 +65,7 @@ public class AssrtStrValFormula extends AssrtAFormula
 	}
 	
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
 		return Collections.emptySet();	
 	}

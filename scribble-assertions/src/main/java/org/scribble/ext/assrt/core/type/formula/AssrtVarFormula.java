@@ -3,41 +3,42 @@ package org.scribble.ext.assrt.core.type.formula;
 import java.util.Map;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-// TODO: integrate with AssrtIntVar
 // Variable occurrence
-// FIXME: currently also used for roles -- probably need to parse as "ambig" and disamb later
-public class AssrtIntVarFormula extends AssrtAVarFormula
+// TODO: integrate with AssrtVar
+// CHECKME: currently also used for roles? -- probably need to parse as "ambig"
+// and disamb later
+public class AssrtVarFormula extends AssrtAVarFormula
 {
-	// TODO: sort field -- cf. AssrtIntVar -- and deprecate AssrtStrVarFormula
+	// CHECKME: sort field -- cf. AssrtVar
 
-	protected AssrtIntVarFormula(String name)
+	protected AssrtVarFormula(String name)
 	{
 		super(name);
 	}
 
 	@Override
-	public AssrtIntVarFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtVarFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		throw new RuntimeException("Won't get in here: " + this);  // Should not be re-disambiguating 
 	}
 
 	// i.e., to "type"
 	@Override
-	public AssrtIntVar toName()
+	public AssrtVar toName()
 	{
-		return new AssrtIntVar(this.name);
+		return new AssrtVar(this.name);
 	}
 
 	@Override
-	public AssrtIntVarFormula squash()
+	public AssrtVarFormula squash()
 	{
 		return AssrtFormulaFactory.AssrtIntVar(this.name);
 	}
 
 	@Override
-	public DataName getSort(Map<AssrtIntVar, DataName> env)
+	public DataName getSort(Map<AssrtVar, DataName> env)
 	{
 		return env.get(toName());
 	}
@@ -55,18 +56,18 @@ public class AssrtIntVarFormula extends AssrtAVarFormula
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtIntVarFormula))
+		if (!(o instanceof AssrtVarFormula))
 		{
 			return false;
 		}
 		return super.equals(this)  // Does canEqual
-				&& this.name.equals(((AssrtIntVarFormula) o).name);
+				&& this.name.equals(((AssrtVarFormula) o).name);
 	}
 	
 	@Override
 	protected boolean canEqual(Object o)
 	{
-		return o instanceof AssrtIntVarFormula;
+		return o instanceof AssrtVarFormula;
 	}
 
 	@Override

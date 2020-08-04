@@ -13,17 +13,17 @@ import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreESend;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 
 public class AssrtStpESend extends AssrtCoreESend implements AssrtStpEAction
 {
-	public final Map<AssrtIntVarFormula, AssrtSmtFormula<?>> sigma;
+	public final Map<AssrtVarFormula, AssrtSmtFormula<?>> sigma;
 	public final AssrtBFormula A;  // aliases this.ass
 
 	public AssrtStpESend(ModelFactory mf, Role peer, MsgId<?> mid,
-			Payload payload, Map<AssrtIntVarFormula, AssrtSmtFormula<?>> sigma,
+			Payload payload, Map<AssrtVarFormula, AssrtSmtFormula<?>> sigma,
 			AssrtBFormula A)
 	{
 		super(mf, peer, mid, payload, A, Collections.emptyList(),
@@ -33,7 +33,7 @@ public class AssrtStpESend extends AssrtCoreESend implements AssrtStpEAction
 	}
 
 	@Override
-	public Map<AssrtIntVarFormula, AssrtSmtFormula<?>> getSigma()
+	public Map<AssrtVarFormula, AssrtSmtFormula<?>> getSigma()
 	{
 		return this.sigma;
 	}

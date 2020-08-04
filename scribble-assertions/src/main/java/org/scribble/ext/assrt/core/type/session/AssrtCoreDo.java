@@ -30,7 +30,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Arg;
 import org.scribble.ext.assrt.core.lang.AssrtCoreProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public abstract class AssrtCoreDo<K extends ProtoKind, B extends AssrtCoreSType<K, B>>
 		extends AssrtCoreSTypeBase<K, B>
@@ -61,7 +61,7 @@ public abstract class AssrtCoreDo<K extends ProtoKind, B extends AssrtCoreSType<
 	}
 
 	@Override
-	public Map<AssrtIntVar, DataName> getBoundSortEnv(Map<AssrtIntVar, DataName> ctxt)
+	public Map<AssrtVar, DataName> getBoundSortEnv(Map<AssrtVar, DataName> ctxt)
 	{
 		throw new RuntimeException("Deprecated for " + getClass() + ":\n\t" + this);
 	}

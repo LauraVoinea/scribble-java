@@ -5,11 +5,11 @@ import org.scribble.core.type.kind.DataKind;
 import org.scribble.core.type.kind.PayElemKind;
 
 // Cf. RecVarKind
-public class AssrtIntVarKind extends AbstractKind implements PayElemKind
+public class AssrtVarKind extends AbstractKind implements PayElemKind
 {
-	public static final AssrtIntVarKind KIND = new AssrtIntVarKind();
+	public static final AssrtVarKind KIND = new AssrtVarKind();
 	
-	protected AssrtIntVarKind()
+	protected AssrtVarKind()
 	{
 		super("AssrtIntVar");
 	}
@@ -37,6 +37,6 @@ public class AssrtIntVarKind extends AbstractKind implements PayElemKind
 	@Override
 	public boolean canEquals(Object o)
 	{
-		return o instanceof AssrtIntVarKind;
+		return o instanceof AssrtVarKind;
 	}
 }

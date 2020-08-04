@@ -37,7 +37,7 @@ import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreDo;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLType;
@@ -55,7 +55,7 @@ public class AssrtCoreGDo extends AssrtCoreDo<Global, AssrtCoreGType>
 
 	// Currently unused? disamb done on inlined -- cf. AssrtCoreContext.getInlined
 	@Override
-	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtIntVar, DataName> env)
+	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtVar, DataName> env)
 	{
 		return ((AssrtCoreGTypeFactory) core.config.tf.global).AssrtCoreGDo(
 				getSource(), this.proto, this.roles, this.args,
@@ -103,15 +103,15 @@ public class AssrtCoreGDo extends AssrtCoreDo<Global, AssrtCoreGType>
 
 		v.popSig();
 		// "Inlining" action sexprs as target rec svar-exprs
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
 		Iterator<AssrtAFormula> sexprs = this.stateexprs.iterator();
 		gpro.statevars.keySet().forEach(x -> svars.put(x, sexprs.next()));  // gpro.statevars keyset is ordered
 				// Do-inlining is implicitly a f/w entry: also "inline" (i.e., replace) target svar exprs by this.sexprs -- sexprs o/w only carried by recvar (which f/w entry is not) 
 		// Cf. AssrtCoreEGraphBuilder.buildEdgeAndContinuation, AssrtCoreLRec `cont` f/w rec
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> phantom = new LinkedHashMap<>();
 		gpro.statevars.keySet().stream().filter(x -> gpro.located.get(x) != null)
 				.forEach(x -> phantom.put(x, gpro.statevars.get(x)));
-		LinkedHashMap<AssrtIntVar, Role> located = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, Role> located = new LinkedHashMap<>();
 		gpro.located.entrySet().stream()
 				.forEach(x -> located.put(x.getKey(),
 						x.getValue() == null ? null : subs.subsRole(x.getValue())));
@@ -127,8 +127,8 @@ public class AssrtCoreGDo extends AssrtCoreDo<Global, AssrtCoreGType>
 
 	@Override
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
-			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			AssrtBFormula f, Map<Role, Set<AssrtVar>> known,
+			Map<RecVar, LinkedHashMap<AssrtVar, Role>> located,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
@@ -137,7 +137,7 @@ public class AssrtCoreGDo extends AssrtCoreDo<Global, AssrtCoreGType>
 
 	@Override
 	public List<AssrtAnnotDataName> collectAnnotDataVarDecls(
-			Map<AssrtIntVar, DataName> env)
+			Map<AssrtVar, DataName> env)
 	{
 		return Collections.emptyList();
 	}

@@ -27,7 +27,7 @@ import org.scribble.ext.assrt.ast.local.AssrtLDo;
 import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 
@@ -36,7 +36,7 @@ public interface AssrtAstFactory extends AstFactory
 {
 	/* Names */
 
-	AssrtIntVarNameNode AssrtIntVarNameNode(Token t, String text);
+	AssrtVarNameNode AssrtIntVarNameNode(Token t, String text);
 
 
 	/* General and globals */
@@ -55,11 +55,11 @@ public interface AssrtAstFactory extends AstFactory
 	AssrtStateVarDeclList AssrtStateVarDeclList(Token t,
 			List<AssrtStateVarDecl> svars);
 
-	AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtIntVarNameNode svar,
+	AssrtStateVarDecl AssrtStateVarDecl(Token t, AssrtVarNameNode svar,
 			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role);
 
 	AssrtAnnotDataElem AssrtAnnotDataTypeElem(Token t,
-			AssrtIntVarNameNode var, DataNameNode data);
+			AssrtVarNameNode var, DataNameNode data);
 
 	AssrtGMsgTransfer AssrtGMsgTransfer(Token t, MsgNode msg, RoleNode src,
 			List<RoleNode> dsts, AssrtBExprNode ass);

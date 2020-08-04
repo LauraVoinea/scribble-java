@@ -41,9 +41,9 @@ public class AssrtFormulaFactory
 		return new AssrtIntValFormula(i);
 	}
 
-	public static AssrtIntVarFormula AssrtIntVar(String text)
+	public static AssrtVarFormula AssrtIntVar(String text)
 	{
-		return new AssrtIntVarFormula(text);
+		return new AssrtVarFormula(text);
 	}
 	
 	/*public static AssrtTrueFormula AssrtTrueFormula() 
@@ -76,16 +76,16 @@ public class AssrtFormulaFactory
 	// Not (currently) parsed
 	
 	//public static AssrtExistsIntVarsFormula AssrtExistsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	public static AssrtExistsIntVarsFormula AssrtExistsFormula(
+	public static AssrtExistsFormula AssrtExistsFormula(
 			List<AssrtAVarFormula> vars, AssrtBFormula expr)
 	{
-		return new AssrtExistsIntVarsFormula(vars, expr); 
+		return new AssrtExistsFormula(vars, expr); 
 	}
 
 	//public static AssrtForallIntVarsFormula AssrtForallFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	public static AssrtForallIntVarsFormula AssrtForallFormula(
+	public static AssrtForallFormula AssrtForallFormula(
 			List<AssrtAVarFormula> vars, AssrtBFormula expr)
 	{
-		return new AssrtForallIntVarsFormula(vars, expr); 
+		return new AssrtForallFormula(vars, expr); 
 	}
 }

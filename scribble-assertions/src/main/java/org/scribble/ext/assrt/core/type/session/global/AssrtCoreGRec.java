@@ -20,7 +20,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreRec;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLEnd;
@@ -34,13 +34,13 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		implements AssrtCoreGType
 {
 	// Pre: same keys as super.statevars
-	public final LinkedHashMap<AssrtIntVar, Role> located;  // maps to null for "global" (back compat)  // TODO: sorts (currently hardcoded around int)
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;  // Record init exprs for potential local phantoms, e.g., for forwards-do
+	public final LinkedHashMap<AssrtVar, Role> located;  // maps to null for "global" (back compat)  // TODO: sorts (currently hardcoded around int)
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> phantom;  // Record init exprs for potential local phantoms, e.g., for forwards-do
 
 	protected AssrtCoreGRec(CommonTree source, RecVar rv, AssrtCoreGType body,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
-			LinkedHashMap<AssrtIntVar, Role> located,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars, AssrtBFormula ass,
+			LinkedHashMap<AssrtVar, Role> located,
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom)
 	{
 		super(source, rv, body, svars, ass);
 		this.located = new LinkedHashMap<>(located);
@@ -48,17 +48,17 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 	}
 
 	@Override
-	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtIntVar, DataName> env)
+	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtVar, DataName> env)
 	{
-		Map<AssrtIntVar, DataName> env1 = new HashMap<>(env);
+		Map<AssrtVar, DataName> env1 = new HashMap<>(env);
 		this.statevars.entrySet()
 				.forEach(x -> env1.put(x.getKey(), x.getValue().getSort(env1)));
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
 		this.statevars.entrySet().forEach(x -> svars.put(x.getKey(),
 				(AssrtAFormula) x.getValue().disamb(env1)));  // Unnecessary, disallow mutual var refs?
 		this.phantom.entrySet()
 				.forEach(x -> env1.put(x.getKey(), x.getValue().getSort(env1)));
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> phantom = new LinkedHashMap<>();
 		this.phantom.entrySet().forEach(x -> phantom.put(x.getKey(),
 				(AssrtAFormula) x.getValue().disamb(env1)));
 		return ((AssrtCoreGTypeFactory) core.config.tf.global).AssrtCoreGRec(
@@ -92,16 +92,16 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 
 	@Override
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
-			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			AssrtBFormula f, Map<Role, Set<AssrtVar>> known,
+			Map<RecVar, LinkedHashMap<AssrtVar, Role>> located,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
-		Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> tmp = new HashMap<>(located);
+		Map<RecVar, LinkedHashMap<AssrtVar, Role>> tmp = new HashMap<>(located);
 		tmp.put(this.recvar, this.located);
 
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> phantomSVars = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> phantomSVars = new LinkedHashMap<>();
 		/*this.statevars.entrySet().stream()  // ordered
 				.filter(x ->
 					{
@@ -109,9 +109,9 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 						return r == null || r.equals(self);
 					})
 				.forEach(x -> svars.put(x.getKey(), x.getValue()));*/
-		for (Entry<AssrtIntVar, AssrtAFormula> e : this.statevars.entrySet())
+		for (Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet())
 		{
-			AssrtIntVar v = e.getKey();
+			AssrtVar v = e.getKey();
 			Role r = this.located.get(v);
 			if (r == null || r.equals(self))
 			{
@@ -125,8 +125,8 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 			}
 		}
 
-		Map<Role, Set<AssrtIntVar>> tmp2 = new HashMap<>(known);
-		Set<AssrtIntVar> tmp3 = tmp2.get(self);
+		Map<Role, Set<AssrtVar>> tmp2 = new HashMap<>(known);
+		Set<AssrtVar> tmp3 = tmp2.get(self);
 		tmp3.addAll(svars.keySet());  // Agnostic to shadowing -- cf. AssrtCoreGProtocol and inserted top-level rec
 		tmp3.addAll(phantomSVars.keySet());
 		tmp2.put(self, tmp3);
@@ -134,8 +134,8 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 		AssrtCoreLType proj = this.body.projectInlined(core, self, f, tmp2, tmp,
 				phantom, phantAss);  // CHECKME: "reordering" of phantom/phantAss and phantomSVars
 
-		Set<AssrtIntVar> assVars = this.assertion.getIntVars();
-		Set<AssrtIntVar> k = known.get(self);
+		Set<AssrtVar> assVars = this.assertion.getIntVars();
+		Set<AssrtVar> k = known.get(self);
 		AssrtBFormula ass = this.assertion;
 		if (!k.containsAll(assVars))  // FIXME: phantoms -- HERE: treat phantoms as known, i.e., assvars not really "projected" any more  // similarly in model building
 		{
@@ -159,10 +159,10 @@ public class AssrtCoreGRec extends AssrtCoreRec<Global, AssrtCoreGType>
 
 	@Override
 	public List<AssrtAnnotDataName> collectAnnotDataVarDecls(
-			Map<AssrtIntVar, DataName> env)
+			Map<AssrtVar, DataName> env)
 	{
 		List<AssrtAnnotDataName> res = new LinkedList<>();
-		Map<AssrtIntVar, DataName> env1 = new HashMap<>(env);
+		Map<AssrtVar, DataName> env1 = new HashMap<>(env);
 		this.statevars.entrySet()
 				.forEach(x -> env1.put(x.getKey(), x.getValue().getSort(env1)));
 

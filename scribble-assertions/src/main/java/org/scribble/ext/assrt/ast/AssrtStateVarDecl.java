@@ -20,16 +20,16 @@ import org.scribble.ast.name.PayElemNameNode;
 import org.scribble.ast.name.simple.RoleNode;
 import org.scribble.core.type.kind.DataKind;
 import org.scribble.del.DelFactory;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
-import org.scribble.ext.assrt.core.type.kind.AssrtIntVarKind;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
+import org.scribble.ext.assrt.core.type.kind.AssrtVarKind;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.del.AssrtDelFactory;
 import org.scribble.util.ScribException;
 import org.scribble.visit.AstVisitor;
 
 // Names that are declared in a protocol header (roles and parameters -- not the protocol name though)
 // RoleKind or (NonRole)ParamKind
-public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
+public class AssrtStateVarDecl extends ParamDecl<AssrtVarKind>
 {
 	//public static final int NAMENODE_CHILD_INDEX = 0;  // Cf. NameDeclNode
 	public static final int DATA_CHILD_INDEX = 1;  // cf. AssrtAnnotDataElem
@@ -50,9 +50,9 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	}
 	
 	@Override
-	public AssrtIntVarNameNode getNameNodeChild()
+	public AssrtVarNameNode getNameNodeChild()
 	{
-		return (AssrtIntVarNameNode) getRawNameNodeChild();  // NameDeclNode.NAMENODE_CHILD_INDEX == 0
+		return (AssrtVarNameNode) getRawNameNodeChild();  // NameDeclNode.NAMENODE_CHILD_INDEX == 0
 	}
 
 	// TODO: <DataKind> incompatible with AmbigNameNode -- cf. AssrtAnnotDataElem
@@ -79,13 +79,13 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	}
 
 	@Override
-	public void addScribChildren(NameNode<AssrtIntVarKind> name)
+	public void addScribChildren(NameNode<AssrtVarKind> name)
 	{
 		throw new RuntimeException("Deprecated for " + getClass() + ": " + this);
 	}
 
 	// "add", not "set"
-	public void addScribChildren(NameNode<AssrtIntVarKind> name,
+	public void addScribChildren(NameNode<AssrtVarKind> name,
 			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role)
 	{
 		// Cf. above getters and Scribble.g children order
@@ -108,12 +108,12 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	}
 
 	@Override
-	public ParamDecl<AssrtIntVarKind> reconstruct(NameNode<AssrtIntVarKind> name)
+	public ParamDecl<AssrtVarKind> reconstruct(NameNode<AssrtVarKind> name)
 	{
 		throw new RuntimeException("Deprecated for " + getClass() + ": " + this);
 	}
 
-	public ParamDecl<AssrtIntVarKind> reconstruct(NameNode<AssrtIntVarKind> name,
+	public ParamDecl<AssrtVarKind> reconstruct(NameNode<AssrtVarKind> name,
 			PayElemNameNode<DataKind> data, AssrtAExprNode sexpr, RoleNode role)
 			// Always a "simple" name (e.g., like Role), but Type/Sig names are not SimpleNames
 	{
@@ -124,10 +124,10 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	}
 	
 	@Override
-	public ParamDecl<AssrtIntVarKind> visitChildren(AstVisitor v)
+	public ParamDecl<AssrtVarKind> visitChildren(AstVisitor v)
 			throws ScribException
 	{
-		NameNode<AssrtIntVarKind> svar = 
+		NameNode<AssrtVarKind> svar = 
 				visitChildWithClassEqualityCheck(this, getNameNodeChild(), v);
 		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(
 				getDataNameChild(), v);  // Cf. UnaryPayElem
@@ -141,7 +141,7 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	}
 
 	@Override
-	public AssrtIntVar getDeclName()
+	public AssrtVar getDeclName()
 	{
 		return getNameNodeChild().toName();
 	}

@@ -23,7 +23,7 @@ import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSReq;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public class AssrtCoreSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelFactoryImpl
 		implements AssrtCoreSModelFactory
@@ -54,11 +54,11 @@ public class AssrtCoreSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelF
 
 	@Override
 	public AssrtCoreSConfig AssrtCoreSConfig(Map<Role, EFsm> P, SSingleBuffers Q,
-			Map<Role, Set<AssrtIntVar>> K,
-			Map<Role, Set<AssrtBFormula>> F, Map<Role, Map<AssrtIntVar, AssrtAFormula>> V,
+			Map<Role, Set<AssrtVar>> K,
+			Map<Role, Set<AssrtBFormula>> F, Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
 
-			Map<AssrtIntVar, DataName> Env
+			Map<AssrtVar, DataName> Env
 
 	)
 			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename

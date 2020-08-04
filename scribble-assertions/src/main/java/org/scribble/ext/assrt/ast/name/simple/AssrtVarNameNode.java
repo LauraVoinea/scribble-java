@@ -8,32 +8,32 @@ import org.scribble.core.type.session.Arg;
 import org.scribble.del.DelFactory;
 import org.scribble.ext.assrt.ast.AssrtExprNode;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
-import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
-import org.scribble.ext.assrt.core.type.kind.AssrtIntVarKind;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
+import org.scribble.ext.assrt.core.type.kind.AssrtVarKind;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.del.AssrtDelFactory;
 
 // N.B. used both directly as a PayloadElemNameNode, and for the annotation in AssrtAnnotDataTypeElem -- also used for statevars
-public class AssrtIntVarNameNode extends SimpleNameNode<AssrtIntVarKind>
-		implements PayElemNameNode<AssrtIntVarKind>, AssrtExprNode
+public class AssrtVarNameNode extends SimpleNameNode<AssrtVarKind>
+		implements PayElemNameNode<AssrtVarKind>, AssrtExprNode
 {
 	// ScribTreeAdaptor#create constructor
 	// Constructor sig for ANTLR "node token" option, generally ttype == t.getType(), where t is a ScribbleParser.ID token type
-	public AssrtIntVarNameNode(int ttype, Token t)
+	public AssrtVarNameNode(int ttype, Token t)
 	{
 		super(t);
 	}
 
 	// Tree#dupNode constructor
-	protected AssrtIntVarNameNode(AssrtIntVarNameNode node)
+	protected AssrtVarNameNode(AssrtVarNameNode node)
 	{
 		super(node);
 	}
 	
 	@Override
-	public AssrtIntVarNameNode dupNode()
+	public AssrtVarNameNode dupNode()
 	{
-		return new AssrtIntVarNameNode(this);
+		return new AssrtVarNameNode(this);
 	}
 	
 	@Override
@@ -43,13 +43,13 @@ public class AssrtIntVarNameNode extends SimpleNameNode<AssrtIntVarKind>
 	}
 	
 	@Override
-	public AssrtIntVarFormula getFormula()
+	public AssrtVarFormula getFormula()
 	{
 		return AssrtFormulaFactory.AssrtIntVar(getText());
 	}
 
 	@Override
-	public AssrtIntVar toName()
+	public AssrtVar toName()
 	{
 		return getFormula().toName();
 	}
@@ -63,7 +63,7 @@ public class AssrtIntVarNameNode extends SimpleNameNode<AssrtIntVarKind>
 	}
 
 	@Override
-	public AssrtIntVar toPayloadType()
+	public AssrtVar toPayloadType()
 	{
 		return toName();  
 				// CHECKME: Shouldn't this be the type (i.e., int), not the var name? -- cf. toName
@@ -78,7 +78,7 @@ public class AssrtIntVarNameNode extends SimpleNameNode<AssrtIntVarKind>
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtIntVarNameNode))
+		if (!(o instanceof AssrtVarNameNode))
 		{
 			return false;
 		}
@@ -88,7 +88,7 @@ public class AssrtIntVarNameNode extends SimpleNameNode<AssrtIntVarKind>
 	@Override
 	public boolean canEquals(Object o)
 	{
-		return o instanceof AssrtIntVarNameNode;
+		return o instanceof AssrtVarNameNode;
 	}
 
 	@Override

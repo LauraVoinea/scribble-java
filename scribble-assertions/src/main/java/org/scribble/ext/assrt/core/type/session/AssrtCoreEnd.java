@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public abstract class AssrtCoreEnd<K extends ProtoKind, 
 			B extends AssrtCoreSType<K, B>>
@@ -26,7 +26,7 @@ public abstract class AssrtCoreEnd<K extends ProtoKind,
 	}
 
 	@Override
-	public Map<AssrtIntVar, DataName> getBoundSortEnv(Map<AssrtIntVar, DataName> ctxt)
+	public Map<AssrtVar, DataName> getBoundSortEnv(Map<AssrtVar, DataName> ctxt)
 	{
 		return Collections.emptyMap();
 	}

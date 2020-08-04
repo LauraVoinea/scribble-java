@@ -28,7 +28,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.kind.AssrtAnnotDataKind;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreRecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLActionKind;
@@ -57,9 +57,9 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	}
 	
 	// Not LProtocol arg, LProjection currently not subtype of LProtocol
-	public EGraph build(LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
+	public EGraph build(LinkedHashMap<AssrtVar, AssrtAFormula> svars,
 			AssrtBFormula ass, AssrtCoreLType lt,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)  // Phantoms from init state
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom)  // Phantoms from init state
 	{
 		this.util.setEntry(((AssrtCoreEModelFactory) this.core.config.mf.local)
 				.newAssrtEState(Collections.emptySet(), svars, ass, phantom));  // "Working" phantoms -- carry over from states to edges
@@ -71,7 +71,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	
 	private void build(AssrtCoreLType lt, AssrtEState s1, AssrtEState s2,
 			Map<RecVar, AssrtEState> recs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // "Working" phantoms -- carry over from states to edges
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // "Working" phantoms -- carry over from states to edges
 	{
 		if (lt instanceof AssrtCoreLChoice)
 		{
@@ -91,7 +91,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 
 			Map<RecVar, AssrtEState> tmp = new HashMap<>(recs);
 			tmp.put(lr.recvar, s1);
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> tmp2 = new LinkedHashMap<>(
+			LinkedHashMap<AssrtVar, AssrtAFormula> tmp2 = new LinkedHashMap<>(
 					phantom);
 			//tmp2.putAll(lr.phantom);
 
@@ -118,7 +118,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	private void buildEdgeAndContinuation(AssrtEState s1, AssrtEState s2,
 			Map<RecVar, AssrtEState> recs, Role r, AssrtCoreLActionKind k,
 			AssrtCoreMsg a, AssrtCoreLType cont,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom, AssrtBFormula phantAss)
 	{
 		if (cont instanceof AssrtCoreLEnd)
 		{
@@ -147,7 +147,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 			if (cont instanceof AssrtCoreLRec)  // `a` is a f/w rec -- cont-rec `a` handled by RecVar `cont` above
 			{
 				// Cf. AssrtCoreGDo.inline, f/w rec statevar expr inlining
-				LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = ((AssrtCoreLRec) cont).statevars;
+				LinkedHashMap<AssrtVar, AssrtAFormula> svars = ((AssrtCoreLRec) cont).statevars;
 				tmp = toEAction(r, k, a, new LinkedList<>(svars.values()),
 						phantom, phantAss);
 			}
@@ -161,7 +161,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	}
 	
 	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
 	{
 		//return toEAction(r, k, a, AssrtCoreESend.DUMMY_VAR, AssrtCoreESend.ZERO);
 		return toEAction(r, k, a, Collections.emptyList(), phantom, phantAss);
@@ -183,7 +183,7 @@ public class AssrtCoreEGraphBuilder extends EGraphBuilder
 	private EAction toEAction(Role r, AssrtCoreLActionKind k, AssrtCoreMsg a,
 			//AssrtDataTypeVar annot, AssrtArithFormula expr)
 			List<AssrtAFormula> annotexprs,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom, AssrtBFormula phantAss)  // Carried over from state
 	{
 		AssrtCoreEModelFactory ef = (AssrtCoreEModelFactory) this.util.mf.local;  // FIXME: factor out
 		/*AssrtBFormula ass = a.ass;

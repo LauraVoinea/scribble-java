@@ -65,7 +65,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreActionKind;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSTypeFactory;
@@ -129,8 +129,8 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 				new HashMap<>(), false, false);
 
 		AssrtStateVarDeclList tmp1 = hdr.getStateVarDeclListChild();
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
-		LinkedHashMap<AssrtIntVar, Role> located = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
+		LinkedHashMap<AssrtVar, Role> located = new LinkedHashMap<>();
 		if (tmp1 != null)
 		{
 			tmp1.getDeclChildren().forEach(x ->
@@ -141,7 +141,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 						throw new RuntimeException(
 								"[TODO] Statevar sort not supported: " + pt);
 					}
-					AssrtIntVar v = x.getDeclName();
+					AssrtVar v = x.getDeclName();
 					svars.put(v, x.getStateVarExprChild().expr);
 					RoleNode r = x.getRoleNodeChild();  // null if no explicit role
 					located.put(v, (r == null ? null : r.toName()));
@@ -550,9 +550,9 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		return r.toName();
 	}
 	
-	private static AssrtIntVar makeFreshDataTypeVar()
+	private static AssrtVar makeFreshDataTypeVar()
 	{
-		return new AssrtIntVar("_dum" + varCounter++);
+		return new AssrtVar("_dum" + varCounter++);
 	}
 
 	private static String makeFreshRecVarName()

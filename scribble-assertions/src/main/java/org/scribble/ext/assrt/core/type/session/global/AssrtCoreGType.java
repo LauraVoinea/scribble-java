@@ -13,7 +13,7 @@ import org.scribble.core.type.name.Substitutions;
 import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSType;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLType;
@@ -26,7 +26,7 @@ public interface AssrtCoreGType extends AssrtCoreSType<Global, AssrtCoreGType>
 	// CHECKME: refactor as visitors? -- base Core visitor pattern not currently ported
 
 	// FIXME TODO: deprecate -- all vars now Assrt(Int)Var
-	AssrtCoreGType disamb(AssrtCore core, Map<AssrtIntVar, DataName> env);  // FIXME: throw ScribbleException, WF errors
+	AssrtCoreGType disamb(AssrtCore core, Map<AssrtVar, DataName> env);  // FIXME: throw ScribbleException, WF errors
 	
 	// CHECKME: some may need to be factored up to base
 	AssrtCoreGType substitute(AssrtCore core, Substitutions subs);
@@ -34,12 +34,12 @@ public interface AssrtCoreGType extends AssrtCoreSType<Global, AssrtCoreGType>
 	AssrtCoreGType pruneRecs(AssrtCore core);
 
 	AssrtCoreLType projectInlined(AssrtCore core, Role self, AssrtBFormula f,
-			Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			Map<Role, Set<AssrtVar>> known,
+			Map<RecVar, LinkedHashMap<AssrtVar, Role>> located,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)  // N.B. phantom payvars have no init exprs (cf. statevars) -- FIXME: phantom should map sorts
 			throws AssrtCoreSyntaxException;  // N.B. checking "mergability"
 	
 	List<AssrtAnnotDataName> collectAnnotDataVarDecls(
-			Map<AssrtIntVar, DataName> env);  // Currently only the vars are needed (not the data types)
+			Map<AssrtVar, DataName> env);  // Currently only the vars are needed (not the data types)
 }
 

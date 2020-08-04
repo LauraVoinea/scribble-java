@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula.Op;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.BooleanFormulaManager;
@@ -20,7 +20,7 @@ public class AssrtNegFormula extends AssrtBFormula
 	}
 
 	@Override
-	public AssrtNegFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtNegFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return new AssrtNegFormula((AssrtBFormula) this.expr.disamb(env));
 	}
@@ -91,7 +91,7 @@ public class AssrtNegFormula extends AssrtBFormula
 	}
 
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		return "(not " + this.expr.toSmt2Formula(env) + ")";
 	}
@@ -104,9 +104,9 @@ public class AssrtNegFormula extends AssrtBFormula
 	}
 
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
-		Set<AssrtIntVar> vs = this.expr.getIntVars();
+		Set<AssrtVar> vs = this.expr.getIntVars();
 		return vs;
 	}
 	

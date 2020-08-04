@@ -3,27 +3,26 @@ package org.scribble.ext.assrt.core.type.name;
 import java.util.Map;
 
 import org.scribble.core.type.name.AbstractName;
-import org.scribble.ext.assrt.core.type.kind.AssrtIntVarKind;
+import org.scribble.ext.assrt.core.type.kind.AssrtVarKind;
 
-// TODO: integrate with AssrtIntVarFormula
-// FIXME: AssrtIntVar a different syntactic category than the SmtFormula vars --
+// TODO: integrate with AssrtVarFormula
+// CHECKME: AssrtVar a different syntactic category than the SmtFormula vars --
 // unify?
-// FIXME: now Strings introduced, rename to AssrtAVar, i.e., generic var (and
-// record sort?) -- also String formulae coming under AFormula, fix
-public class AssrtIntVar extends AbstractName<AssrtIntVarKind>
-		implements AssrtPayElemType<AssrtIntVarKind>
+// FIXME: String formulae coming under AFormula
+public class AssrtVar extends AbstractName<AssrtVarKind>
+		implements AssrtPayElemType<AssrtVarKind>
 {
 	private static final long serialVersionUID = 1L;
 
 	//public final String sort; // TODO: refactor -- // CHECKME: AssrtSort?
 
-	public AssrtIntVar(String simplename)
+	public AssrtVar(String simplename)
 	{
-		super(AssrtIntVarKind.KIND, simplename);
+		super(AssrtVarKind.KIND, simplename);
 		//this.sort = sort;
 	}
 
-	public String getSort(Map<AssrtIntVar, String> env)
+	public String getSort(Map<AssrtVar, String> env)
 	{
 		if (!env.containsKey(this))
 		{
@@ -39,7 +38,7 @@ public class AssrtIntVar extends AbstractName<AssrtIntVarKind>
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtIntVar))
+		if (!(o instanceof AssrtVar))
 		{
 			return false;
 		}
@@ -50,7 +49,7 @@ public class AssrtIntVar extends AbstractName<AssrtIntVarKind>
 	@Override
 	public boolean canEquals(Object o)
 	{
-		return o instanceof AssrtIntVar;
+		return o instanceof AssrtVar;
 	}
 
 	@Override

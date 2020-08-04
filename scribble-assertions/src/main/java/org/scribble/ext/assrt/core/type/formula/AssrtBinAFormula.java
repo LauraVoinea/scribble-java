@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.IntegerFormulaManager;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
@@ -47,7 +47,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 
 	@Override
-	public AssrtBinAFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtBinAFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return new AssrtBinAFormula(this.op, (AssrtAFormula) this.left.disamb(env),
 				(AssrtAFormula) this.right.disamb(env));
@@ -68,7 +68,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 
 	@Override
-	public DataName getSort(Map<AssrtIntVar, DataName> env)
+	public DataName getSort(Map<AssrtVar, DataName> env)
 	{
 		DataName intSort = new DataName("int");
 		if (!this.left.getSort(env).equals(intSort)
@@ -87,7 +87,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 	
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		String left = this.left.toSmt2Formula(env);
 		String right = this.right.toSmt2Formula(env);
@@ -123,9 +123,9 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
-		Set<AssrtIntVar> vars = new HashSet<>(this.left.getIntVars());
+		Set<AssrtVar> vars = new HashSet<>(this.left.getIntVars());
 		vars.addAll(this.right.getIntVars());
 		return vars;
 	}

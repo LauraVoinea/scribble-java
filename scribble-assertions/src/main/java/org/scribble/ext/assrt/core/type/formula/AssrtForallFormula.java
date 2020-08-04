@@ -5,24 +5,24 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 import org.sosy_lab.java_smt.api.QuantifiedFormulaManager;
 
-public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
+public class AssrtForallFormula extends AssrtQuantifiedFormula
 {
 	// Pre: vars non empty
 	//protected AssrtForallIntVarsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	protected AssrtForallIntVarsFormula(List<AssrtAVarFormula> vars,
+	protected AssrtForallFormula(List<AssrtAVarFormula> vars,
 			AssrtBFormula expr)
 	{
 		super(vars, expr);
 	}
 
 	@Override
-	public AssrtForallIntVarsFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtForallFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		throw new RuntimeException("Won't get in here: " + this);  // Not a parsed syntax
 	}
@@ -56,7 +56,7 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 	}
 
 	@Override
-	public AssrtForallIntVarsFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)
+	public AssrtForallFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)
 	{
 		if (this.vars.contains(old))
 		{
@@ -69,7 +69,7 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 	}
 	
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		String vs = this.vars.stream().map(v -> getSmt2VarDecl(env, v))
 				.collect(Collectors.joining(" "));
@@ -77,13 +77,13 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 		return "(forall (" + vs + ") " + expr + ")";
 	}
 
-	protected static String getSmt2VarDecl(Map<AssrtIntVar, DataName> env,
+	protected static String getSmt2VarDecl(Map<AssrtVar, DataName> env,
 			AssrtAVarFormula v)
 	{
-		if (v instanceof AssrtIntVarFormula)
+		if (v instanceof AssrtVarFormula)
 		{
 			String name = v.toString();
-			AssrtIntVar tmp = new AssrtIntVar(name);
+			AssrtVar tmp = new AssrtVar(name);
 			DataName sort = null;
 			if (env.containsKey(tmp))
 			{
@@ -94,14 +94,14 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 				// FIXME HACK statevar sorts
 				if (name.startsWith("_")) // cf. AssrtCoreSGraphBuilderUtil::renameFormula and AssrtCoreSConfig::makeFreshIntVar 
 				{
-					AssrtIntVar hack = new AssrtIntVar(name.substring(1));
+					AssrtVar hack = new AssrtVar(name.substring(1));
 					if (env.containsKey(hack))
 					{
 						sort = env.get(hack);
 					}
 					else if (name.contains("__"))  // FIXME HACK cf. AssrtCoreSConfig::makeFreshIntVar 
 					{
-						hack = new AssrtIntVar(
+						hack = new AssrtVar(
 								name.substring(1, name.lastIndexOf("_") - 1));
 						if (env.containsKey(hack))
 						{
@@ -146,7 +146,7 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtForallIntVarsFormula))
+		if (!(o instanceof AssrtForallFormula))
 		{
 			return false;
 		}
@@ -156,7 +156,7 @@ public class AssrtForallIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 	@Override
 	protected boolean canEqual(Object o)
 	{
-		return o instanceof AssrtForallIntVarsFormula;
+		return o instanceof AssrtForallFormula;
 	}
 
 	@Override

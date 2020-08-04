@@ -24,7 +24,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreActionKind;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreChoice;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
@@ -55,7 +55,7 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 	}
 
 	@Override
-	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtIntVar, DataName> env)
+	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtVar, DataName> env)
 	{
 		LinkedHashMap<AssrtCoreMsg, AssrtCoreGType> cases = new LinkedHashMap<>();
 		this.cases.entrySet().stream()
@@ -110,8 +110,8 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 
 	@Override
 	public AssrtCoreLType projectInlined(AssrtCore core, Role self,
-			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			AssrtBFormula f, Map<Role, Set<AssrtVar>> known,
+			Map<RecVar, LinkedHashMap<AssrtVar, Role>> located,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 			throws AssrtCoreSyntaxException
 	{
@@ -142,10 +142,10 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 				a = ((AssrtCoreSTypeFactory) core.config.tf).AssrtCoreAction(a.op,
 						a.pay, fproj);
 			}*/
-			Map<Role, Set<AssrtIntVar>> tmp = new HashMap<>(known);
+			Map<Role, Set<AssrtVar>> tmp = new HashMap<>(known);
 			if (this.src.equals(self) || this.dst.equals(self))
 			{
-				Set<AssrtIntVar> tmp2 = new HashSet<>(tmp.get(self));
+				Set<AssrtVar> tmp2 = new HashSet<>(tmp.get(self));
 				tmp.put(self, tmp2);
 				a.pay.stream().forEach(x -> tmp2.add(x.var));
 
@@ -276,12 +276,12 @@ public class AssrtCoreGChoice extends AssrtCoreChoice<Global, AssrtCoreGType>
 	}
 
 	@Override
-	public List<AssrtAnnotDataName> collectAnnotDataVarDecls(Map<AssrtIntVar, DataName> env)
+	public List<AssrtAnnotDataName> collectAnnotDataVarDecls(Map<AssrtVar, DataName> env)
 	{
 		List<AssrtAnnotDataName> res = this.cases.keySet().stream()
 				.flatMap(a -> a.pay.stream()).collect(Collectors.toList());
 		for (AssrtCoreMsg m : this.cases.keySet()) {
-			Map<AssrtIntVar, DataName> tmp = new HashMap<>(env);
+			Map<AssrtVar, DataName> tmp = new HashMap<>(env);
 			m.pay.forEach(x -> tmp.put(x.var, x.data));
 			res.addAll(this.cases.get(m).collectAnnotDataVarDecls(tmp));
 		}

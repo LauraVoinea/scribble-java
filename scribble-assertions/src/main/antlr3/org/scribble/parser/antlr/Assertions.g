@@ -246,7 +246,7 @@ WHITESPACE:
 
 /* Duplicated from AssrtScribble.g */
 
-IDENTIFIER:
+ID:
 	LETTER (LETTER | DIGIT)*
 ;  
 
@@ -268,16 +268,16 @@ fragment DIGIT:
 	'0'..'9'
 ;
 
-ambigname: t=IDENTIFIER -> IDENTIFIER<AmbigNameNode>[$t] ;
-rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
+ambigname: t=ID -> ID<AmbigNameNode>[$t] ;
+rolename: t=ID -> ID<RoleNode>[$t] ;
 
 
 /* Assrt */
 
-assrt_varname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
+assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
-	IDENTIFIER -> ^(VAR IDENTIFIER)
+	ID -> ^(VAR ID)
 ; 	  
 
 intlit: 
@@ -467,9 +467,9 @@ assrt_statevararg:
 	
 /*
 unint_fun:
-	IDENTIFIER unint_fun_arg_list
+	ID unint_fun_arg_list
 ->
-	^(UNFUN IDENTIFIER unint_fun_arg_list)
+	^(UNFUN ID unint_fun_arg_list)
 ; 
 	
 unint_fun_arg_list:

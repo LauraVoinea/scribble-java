@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.IntegerFormulaManager;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
@@ -23,7 +23,7 @@ public class AssrtIntValFormula extends AssrtAFormula
 	}
 
 	@Override
-	public AssrtIntValFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtIntValFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return this;
 	}
@@ -41,7 +41,7 @@ public class AssrtIntValFormula extends AssrtAFormula
 	}
 
 	@Override
-	public DataName getSort(Map<AssrtIntVar, DataName> env)
+	public DataName getSort(Map<AssrtVar, DataName> env)
 	{
 		return new DataName("int");  // TODO: factor out constant
 	}
@@ -53,9 +53,8 @@ public class AssrtIntValFormula extends AssrtAFormula
 	}
 		
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
-		//return "(" + Integer.toString(this.val) + ")";
 		return Integer.toString(this.val);
 	}
 	
@@ -67,7 +66,7 @@ public class AssrtIntValFormula extends AssrtAFormula
 	}
 	
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
 		return Collections.emptySet();	
 	}

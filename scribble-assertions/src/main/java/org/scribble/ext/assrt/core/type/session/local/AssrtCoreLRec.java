@@ -8,17 +8,17 @@ import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreRec;
 
 public class AssrtCoreLRec extends AssrtCoreRec<Local, AssrtCoreLType>
 		implements AssrtCoreLType
 {
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> phantom;
 
 	protected AssrtCoreLRec(CommonTree source, RecVar rv, AssrtCoreLType body,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars, AssrtBFormula ass,
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom)
 	{
 		super(source, rv, body, svars, ass);
 		this.phantom = phantom;

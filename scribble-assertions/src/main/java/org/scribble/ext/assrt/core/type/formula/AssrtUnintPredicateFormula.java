@@ -7,12 +7,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.core.type.name.AssrtSort;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
 
 // Make abstract, and use subclasses for specific functions? e.g., for ports
+@Deprecated
 public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUnintFunFormula<BooleanFormula>
 {
 	public final String name;
@@ -25,7 +26,7 @@ public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUn
 	}
 
 	@Override
-	public AssrtUnintPredicateFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtUnintPredicateFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		throw new RuntimeException("Shouldn't get in here: " + this);
 	}
@@ -74,7 +75,7 @@ public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUn
 	}
 
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		return "(" + this.name + " " + this.args.stream()
 				.map(a -> a.toSmt2Formula(env)).collect(Collectors.joining(" ")) + ")";
@@ -87,7 +88,7 @@ public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUn
 	}
 
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
 		return this.args.stream().flatMap(a -> a.getIntVars().stream()).collect(Collectors.toSet());
 	}

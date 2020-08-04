@@ -58,7 +58,6 @@ public class AssrtAntlrToFormulaParser
 			return AssrtAntlrArithExpr.parseArithExpr(this, ct);
 		case "NEGEXPR":
 			return AssrtAntlrNegExpr.parseNegExpr(this, ct);
-		//case "UNFUN":     return AssrtAntlrUnFun.parseUnFun(this, ct);
 		case "VAR":
 			// Disamb (AssrtAmbigVarFormula.disamb) currently checks var is bound and type is supported
 			return AssrtAntlrAmbigVar.parseAmbigVar(this, ct);
@@ -72,6 +71,8 @@ public class AssrtAntlrToFormulaParser
 			return AssrtTrueFormula.TRUE;
 		case "STRVAL":
 			return AssrtAntlrStrVal.parseStrVal(this, ct);
+
+		//case "UNFUN":     return AssrtAntlrUnFun.parseUnFun(this, ct);
 
 		default:
 			throw new RuntimeException("[assrt] Unexpected ANTLR node type: " + lab);

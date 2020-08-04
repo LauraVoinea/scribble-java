@@ -18,11 +18,11 @@ import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtQuantifiedIntVarsFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtQuantifiedFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtUnintPredicateFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribUtil;
 
@@ -41,7 +41,7 @@ public class Z3Wrapper
 			return true;
 		}
 
-		Map<AssrtIntVar, DataName> sorts = /*((AssrtCoreGProtocol) core.getContext()
+		Map<AssrtVar, DataName> sorts = /*((AssrtCoreGProtocol) core.getContext()
 																				.getInlined(intermed.fullname)).type
 																				.getSortEnv();*/
 				((AssrtCoreGProtocol) core.getContext()
@@ -97,7 +97,7 @@ public class Z3Wrapper
 	
 	// fs shouldn't be empty (but OK)
 	private static String toSmt2(GProtocol intermed, Set<AssrtBFormula> bforms,
-			Map<AssrtIntVar, DataName> env)
+			Map<AssrtVar, DataName> env)
 	{
 		String smt2 = "";
 		List<String> rs = intermed.roles.stream().map(Object::toString).sorted()
@@ -146,9 +146,9 @@ public class Z3Wrapper
 											.flatMap(y -> this.func.apply(y).stream())
 											.collect(Collectors.toSet());
 			}
-			else if (x instanceof AssrtQuantifiedIntVarsFormula)
+			else if (x instanceof AssrtQuantifiedFormula)
 			{
-				return this.func.apply(((AssrtQuantifiedIntVarsFormula) x).expr);
+				return this.func.apply(((AssrtQuantifiedFormula) x).expr);
 			}
 			else if (x instanceof AssrtUnintPredicateFormula)
 			{

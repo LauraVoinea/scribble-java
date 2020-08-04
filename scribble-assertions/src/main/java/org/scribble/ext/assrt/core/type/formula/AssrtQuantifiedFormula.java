@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-public abstract class AssrtQuantifiedIntVarsFormula extends AssrtBFormula
+public abstract class AssrtQuantifiedFormula extends AssrtBFormula
 {
 	//public final List<AssrtIntVarFormula> vars;
 	public final List<AssrtAVarFormula> vars;
@@ -15,7 +15,7 @@ public abstract class AssrtQuantifiedIntVarsFormula extends AssrtBFormula
 
 	// Pre: vars non empty
 	//protected AssrtQuantifiedIntVarsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	protected AssrtQuantifiedIntVarsFormula(List<AssrtAVarFormula> vars,
+	protected AssrtQuantifiedFormula(List<AssrtAVarFormula> vars,
 			AssrtBFormula expr)
 	{
 		this.vars = Collections.unmodifiableList(vars);
@@ -23,9 +23,9 @@ public abstract class AssrtQuantifiedIntVarsFormula extends AssrtBFormula
 	}
 
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
-		Set<AssrtIntVar> vs = this.expr.getIntVars();
+		Set<AssrtVar> vs = this.expr.getIntVars();
 		vs.removeAll(this.vars.stream().map(v -> v.toName()).collect(Collectors.toList()));
 		return vs;
 	}
@@ -42,11 +42,11 @@ public abstract class AssrtQuantifiedIntVarsFormula extends AssrtBFormula
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtQuantifiedIntVarsFormula))
+		if (!(o instanceof AssrtQuantifiedFormula))
 		{
 			return false;
 		}
-		AssrtQuantifiedIntVarsFormula f = (AssrtQuantifiedIntVarsFormula) o;
+		AssrtQuantifiedFormula f = (AssrtQuantifiedFormula) o;
 		return super.equals(this)  // Does canEqual
 				&& this.vars.equals(f.vars) && this.expr.equals(f.expr);  
 	}
@@ -54,7 +54,7 @@ public abstract class AssrtQuantifiedIntVarsFormula extends AssrtBFormula
 	@Override
 	protected boolean canEqual(Object o)
 	{
-		return o instanceof AssrtQuantifiedIntVarsFormula;
+		return o instanceof AssrtQuantifiedFormula;
 	}
 
 	@Override

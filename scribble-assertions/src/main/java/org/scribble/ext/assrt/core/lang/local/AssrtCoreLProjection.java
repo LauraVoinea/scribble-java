@@ -36,7 +36,7 @@ import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEGraphBuilder;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEModelFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLEnd;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLType;
 
@@ -44,16 +44,16 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 {
 	// TODO: duplicated from AssrtCoreGProtocol -- refactor
 	public final AssrtCoreLType type;
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> statevars;
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> statevars;
 	public final AssrtBFormula assertion;  // non-null (True)
 	
-	public final LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom;
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> phantom;
 
 	public AssrtCoreLProjection(List<ProtoMod> mods, LProtoName fullname,
 			List<Role> rs, Role self, List<MemberName<? extends NonRoleParamKind>> ps,
 			GProtoName global, AssrtCoreLType type,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars,
+			AssrtBFormula ass, LinkedHashMap<AssrtVar, AssrtAFormula> phantom)
 	{
 		super(mods, fullname, rs, self, ps, global, null);
 		this.type = type;
@@ -73,8 +73,8 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 	public LProjection reconstruct(CommonTree source, List<ProtoMod> mods,
 			LProtoName fullname, List<Role> rs, Role self,
 			List<MemberName<? extends NonRoleParamKind>> ps, AssrtCoreLType type,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars, AssrtBFormula ass,
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom)
 	{
 		return new AssrtCoreLProjection(mods, fullname, rs, this.self, ps,
 				this.global, type, svars, ass, phantom);

@@ -30,7 +30,7 @@ import org.scribble.core.visit.global.GTypeInliner;
 import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGType;
 import org.scribble.ext.assrt.core.visit.gather.AssrtCoreVarEnvGatherer;
 import org.scribble.util.RuntimeScribException;
@@ -76,7 +76,7 @@ public class AssrtCoreContext extends CoreContext
 			AssrtCoreGProtocol cast = (AssrtCoreGProtocol) inlined;
 
 			// TODO FIXME: here, Map requires distinct annotvars -- but AssrtCore.runGlobalSyntaxWfPasses currently comes after getInlined (runSyntaxTransformPasses)
-			List<Entry<AssrtIntVar, DataName>> res = cast.type.assrtCoreGather(
+			List<Entry<AssrtVar, DataName>> res = cast.type.assrtCoreGather(
 					new AssrtCoreVarEnvGatherer<Global, AssrtCoreGType>()::visit)
 					.collect(Collectors.toList());
 			if (res.stream().anyMatch(
@@ -88,7 +88,7 @@ public class AssrtCoreContext extends CoreContext
 				// TODO: refactor with AssrtCore.runGlobalSyntaxWfPasses (which comes later than getInlined pass)
 			}
 
-			Map<AssrtIntVar, DataName> env = res.stream().distinct()
+			Map<AssrtVar, DataName> env = res.stream().distinct()
 					.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
 			cast.statevars.keySet().forEach(x -> env.put(x, new DataName("int")));  // FIXME "int"
 			/*AssrtCoreGType tmp = cast.type;  // Cf. AssrtCoreSConfig.getInitRecAssertCheck
@@ -100,7 +100,7 @@ public class AssrtCoreContext extends CoreContext
 			}*/
 
 			AssrtCoreGType body = cast.type.disamb((AssrtCore) this.core, env);
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
+			LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
 			cast.statevars.entrySet().forEach(x -> svars.put(x.getKey(),
 					(AssrtAFormula) x.getValue().disamb(env)));  // Unnecessary, disallow mutual var refs?
 			AssrtBFormula ass = (AssrtBFormula) cast.assertion.disamb(env);  // TODO: throw ScribbleException, for WF errors

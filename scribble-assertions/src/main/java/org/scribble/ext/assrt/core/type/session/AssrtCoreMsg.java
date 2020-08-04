@@ -11,7 +11,7 @@ import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 
 public class AssrtCoreMsg
@@ -36,7 +36,7 @@ public class AssrtCoreMsg
 		this.phantAss = phantAss;
 	}
 	
-	public AssrtCoreMsg disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtCoreMsg disamb(Map<AssrtVar, DataName> env)
 	{
 		return new AssrtCoreMsg(this.op, this.pay,  // CHECKME: disamb payvars unnecessary?
 				(AssrtBFormula) this.ass.disamb(env),

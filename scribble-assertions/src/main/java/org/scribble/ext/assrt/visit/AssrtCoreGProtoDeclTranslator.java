@@ -2,7 +2,7 @@ package org.scribble.ext.assrt.visit;
 
 import org.scribble.ast.global.GProtoDecl;
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSTypeFactory;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
 import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGType;
@@ -20,9 +20,9 @@ public class AssrtCoreGProtoDeclTranslator
 	private static int varCounter = 1;
 	private static int recCounter = 1;
 	
-	private static AssrtIntVar makeFreshDataTypeVar()
+	private static AssrtVar makeFreshDataTypeVar()
 	{
-		return new AssrtIntVar("_dum" + varCounter++);
+		return new AssrtVar("_dum" + varCounter++);
 	}
 
 	private static String makeFreshRecVarName()

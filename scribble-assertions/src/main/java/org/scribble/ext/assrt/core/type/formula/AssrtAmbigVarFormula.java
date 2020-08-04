@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.RuntimeScribException;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
@@ -18,15 +18,15 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 	}
 
 	@Override
-	public AssrtSmtFormula<IntegerFormula> disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtSmtFormula<IntegerFormula> disamb(Map<AssrtVar, DataName> env)
 	{
-		Optional<Entry<AssrtIntVar, DataName>> findAny = env.entrySet().stream()
+		Optional<Entry<AssrtVar, DataName>> findAny = env.entrySet().stream()
 				.filter(x -> x.getKey().toString().equals(this.name)).findAny();
 		if (!findAny.isPresent())
 		{
 			throw new RuntimeScribException("Unknown variable: " + this.name);
 		}
-		Entry<AssrtIntVar, DataName> e = findAny.get();
+		Entry<AssrtVar, DataName> e = findAny.get();
 		String type = e.getValue().toString();
 		String name = e.getKey().toString();
 		switch (type)  // HACK
@@ -34,7 +34,7 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 		case "int":
 		case "String":
 		case "string": // Cf. AssrtCoreGTypeTranslator.parsePayload, AssrtCoreSConfg.getAssVars, AssrtForallFormula.toSmt2Sort
-			return new AssrtIntVarFormula(name);
+			return new AssrtVarFormula(name);
 		//return new AssrtStrVarFormula(name);
 		default:
 			throw new RuntimeScribException("Unsupported payload/state var type: "
@@ -45,7 +45,7 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 	// i.e., to "type"
 	@Override
 	public //AssrtPayElemType<?> 
-	AssrtIntVar toName()
+	AssrtVar toName()
 	{
 		throw new RuntimeException("Shouldn't get in here: " + this.name);
 	}
@@ -64,10 +64,10 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 	}
 
 	@Override
-	public DataName getSort(Map<AssrtIntVar, DataName> env)
+	public DataName getSort(Map<AssrtVar, DataName> env)
 	{
 		//throw new RuntimeException("Shouldn't get in here: " + this.name);
-		return env.get(new AssrtIntVar(toString()));
+		return env.get(new AssrtVar(toString()));
 	}
 	
 	@Override

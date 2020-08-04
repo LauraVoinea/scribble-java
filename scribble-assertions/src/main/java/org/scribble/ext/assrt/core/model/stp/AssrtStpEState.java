@@ -25,11 +25,11 @@ import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBinCompFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
-import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.name.AssrtPayElemType;
 import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 
@@ -52,7 +52,7 @@ public class AssrtStpEState extends AssrtEState
 		Set<AssrtStpEState> todo = Stream.of(tmp).collect(Collectors.toSet());  // Invar: not in seen
 		Set<AssrtStpEState> seen = new HashSet<>();
 		
-		Map<Integer, List<AssrtIntVar>> kv = new HashMap<>();  // FIXME: relies on WF disallowed merge -- and invar: not in seen
+		Map<Integer, List<AssrtVar>> kv = new HashMap<>();  // FIXME: relies on WF disallowed merge -- and invar: not in seen
 
 		while (!todo.isEmpty())
 		{
@@ -94,7 +94,7 @@ public class AssrtStpEState extends AssrtEState
 							AssrtAnnotDataName adt = (AssrtAnnotDataName) apet;
 							if (!adt.var.toString().startsWith("__dum"))
 							{
-								List<AssrtIntVar> vs = kv.get(succ.id);
+								List<AssrtVar> vs = kv.get(succ.id);
 								if (vs == null)
 								{
 									vs = new LinkedList<>();
@@ -115,7 +115,7 @@ public class AssrtStpEState extends AssrtEState
 	}
 	
 	private static AssrtStpEAction foobar(AssrtCoreEModelFactory ef,
-			List<AssrtIntVar> vs, AssrtCoreEAction a)
+			List<AssrtVar> vs, AssrtCoreEAction a)
 	{
 		if (a instanceof AssrtCoreESend)
 		{
@@ -134,10 +134,10 @@ public class AssrtStpEState extends AssrtEState
 	}
 
 	private static AssrtStpEAction barfoo(AssrtCoreEModelFactory ef,
-			List<AssrtIntVar> vs, EAction ea)
+			List<AssrtVar> vs, EAction ea)
 	{
 			AssrtBFormula A = ((AssrtCoreEAction) ea).getAssertion();
-			Map<AssrtIntVarFormula, AssrtSmtFormula<?>> sigma = new HashMap<>();
+			Map<AssrtVarFormula, AssrtSmtFormula<?>> sigma = new HashMap<>();
 			
 			/*... add known vars to AssrtStpEState (but don't use in hash) -- or just collect them alongside the build-traversal
 					-- WF property: if x is *used* at any state, it must be *necessarily* known at that state
@@ -166,14 +166,14 @@ public class AssrtStpEState extends AssrtEState
 						{
 							if (vs.stream().anyMatch(v -> v.toString().equals(f.right.toString())))
 							{
-								sigma.put((AssrtIntVarFormula) f.left, f.right);
+								sigma.put((AssrtVarFormula) f.left, f.right);
 								constructive = true;
 								cs.remove(c);
 								break;
 							}
 							else if (vs.stream().anyMatch(v -> v.toString().equals(f.left.toString())))
 							{
-								sigma.put((AssrtIntVarFormula) f.right, f.left);
+								sigma.put((AssrtVarFormula) f.right, f.left);
 								constructive = true;
 								cs.remove(c);
 								break;

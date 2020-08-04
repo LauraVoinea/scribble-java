@@ -35,7 +35,7 @@ import org.scribble.ext.assrt.ast.local.AssrtLDo;
 import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 import org.scribble.ext.assrt.del.global.AssrtGConnectDel;
 import org.scribble.ext.assrt.del.global.AssrtGDoDel;
 import org.scribble.ext.assrt.del.global.AssrtGMsgTransferDel;
@@ -103,7 +103,7 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 	/* Names */
 
 	@Override
-	public void AssrtIntVarNameNode(AssrtIntVarNameNode n)
+	public void AssrtIntVarNameNode(AssrtVarNameNode n)
 	{
 		setDel(n, createDefaultDel());
 	}

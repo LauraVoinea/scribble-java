@@ -14,7 +14,7 @@ import org.scribble.core.type.name.Substitutions;
 import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreEnd;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLEnd;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLTypeFactory;
@@ -32,7 +32,7 @@ public class AssrtCoreGEnd extends AssrtCoreEnd<Global, AssrtCoreGType>
 	}
 
 	@Override
-	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtIntVar, DataName> env)
+	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtVar, DataName> env)
 	{
 		return this;
 	}
@@ -57,8 +57,8 @@ public class AssrtCoreGEnd extends AssrtCoreEnd<Global, AssrtCoreGType>
 
 	@Override
 	public AssrtCoreLEnd projectInlined(AssrtCore core, Role self,
-			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			AssrtBFormula f, Map<Role, Set<AssrtVar>> known,
+			Map<RecVar, LinkedHashMap<AssrtVar, Role>> located,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
 		return ((AssrtCoreLTypeFactory) core.config.tf.local).AssrtCoreLEnd();
@@ -66,7 +66,7 @@ public class AssrtCoreGEnd extends AssrtCoreEnd<Global, AssrtCoreGType>
 
 	@Override
 	public List<AssrtAnnotDataName> collectAnnotDataVarDecls(
-			Map<AssrtIntVar, DataName> env)
+			Map<AssrtVar, DataName> env)
 	{
 		return Collections.emptyList();
 	}

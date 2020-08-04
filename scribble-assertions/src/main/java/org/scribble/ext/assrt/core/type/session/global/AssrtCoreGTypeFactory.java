@@ -21,7 +21,7 @@ import org.scribble.core.type.session.global.GType;
 import org.scribble.core.type.session.global.GTypeFactoryImpl;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
 
 
@@ -44,9 +44,9 @@ public class AssrtCoreGTypeFactory extends GTypeFactoryImpl
 	}
 	
 	public AssrtCoreGRec AssrtCoreGRec(CommonTree source, RecVar rv,
-			AssrtCoreGType body, LinkedHashMap<AssrtIntVar, AssrtAFormula> svars,
-			AssrtBFormula ass, LinkedHashMap<AssrtIntVar, Role> located,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom)
+			AssrtCoreGType body, LinkedHashMap<AssrtVar, AssrtAFormula> svars,
+			AssrtBFormula ass, LinkedHashMap<AssrtVar, Role> located,
+			LinkedHashMap<AssrtVar, AssrtAFormula> phantom)
 	{
 		return new AssrtCoreGRec(source, rv, body, svars, ass, located, phantom);
 	}

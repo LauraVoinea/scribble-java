@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.session.SType;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public interface AssrtCoreSType<K extends ProtoKind, 
 			B extends AssrtCoreSType<K, B>>
@@ -16,5 +16,5 @@ public interface AssrtCoreSType<K extends ProtoKind,
 	<T> Stream<T> assrtCoreGather(Function<AssrtCoreSType<K, B>, Stream<T>> f);
 
 	// Return "additional" env items -- i.e., ctxt not included in result
-	Map<AssrtIntVar, DataName> getBoundSortEnv(Map<AssrtIntVar, DataName> ctxt);
+	Map<AssrtVar, DataName> getBoundSortEnv(Map<AssrtVar, DataName> ctxt);
 }

@@ -17,10 +17,10 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
-import org.scribble.ext.assrt.core.type.formula.AssrtIntVarFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 import org.sosy_lab.java_smt.api.Formula;
 
@@ -40,7 +40,7 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 	}
 
 	protected AssrtCoreSConfig createInitConfig(Map<Role, EGraph> egraphs,
-			boolean explicit, Map<AssrtIntVar, DataName> Env)
+			boolean explicit, Map<AssrtVar, DataName> Env)
 	{
 		Map<Role, EFsm> P = egraphs.entrySet().stream()
 				.collect(Collectors.toMap(Entry::getKey, e -> e.getValue().toFsm()));
@@ -52,7 +52,7 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 				);
 	}
 
-	private static Map<Role, Set<AssrtIntVar>> makeK(Set<Role> rs)
+	private static Map<Role, Set<AssrtVar>> makeK(Set<Role> rs)
 	{
 		return rs.stream().collect(Collectors.toMap(r -> r, r -> new HashSet<>()));
 	}
@@ -81,10 +81,10 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 	}*/
 
 	// TODO: EFsm -> EGraph
-	private static Map<Role, Map<AssrtIntVar, AssrtAFormula>> makeV(
+	private static Map<Role, Map<AssrtVar, AssrtAFormula>> makeV(
 			Map<Role, EFsm> P)
 	{
-		Map<Role, Map<AssrtIntVar, AssrtAFormula>> V = P.entrySet()
+		Map<Role, Map<AssrtVar, AssrtAFormula>> V = P.entrySet()
 				.stream().collect(Collectors.toMap(
 						Entry::getKey,
 						e -> new HashMap<>(
@@ -102,8 +102,8 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 			));*/
 		for (Role r : P.keySet())
 		{
-			Map<AssrtIntVar, AssrtAFormula> tmp = V.get(r);
-			for (Entry<AssrtIntVar, AssrtAFormula> e : ((AssrtEState) P
+			Map<AssrtVar, AssrtAFormula> tmp = V.get(r);
+			for (Entry<AssrtVar, AssrtAFormula> e : ((AssrtEState) P
 					.get(r).graph.init).getPhantoms().entrySet())
 			{
 				tmp.put(e.getKey(), e.getValue());
@@ -136,10 +136,10 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 	public static <T extends Formula> AssrtSmtFormula<T> renameFormula(
 			AssrtSmtFormula<T> f)
 	{
-		for (AssrtIntVar v : f.getIntVars())
+		for (AssrtVar v : f.getIntVars())
 		{
-			AssrtIntVarFormula old = AssrtFormulaFactory.AssrtIntVar(v.toString());  // N.B. making *Formula*
-			AssrtIntVarFormula fresh = AssrtFormulaFactory
+			AssrtVarFormula old = AssrtFormulaFactory.AssrtIntVar(v.toString());  // N.B. making *Formula*
+			AssrtVarFormula fresh = AssrtFormulaFactory
 					.AssrtIntVar("_" + v.toString());  // FIXME HACK
 			f = f.subs(old, fresh);  // N.B., works on Formulas
 		}
@@ -147,9 +147,9 @@ public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
 	}
 
 	// "x" -> "_x" -- IntVar is a name, translating to a "fresh" formula
-	public static AssrtIntVarFormula renameIntVarAsFormula(AssrtIntVar svar)
+	public static AssrtVarFormula renameIntVarAsFormula(AssrtVar svar)
 	{
-		return (AssrtIntVarFormula) renameFormula(  // Adds "_" prefix
+		return (AssrtVarFormula) renameFormula(  // Adds "_" prefix
 				AssrtFormulaFactory.AssrtIntVar(svar.toString()));
 	}
 }

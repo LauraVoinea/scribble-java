@@ -5,24 +5,24 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // FIXME: not only int vars now -- cf. AssrtIntVar renaming
-public class AssrtExistsIntVarsFormula extends AssrtQuantifiedIntVarsFormula
+public class AssrtExistsFormula extends AssrtQuantifiedFormula
 {
 	// Pre: vars non empty
 	//protected AssrtExistsIntVarsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	protected AssrtExistsIntVarsFormula(List<AssrtAVarFormula> vars,
+	protected AssrtExistsFormula(List<AssrtAVarFormula> vars,
 			AssrtBFormula expr)
 	{
 		super(vars, expr);
 	}
 
 	@Override
-	public AssrtExistsIntVarsFormula disamb(Map<AssrtIntVar, DataName> env)  // IntVar now stands for all var types
+	public AssrtExistsFormula disamb(Map<AssrtVar, DataName> env)  // IntVar now stands for all var types
 	{
 		throw new RuntimeException("Won't get in here: " + this);  // Not a parsed syntax
 	}
@@ -57,7 +57,7 @@ public class AssrtExistsIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 	}
 
 	@Override
-	public AssrtExistsIntVarsFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)
+	public AssrtExistsFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)
 	{
 		if (this.vars.contains(old))
 		{
@@ -70,10 +70,10 @@ public class AssrtExistsIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 	}
 	
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		String vs = this.vars.stream()
-				.map(v -> AssrtForallIntVarsFormula.getSmt2VarDecl(env, v))
+				.map(v -> AssrtForallFormula.getSmt2VarDecl(env, v))
 				.collect(Collectors.joining(" "));
 		String expr = this.expr.toSmt2Formula(env);
 		return "(exists (" + vs + ") " + expr + ")";
@@ -114,7 +114,7 @@ public class AssrtExistsIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtExistsIntVarsFormula))
+		if (!(o instanceof AssrtExistsFormula))
 		{
 			return false;
 		}
@@ -124,7 +124,7 @@ public class AssrtExistsIntVarsFormula extends AssrtQuantifiedIntVarsFormula
 	@Override
 	protected boolean canEqual(Object o)
 	{
-		return o instanceof AssrtExistsIntVarsFormula;
+		return o instanceof AssrtExistsFormula;
 	}
 
 	@Override

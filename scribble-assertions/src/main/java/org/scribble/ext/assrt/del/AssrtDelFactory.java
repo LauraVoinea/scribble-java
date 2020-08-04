@@ -30,14 +30,14 @@ import org.scribble.ext.assrt.ast.local.AssrtLDo;
 import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 
 
 public interface AssrtDelFactory extends DelFactory
 {
 	/* Names */
 
-	void AssrtIntVarNameNode(AssrtIntVarNameNode n);  // Default del
+	void AssrtIntVarNameNode(AssrtVarNameNode n);  // Default del
 
 
 	/* General and globals */

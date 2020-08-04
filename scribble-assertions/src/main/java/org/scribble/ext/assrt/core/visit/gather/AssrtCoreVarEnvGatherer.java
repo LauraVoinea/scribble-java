@@ -19,16 +19,16 @@ import java.util.stream.Stream;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreChoice;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreSType;
 
 public class AssrtCoreVarEnvGatherer<K extends ProtoKind, 
 			B extends AssrtCoreSType<K, B>>
-		extends AssrtCoreSTypeGatherer<K, B, Map.Entry<AssrtIntVar, DataName>>
+		extends AssrtCoreSTypeGatherer<K, B, Map.Entry<AssrtVar, DataName>>
 {
 	@Override
-	public Stream<Map.Entry<AssrtIntVar, DataName>> visitChoice(
+	public Stream<Map.Entry<AssrtVar, DataName>> visitChoice(
 			AssrtCoreChoice<K, B> n)
 	{
 		return n.cases.keySet().stream()

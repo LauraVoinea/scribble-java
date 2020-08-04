@@ -13,7 +13,7 @@ import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 // TODO: rename directed choice
 public abstract class AssrtCoreChoice<K extends ProtoKind, 
@@ -44,12 +44,12 @@ public abstract class AssrtCoreChoice<K extends ProtoKind,
 	}
 
 	@Override
-	public Map<AssrtIntVar, DataName> getBoundSortEnv(Map<AssrtIntVar, DataName> ctxt)
+	public Map<AssrtVar, DataName> getBoundSortEnv(Map<AssrtVar, DataName> ctxt)
 	{
-		Map<AssrtIntVar, DataName> res = this.cases.keySet().stream()
+		Map<AssrtVar, DataName> res = this.cases.keySet().stream()
 				.flatMap(x -> x.pay.stream())
 				.collect(Collectors.toMap(x -> x.var, x -> x.data));
-		Map<AssrtIntVar, DataName> tmp = new HashMap<>(ctxt);
+		Map<AssrtVar, DataName> tmp = new HashMap<>(ctxt);
 		tmp.putAll(res);
 		res.putAll(this.cases.values().stream()
 				.flatMap(x -> x.getBoundSortEnv(tmp).entrySet().stream())

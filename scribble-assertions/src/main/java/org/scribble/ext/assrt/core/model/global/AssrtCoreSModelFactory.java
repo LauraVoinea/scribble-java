@@ -18,7 +18,7 @@ import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSReq;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public interface AssrtCoreSModelFactory extends SModelFactory
 {
@@ -40,14 +40,14 @@ public interface AssrtCoreSModelFactory extends SModelFactory
 
 
 	AssrtCoreSConfig AssrtCoreSConfig(Map<Role, EFsm> P, SSingleBuffers Q,
-			Map<Role, Set<AssrtIntVar>> K,
+			Map<Role, Set<AssrtVar>> K,
 			Map<Role, Set<AssrtBFormula>> F,
 			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename
 			//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes, 
-			Map<Role, Map<AssrtIntVar, AssrtAFormula>> V,
+			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
 
-			Map<AssrtIntVar, DataName> Env
+			Map<AssrtVar, DataName> Env
 
 			);
 	AssrtCoreSModel AssrtCoreSModel(AssrtCore core, AssrtCoreSGraph graph);

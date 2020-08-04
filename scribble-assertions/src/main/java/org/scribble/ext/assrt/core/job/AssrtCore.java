@@ -47,7 +47,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtCoreSGraph;
 import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactoryImpl;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.visit.local.AssrtCoreLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
@@ -142,12 +142,12 @@ public class AssrtCore extends Core
 					.collect(Collectors.toList());*/
 			AssrtCoreGProtocol proto = (AssrtCoreGProtocol) this.context
 					.getInlined(fullname);
-			Map<AssrtIntVar, DataName> svars = new HashMap<>();
+			Map<AssrtVar, DataName> svars = new HashMap<>();
 			proto.statevars.entrySet()
 					.forEach(x -> svars.put(x.getKey(), x.getValue().getSort(svars)));
-			List<AssrtIntVar> vs = proto.type.collectAnnotDataVarDecls(svars).stream()
+			List<AssrtVar> vs = proto.type.collectAnnotDataVarDecls(svars).stream()
 							.map(x -> x.var).collect(Collectors.toList());
-			Set<AssrtIntVar> distinct = new HashSet<>(vs);
+			Set<AssrtVar> distinct = new HashSet<>(vs);
 			if (vs.size() != distinct.size())
 			{
 				throw new ScribException("Duplicate annot var name(s): " + vs);
@@ -229,7 +229,7 @@ public class AssrtCore extends Core
 			}
 			case NONE:
 			{
-			Map<AssrtIntVar, DataName> sorts = ((AssrtCoreGProtocol) getContext()
+			Map<AssrtVar, DataName> sorts = ((AssrtCoreGProtocol) getContext()
 					.getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
 				verbosePrintln("\n[assrt-core] [WARNING] Skipping sat check:\n\t"
 					+ bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")

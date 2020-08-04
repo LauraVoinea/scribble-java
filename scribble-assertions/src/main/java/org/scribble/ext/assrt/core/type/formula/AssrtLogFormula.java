@@ -6,23 +6,23 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
 public class AssrtLogFormula extends AssrtBFormula
 {
-	public final Set<AssrtIntVar> vars; 
+	public final Set<AssrtVar> vars; 
 	
 	// Takes vars separately, because vars is done by AssrtBoolFormula::getVars (not BooleanFormula)
-	public AssrtLogFormula(BooleanFormula f, Set<AssrtIntVar> vars)
+	public AssrtLogFormula(BooleanFormula f, Set<AssrtVar> vars)
 	{
 		this.formula = f;  
 		this.vars = Collections.unmodifiableSet(vars); 	
 	}
 
 	@Override
-	public AssrtLogFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtLogFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return this;
 	}
@@ -58,7 +58,7 @@ public class AssrtLogFormula extends AssrtBFormula
 	}
 		
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		throw new RuntimeException("[assrt] Shouldn't get in here: " + this);
 	}
@@ -70,7 +70,7 @@ public class AssrtLogFormula extends AssrtBFormula
 	}
 	
 	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
 		return new HashSet<>(this.vars); 
 	}

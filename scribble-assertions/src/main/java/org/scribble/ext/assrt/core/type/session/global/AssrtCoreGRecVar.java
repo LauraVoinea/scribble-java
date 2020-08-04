@@ -19,7 +19,7 @@ import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtCoreRecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLRecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLTypeFactory;
@@ -36,7 +36,7 @@ public class AssrtCoreGRecVar extends AssrtCoreRecVar<Global, AssrtCoreGType>
 	}
 
 	@Override
-	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtIntVar, DataName> env)
+	public AssrtCoreGType disamb(AssrtCore core, Map<AssrtVar, DataName> env)
 	{
 		return new AssrtCoreGRecVar(getSource(), this.recvar,
 				this.stateexprs.stream().map(x -> (AssrtAFormula) x.disamb(env))
@@ -65,11 +65,11 @@ public class AssrtCoreGRecVar extends AssrtCoreRecVar<Global, AssrtCoreGType>
 
 	@Override
 	public AssrtCoreLRecVar projectInlined(AssrtCore core, Role self,
-			AssrtBFormula f, Map<Role, Set<AssrtIntVar>> known,
-			Map<RecVar, LinkedHashMap<AssrtIntVar, Role>> located,
+			AssrtBFormula f, Map<Role, Set<AssrtVar>> known,
+			Map<RecVar, LinkedHashMap<AssrtVar, Role>> located,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)  // CHECKME: phantoms discarded for recvar?
 	{
-		Iterator<Entry<AssrtIntVar, Role>> it = located.get(this.recvar).entrySet()
+		Iterator<Entry<AssrtVar, Role>> it = located.get(this.recvar).entrySet()
 				.iterator();
 		List<AssrtAFormula> sexprs = this.stateexprs.stream()
 				.filter(x ->
@@ -84,7 +84,7 @@ public class AssrtCoreGRecVar extends AssrtCoreRecVar<Global, AssrtCoreGType>
 
 	@Override
 	public List<AssrtAnnotDataName> collectAnnotDataVarDecls(
-			Map<AssrtIntVar, DataName> env)
+			Map<AssrtVar, DataName> env)
 	{
 		return Collections.emptyList();
 	}
