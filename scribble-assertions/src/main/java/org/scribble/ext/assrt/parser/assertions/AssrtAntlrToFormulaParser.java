@@ -39,7 +39,7 @@ public class AssrtAntlrToFormulaParser
 	// Parses directly to Formula "types" (not ast)
 	// ct should be the first child of the root node of the assertion subtree (i.e., AssrtAntlrGMessageTransfer.getAssertionChild.getChild(0))
 	// Does not parse ROOT directly -- AssrtAntlr[...] methods extract the children
-	public AssrtSmtFormula<?> parse(CommonTree ct) //throws AssertionsParseException
+	public AssrtSmtFormula parse(CommonTree ct) //throws AssertionsParseException
 	{
 		ScribAntlrWrapper.checkForAntlrErrors(ct);
 		

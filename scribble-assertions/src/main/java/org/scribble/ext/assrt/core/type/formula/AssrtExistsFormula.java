@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.BooleanFormula;
 
 // FIXME: not only int vars now -- cf. AssrtIntVar renaming
 public class AssrtExistsFormula extends AssrtQuantifiedFormula
@@ -53,15 +52,6 @@ public class AssrtExistsFormula extends AssrtQuantifiedFormula
 				.collect(Collectors.joining(" "));
 		String expr = this.expr.toSmt2Formula(env);
 		return "(exists (" + vs + ") " + expr + ")";
-	}
-
-	@Override
-	protected BooleanFormula toJavaSmtFormula()
-	{
-		/*BooleanFormula expr = this.expr.toJavaSmtFormula();
-		List<IntegerFormula> vs = this.vars.stream().map(v -> v.getJavaSmtFormula()).collect(Collectors.toList());
-		return JavaSmtWrapper.getInstance().qfm.exists(vs, expr);*/
-		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

@@ -7,7 +7,6 @@ import java.util.Optional;
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.RuntimeScribException;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // TODO deprecate -- All vars should now be AssrtIntVar (and rename from Int)
 public class AssrtAmbigVarFormula extends AssrtAVarFormula
@@ -18,7 +17,7 @@ public class AssrtAmbigVarFormula extends AssrtAVarFormula
 	}
 
 	@Override
-	public AssrtSmtFormula<IntegerFormula> disamb(Map<AssrtVar, DataName> env)
+	public AssrtSmtFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		Optional<Entry<AssrtVar, DataName>> findAny = env.entrySet().stream()
 				.filter(x -> x.getKey().toString().equals(this.name)).findAny();

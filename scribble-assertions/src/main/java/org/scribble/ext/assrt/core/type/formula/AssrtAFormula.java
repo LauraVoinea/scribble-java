@@ -4,9 +4,8 @@ import java.util.Map;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
-public abstract class AssrtAFormula extends AssrtSmtFormula<IntegerFormula>
+public abstract class AssrtAFormula extends AssrtSmtFormula
 {
 	@Override
 	public abstract AssrtAFormula squash();

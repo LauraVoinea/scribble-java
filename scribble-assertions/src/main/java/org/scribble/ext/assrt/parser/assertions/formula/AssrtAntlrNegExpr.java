@@ -11,7 +11,8 @@ public class AssrtAntlrNegExpr
 {
 	private static Integer CHILD_FORMULA_INDEX = 0;
 	
-	public static AssrtSmtFormula<?> parseNegExpr(AssrtAntlrToFormulaParser parser, CommonTree root) //throws AssertionsParseException {
+	public static AssrtSmtFormula parseNegExpr(AssrtAntlrToFormulaParser parser,
+			CommonTree root) //throws AssertionsParseException {
 	{	
 		AssrtBFormula child = (AssrtBFormula) parser.parse(getChild(root)); 
 		return AssrtFormulaFactory.AssrtNeg(child); 

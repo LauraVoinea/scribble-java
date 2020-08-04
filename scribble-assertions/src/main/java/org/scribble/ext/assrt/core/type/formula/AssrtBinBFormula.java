@@ -8,11 +8,10 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.BooleanFormula;
 
 // Binary boolean
 // Top-level formula of assertions
-public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<BooleanFormula>
+public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula
 {
 	public enum Op
 	{
@@ -141,24 +140,6 @@ public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<B
 			default:   throw new RuntimeException("[assrt] Shouldn't get in here: " + this.op);
 		}
 		return "(" + op + " " + left + " " + right + ")";
-	}
-	
-	@Override
-	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException
-	{
-		/*BooleanFormulaManager fmanager = JavaSmtWrapper.getInstance().bfm;
-		BooleanFormula bleft = this.left.toJavaSmtFormula();
-		BooleanFormula bright = this.right.toJavaSmtFormula();
-		switch(this.op)
-		{
-			case And:   return fmanager.and(bleft, bright); 
-			case Or:    return fmanager.or(bleft, bright); 
-			case Imply: return fmanager.implication(bleft, bright); 
-			default:
-				//throw new AssertionParseException("No matchin ooperation for boolean formula"); 
-				throw new RuntimeException("[assrt] Shouldn't get in here: " + op);
-		}*/
-		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

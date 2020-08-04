@@ -77,7 +77,7 @@ tokens
 	import org.scribble.ext.assrt.ast.AssrtStateVarArgList;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDecl;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
-  import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+  import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 	import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
@@ -108,7 +108,7 @@ tokens
 		AssertionsLexer lexer = new AssertionsLexer(new ANTLRStringStream(source));
 		AssertionsParser parser = new AssertionsParser(
 				new CommonTokenStream(lexer));
-		AssrtSmtFormula<?> res = AssrtAntlrToFormulaParser
+		AssrtSmtFormula res = AssrtAntlrToFormulaParser
 				.getInstance().parse((CommonTree) parser.bool_root().getTree());
 		if (!(res instanceof AssrtBFormula))
 		{
@@ -274,7 +274,7 @@ rolename: t=ID -> ID<RoleNode>[$t] ;
 
 /* Assrt */
 
-assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
+assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
 	ID -> ^(VAR ID)

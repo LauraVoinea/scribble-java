@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.BooleanFormula;
 
 public class AssrtForallFormula extends AssrtQuantifiedFormula
 {
@@ -97,16 +96,6 @@ public class AssrtForallFormula extends AssrtQuantifiedFormula
 		{
 			throw new RuntimeException("Unknown var type: " + v.getClass());
 		}
-	}
-
-	@Override
-	protected BooleanFormula toJavaSmtFormula()
-	{
-		/*QuantifiedFormulaManager qfm = JavaSmtWrapper.getInstance().qfm;
-		BooleanFormula expr = this.expr.toJavaSmtFormula();
-		List<IntegerFormula> vs = this.vars.stream().map(v -> v.getJavaSmtFormula()).collect(Collectors.toList());
-		return qfm.forall(vs, expr);*/
-		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

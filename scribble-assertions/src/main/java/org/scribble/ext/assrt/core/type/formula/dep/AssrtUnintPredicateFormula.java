@@ -12,12 +12,12 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtSort;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.BooleanFormula;
 
 
 // Make abstract, and use subclasses for specific functions? e.g., for ports
 @Deprecated
-public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUnintFunFormula<BooleanFormula>
+public class AssrtUnintPredicateFormula extends AssrtBFormula
+		implements AssrtUnintFunFormula
 {
 	public final String name;
 	public final List<AssrtAFormula> args;
@@ -64,12 +64,6 @@ public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUn
 	{
 		return "(" + this.name + " " + this.args.stream()
 				.map(a -> a.toSmt2Formula(env)).collect(Collectors.joining(" ")) + ")";
-	}
-
-	@Override
-	protected BooleanFormula toJavaSmtFormula()
-	{
-		throw new RuntimeException("Deprecated");
 	}
 
 	@Override

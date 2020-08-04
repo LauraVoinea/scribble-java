@@ -6,11 +6,10 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 
 // Binary arithmetic -- FIXME: AssrtIntVarFormula no longer just ints
-public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<IntegerFormula>
+public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula
 {
 	public enum Op
 	{
@@ -98,27 +97,6 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 			default:   throw new RuntimeException("[assrt] Shouldn't get in here: " + this.op);
 		}
 		return "(" + op + " " + left + " " + right + ")";
-	}
-
-	@Override
-	public IntegerFormula toJavaSmtFormula() //throws AssertionParseException
-	{
-		/*IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
-		IntegerFormula fleft = this.left.toJavaSmtFormula();
-		IntegerFormula fright = this.right.toJavaSmtFormula();
-		switch(this.op)
-		{
-			case Add:
-				return fmanager.add(fleft, fright);
-			case Subt:
-				return fmanager.subtract(fleft, fright);
-			case Mult:
-				return fmanager.multiply(fleft, fright);
-			default:
-				//throw new AssertionParseException("No matching operation for boolean formula");
-				throw new RuntimeException("[assrt] Shouldn't get in here: " + op);
-		}*/
-		throw new RuntimeException("Deprecated");
 	}
 
 	@Override

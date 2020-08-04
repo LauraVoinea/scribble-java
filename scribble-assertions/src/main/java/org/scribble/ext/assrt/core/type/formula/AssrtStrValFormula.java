@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // String literal
 // TODO: factor out with Int -- record "type" as a field
@@ -53,12 +52,6 @@ public class AssrtStrValFormula extends AssrtAFormula
 	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		return "\"" + this.val + "\"";
-	}
-	
-	@Override
-	public IntegerFormula toJavaSmtFormula()
-	{
-		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

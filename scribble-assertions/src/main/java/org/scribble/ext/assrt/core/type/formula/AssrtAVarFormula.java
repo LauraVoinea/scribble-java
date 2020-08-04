@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // FIXME: not just "A" anymore, e.g., String sort
 public abstract class AssrtAVarFormula extends AssrtAFormula
@@ -43,14 +42,6 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 		}*/
 		//return "(" + this.name + ")";
 		return this.name;
-	}
-	
-	@Override
-	public IntegerFormula toJavaSmtFormula()
-	{
-		/*IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
-		return fmanager.makeVariable(this.name);*/
-		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override
