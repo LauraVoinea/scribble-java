@@ -1,4 +1,4 @@
-package org.scribble.ext.assrt.core.type.formula;
+package org.scribble.ext.assrt.core.type.formula.dep;
 
 import java.util.List;
 

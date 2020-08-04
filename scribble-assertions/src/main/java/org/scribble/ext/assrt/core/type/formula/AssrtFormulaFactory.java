@@ -31,11 +31,6 @@ public class AssrtFormulaFactory
 		return new AssrtNegFormula(expr); 
 	}
 
-	public static AssrtUnintPredicateFormula AssrtUnPredicate(String name, List<AssrtAFormula> args)
-	{
-		return new AssrtUnintPredicateFormula(name, args);
-	}
-
 	public static AssrtIntValFormula AssrtIntVal(int i)
 	{
 		return new AssrtIntValFormula(i);
@@ -45,27 +40,11 @@ public class AssrtFormulaFactory
 	{
 		return new AssrtVarFormula(text);
 	}
-	
-	/*public static AssrtTrueFormula AssrtTrueFormula() 
-	{
-		return AssrtTrueFormula.TRUE;
-	}
-	
-	public static AssrtFalseFormula AssrtFalseFormula() 
-	{ 
-	
-		return AssrtFalseFormula.FALSE;
-	}*/
 
 	public static AssrtStrValFormula AssrtStrVal(String s)
 	{
 		return new AssrtStrValFormula(s);
 	}
-
-	/*public static AssrtStrVarFormula AssrtStrVar(String text)
-	{
-		return new AssrtStrVarFormula(text);
-	}*/
 
 	public static AssrtAmbigVarFormula AssrtAmbigVar(String text)
 	{
@@ -73,7 +52,7 @@ public class AssrtFormulaFactory
 	}
 	
 
-	// Not (currently) parsed
+	/* Not (currently) parsed */
 	
 	//public static AssrtExistsIntVarsFormula AssrtExistsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
 	public static AssrtExistsFormula AssrtExistsFormula(

@@ -1,4 +1,4 @@
-package org.scribble.ext.assrt.core.type.formula;
+package org.scribble.ext.assrt.core.type.formula.dep;
 
 import java.util.Collections;
 import java.util.List;
@@ -7,6 +7,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
+import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtAVarFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtSort;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.sosy_lab.java_smt.api.BooleanFormula;
