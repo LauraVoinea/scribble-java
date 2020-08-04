@@ -277,9 +277,7 @@ public class AssrtAstFactoryImpl extends AstFactoryImpl
 	 
 	 
 	 
-	  TODO
-	 
-	 */
+	// TODO */
 
 	/* // Cf. AssrtScribTreeAdaptor
 	@Override

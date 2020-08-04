@@ -129,8 +129,8 @@ public class AssrtStateVarDecl extends ParamDecl<AssrtIntVarKind>
 	{
 		NameNode<AssrtIntVarKind> svar = 
 				visitChildWithClassEqualityCheck(this, getNameNodeChild(), v);
-		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(  // Cf. UnaryPayElem
-				getDataNameChild(), v);
+		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(
+				getDataNameChild(), v);  // Cf. UnaryPayElem
 		AssrtAExprNode sexpr = (AssrtAExprNode) visitChild(getStateVarExprChild(), v);
 		RoleNode role = getRoleNodeChild();
 		if (role != null)

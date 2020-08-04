@@ -1,32 +1,33 @@
-package org.scribble.ext.assrt.ast.local;
+package org.scribble.ext.assrt.ast.global.dep;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.antlr.runtime.Token;
 import org.scribble.ast.ScribNode;
-import org.scribble.ast.local.LContinue;
+import org.scribble.ast.global.GContinue;
 import org.scribble.ast.name.simple.RecVarNode;
 import org.scribble.del.DelFactory;
 import org.scribble.ext.assrt.ast.AssrtAExprNode;
 import org.scribble.ext.assrt.ast.AssrtStateVarArgNode;
-import org.scribble.ext.assrt.del.AssrtDelFactory;
 import org.scribble.util.ScribException;
 import org.scribble.visit.AstVisitor;
 
 @Deprecated
-public class AssrtLContinue extends LContinue implements AssrtStateVarArgNode
+public class AssrtGContinue extends GContinue
+		implements AssrtStateVarArgNode
 {
-	public static final int EXPR_CHILDREN_START_INDEX = 1;  // cf. AssrtGDo
+	//public static final int RECVAR_CHILD_INDEX = 0;
+	public static final int EXPR_CHILDREN_START_INDEX = 1;
 
 	// ScribTreeAdaptor#create constructor
-	public AssrtLContinue(Token t)
+	public AssrtGContinue(Token t)
 	{
 		super(t);
 	}
 
 	// Tree#dupNode constructor
-	protected AssrtLContinue(AssrtLContinue node)
+	protected AssrtGContinue(AssrtGContinue node)
 	{
 		super(node);
 	}
@@ -55,34 +56,35 @@ public class AssrtLContinue extends LContinue implements AssrtStateVarArgNode
 	}
 
 	@Override
-	public AssrtLContinue dupNode()
+	public AssrtGContinue dupNode()
 	{
-		return new AssrtLContinue(this);
+		return new AssrtGContinue(this);
 	}
 
 	@Override
 	public void decorateDel(DelFactory df)
 	{
-		((AssrtDelFactory) df).AssrtLContinue(this);
+		//((AssrtDelFactory) df).AssrtGContinue(this);
+		throw new RuntimeException("TODO");
 	}
 
 	@Override
-	public AssrtLContinue reconstruct(RecVarNode rv)
+	public AssrtGContinue reconstruct(RecVarNode rv)
 	{
 		throw new RuntimeException(
 				"[assrt] Deprecated for " + getClass() + ":\n\t" + this);
 	}
 
-	public AssrtLContinue reconstruct(RecVarNode rv, List<AssrtAExprNode> aexprs)
+	public AssrtGContinue reconstruct(RecVarNode rv, List<AssrtAExprNode> aexprs)
 	{
-		AssrtLContinue dup = dupNode();
+		AssrtGContinue dup = dupNode();
 		dup.addScribChildren(rv, aexprs);
 		dup.setDel(del());  // No copy
 		return dup;
 	}
 
 	@Override
-	public LContinue visitChildren(AstVisitor v) throws ScribException
+	public GContinue visitChildren(AstVisitor v) throws ScribException
 	{
 		RecVarNode rv = (RecVarNode) visitChild(getRecVarChild(), v);
 		List<AssrtAExprNode> aexprs = visitChildListWithClassEqualityCheck(this,
@@ -104,21 +106,36 @@ public class AssrtLContinue extends LContinue implements AssrtStateVarArgNode
 
 
 
-	/*
-	//public final AssrtArithExpr annot;
-	public final List<AssrtArithExpr> annotexprs;
-	
-	public AssrtLContinue(CommonTree source, RecVarNode recvar)
+
+
+/*
+	public final List<AssrtArithExpr> annotexprs;  // cf. AssrtGDo
+
+	public AssrtGContinue(CommonTree source, RecVarNode recvar)
 	{
-		this(source, recvar, //null);
-				Collections.emptyList());
+		this(source, recvar, Collections.emptyList());
 	}
 
-	public AssrtLContinue(CommonTree source, RecVarNode recvar, //AssrtArithExpr annot)
+	public AssrtGContinue(CommonTree source, RecVarNode recvar,
 			List<AssrtArithExpr> annotexprs)
 	{
 		super(source, recvar);
 		//this.annot = annot;
 		this.annotexprs = Collections.unmodifiableList(annotexprs);
 	}
-	*/
+
+	// Similar to reconstruct pattern
+	public LContinue project(AstFactory af, Role self)
+	{
+		throw new RuntimeException("[assrt] Shouldn't get in here: " + this);
+	}
+
+	public AssrtLContinue project(AstFactory af, Role self, //AssrtArithExpr annot)
+			List<AssrtArithExpr> annotexprs)
+	{
+		RecVarNode recvar = (RecVarNode) af.SimpleNameNode(this.recvar.getSource(), RecVarKind.KIND, this.recvar.toName().toString());
+		AssrtLContinue projection = ((AssrtAstFactory) af).AssrtLContinue(this.source, recvar, //annot);
+				annotexprs);
+		return projection;
+	}
+*/

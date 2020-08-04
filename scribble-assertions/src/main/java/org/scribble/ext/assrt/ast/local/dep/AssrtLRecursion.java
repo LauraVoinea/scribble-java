@@ -1,4 +1,4 @@
-package org.scribble.ext.assrt.ast.local;
+package org.scribble.ext.assrt.ast.local.dep;
 
 import org.antlr.runtime.Token;
 import org.scribble.ast.ProtoBlock;
@@ -10,7 +10,6 @@ import org.scribble.del.DelFactory;
 import org.scribble.ext.assrt.ast.AssrtBExprNode;
 import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
 import org.scribble.ext.assrt.ast.AssrtStateVarDeclNode;
-import org.scribble.ext.assrt.del.AssrtDelFactory;
 import org.scribble.util.Constants;
 import org.scribble.util.ScribException;
 import org.scribble.visit.AstVisitor;
@@ -69,7 +68,8 @@ public class AssrtLRecursion extends LRecursion
 	@Override
 	public void decorateDel(DelFactory df)
 	{
-		((AssrtDelFactory) df).AssrtLRecursion(this);
+		//((AssrtDelFactory) df).AssrtLRecursion(this);
+		throw new RuntimeException("TODO");
 	}
 
 	public AssrtLRecursion reconstruct(RecVarNode recvar, ProtoBlock<Local> block,

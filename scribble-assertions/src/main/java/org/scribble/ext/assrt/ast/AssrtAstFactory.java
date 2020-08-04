@@ -105,7 +105,7 @@ public interface AssrtAstFactory extends AstFactory
 	   
 	   
 	   
-	  TODO */
+	// TODO */
 
 	AssrtGConnect AssrtGConnect(Token t, MsgNode msg, RoleNode src, RoleNode dst,
 			AssrtBExprNode ass);

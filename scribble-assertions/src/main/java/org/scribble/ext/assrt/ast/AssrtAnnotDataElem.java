@@ -80,8 +80,8 @@ public class AssrtAnnotDataElem extends ScribNodeBase
 	{
 		AssrtIntVarNameNode var = (AssrtIntVarNameNode) visitChild(
 				getVarNameChild(), v);
-		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(  // Cf. UnaryPayElem
-				getDataNameChild(), v);
+		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(
+				getDataNameChild(), v);  // Cf. UnaryPayElem
 		return reconstruct(var, data);
 	}
 

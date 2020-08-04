@@ -57,7 +57,7 @@ import org.scribble.ext.assrt.core.visit.global.AssrtCoreGTypeInliner;
 import org.scribble.util.ScribException;
 
 public class AssrtCoreGProtocol extends GProtocol
-		implements AssrtCoreProtocol<Global, GProtoName, NoSeq<Global>>  // FIXME HACK: Grotocol has GSeq, but here NoSeq
+		implements AssrtCoreProtocol<Global, GProtoName, NoSeq<Global>>  // HACK: Grotocol has GSeq, but here NoSeq
 {
 	public final AssrtCoreGType type;  // N.B. super.def Seq set to null -- here, body is a "type", not a "seq"
 	
@@ -134,18 +134,16 @@ public class AssrtCoreGProtocol extends GProtocol
 				.forEach(x -> phantom.put(x, this.statevars.get(x)));
 		AssrtCoreGTypeFactory tf = (AssrtCoreGTypeFactory) v.core.config.tf.global;
 		AssrtCoreGRec rec = tf.AssrtCoreGRec(null, rv, inlined,
-				//new LinkedHashMap<>(), AssrtTrueFormula.TRUE, new LinkedHashMap<>());
 				this.statevars, this.assertion, this.located, phantom);
 		AssrtCoreGType pruned = rec.pruneRecs((AssrtCore) v.core);  // Empty statevars/located here; recorded by parent proto
 
-		// TODO
-		/*Set<Role> used = rec.gather(new RoleGatherer<Global, GSeq>()::visit) .collect(Collectors.toSet());
-		List<Role> rs = this.roles.stream().filter(x -> used.contains(x))  // Prune role decls -- CHECKME: what is an example?  was this from before unused role checking?
+		/*// TODO
+		Set<Role> used = rec.gather(new RoleGatherer<Global, GSeq>()::visit) .collect(Collectors.toSet());
+		List<Role> rs = this.roles.stream().filter(x -> used.contains(x))  // Prune role decls -- CHECKME: what is an example?  was this from before unused-role checking?
 				.collect(Collectors.toList());*/
 		return new AssrtCoreGProtocol(getSource(), this.mods, this.fullname,
 				this.roles, this.params, pruned,
-		//new LinkedHashMap<>(), AssrtTrueFormula.TRUE, new LinkedHashMap<>());
-				this.statevars, this.assertion, this.located);  // FIXME: ^refactor statevars/located properly with above rec, currently duplicated
+				this.statevars, this.assertion, this.located);  // TODO: refactor statevars/located properly with earlier rec, currently duplicated
 	}
 	
 	@Override
@@ -173,7 +171,7 @@ public class AssrtCoreGProtocol extends GProtocol
 		throw new RuntimeException("Deprecated for " + getClass() + ":\n" + this);
 	}
 	
-	// FIXME: return type (AssrtCoreLProjection doesn't extend AssrtCoreLProtocol), cf. CoreContext G/LProtocol hardcoding
+	// TODO: fix return type (AssrtCoreLProjection doesn't extend AssrtCoreLProtocol), cf. CoreContext G/LProtocol hardcoding
 	@Override
 	public AssrtCoreLProjection projectInlined(Core core, Role self)
 	{

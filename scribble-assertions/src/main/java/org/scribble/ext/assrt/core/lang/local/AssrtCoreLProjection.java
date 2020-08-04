@@ -40,7 +40,7 @@ import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLEnd;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLType;
 
-public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreLProtocol ... FIXME CoreContext G/LProtocol hardcoding
+public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreLProtocol ... TODO: fix CoreContext G/LProtocol hardcoding
 {
 	// TODO: duplicated from AssrtCoreGProtocol -- refactor
 	public final AssrtCoreLType type;
@@ -112,7 +112,6 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 				+ rolesToString()
 				+ " projects " + this.global
 				+ " @<" + this.statevars.entrySet().stream()
-						//.map(x -> x.getKey() + " := \"" + x.getValue() + "\"")
 						.map(x -> x.getKey() + " := " + x.getValue())
 						.collect(Collectors.joining(", "))
 				+ ">"
@@ -120,7 +119,7 @@ public class AssrtCoreLProjection extends LProjection  // N.B. not an AssrtCoreL
 						.map(x -> x.getKey() + " := " + x.getValue())
 						.collect(Collectors.joining(", "))
 				+ "] "
-				+ this.assertion //"\"" + this.assertion + "\""
+				+ this.assertion
 				+ " {\n" + this.type + "\n}";
 	}
 

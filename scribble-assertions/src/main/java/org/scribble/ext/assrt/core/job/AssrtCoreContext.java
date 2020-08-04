@@ -103,7 +103,7 @@ public class AssrtCoreContext extends CoreContext
 			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = new LinkedHashMap<>();
 			cast.statevars.entrySet().forEach(x -> svars.put(x.getKey(),
 					(AssrtAFormula) x.getValue().disamb(env)));  // Unnecessary, disallow mutual var refs?
-			AssrtBFormula ass = (AssrtBFormula) cast.assertion.disamb(env);  // FIXME: throw ScribblException, for WF errors
+			AssrtBFormula ass = (AssrtBFormula) cast.assertion.disamb(env);  // TODO: throw ScribbleException, for WF errors
 			inlined = new AssrtCoreGProtocol(inlined.getSource(), inlined.mods,
 					inlined.fullname, inlined.roles, inlined.params,
 					body, cast.statevars, ass, cast.located);

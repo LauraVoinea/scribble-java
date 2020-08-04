@@ -127,7 +127,7 @@ public class AssrtCore extends Core
 	protected void runGlobalSyntaxWfPasses() throws ScribException
 	{
 		// super.runGlobalSyntaxWfPasses();
-		// ^TODO FIXME: base API currently not compatible
+		// ^TODO: base API currently not compatible
 		// E.g., `this.context.getInlined(fullname).def` is null
 		
 		// CHECKME: is below necessary? -- goes against unfolding, duplicates should be allowed in such contexts?
@@ -215,7 +215,7 @@ public class AssrtCore extends Core
 	
 	
 	
-	// TODO: refactor, to util?
+	// Refactor to util?
   // Maybe record simpname as field (for core)
 	public boolean checkSat(GProtoName fullname, Set<AssrtBFormula> bforms)
 	{
