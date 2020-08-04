@@ -27,12 +27,12 @@ import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.visit.global.GTypeInliner;
-import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
+import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGType;
-import org.scribble.ext.assrt.core.visit.gather.AssrtCoreVarEnvGatherer;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
+import org.scribble.ext.assrt.core.visit.gather.AssrtVarEnvGatherer;
 import org.scribble.util.RuntimeScribException;
 
 public class AssrtCoreContext extends CoreContext
@@ -59,9 +59,9 @@ public class AssrtCoreContext extends CoreContext
 	}
 	
 	@Override
-	public AssrtCoreGProtocol getIntermediate(ProtoName<Global> fullname)
+	public AssrtGProtocol getIntermediate(ProtoName<Global> fullname)
 	{
-		return (AssrtCoreGProtocol) this.imeds.get(fullname);
+		return (AssrtGProtocol) this.imeds.get(fullname);
 	}
 	
 	@Override
@@ -73,11 +73,11 @@ public class AssrtCoreContext extends CoreContext
 			GTypeInliner v = this.core.config.vf.global.GTypeInliner(this.core);  // Factor out?
 			inlined = this.imeds.get(fullname).getInlined(v);  // Protocol.getInlined does pruneRecs
 
-			AssrtCoreGProtocol cast = (AssrtCoreGProtocol) inlined;
+			AssrtGProtocol cast = (AssrtGProtocol) inlined;
 
 			// TODO FIXME: here, Map requires distinct annotvars -- but AssrtCore.runGlobalSyntaxWfPasses currently comes after getInlined (runSyntaxTransformPasses)
 			List<Entry<AssrtVar, DataName>> res = cast.type.assrtCoreGather(
-					new AssrtCoreVarEnvGatherer<Global, AssrtCoreGType>()::visit)
+					new AssrtVarEnvGatherer<Global, AssrtGType>()::visit)
 					.collect(Collectors.toList());
 			if (res.stream().anyMatch(
 					x -> res.stream().anyMatch(y -> x.getKey().equals(y.getKey())
@@ -99,12 +99,12 @@ public class AssrtCoreContext extends CoreContext
 				tmp = foo.body;
 			}*/
 
-			AssrtCoreGType body = cast.type.disamb((AssrtCore) this.core, env);
+			AssrtGType body = cast.type.disamb((AssrtCore) this.core, env);
 			LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
 			cast.statevars.entrySet().forEach(x -> svars.put(x.getKey(),
 					(AssrtAFormula) x.getValue().disamb(env)));  // Unnecessary, disallow mutual var refs?
 			AssrtBFormula ass = (AssrtBFormula) cast.assertion.disamb(env);  // TODO: throw ScribbleException, for WF errors
-			inlined = new AssrtCoreGProtocol(inlined.getSource(), inlined.mods,
+			inlined = new AssrtGProtocol(inlined.getSource(), inlined.mods,
 					inlined.fullname, inlined.roles, inlined.params,
 					body, cast.statevars, ass, cast.located);
 

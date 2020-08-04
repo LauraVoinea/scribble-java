@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLineException;
-import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
+import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
 import org.scribble.test.ScribTestBase;
 import org.scribble.util.AntlrSourceException;
 
@@ -68,7 +68,7 @@ public abstract class AssrtCoreTestBase extends ScribTestBase
 		catch (RuntimeException e)  // Hack: for assrt-core
 		{
 			Throwable cause = e.getCause();
-			if (cause instanceof AssrtCoreSyntaxException)
+			if (cause instanceof AssrtSyntaxException)
 			{
 				ScribTestBase.NUM_SKIPPED++;
 				System.out.println("[assrt-core] Skipping (non-core syntax): "

@@ -13,9 +13,9 @@ import org.scribble.core.type.session.STypeFactory;
 import org.scribble.del.DelFactory;
 import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.job.AssrtCoreArgs;
-import org.scribble.ext.assrt.core.type.session.AssrtCoreSTypeFactory;
-import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGTypeFactory;
-import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLTypeFactory;
+import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
+import org.scribble.ext.assrt.core.type.session.local.AssrtLTypeFactory;
 import org.scribble.ext.assrt.visit.AssrtVisitorFactoryImpl;
 import org.scribble.job.Job;
 import org.scribble.util.ScribException;
@@ -44,8 +44,8 @@ public class AssrtJob extends Job
 	@Override
 	protected STypeFactory newSTypeFactory()
 	{
-		return new AssrtCoreSTypeFactory(new AssrtCoreGTypeFactory(),
-				new AssrtCoreLTypeFactory());
+		return new AssrtSTypeFactory(new AssrtGTypeFactory(),
+				new AssrtLTypeFactory());
 	}
 
 	/*// A Scribble extension should override newJobConfig/Context/Core as appropriate

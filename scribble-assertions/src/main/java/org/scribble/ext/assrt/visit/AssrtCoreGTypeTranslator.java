@@ -60,19 +60,19 @@ import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
 import org.scribble.ext.assrt.ast.global.AssrtGDo;
 import org.scribble.ext.assrt.ast.global.AssrtGMsgTransfer;
 import org.scribble.ext.assrt.ast.global.AssrtGProtoHeader;
-import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
+import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.core.type.session.AssrtCoreActionKind;
-import org.scribble.ext.assrt.core.type.session.AssrtCoreMsg;
-import org.scribble.ext.assrt.core.type.session.AssrtCoreSTypeFactory;
-import org.scribble.ext.assrt.core.type.session.AssrtCoreSyntaxException;
-import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGActionKind;
-import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGChoice;
-import org.scribble.ext.assrt.core.type.session.global.AssrtCoreGType;
+import org.scribble.ext.assrt.core.type.session.AssrtActionKind;
+import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
+import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGActionKind;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGChoice;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.job.Job;
 import org.scribble.visit.GTypeTranslator;
 
@@ -81,15 +81,15 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 	public static final DataName UNIT_DATATYPE = new DataName("_Unit");  // TODO
 	
 	private static int varCounter = 1;
-	private static int recCounter = 1;
+	//private static int recCounter = 1;
 	
-	public final AssrtCoreSTypeFactory tf;  // Shadows super
+	public final AssrtSTypeFactory tf;  // Shadows super
 	
 	//private static DataType UNIT_TYPE;
 	protected AssrtCoreGTypeTranslator(Job job, ModuleName rootFullname, STypeFactory tf)
 	{
 		super(job, rootFullname, tf);
-		this.tf = (AssrtCoreSTypeFactory) tf;
+		this.tf = (AssrtSTypeFactory) tf;
 	}
 
 	@Override
@@ -104,8 +104,8 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 	}
 
 	// Cf. GProtoDeclDel::translate
-	public AssrtCoreGProtocol translate(GProtoDecl n)
-			throws AssrtCoreSyntaxException
+	public AssrtGProtocol translate(GProtoDecl n)
+			throws AssrtSyntaxException
 	{
 		GProtoDef def = n.getDefChild();
 		
@@ -124,7 +124,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 					"[TODO] Proto params not yet supported:\n" + n);
 		}
 
-		AssrtCoreGType body = parseSeq(
+		AssrtGType body = parseSeq(
 				def.getBlockChild().getInteractSeqChild().getInteractionChildren(),
 				new HashMap<>(), false, false);
 
@@ -157,13 +157,13 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		body = body.disamb((AssrtCore) this.job.getCore(), env);
 		ass = (AssrtBFormula) ass.disamb(env);*/
 		
-		return new AssrtCoreGProtocol(n, mods, fullname, rs, ps, body, svars,
+		return new AssrtGProtocol(n, mods, fullname, rs, ps, body, svars,
 				ass, located);
 	}
 
 	// List<GSessionNode> because subList is useful for parsing the continuation
-	private AssrtCoreGType parseSeq(List<GSessionNode> is, Map<RecVar, RecVar> rvs,
-			boolean checkChoiceGuard, boolean checkRecGuard) throws AssrtCoreSyntaxException
+	private AssrtGType parseSeq(List<GSessionNode> is, Map<RecVar, RecVar> rvs,
+			boolean checkChoiceGuard, boolean checkRecGuard) throws AssrtSyntaxException
 	{
 		if (is.isEmpty())
 		{
@@ -202,12 +202,12 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		{
 			if (checkChoiceGuard)  // No "flattening" of nested choices not allowed?
 			{
-				throw new AssrtCoreSyntaxException(first.getSource(),
+				throw new AssrtSyntaxException(first.getSource(),
 						"[assrt-core] Unguarded in choice case: " + first);
 			}
 			if (is.size() > 1)
 			{
-				throw new AssrtCoreSyntaxException(is.get(1).getSource(),
+				throw new AssrtSyntaxException(is.get(1).getSource(),
 						"[assrt-core] Bad sequential composition after: " + first);
 			}
 
@@ -231,10 +231,10 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		}
 	}
 
-	private AssrtCoreGType parseGChoice(Map<RecVar, RecVar> rvs,
-			boolean checkRecGuard, GChoice n) throws AssrtCoreSyntaxException
+	private AssrtGType parseGChoice(Map<RecVar, RecVar> rvs,
+			boolean checkRecGuard, GChoice n) throws AssrtSyntaxException
 	{
-		List<AssrtCoreGType> children = new LinkedList<>();
+		List<AssrtGType> children = new LinkedList<>();
 		for (GProtoBlock b : n.getBlockChildren())
 		{
 			children.add(parseSeq(b.getInteractSeqChild().getInteractionChildren(),
@@ -243,16 +243,16 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 
 		Role src = null;
 		Role dst = null;
-		AssrtCoreActionKind<Global> kind = null;  // CHECKME: generic parameter ?
-		LinkedHashMap<AssrtCoreMsg, AssrtCoreGType> cases = new LinkedHashMap<>();
-		for (AssrtCoreGType c : children)
+		AssrtActionKind<Global> kind = null;  // CHECKME: generic parameter ?
+		LinkedHashMap<AssrtMsg, AssrtGType> cases = new LinkedHashMap<>();
+		for (AssrtGType c : children)
 		{
 			// Cases must be "action-guarded" (unary choices), as already parsed successfully
-			if (!(c instanceof AssrtCoreGChoice))
+			if (!(c instanceof AssrtGChoice))
 			{
 				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + c);
 			}
-			AssrtCoreGChoice tmp = (AssrtCoreGChoice) c;
+			AssrtGChoice tmp = (AssrtGChoice) c;
 			if (tmp.cases.size() > 1)
 			{
 				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + c);
@@ -266,33 +266,286 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 			}
 			else if (!kind.equals(tmp.kind))
 			{
-				throw new AssrtCoreSyntaxException(n.getSource(),
+				throw new AssrtSyntaxException(n.getSource(),
 						"[assrt-core] Mixed-action choices not supported:\n" + n);
 			}
 			else if (!src.equals(tmp.src) || !dst.equals(tmp.dst))
 			{
-				throw new AssrtCoreSyntaxException(n.getSource(),
+				throw new AssrtSyntaxException(n.getSource(),
 						"[assrt-core] Non-directed choice not supported:\n" + n);
 			}
 			
 			// "Flatten" nested choices (already checked they are guarded) -- Scribble choice subjects ignored
-			for (Entry<AssrtCoreMsg, AssrtCoreGType> e : tmp.cases.entrySet())
+			for (Entry<AssrtMsg, AssrtGType> e : tmp.cases.entrySet())
 			{
-				AssrtCoreMsg k = e.getKey();
+				AssrtMsg k = e.getKey();
 				if (cases.keySet().stream().anyMatch(x -> x.op.equals(k.op)))
 				{
-					throw new AssrtCoreSyntaxException(n.getSource(),
+					throw new AssrtSyntaxException(n.getSource(),
 							"[assrt-core] Non-deterministic actions not supported: " + k.op);
 				}
 				cases.put(k, e.getValue());
 			}
 		}
 		
-		return this.tf.global.AssrtCoreGChoice(n, src, (AssrtCoreGActionKind) kind,
+		return this.tf.global.AssrtCoreGChoice(n, src, (AssrtGActionKind) kind,
 				dst, cases);
 	}
 
-	/*private AssrtCoreGType parseAssrtGRecursion(Map<RecVar, RecVar> rvs,
+	// Duplicated from parseAssrtGContinue
+	private AssrtGType parseAssrtGDo(Map<RecVar, RecVar> rvs,
+			boolean checkRecGuard, AssrtGDo n) throws AssrtSyntaxException
+	{
+		if (checkRecGuard)
+		{
+			throw new AssrtSyntaxException(n.getSource(),
+					"[assrt-core] Unguarded in recursion: " + n);
+		}
+		if (!n.getNonRoleListChild().isEmpty())
+		{
+			throw new RuntimeException(
+					"[assrt-core] [TODO] Non-role do-args:\n\t" + this);
+		}
+		List<AssrtAFormula> sexprs = n.getAnnotExprChildren().stream()
+				.map(x -> x.getFormula()).collect(Collectors.toList());
+		return this.tf.global.AssrtCoreGDo(n.getSource(),
+				n.getProtoNameChild().toName(), n.getRoleListChild().getRoles(),
+				n.getNonRoleListChild().getParamKindArgs(), sexprs);
+	}
+
+	// Parses message interactions as unary choices
+	private AssrtGChoice parseAssrtGMsgTransfer(List<GSessionNode> is,
+			Map<RecVar, RecVar> rvs, AssrtGMsgTransfer n)
+			throws AssrtSyntaxException
+	{
+		Op op = parseOp(n);
+		List<AssrtAnnotDataName> pay = parsePayload(n);
+		AssrtBExprNode bexpr = parseAssertion(n);
+		AssrtMsg a = this.tf.AssrtCoreAction(op, pay, bexpr.getFormula());  // phantoms null for globals
+		Role src = parseSrcRole(n);
+		Role dst = parseDstRole(n);
+		AssrtGActionKind kind = AssrtGActionKind.MSG_TRANSFER;
+		return parseGSimpleInteractionNode(is, rvs, src, a, dst, kind);
+	}
+
+	private AssrtGChoice parseGSimpleInteractionNode(List<GSessionNode> is,
+			Map<RecVar, RecVar> rvs, Role src, AssrtMsg msg, Role dst,
+			AssrtGActionKind kind) throws AssrtSyntaxException
+	{
+		if (src.equals(dst))
+		{
+			throw new RuntimeException(
+					"[assrt-core] Self-communication (shouldn't get in here): " + src
+							+ ", " + dst);
+		}
+		
+		AssrtGType cont = parseSeq(is.subList(1, is.size()), rvs, false, false);  
+				// Subseqeuent choice/rec is guarded by (at least) this action
+		LinkedHashMap<AssrtMsg, AssrtGType> cases = new LinkedHashMap<>();
+		cases.put(msg, cont);
+		return this.tf.global.AssrtCoreGChoice((ScribNodeBase) is.get(0), src, kind,
+				dst, cases);
+	}
+
+	private Op parseOp(DirectedInteraction<Global> n)
+			throws AssrtSyntaxException
+	{
+		return parseOp(n.getMessageNodeChild());
+	}
+
+	private Op parseOp(MsgNode n) throws AssrtSyntaxException
+	{
+		if (!n.isSigLitNode())
+		{
+			throw new AssrtSyntaxException(n.getSource(),
+					"[TODO] " + n.getClass() + ":\n\t" + n);  // TODO: SigName
+		}
+		SigLitNode msn = ((SigLitNode) n);
+		return msn.getOpChild().toName();
+	}
+
+	//private AssrtAnnotDataType parsePayload(AssrtGMsgTransfer gmt) throws AssrtCoreSyntaxException
+	private List<AssrtAnnotDataName> parsePayload(DirectedInteraction<Global> n)
+			throws AssrtSyntaxException
+	{
+		return parsePayload(n.getMessageNodeChild());
+	}
+
+	private List<AssrtAnnotDataName> parsePayload(MsgNode n) throws AssrtSyntaxException
+	{
+		if (!n.isSigLitNode())
+		{
+			throw new AssrtSyntaxException(n.getSource(),
+					" [TODO] " + n.getClass() + ":\n\t" + n); // TODO: SigName
+		}
+		SigLitNode msn = ((SigLitNode) n);
+		if (msn.getPayElemListChild().getElementChildren().isEmpty())
+		{
+//			DataTypeNode dtn = (DataTypeNode) ((AssrtAstFactory) this.job.af).QualifiedNameNode(null, DataTypeKind.KIND, "_Unit");
+//			AssrtVarNameNode nn = (AssrtVarNameNode) ((AssrtAstFactory) this.job.af).SimpleNameNode(null, AssrtVarNameKind.KIND, "_x" + nextVarIndex());
+//			return ((AssrtAstFactory) this.job.af).AssrtAnnotPayloadElem(null, nn, dtn);  // null source OK?
+
+			/*return Stream
+					.of(new AssrtAnnotDataName(makeFreshDataTypeVar(),
+							AssrtCoreGProtoDeclTranslator.UNIT_DATATYPE))
+					.collect(Collectors.toList()); // TODO: make empty list*/
+			return Collections.emptyList();
+		}
+//		else if (msn.payloads.getElements().size() > 1)
+//		{
+//			throw new AssrtCoreSyntaxException(msn.getSource(), "[assrt-core] Payload with more than one element not supported: " + mn);
+//		}
+
+		//PayloadElem<?> pe = msn.payloads.getElements().get(0);
+		List<AssrtAnnotDataName> res = new LinkedList<>();
+		for (PayElem<?> e : msn.getPayElemListChild().getElementChildren())
+		{
+			if (!(e instanceof AssrtAnnotDataElem)
+					&& !(e instanceof UnaryPayElem<?>))
+			{
+				// Already ruled out by parsing?  e.g., GDelegationElem
+				throw new AssrtSyntaxException(
+						"[assrt-core] Payload element not supported: " + e);
+			}
+//			else if (pe instanceof LDelegationElem)  // No: only created by projection, won't be parsed
+//			{
+//				throw new AssrtCoreSyntaxException("[assrt-core] Payload element not supported: " + pe);
+//			}
+			
+			if (e instanceof AssrtAnnotDataElem)
+			{
+				AssrtAnnotDataName data = ((AssrtAnnotDataElem) e).toPayloadType();
+				String type = data.data.toString();
+				if (!type.equals("int") && !type.endsWith(".int")  // HACK FIXME (currently "int" for F# -- because STP takes dot)
+						&& !type.equals("String") && !type.equals("string"))  // Cf. AssrtAmbigVarFormula.disamb, AssrtCoreSConfg.getAssVars, AssrtForallFormula.toSmt2Sort
+				{
+					throw new AssrtSyntaxException(e.getSource(),
+							"[assrt-core] Payload annotations not supported for non- \"int\" type kind: "
+									+ e);
+				}
+				
+				// FIXME: non-annotated payload elems get created with fresh vars, i.e., non- int types
+				// Also empty payloads are created as Unit type
+				// But current model building implicitly treats all vars as int -- this works, but is not clean
+				
+				//return adt;
+				res.add(data);
+			}
+			else
+			{
+				PayElemType<?> e1 = ((UnaryPayElem<?>) e).toPayloadType();
+				if (!e1.isDataName())
+				{
+				// i.e., AssrtDataTypeVar not allowed (should be "encoded")
+					throw new AssrtSyntaxException(e.getSource(),
+							"[assrt-core] Non- datatype kind payload not supported: " + e);
+				}
+				if (!e1.toString().equals("int"))
+				{
+					throw new RuntimeException("[assrt-core] TODO: " + e1);
+				}
+				res.add(new AssrtAnnotDataName(makeFreshDataTypeVar(), (DataName) e1));  // FIXME: default hardcoded to "int"
+			}
+		}
+		return res;
+	}
+
+	private AssrtBExprNode parseAssertion(AssrtActionAssertNode n)
+	{
+		return parseAssertion(n.getAssertionChild());
+	}
+
+	// Empty assertions translated to True
+	private AssrtBExprNode parseAssertion(AssrtBExprNode n)
+	{
+		return (n == null)
+				? ((AssrtAstFactory) this.job.config.af).AssrtBExprNode(null,
+						AssrtTrueFormula.TRUE)
+				: n;
+			// FIXME: singleton constant
+	}
+
+	private Role parseSrcRole(DirectedInteraction<Global> n)
+	{
+		return parseSrcRole(n.getSourceChild());
+	}
+
+	private Role parseSrcRole(RoleNode n)
+	{
+		return n.toName();
+	}
+	
+	private Role parseDstRole(DirectedInteraction<Global> n)
+			throws AssrtSyntaxException
+	{
+		List<RoleNode> dsts = n.getDestinationChildren();
+		if (dsts.size() > 1)
+		{
+			throw new AssrtSyntaxException(n.getSource(),
+					"[assrt-core] Multisend not supported:\n\t" + n);
+		}
+		return parseDstRole(dsts.get(0));
+	}
+
+	private Role parseDstRole(RoleNode r) throws AssrtSyntaxException
+	{
+		return r.toName();
+	}
+	
+	private static AssrtVar makeFreshDataTypeVar()
+	{
+		return new AssrtVar("_dum" + varCounter++);
+	}
+}
+
+/*
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+	private AssrtCoreGType parseAssrtGRecursion(Map<RecVar, RecVar> rvs,
 			boolean checkChoiceGuard, AssrtGRecursion gr) throws AssrtCoreSyntaxException
 	{
 		RecVar recvar = gr.getRecVarChild().toName();
@@ -332,47 +585,10 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		}
 		List<AssrtArithFormula> exprs = gc.annotexprs.stream().map(e -> e.getFormula()).collect(Collectors.toList());
 		return this.af.AssrtCoreGRecVar(recvar, exprs);
-	}*/
-
-	// Duplicated from parseAssrtGContinue
-	private AssrtCoreGType parseAssrtGDo(Map<RecVar, RecVar> rvs,
-			boolean checkRecGuard, AssrtGDo n) throws AssrtCoreSyntaxException
-	{
-		if (checkRecGuard)
-		{
-			throw new AssrtCoreSyntaxException(n.getSource(),
-					"[assrt-core] Unguarded in recursion: " + n);
-		}
-		if (!n.getNonRoleListChild().isEmpty())
-		{
-			throw new RuntimeException(
-					"[assrt-core] [TODO] Non-role do-args:\n\t" + this);
-		}
-		List<AssrtAFormula> sexprs = n.getAnnotExprChildren().stream()
-				.map(x -> x.getFormula()).collect(Collectors.toList());
-		return this.tf.global.AssrtCoreGDo(n.getSource(),
-				n.getProtoNameChild().toName(), n.getRoleListChild().getRoles(),
-				n.getNonRoleListChild().getParamKindArgs(), sexprs);
 	}
 
-	// Parses message interactions as unary choices
-	private AssrtCoreGChoice parseAssrtGMsgTransfer(List<GSessionNode> is,
-			Map<RecVar, RecVar> rvs, AssrtGMsgTransfer n)
-			throws AssrtCoreSyntaxException
-	{
-		Op op = parseOp(n);
-		List<AssrtAnnotDataName> pay = parsePayload(n);
-		AssrtBExprNode bexpr = parseAssertion(n);
-		AssrtCoreMsg a = this.tf.AssrtCoreAction(op, pay, bexpr.getFormula());  // phantoms null for globals
-		Role src = parseSrcRole(n);
-		Role dst = parseDstRole(n);
-		AssrtCoreGActionKind kind = AssrtCoreGActionKind.MSG_TRANSFER;
-		return parseGSimpleInteractionNode(is, rvs, src, a, dst, kind);
-	}
-
-	// Duplicated from parseGMsgTransfer (MsgTransfer and ConnectionAction have no common base
-	
-	/*private AssrtCoreGChoice parseAssrtGConnect(List<GSimpleSessionNode> is,
+	// Duplicated from parseGMsgTransfer (MsgTransfer and ConnectionAction have no common base)
+	private AssrtCoreGChoice parseAssrtGConnect(List<GSimpleSessionNode> is,
 			Map<RecVar, RecVar> rvs, AssrtGConnect gc) throws AssrtCoreSyntaxException
 	{
 		Op op = parseOp(gc);
@@ -384,179 +600,10 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		Role dst = parseDestinationRole(gc);
 		AssrtCoreGActionKind kind = AssrtCoreGActionKind.CONNECT;
 		return parseGSimpleInteractionNode(is, rvs, src, a, dst, kind);
-	}*/
-
-	private AssrtCoreGChoice parseGSimpleInteractionNode(List<GSessionNode> is,
-			Map<RecVar, RecVar> rvs, Role src, AssrtCoreMsg msg, Role dst,
-			AssrtCoreGActionKind kind) throws AssrtCoreSyntaxException
-	{
-		if (src.equals(dst))
-		{
-			throw new RuntimeException(
-					"[assrt-core] Self-communication (shouldn't get in here): " + src
-							+ ", " + dst);
-		}
-		
-		AssrtCoreGType cont = parseSeq(is.subList(1, is.size()), rvs, false, false);  
-				// Subseqeuent choice/rec is guarded by (at least) this action
-		LinkedHashMap<AssrtCoreMsg, AssrtCoreGType> cases = new LinkedHashMap<>();
-		cases.put(msg, cont);
-		return this.tf.global.AssrtCoreGChoice((ScribNodeBase) is.get(0), src, kind,
-				dst, cases);
-	}
-
-	private Op parseOp(DirectedInteraction<Global> n)
-			throws AssrtCoreSyntaxException
-	{
-		return parseOp(n.getMessageNodeChild());
-	}
-
-	private Op parseOp(MsgNode n) throws AssrtCoreSyntaxException
-	{
-		if (!n.isSigLitNode())
-		{
-			throw new AssrtCoreSyntaxException(n.getSource(),
-					"[TODO] " + n.getClass() + ":\n\t" + n);  // TODO: SigName
-		}
-		SigLitNode msn = ((SigLitNode) n);
-		return msn.getOpChild().toName();
-	}
-
-	//private AssrtAnnotDataType parsePayload(AssrtGMsgTransfer gmt) throws AssrtCoreSyntaxException
-	private List<AssrtAnnotDataName> parsePayload(DirectedInteraction<Global> n)
-			throws AssrtCoreSyntaxException
-	{
-		return parsePayload(n.getMessageNodeChild());
-	}
-
-	private List<AssrtAnnotDataName> parsePayload(MsgNode n) throws AssrtCoreSyntaxException
-	{
-		if (!n.isSigLitNode())
-		{
-			throw new AssrtCoreSyntaxException(n.getSource(),
-					" [TODO] " + n.getClass() + ":\n\t" + n); // TODO: SigName
-		}
-		SigLitNode msn = ((SigLitNode) n);
-		if (msn.getPayElemListChild().getElementChildren().isEmpty())
-		{
-//			DataTypeNode dtn = (DataTypeNode) ((AssrtAstFactory) this.job.af).QualifiedNameNode(null, DataTypeKind.KIND, "_Unit");
-//			AssrtVarNameNode nn = (AssrtVarNameNode) ((AssrtAstFactory) this.job.af).SimpleNameNode(null, AssrtVarNameKind.KIND, "_x" + nextVarIndex());
-//			return ((AssrtAstFactory) this.job.af).AssrtAnnotPayloadElem(null, nn, dtn);  // null source OK?
-
-			/*return Stream
-					.of(new AssrtAnnotDataName(makeFreshDataTypeVar(),
-							AssrtCoreGProtoDeclTranslator.UNIT_DATATYPE))
-					.collect(Collectors.toList()); // TODO: make empty list*/
-			return Collections.emptyList();
-		}
-//		else if (msn.payloads.getElements().size() > 1)
-//		{
-//			throw new AssrtCoreSyntaxException(msn.getSource(), "[assrt-core] Payload with more than one element not supported: " + mn);
-//		}
-
-		//PayloadElem<?> pe = msn.payloads.getElements().get(0);
-		List<AssrtAnnotDataName> res = new LinkedList<>();
-		for (PayElem<?> e : msn.getPayElemListChild().getElementChildren())
-		{
-			if (!(e instanceof AssrtAnnotDataElem)
-					&& !(e instanceof UnaryPayElem<?>))
-			{
-				// Already ruled out by parsing?  e.g., GDelegationElem
-				throw new AssrtCoreSyntaxException(
-						"[assrt-core] Payload element not supported: " + e);
-			}
-//			else if (pe instanceof LDelegationElem)  // No: only created by projection, won't be parsed
-//			{
-//				throw new AssrtCoreSyntaxException("[assrt-core] Payload element not supported: " + pe);
-//			}
-			
-			if (e instanceof AssrtAnnotDataElem)
-			{
-				AssrtAnnotDataName data = ((AssrtAnnotDataElem) e).toPayloadType();
-				String type = data.data.toString();
-				if (!type.equals("int") && !type.endsWith(".int")  // HACK FIXME (currently "int" for F# -- because STP takes dot)
-						&& !type.equals("String") && !type.equals("string"))  // Cf. AssrtAmbigVarFormula.disamb, AssrtCoreSConfg.getAssVars, AssrtForallFormula.toSmt2Sort
-				{
-					throw new AssrtCoreSyntaxException(e.getSource(),
-							"[assrt-core] Payload annotations not supported for non- \"int\" type kind: "
-									+ e);
-				}
-				
-				// FIXME: non-annotated payload elems get created with fresh vars, i.e., non- int types
-				// Also empty payloads are created as Unit type
-				// But current model building implicitly treats all vars as int -- this works, but is not clean
-				
-				//return adt;
-				res.add(data);
-			}
-			else
-			{
-				PayElemType<?> e1 = ((UnaryPayElem<?>) e).toPayloadType();
-				if (!e1.isDataName())
-				{
-				// i.e., AssrtDataTypeVar not allowed (should be "encoded")
-					throw new AssrtCoreSyntaxException(e.getSource(),
-							"[assrt-core] Non- datatype kind payload not supported: " + e);
-				}
-				if (!e1.toString().equals("int"))
-				{
-					throw new RuntimeException("[assrt-core] TODO: " + e1);
-				}
-				res.add(new AssrtAnnotDataName(makeFreshDataTypeVar(), (DataName) e1));  // FIXME: default hardcoded to "int"
-			}
-		}
-		return res;
-	}
-
-	private AssrtBExprNode parseAssertion(AssrtActionAssertNode n)
-	{
-		return parseAssertion(n.getAssertionChild());
-	}
-
-	// Empty assertions translated to True
-	private AssrtBExprNode parseAssertion(AssrtBExprNode n)
-	{
-		return (n == null)
-				? ((AssrtAstFactory) this.job.config.af).AssrtBExprNode(null,
-						AssrtTrueFormula.TRUE)
-				: n;
-			// FIXME: singleton constant
-	}
-
-	private Role parseSrcRole(DirectedInteraction<Global> n)
-	{
-		return parseSrcRole(n.getSourceChild());
-	}
-
-	private Role parseSrcRole(RoleNode n)
-	{
-		return n.toName();
-	}
-	
-	private Role parseDstRole(DirectedInteraction<Global> n)
-			throws AssrtCoreSyntaxException
-	{
-		List<RoleNode> dsts = n.getDestinationChildren();
-		if (dsts.size() > 1)
-		{
-			throw new AssrtCoreSyntaxException(n.getSource(),
-					"[assrt-core] Multisend not supported:\n\t" + n);
-		}
-		return parseDstRole(dsts.get(0));
-	}
-
-	private Role parseDstRole(RoleNode r) throws AssrtCoreSyntaxException
-	{
-		return r.toName();
-	}
-	
-	private static AssrtVar makeFreshDataTypeVar()
-	{
-		return new AssrtVar("_dum" + varCounter++);
 	}
 
 	private static String makeFreshRecVarName()
 	{
 		return "_X" + recCounter++;
 	}
-}
+*/

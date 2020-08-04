@@ -40,14 +40,14 @@ import org.scribble.core.type.session.STypeFactory;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
-import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
-import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEModelFactoryImpl;
-import org.scribble.ext.assrt.core.model.global.AssrtCoreSGraph;
-import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
-import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactoryImpl;
+import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtEModelFactoryImpl;
+import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.core.visit.local.AssrtCoreLTypeVisitorFactoryImpl;
+import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
 import org.scribble.util.ScribException;
@@ -67,7 +67,7 @@ public class AssrtCore extends Core
 	protected STypeVisitorFactory newSTypeVisitorFactory()
 	{
 		return new STypeVisitorFactoryImpl(new GTypeVisitorFactoryImpl(),
-				new AssrtCoreLTypeVisitorFactoryImpl());
+				new AssrtLTypeVisitorFactoryImpl());
 	}
 	
 	// A Scribble extension should override newSTypeVisitorFactory/ModelFactory as appropriate
@@ -75,8 +75,8 @@ public class AssrtCore extends Core
 	protected ModelFactory newModelFactory()
 	{
 		return new ModelFactory(
-				(Function<ModelFactory, EModelFactory>) AssrtCoreEModelFactoryImpl::new,  // Explicit cast necessary (CHECKME, why?)
-				(Function<ModelFactory, SModelFactory>) AssrtCoreSModelFactoryImpl::new);
+				(Function<ModelFactory, EModelFactory>) AssrtEModelFactoryImpl::new,  // Explicit cast necessary (CHECKME, why?)
+				(Function<ModelFactory, SModelFactory>) AssrtSModelFactoryImpl::new);
 	}
 
 	/*// A Scribble extension should override newCoreConfig/Context/etc as appropriate
@@ -139,7 +139,7 @@ public class AssrtCore extends Core
 					.assrtCoreGather(  // TODO: factor out with base gatherer
 							new AssrtCoreIntVarGatherer<Global, AssrtCoreGType>()::visit)
 					.collect(Collectors.toList());*/
-			AssrtCoreGProtocol proto = (AssrtCoreGProtocol) this.context
+			AssrtGProtocol proto = (AssrtGProtocol) this.context
 					.getInlined(fullname);
 			Map<AssrtVar, DataName> svars = new HashMap<>();
 			proto.statevars.entrySet()
@@ -198,8 +198,8 @@ public class AssrtCore extends Core
 
 		verbosePrintPass("Checking " + (!fair ? "\"unfair\" " : "")
 				+ "global model: " + fullname);
-		((AssrtCoreSModelFactory) this.config.mf.global)
-				.AssrtCoreSModel(this, (AssrtCoreSGraph) graph).validate(this);  // FIXME: overriding only for this line (extra core arg)
+		((AssrtSModelFactory) this.config.mf.global)
+				.AssrtCoreSModel(this, (AssrtSGraph) graph).validate(this);  // FIXME: overriding only for this line (extra core arg)
 	}
 	
 	@Override
@@ -230,7 +230,7 @@ public class AssrtCore extends Core
 			{
 			Map<AssrtVar, DataName> sorts =
 					//((AssrtCoreGProtocol) getContext().getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
-					((AssrtCoreGProtocol) corec.getInlined(fullname)).getSortEnv();
+					((AssrtGProtocol) corec.getInlined(fullname)).getSortEnv();
 			verbosePrintln(
 					"\n[WARNING] Skipping sat check (did you forget -z3?):\n\t" +
 					bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")

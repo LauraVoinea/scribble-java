@@ -1,0 +1,153 @@
+package org.scribble.ext.assrt.core.model.global;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.endpoint.EFsm;
+import org.scribble.core.model.endpoint.EGraph;
+import org.scribble.core.model.global.SGraphBuilderUtil;
+import org.scribble.core.model.global.SSingleBuffers;
+import org.scribble.core.type.name.DataName;
+import org.scribble.core.type.name.Role;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtEState;
+import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
+import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
+
+public class AssrtSGraphBuilderUtil extends SGraphBuilderUtil
+{
+	protected AssrtSGraphBuilderUtil(ModelFactory mf)
+	{
+		super(mf);
+	}
+	
+	// TODO: factor out of util, cf. SGraphBuilder.createInitConfig
+	@Override
+	protected AssrtSConfig createInitConfig(Map<Role, EGraph> egraphs,
+			boolean explicit)
+	{
+		throw new RuntimeException("Deprecated.");
+	}
+
+	protected AssrtSConfig createInitConfig(Map<Role, EGraph> egraphs,
+			boolean explicit, Map<AssrtVar, DataName> Env)
+	{
+		Map<Role, EFsm> P = egraphs.entrySet().stream()
+				.collect(Collectors.toMap(Entry::getKey, e -> e.getValue().toFsm()));
+		SSingleBuffers Q = new AssrtSSingleBuffers(P.keySet(), !explicit);  // TODO: refactor queues creation via modelfactory (cf. super)
+		return ((AssrtSModelFactory) this.mf.global).AssrtCoreSConfig(P, Q,
+				makeK(P.keySet()), makeF(P),
+				makeV(P), makeR(P),
+				Env  // Should initially just the svar sorts (for all svars, including nested) -- TODO: currently just empty, hacked inside AssrtCoreSConfig for now
+				);
+	}
+
+	private static Map<Role, Set<AssrtVar>> makeK(Set<Role> rs)
+	{
+		return rs.stream().collect(Collectors.toMap(r -> r, r -> new HashSet<>()));
+	}
+
+	//private static Map<Role, Set<AssrtBoolFormula>> makeF(Set<Role> rs)
+	private static Map<Role, Set<AssrtBFormula>> makeF(
+			Map<Role, EFsm> P)
+	{
+		//return rs.stream().collect(Collectors.toMap(r -> r, r -> new HashSet<>()));
+		return P.entrySet().stream().collect(Collectors.toMap(
+				Entry::getKey,
+				/*e -> e.getValue().getStateVars().entrySet().stream()
+						.map(b -> AssrtFormulaFactory.AssrtBinComp(
+								AssrtBinCompFormula.Op.Eq, 
+								AssrtFormulaFactory.AssrtIntVar(b.getKey().toString()),
+								b.getValue()))
+						.collect(Collectors.toSet())*/
+				x -> new HashSet<>()));
+	}
+
+	/*private static Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> 
+			makeScopes(Map<Role, EFsm> P)
+	{
+		return P.entrySet().stream()
+				.collect(Collectors.toMap(Entry::getKey, x -> new LinkedHashMap<>()));
+	}*/
+
+	// TODO: EFsm -> EGraph
+	private static Map<Role, Map<AssrtVar, AssrtAFormula>> makeV(
+			Map<Role, EFsm> P)
+	{
+		Map<Role, Map<AssrtVar, AssrtAFormula>> V = P.entrySet()
+				.stream().collect(Collectors.toMap(
+						Entry::getKey,
+						e -> new HashMap<>(
+								//((AssrtEState) e.getValue().graph.init).getStateVars() // Deprecating special case treatment of statevar init exprs and "constants"
+								((AssrtEState) e.getValue().graph.init).getStateVars()
+										.entrySet().stream().collect(Collectors.toMap(
+												Entry::getKey,
+												//x -> renameIntVarAsFormula(x.getKey())
+												Entry::getValue
+												)))));
+		/*Map<Role, Map<AssrtDataTypeVar, AssrtArithFormula>> R = P.keySet().stream().collect(Collectors.toMap(r -> r, r ->
+				Stream.of(false).collect(Collectors.toMap(
+						x -> AssrtCoreESend.DUMMY_VAR,
+						x -> AssrtCoreESend.ZERO))
+			));*/
+		for (Role r : P.keySet())
+		{
+			Map<AssrtVar, AssrtAFormula> tmp = V.get(r);
+			for (Entry<AssrtVar, AssrtAFormula> e : ((AssrtEState) P
+					.get(r).graph.init).getPhantoms().entrySet())
+			{
+				tmp.put(e.getKey(), e.getValue());
+			}
+		}
+
+		return V;
+	}
+
+	private static Map<Role, Set<AssrtBFormula>> makeR(Map<Role, EFsm> P)
+	{
+		return P.entrySet().stream().collect(Collectors.toMap(
+				Entry::getKey,
+				x ->
+				{
+					Set<AssrtBFormula> set = new HashSet<>();
+						AssrtBFormula ass = ((AssrtEState) x.getValue().graph.init)
+								.getAssertion();
+						if (!ass.equals(AssrtTrueFormula.TRUE))
+					{
+						set.add(ass);
+					}
+					return set;
+				}
+		));
+	}
+
+	/* Static helpers */
+
+	public static AssrtSmtFormula renameFormula(AssrtSmtFormula f)
+	{
+		for (AssrtVar v : f.getIntVars())
+		{
+			AssrtVarFormula old = AssrtFormulaFactory.AssrtIntVar(v.toString());  // N.B. making *Formula*
+			AssrtVarFormula fresh = AssrtFormulaFactory
+					.AssrtIntVar("_" + v.toString());  // FIXME HACK
+			f = f.subs(old, fresh);  // N.B., works on Formulas
+		}
+		return f;
+	}
+
+	// "x" -> "_x" -- IntVar is a name, translating to a "fresh" formula
+	public static AssrtVarFormula renameIntVarAsFormula(AssrtVar svar)
+	{
+		return (AssrtVarFormula) renameFormula(  // Adds "_" prefix
+				AssrtFormulaFactory.AssrtIntVar(svar.toString()));
+	}
+}

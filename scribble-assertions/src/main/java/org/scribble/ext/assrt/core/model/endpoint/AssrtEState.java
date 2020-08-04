@@ -55,7 +55,7 @@ public class AssrtEState extends EState
 	@Override
 	protected AssrtEState cloneNode(ModelFactory mf, Set<RecVar> labs)
 	{
-		return ((AssrtCoreEModelFactory) mf.local).newAssrtEState(labs,
+		return ((AssrtEModelFactory) mf.local).newAssrtEState(labs,
 				this.statevars,
 				this.ass, this.phantom);
 	}

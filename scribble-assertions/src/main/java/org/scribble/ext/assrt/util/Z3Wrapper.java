@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.job.AssrtCore;
-import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
+import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -34,7 +34,7 @@ public class Z3Wrapper
 
 		Map<AssrtVar, DataName> sorts =
 				/*((AssrtCoreGProtocol) core.getContext().getInlined(intermed.fullname)).type.getSortEnv();*/
-				((AssrtCoreGProtocol) core.getContext().getInlined(intermed.fullname))
+				((AssrtGProtocol) core.getContext().getInlined(intermed.fullname))
 						.getSortEnv();
 		String smt2 = toSmt2(intermed, bforms, sorts);
 
