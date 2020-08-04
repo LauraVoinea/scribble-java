@@ -28,24 +28,6 @@ public class AssrtLogFormula extends AssrtBFormula
 	}
 
 	@Override
-	public AssrtBFormula getCnf()
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op op)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
 	public AssrtBFormula squash()
 	{
 		throw new RuntimeException("[assrt] Shouldn't get in here: " + this);

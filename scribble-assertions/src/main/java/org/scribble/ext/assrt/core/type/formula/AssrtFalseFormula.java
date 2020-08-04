@@ -23,24 +23,6 @@ public class AssrtFalseFormula extends AssrtBFormula
 	{
 		return this;
 	}
-
-	@Override
-	public AssrtBFormula getCnf()
-	{
-		return this;
-	}
-
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op op)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		return false;
-	}
 	
 	@Override
 	public AssrtBFormula squash()

@@ -2,11 +2,9 @@ package org.scribble.ext.assrt.core.model.endpoint;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.type.name.MsgId;
-import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEAcc;
@@ -14,13 +12,12 @@ import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreERecv;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEReq;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreESend;
 import org.scribble.ext.assrt.core.model.global.AssrtCoreEMsg;
-import org.scribble.ext.assrt.core.model.stp.AssrtStpEState;
 import org.scribble.ext.assrt.core.model.stp.action.AssrtStpEReceive;
 import org.scribble.ext.assrt.core.model.stp.action.AssrtStpESend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.model.endpoint.AssrtEModelFactoryImpl;
 
@@ -71,12 +68,6 @@ public class AssrtCoreEModelFactoryImpl extends AssrtEModelFactoryImpl
 			//Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow)
 	{
 		return new AssrtCoreEMsg(this.mf, peer, mid, pay, ass);//, sexprs);//, shadow);
-	}
-
-	@Override
-	public AssrtStpEState AssertStpEState(Set<RecVar> labs)
-	{
-		return new AssrtStpEState(labs);
 	}
 
 	@Override

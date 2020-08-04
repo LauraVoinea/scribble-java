@@ -26,24 +26,6 @@ public class AssrtForallFormula extends AssrtQuantifiedFormula
 	{
 		throw new RuntimeException("Won't get in here: " + this);  // Not a parsed syntax
 	}
-
-	@Override
-	public AssrtBFormula getCnf()
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op op)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
 	
 	@Override
 	public AssrtBFormula squash()

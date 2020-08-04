@@ -10,7 +10,6 @@ import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtAVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtSort;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.sosy_lab.java_smt.api.BooleanFormula;
@@ -33,24 +32,6 @@ public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUn
 	public AssrtUnintPredicateFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		throw new RuntimeException("Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public AssrtBFormula getCnf()
-	{
-		return this;
-	}
-
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op op)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		return false;
 	}
 
 	@Override

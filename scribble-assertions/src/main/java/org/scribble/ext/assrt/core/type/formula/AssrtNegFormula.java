@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula.Op;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
@@ -23,59 +22,6 @@ public class AssrtNegFormula extends AssrtBFormula
 	public AssrtNegFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return new AssrtNegFormula((AssrtBFormula) this.expr.disamb(env));
-	}
-
-	@Override
-	public AssrtBFormula getCnf()
-	{
-		if (this.expr instanceof AssrtNegFormula)
-		{
-			return ((AssrtNegFormula) this.expr).expr.getCnf();
-		}
-		else if (this.expr instanceof AssrtBinBFormula)
-		{
-			AssrtBinBFormula bf = (AssrtBinBFormula) this.expr;
-			switch (bf.op)
-			{
-				case And:
-				{
-					AssrtBinBFormula tmp
-							= AssrtFormulaFactory.AssrtBinBool(Op.Or, AssrtFormulaFactory.AssrtNeg(bf.left), AssrtFormulaFactory.AssrtNeg(bf.right));
-					return tmp.getCnf();
-				}
-				case Imply:
-				{
-					throw new RuntimeException("[assrt-core] TODO: " + this);
-				}
-				case Or:
-				{
-					AssrtBinBFormula tmp
-							= AssrtFormulaFactory.AssrtBinBool(Op.And, AssrtFormulaFactory.AssrtNeg(bf.left), AssrtFormulaFactory.AssrtNeg(bf.right));
-					return tmp.getCnf();
-				}
-				default:
-				{
-					throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-				}
-			}
-		}
-		else
-		{
-			//throw new RuntimeException("[assrt-core] TODO: " + this);
-			return this.expr.getCnf();
-		}
-	}
-
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op op)
-	{
-		return this.expr.hasOp(op == Op.And ? Op.Or : Op.And);
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		return this.expr.hasOp(op);
 	}
 
 	@Override
