@@ -5,9 +5,7 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
-import org.sosy_lab.java_smt.api.BooleanFormulaManager;
 
 public class AssrtNegFormula extends AssrtBFormula
 {
@@ -45,8 +43,9 @@ public class AssrtNegFormula extends AssrtBFormula
 	@Override
 	protected BooleanFormula toJavaSmtFormula()
 	{
-		BooleanFormulaManager fmanager = JavaSmtWrapper.getInstance().bfm;
-		return fmanager.not(this.expr.toJavaSmtFormula());
+		/*BooleanFormulaManager fmanager = JavaSmtWrapper.getInstance().bfm;
+		return fmanager.not(this.expr.toJavaSmtFormula());*/
+		throw new RuntimeException("Deprecated");
 	}
 
 	@Override

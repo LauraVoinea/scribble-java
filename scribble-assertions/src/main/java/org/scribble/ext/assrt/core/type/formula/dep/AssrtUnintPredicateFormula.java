@@ -69,7 +69,7 @@ public class AssrtUnintPredicateFormula extends AssrtBFormula implements AssrtUn
 	@Override
 	protected BooleanFormula toJavaSmtFormula()
 	{
-		throw new RuntimeException("[assrt] TODO: " + this);
+		throw new RuntimeException("Deprecated");
 	}
 
 	@Override

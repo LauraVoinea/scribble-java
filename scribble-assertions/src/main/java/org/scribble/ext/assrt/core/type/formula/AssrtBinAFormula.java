@@ -6,8 +6,6 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
-import org.sosy_lab.java_smt.api.IntegerFormulaManager;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 
@@ -105,7 +103,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	@Override
 	public IntegerFormula toJavaSmtFormula() //throws AssertionParseException
 	{
-		IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
+		/*IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
 		IntegerFormula fleft = this.left.toJavaSmtFormula();
 		IntegerFormula fright = this.right.toJavaSmtFormula();
 		switch(this.op)
@@ -117,9 +115,10 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 			case Mult:
 				return fmanager.multiply(fleft, fright);
 			default:
-				//throw new AssertionParseException("No matchin ooperation for boolean formula");
+				//throw new AssertionParseException("No matching operation for boolean formula");
 				throw new RuntimeException("[assrt] Shouldn't get in here: " + op);
-		}
+		}*/
+		throw new RuntimeException("Deprecated");
 	}
 
 	@Override

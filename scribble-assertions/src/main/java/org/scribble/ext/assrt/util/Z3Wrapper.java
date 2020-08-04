@@ -3,11 +3,9 @@ package org.scribble.ext.assrt.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.type.name.DataName;
@@ -34,11 +32,10 @@ public class Z3Wrapper
 			return true;
 		}
 
-		Map<AssrtVar, DataName> sorts = /*((AssrtCoreGProtocol) core.getContext()
-																				.getInlined(intermed.fullname)).type
-																				.getSortEnv();*/
-				((AssrtCoreGProtocol) core.getContext()
-						.getInlined(intermed.fullname)).getSortEnv();
+		Map<AssrtVar, DataName> sorts =
+				/*((AssrtCoreGProtocol) core.getContext().getInlined(intermed.fullname)).type.getSortEnv();*/
+				((AssrtCoreGProtocol) core.getContext().getInlined(intermed.fullname))
+						.getSortEnv();
 		String smt2 = toSmt2(intermed, bforms, sorts);
 
 		core.verbosePrintln(
@@ -93,15 +90,15 @@ public class Z3Wrapper
 			Map<AssrtVar, DataName> env)
 	{
 		String smt2 = "";
-		List<String> rs = intermed.roles.stream().map(Object::toString).sorted()
+		/*List<String> rs = intermed.roles.stream().map(Object::toString).sorted()
 				.collect(Collectors.toList());
 		smt2 += IntStream
 				.range(0, rs.size()).mapToObj(i -> "(declare-const " + rs.get(i)
 						+ " Int)\n(assert (= " + rs.get(i) + " " + i + "))\n")
 				.collect(Collectors.joining(""));
 		// TODO: make a Role sort?
-
-		/*Set<AssrtUnintPredicateFormula> preds = bforms.stream()
+		
+		Set<AssrtUnintPredicateFormula> preds = bforms.stream()
 				.flatMap(f -> getUnintPreds.func.apply(f).stream())
 				.collect(Collectors.toSet());
 		smt2 += preds.stream()

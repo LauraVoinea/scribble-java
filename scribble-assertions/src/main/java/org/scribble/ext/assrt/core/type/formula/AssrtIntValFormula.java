@@ -6,8 +6,6 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
-import org.sosy_lab.java_smt.api.IntegerFormulaManager;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // Integer literal
@@ -61,8 +59,9 @@ public class AssrtIntValFormula extends AssrtAFormula
 	@Override
 	public IntegerFormula toJavaSmtFormula()
 	{
-		IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
-		return fmanager.makeNumber(this.val);  
+		/*IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
+		return fmanager.makeNumber(this.val);*/
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

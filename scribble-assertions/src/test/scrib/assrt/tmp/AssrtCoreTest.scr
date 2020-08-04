@@ -180,7 +180,7 @@ type <fstar> "string" from "..." as String;
 
 
 
-global protocol Proto1(role A, role B) @"B[z: int = 1] y>0" {
+global protocol Proto1(role A, role B) @"B[z: int = 1] z>0" {
 	1() from A to B;
 }
 

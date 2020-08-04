@@ -48,7 +48,8 @@ public class AssrtLogFormula extends AssrtBFormula
 	@Override
 	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException
 	{
-		return this.formula; 
+		//return this.formula; 
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

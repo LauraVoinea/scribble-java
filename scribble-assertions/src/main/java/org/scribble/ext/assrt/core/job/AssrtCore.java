@@ -13,7 +13,6 @@
  */
 package org.scribble.ext.assrt.core.job;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -220,20 +219,22 @@ public class AssrtCore extends Core
 	public boolean checkSat(GProtoName fullname, Set<AssrtBFormula> bforms)
 	{
 		Solver solver = ((AssrtCoreArgs) this.config.args).SOLVER;
+		AssrtCoreContext corec = getContext();
 		switch (solver)
 		{
 			case NATIVE_Z3:
 			{
-				AssrtCoreContext corec = getContext();
 				return Z3Wrapper.checkSat(this, corec.getIntermediate(fullname), bforms);
 			}
 			case NONE:
 			{
-			Map<AssrtVar, DataName> sorts = ((AssrtCoreGProtocol) getContext()
-					.getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
-				verbosePrintln("\n[assrt-core] [WARNING] Skipping sat check:\n\t"
-					+ bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")
-								.collect(Collectors.joining("")));
+			Map<AssrtVar, DataName> sorts =
+					//((AssrtCoreGProtocol) getContext().getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
+					((AssrtCoreGProtocol) corec.getInlined(fullname)).getSortEnv();
+			verbosePrintln(
+					"\n[WARNING] Skipping sat check (did you forget -z3?):\n\t" +
+					bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")
+							.collect(Collectors.joining("")));
 				return true;
 			}
 			default:

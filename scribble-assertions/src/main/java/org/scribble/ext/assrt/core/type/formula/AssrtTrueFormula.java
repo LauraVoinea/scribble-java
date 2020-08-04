@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
 // FIXME: declare singleton constant
@@ -46,7 +45,8 @@ public class AssrtTrueFormula extends AssrtBFormula
 	@Override
 	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException {
 	{
-		return JavaSmtWrapper.getInstance().bfm.makeTrue();
+		//return JavaSmtWrapper.getInstance().bfm.makeTrue();
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

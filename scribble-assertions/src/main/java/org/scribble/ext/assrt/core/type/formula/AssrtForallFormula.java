@@ -6,17 +6,12 @@ import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
-import org.sosy_lab.java_smt.api.QuantifiedFormulaManager;
 
 public class AssrtForallFormula extends AssrtQuantifiedFormula
 {
 	// Pre: vars non empty
-	//protected AssrtForallIntVarsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	protected AssrtForallFormula(List<AssrtAVarFormula> vars,
-			AssrtBFormula expr)
+	protected AssrtForallFormula(List<AssrtAVarFormula> vars, AssrtBFormula expr)
 	{
 		super(vars, expr);
 	}
@@ -44,9 +39,7 @@ public class AssrtForallFormula extends AssrtQuantifiedFormula
 		{
 			return this;
 		}
-		return AssrtFormulaFactory.AssrtForallFormula(
-				//this.vars.stream().map(v -> v.subs(old, neu)).collect(Collectors.toList()), 
-				this.vars,
+		return AssrtFormulaFactory.AssrtForallFormula(this.vars,
 				this.expr.subs(old, neu));
 	}
 	
@@ -109,10 +102,11 @@ public class AssrtForallFormula extends AssrtQuantifiedFormula
 	@Override
 	protected BooleanFormula toJavaSmtFormula()
 	{
-		QuantifiedFormulaManager qfm = JavaSmtWrapper.getInstance().qfm;
+		/*QuantifiedFormulaManager qfm = JavaSmtWrapper.getInstance().qfm;
 		BooleanFormula expr = this.expr.toJavaSmtFormula();
 		List<IntegerFormula> vs = this.vars.stream().map(v -> v.getJavaSmtFormula()).collect(Collectors.toList());
-		return qfm.forall(vs, expr);
+		return qfm.forall(vs, expr);*/
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

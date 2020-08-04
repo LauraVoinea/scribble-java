@@ -8,9 +8,7 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
-import org.sosy_lab.java_smt.api.BooleanFormulaManager;
 
 // Binary boolean
 // Top-level formula of assertions
@@ -148,7 +146,7 @@ public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<B
 	@Override
 	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException
 	{
-		BooleanFormulaManager fmanager = JavaSmtWrapper.getInstance().bfm;
+		/*BooleanFormulaManager fmanager = JavaSmtWrapper.getInstance().bfm;
 		BooleanFormula bleft = this.left.toJavaSmtFormula();
 		BooleanFormula bright = this.right.toJavaSmtFormula();
 		switch(this.op)
@@ -159,7 +157,8 @@ public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<B
 			default:
 				//throw new AssertionParseException("No matchin ooperation for boolean formula"); 
 				throw new RuntimeException("[assrt] Shouldn't get in here: " + op);
-		}		
+		}*/
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

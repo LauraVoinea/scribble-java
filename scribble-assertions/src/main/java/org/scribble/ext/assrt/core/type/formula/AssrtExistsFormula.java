@@ -6,17 +6,13 @@ import java.util.stream.Collectors;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // FIXME: not only int vars now -- cf. AssrtIntVar renaming
 public class AssrtExistsFormula extends AssrtQuantifiedFormula
 {
 	// Pre: vars non empty
-	//protected AssrtExistsIntVarsFormula(List<AssrtIntVarFormula> vars, AssrtBFormula expr)
-	protected AssrtExistsFormula(List<AssrtAVarFormula> vars,
-			AssrtBFormula expr)
+	protected AssrtExistsFormula(List<AssrtAVarFormula> vars, AssrtBFormula expr)
 	{
 		super(vars, expr);
 	}
@@ -45,9 +41,7 @@ public class AssrtExistsFormula extends AssrtQuantifiedFormula
 		{
 			return this;
 		}
-		return AssrtFormulaFactory.AssrtExistsFormula(
-				//this.vars.stream().map(v -> v.subs(old, neu)).collect(Collectors.toList()), 
-				this.vars,
+		return AssrtFormulaFactory.AssrtExistsFormula(this.vars,
 				this.expr.subs(old, neu));
 	}
 	
@@ -64,23 +58,10 @@ public class AssrtExistsFormula extends AssrtQuantifiedFormula
 	@Override
 	protected BooleanFormula toJavaSmtFormula()
 	{
-		BooleanFormula expr = this.expr.toJavaSmtFormula();
+		/*BooleanFormula expr = this.expr.toJavaSmtFormula();
 		List<IntegerFormula> vs = this.vars.stream().map(v -> v.getJavaSmtFormula()).collect(Collectors.toList());
-
-		/*JavaSmtWrapper j = JavaSmtWrapper.getInstance();  // Cf. AssrtTest.JavaSmtBug
-		Object o = j.qfm.exists(vs.get(0), expr);
-		if (o.toString().equals("(exists ((_dum1 Int)) false)") && this.toString().equals("(exists ((x)) (False))"))
-		{
-			System.out.println("ddd: " + j.qfm.exists(vs.get(0), expr) + ", " +j.ifm.makeVariable("x") + ", "
-					
-		+ j.qfm.exists(j.ifm.makeVariable("x"), j.bfm.makeFalse()) + ", " + j.qfm.exists(Arrays.asList(j.ifm.makeVariable("x")), j.bfm.makeFalse()) + ", "
-
-		+ j.qfm.exists(j.ifm.makeVariable("x"), j.bfm.makeTrue()));
-
-			throw new RuntimeException("ccc: " + vs + ", " + o);
-		}*/
-		
-		return JavaSmtWrapper.getInstance().qfm.exists(vs, expr);
+		return JavaSmtWrapper.getInstance().qfm.exists(vs, expr);*/
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

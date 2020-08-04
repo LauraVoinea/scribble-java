@@ -6,9 +6,7 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
-import org.sosy_lab.java_smt.api.IntegerFormulaManager;
 import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 // Binary comparison
@@ -108,7 +106,7 @@ public class AssrtBinCompFormula extends AssrtBFormula implements AssrtBinFormul
 	@Override
 	public BooleanFormula toJavaSmtFormula() //throws AssertionParseException
 	{
-		IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
+		/*IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
 		IntegerFormula fleft = this.left.toJavaSmtFormula();
 		IntegerFormula fright = this.right.toJavaSmtFormula();
 		switch(this.op)
@@ -121,7 +119,8 @@ public class AssrtBinCompFormula extends AssrtBFormula implements AssrtBinFormul
 				return fmanager.equal(fleft, fright);  
 			default:
 				throw new RuntimeException("[assrt] Shouldn't get in here: " + op); 
-		}		
+		}*/
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

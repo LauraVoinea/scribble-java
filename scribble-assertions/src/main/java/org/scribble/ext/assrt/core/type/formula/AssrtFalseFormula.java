@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
 public class AssrtFalseFormula extends AssrtBFormula
@@ -45,7 +44,8 @@ public class AssrtFalseFormula extends AssrtBFormula
 	@Override
 	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException {
 	{
-		return JavaSmtWrapper.getInstance().bfm.makeFalse();
+		//return JavaSmtWrapper.getInstance().bfm.makeFalse();
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override
