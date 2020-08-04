@@ -178,15 +178,53 @@ type <fstar> "string" from "..." as String;
 // - fix syntax -- TODO: deprecate AssrtStateVarAnnotNode for an intermediary CommonTree
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
-global protocol Proto1(role A, role B) @"[z: int = 3]"
+
+
+/*
+global protocol Proto1(role A, role B) @"B[z: int = 1] z>0" {
+	1(y: int) from A to B;  @'y<0 && y>z'  // Violation detected -- correct: z>0 is globally known assertion
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B) {
+	1() from A to B;
+	do Proto1Aux(A, B);  @'A[2]'
+}
+
+aux global protocol Proto1Aux(role A, role B) @"A[z1: int = 1] z1>0" {  // N.B. statevars, phantoms with only two roles
+	2(y: int) from B to A;  @'y = z1'  
+			// TODO: separate phantoms explicitly in model ("variable" and assertion known, but "value" unknown) -- issue of (phantom) statevars (vs. payvars) is initialiser expr
+			// Currently allowed ( phantom statevars globally known by default), but unimplementable in F* (z1@B unknown)
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C) {
+	1(x: int) from A to B;  @'x>0'
+	0() from B to C;  // Comment is bad: C!A would be from initial state (bad is debatable? "statically extract" phantom knowledge? -- but knowledge should still depend on choice?)
+	// As is, x phantom added (via projection) to B!C message
+	2(y: int) from C to A;  
+			//@'y=x'
+			@'x>0'
+}
+//*/
+
+
+
+/*global protocol Proto1(role A, role B) @"[z: int = 3]"
 {
 	1(x:int) from A to B; @"(x=3)"
 	2(y:int) from A to B; @"(y>x)"
 	do Proto1(A, B);  // FIXME: missing statevar args -- basically arity check missing, cf. RuntimeException when too many
 }
+//*/
 
 
 
+/*
 global protocol Proto1(role A, role B)
 {
 	1(x:int) from A to B;
@@ -199,6 +237,7 @@ aux global protocol Proto1Aux(role A, role B) @"[x1: int = -1]"  // N.B. x1
 	2(y:int) from A to B; @"(y>x1)"
 	do Proto1Aux(A, B);  // FIXME: missing statevar args not detected
 }
+//*/
 
 
 
