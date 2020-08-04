@@ -25,8 +25,8 @@ import org.scribble.core.model.global.SStateErrors;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.job.AssrtCore;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtEState;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEAction;
-import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 
 public class AssrtCoreSStateErrors extends SStateErrors
 {

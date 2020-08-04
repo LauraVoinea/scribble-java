@@ -4,10 +4,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.model.global.actions.AssrtSAction;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 
-public interface AssrtCoreSAction extends AssrtSAction
+public interface AssrtCoreSAction
 {
+	AssrtBFormula getAssertion();
+
+	default String assertionToString()
+	{
+		AssrtBFormula ass = getAssertion();
+		return "{" + ass.toString() + "}";
+	}
+
 	List<AssrtAFormula> getStateExprs();  // Cf. AssrtCoreEAction
 	
 	default String stateExprsToString()

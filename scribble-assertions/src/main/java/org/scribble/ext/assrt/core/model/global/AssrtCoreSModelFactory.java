@@ -12,9 +12,7 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.assrt.core.job.AssrtCore;
-import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSAcc;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSRecv;
-import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSReq;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
@@ -22,22 +20,6 @@ import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 public interface AssrtCoreSModelFactory extends SModelFactory
 {
-	/*@Override
-	AssrtCoreSGraphBuilder SGraphBuilder();
-
-	@Override
-	AssrtCoreSGraphBuilderUtil SGraphBuilderUtil();
-
-	@Override
-	AssrtCoreSState SState(SConfig config);
-
-	@Override
-	AssrtCoreSGraph SGraph(GProtoName fullname, Map<Integer, SState> states, 
-			SState init);  // states: s.id -> s
-
-	@Override
-	AssrtCoreSModel SModel(SGraph graph);*/
-
 
 	AssrtCoreSConfig AssrtCoreSConfig(Map<Role, EFsm> P, SSingleBuffers Q,
 			Map<Role, Set<AssrtVar>> K,
@@ -56,8 +38,52 @@ public interface AssrtCoreSModelFactory extends SModelFactory
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs);
 	AssrtCoreSRecv AssrtCoreSRecv(Role subj, Role obj, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs);
+}
+
+/*
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+	// TODO
+ 
 	AssrtCoreSReq AssrtCoreSReq(Role subj, Role obj, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs);
 	AssrtCoreSAcc AssrtCoreSAcc(Role subj, Role obj, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs);
-}
+ */

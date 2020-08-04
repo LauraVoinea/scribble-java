@@ -2,15 +2,18 @@ package org.scribble.ext.assrt.core.model.global.action;
 
 import java.util.List;
 
+import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.model.global.actions.AssrtSSend;
 
-public class AssrtCoreSSend extends AssrtSSend implements AssrtCoreSAction
+public class AssrtCoreSSend extends SSend implements AssrtCoreSAction
 {
+	//public final AssrtAssertion assertion;  // Cf., e.g., AGMsgTransfer
+	public final AssrtBFormula ass;  // Not null (cf. AssrtESend)
+
 	// Annot needed -- e.g. mu X(x:=..) . mu Y(y:=..) ... X<123> -- rec var X will be discarded, so edge action needs to record which var is being updated
 	/*public final AssrtDataTypeVar annot;  // Not null (by AssrtCoreGProtocolTranslator)
 	public final AssrtArithFormula expr;*/
@@ -18,11 +21,18 @@ public class AssrtCoreSSend extends AssrtSSend implements AssrtCoreSAction
 	public final List<AssrtAFormula> stateexprs;
 
 	public AssrtCoreSSend(Role subj, Role obj, MsgId<?> mid, Payload payload,
-			AssrtBFormula bf, List<AssrtAFormula> stateexprs)
+			AssrtBFormula ass, List<AssrtAFormula> stateexprs)
 	{
-		super(subj, obj, mid, payload, bf);
+		super(subj, obj, mid, payload);
+		this.ass = ass;
 		//this.annot = annot;
 		this.stateexprs = stateexprs;
+	}
+
+	@Override
+	public AssrtBFormula getAssertion()
+	{
+		return this.ass;
 	}
 
 	@Override
@@ -34,7 +44,9 @@ public class AssrtCoreSSend extends AssrtSSend implements AssrtCoreSAction
 	@Override
 	public String toString()
 	{
-		return super.toString() + stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
+		return super.toString()
+				+ assertionToString()
+				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
 				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.expr + ">");  // FIXME
 				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");
 		/*return this.subj + getCommSymbol() + this.obj + ":" + this.mid
@@ -46,6 +58,7 @@ public class AssrtCoreSSend extends AssrtSSend implements AssrtCoreSAction
 	{
 		int hash = 6781;
 		hash = 31 * hash + super.hashCode();
+		hash = 31 * hash + this.ass.toString().hashCode();  // TODO: treating as String (cf. AssrtESend), fix
 		//hash = 31 * hash + this.annot.hashCode();
 		hash = 31 * hash + this.stateexprs.hashCode();
 		return hash;
@@ -64,6 +77,7 @@ public class AssrtCoreSSend extends AssrtSSend implements AssrtCoreSAction
 		}
 		AssrtCoreSSend as = (AssrtCoreSSend) o;
 		return super.equals(o)  // Does canEqual
+				&& this.ass.toString().equals(as.ass.toString())  // TODO: treating as String (cf. AssrtESend), fix
 				//&& this.annot.equals(as.annot)
 				&& this.stateexprs.equals(as.stateexprs);
 	}

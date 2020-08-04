@@ -17,9 +17,7 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.assrt.core.job.AssrtCore;
-import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSAcc;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSRecv;
-import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSReq;
 import org.scribble.ext.assrt.core.model.global.action.AssrtCoreSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
@@ -103,7 +101,46 @@ public class AssrtCoreSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelF
 	{
 		return new AssrtCoreSRecv(subj, obj, mid, pay, ass, sexprs);
 	}
+}
 
+/*
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+	// TODO: 
+ 
 	@Override
 	public AssrtCoreSReq AssrtCoreSReq(Role subj, Role obj, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs)
@@ -117,4 +154,4 @@ public class AssrtCoreSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelF
 	{
 		return new AssrtCoreSAcc(subj, obj, mid, pay, ass, sexprs);
 	}
-}
+*/

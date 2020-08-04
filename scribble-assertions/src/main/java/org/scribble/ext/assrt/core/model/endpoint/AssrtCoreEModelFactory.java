@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -15,10 +16,8 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.model.endpoint.AssrtEModelFactory;
-import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 
-public interface AssrtCoreEModelFactory extends AssrtEModelFactory
+public interface AssrtCoreEModelFactory extends EModelFactory
 {
 
 	AssrtEState newAssrtEState(Set<RecVar> labs,

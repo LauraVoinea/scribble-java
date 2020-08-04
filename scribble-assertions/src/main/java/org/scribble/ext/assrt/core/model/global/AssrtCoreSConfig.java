@@ -33,6 +33,7 @@ import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
 import org.scribble.ext.assrt.core.lang.local.AssrtCoreLProjection;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEModelFactory;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtEState;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreEAction;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreERecv;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtCoreESend;
@@ -48,7 +49,6 @@ import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLRec;
 import org.scribble.ext.assrt.core.type.session.local.AssrtCoreLType;
-import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 
 			
 public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
@@ -779,8 +779,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 			EState curr = e.getValue().curr;
 			Set<AssrtVar> Kself = this.K.get(self);
 			Set<AssrtVar> Vself = this.V.get(self).keySet();
-			Set<String> rs = core.getContext().getInlined(fullname).roles.stream()
-					.map(Object::toString).collect(Collectors.toSet());
+			/*Set<String> rs = core.getContext().getInlined(fullname).roles.stream()
+					.map(Object::toString).collect(Collectors.toSet());*/
 			Predicate<EAction> isErr = a ->
 			{
 				if (a.isSend() || a.isRequest())
@@ -1085,8 +1085,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 		}
 
 		// Finally, *ex*-quanitfy all free vars -- cf. forallQuantifyFreeVars
-		Set<String> rs = core.getContext().getInlined(fullname).roles.stream()
-				.map(Object::toString).collect(Collectors.toSet());
+		/*Set<String> rs = core.getContext().getInlined(fullname).roles.stream()
+				.map(Object::toString).collect(Collectors.toSet());*/
 		Set<AssrtVar> free = res.getIntVars().stream()
 				//.filter(x -> !rs.contains(x.toString()))  // CHECKME: formula role vars -- cf. getUnknownDataVarErrors  // CHECKME: what is the example?
 				.collect(Collectors.toSet());
@@ -1650,8 +1650,8 @@ public class AssrtCoreSConfig extends SConfig  // TODO: not AssrtSConfig
 	private static AssrtBFormula forallQuantifyFreeVars(AssrtCore core,
 			GProtoName fullname, AssrtBFormula bform)
 	{
-		Set<String> rs = core.getContext().getInlined(fullname).roles.stream()
-				.map(Object::toString).collect(Collectors.toSet());
+		/*Set<String> rs = core.getContext().getInlined(fullname).roles.stream()
+				.map(Object::toString).collect(Collectors.toSet());*/
 		Set<AssrtVar> free = bform.getIntVars().stream()
 				//.filter(x -> !rs.contains(x.toString()))  // CHECKME: formula role vars -- cf. getUnknownDataVarErrors  // CHECKME: what is an example?
 				.collect(Collectors.toSet());

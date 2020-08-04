@@ -1,4 +1,4 @@
-package org.scribble.ext.assrt.core.type.formula;
+package org.scribble.ext.assrt.core.type.formula.dep;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
+import org.scribble.ext.assrt.core.type.formula.AssrtAVarFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
 public class AssrtLogFormula extends AssrtBFormula
@@ -61,9 +63,10 @@ public class AssrtLogFormula extends AssrtBFormula
 	//public AssrtLogFormula addFormula(AssrtSmtFormula newFormula) throws AssertionParseException
 	public AssrtLogFormula addFormula(AssrtBFormula newFormula) //throws AssertionParseException
 	{		
-		return this.formula == null
+		/*return this.formula == null
 				? new AssrtLogFormula(newFormula.formula, newFormula.getIntVars())
-				:	JavaSmtWrapper.getInstance().addFormula(this, newFormula);
+				:	JavaSmtWrapper.getInstance().addFormula(this, newFormula);*/
+		throw new RuntimeException("Deprecated");
 	}
 	
 	@Override

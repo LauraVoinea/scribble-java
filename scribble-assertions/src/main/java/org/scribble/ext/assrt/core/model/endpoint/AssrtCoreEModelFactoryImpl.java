@@ -19,8 +19,6 @@ import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.model.endpoint.AssrtEGraphBuilderUtil;
-import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 
 public class AssrtCoreEModelFactoryImpl extends EModelFactoryImpl//AssrtEModelFactoryImpl
 		implements AssrtCoreEModelFactory
@@ -37,12 +35,16 @@ public class AssrtCoreEModelFactoryImpl extends EModelFactoryImpl//AssrtEModelFa
 		return new AssrtEGraphBuilderUtil(this.mf);
 	}
 
+	/* Override existing types */
+
 	@Override
 	public EState EState(Set<RecVar> labs)  // Used in a more places than above "disabled" actions -- e.g., LInteractionSeqDel, to be uniform need to make an AssrtLInteractionSeqDel
 	{
 		return newAssrtEState(labs, new LinkedHashMap<>(),
 				AssrtTrueFormula.TRUE, new LinkedHashMap<>());
 	}
+
+	/* "New" types */
 
 	@Override
 	public AssrtEState newAssrtEState(Set<RecVar> labs,

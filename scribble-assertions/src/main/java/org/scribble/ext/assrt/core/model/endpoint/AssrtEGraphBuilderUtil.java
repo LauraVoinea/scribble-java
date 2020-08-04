@@ -1,4 +1,4 @@
-package org.scribble.ext.assrt.model.endpoint;
+package org.scribble.ext.assrt.core.model.endpoint;
 
 import java.util.LinkedHashMap;
 

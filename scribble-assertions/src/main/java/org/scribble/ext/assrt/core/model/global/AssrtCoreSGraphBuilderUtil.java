@@ -14,6 +14,7 @@ import org.scribble.core.model.global.SGraphBuilderUtil;
 import org.scribble.core.model.global.SSingleBuffers;
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtEState;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
@@ -21,7 +22,6 @@ import org.scribble.ext.assrt.core.type.formula.AssrtVarFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.model.endpoint.AssrtEState;
 import org.sosy_lab.java_smt.api.Formula;
 
 public class AssrtCoreSGraphBuilderUtil extends SGraphBuilderUtil
