@@ -102,7 +102,7 @@ public class AssrtEGraphBuilder extends EGraphBuilder
 								phantAss, lr.assertion);
 			}*/
 
-			//tmp3 = AssrtTrueFormula.TRUE;  // TODO FIXME -- getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
+			//tmp3 = AssrtTrueFormula.TRUE;  // TODO -- fix, getFireable currently depends on syntactic assertion matching so cannot "asymmetrically" modify assertions, cf. AssrtCoreSSingleBuffers.canReceive
 			// ...TODO: add phantoms in model construction -- no vars are ever unknown? but cannot validate, e.g., x = phantom?
 
 			build(lr.body, s1, s2, tmp, tmp2, tmp3);
@@ -139,7 +139,7 @@ public class AssrtEGraphBuilder extends EGraphBuilder
 		{
 			AssrtEState s = (AssrtEState) ((AssrtEModelFactory) this.util.mf.local)
 					.EState(Collections.emptySet());  // statevars added by upcoming build
-					// FIXME: call Assrt directly? -- no "vars" here though (intermediate sequence states), only on rec states
+			// CHECKME: call Assrt directly? -- no "vars" here though (intermediate sequence states), only on rec states
 
 			EAction tmp;
 			if (cont instanceof AssrtLRec)  // `a` is a f/w rec -- cont-rec `a` handled by RecVar `cont` above
@@ -165,7 +165,7 @@ public class AssrtEGraphBuilder extends EGraphBuilder
 		return toEAction(r, k, a, Collections.emptyList(), phantom, phantAss);
 	}
 
-	/*// TODO FIXME: need access to data decls -- in general, need to extend Core with this info (n.b. job is not visible from core)
+	/*// TODO: fix, need access to data decls -- in general, need to extend Core with this info (n.b. job is not visible from core)
 	private Payload convertPayToExtNames(AssrtCoreMsg m)
 	{
 		List<AssrtAnnotDataName> es = new LinkedList<>();
@@ -186,7 +186,7 @@ public class AssrtEGraphBuilder extends EGraphBuilder
 		AssrtEModelFactory ef = (AssrtEModelFactory) this.util.mf.local;  // TODO: factor out
 		if (k.equals(AssrtLActionKind.SEND))
 		{
-			return ef.AssrtCoreESend(r, a.op, 
+			return ef.AssrtESend(r, a.op, 
 					//new Payload(Arrays.asList(a.pays)),
 					new Payload(
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)
@@ -200,7 +200,7 @@ public class AssrtEGraphBuilder extends EGraphBuilder
 		else if (k.equals(AssrtLActionKind.RECV))
 		{
 			//return ef.newAssrtEReceive(r, a.op, new Payload(Arrays.asList(a.pay)), a.ass);
-			return ef.AssrtCoreERecv(r, a.op,
+			return ef.AssrtERecv(r, a.op,
 					//new Payload(Arrays.asList(a.pays)),
 					new Payload(
 							a.pay.stream().map(p -> (PayElemType<AssrtAnnotDataKind>) p)

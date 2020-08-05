@@ -76,17 +76,17 @@ import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.job.Job;
 import org.scribble.visit.GTypeTranslator;
 
-public class AssrtCoreGTypeTranslator extends GTypeTranslator
+public class AssrtGTypeTranslator extends GTypeTranslator
 {
 	public static final DataName UNIT_DATATYPE = new DataName("_Unit");  // TODO
 	
 	private static int varCounter = 1;
-	//private static int recCounter = 1;
+	//private static int recCounter = 1;  // Rec/Continue TODO
 	
 	public final AssrtSTypeFactory tf;  // Shadows super
 	
 	//private static DataType UNIT_TYPE;
-	protected AssrtCoreGTypeTranslator(Job job, ModuleName rootFullname, STypeFactory tf)
+	protected AssrtGTypeTranslator(Job job, ModuleName rootFullname, STypeFactory tf)
 	{
 		super(job, rootFullname, tf);
 		this.tf = (AssrtSTypeFactory) tf;
@@ -149,14 +149,6 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 		}
 		AssrtBExprNode tmp2 = hdr.getAnnotAssertChild();
 		AssrtBFormula ass = (tmp2 == null) ? AssrtTrueFormula.TRUE : tmp2.expr;
-		
-		/*Map<AssrtIntVar, DataName> env = body.assrtCoreGather(
-				new AssrtCoreVarEnvGatherer<Global, AssrtCoreGType>()::visit)
-				.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
-		svars.keySet().forEach(x -> env.put(x, new DataName("int")));  // FIXME
-		body = body.disamb((AssrtCore) this.job.getCore(), env);
-		ass = (AssrtBFormula) ass.disamb(env);*/
-		
 		return new AssrtGProtocol(n, mods, fullname, rs, ps, body, svars,
 				ass, located);
 	}
@@ -424,7 +416,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 									+ e);
 				}
 				
-				// FIXME: non-annotated payload elems get created with fresh vars, i.e., non- int types
+				// TODO: refactor -- non-annotated payload elems get created with fresh vars, i.e., non- int types
 				// Also empty payloads are created as Unit type
 				// But current model building implicitly treats all vars as int -- this works, but is not clean
 				
@@ -440,11 +432,11 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 					throw new AssrtSyntaxException(e.getSource(),
 							"[assrt-core] Non- datatype kind payload not supported: " + e);
 				}
-				if (!e1.toString().equals("int"))
+				if (!e1.toString().equals("int"))  // TODO
 				{
 					throw new RuntimeException("[assrt-core] TODO: " + e1);
 				}
-				res.add(new AssrtAnnotDataName(makeFreshDataTypeVar(), (DataName) e1));  // FIXME: default hardcoded to "int"
+				res.add(new AssrtAnnotDataName(makeFreshDataTypeVar(), (DataName) e1));
 			}
 		}
 		return res;
@@ -462,7 +454,7 @@ public class AssrtCoreGTypeTranslator extends GTypeTranslator
 				? ((AssrtAstFactory) this.job.config.af).AssrtBExprNode(null,
 						AssrtTrueFormula.TRUE)
 				: n;
-			// FIXME: singleton constant
+		// CHECKME: singleton constant?
 	}
 
 	private Role parseSrcRole(DirectedInteraction<Global> n)

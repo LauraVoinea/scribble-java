@@ -37,16 +37,7 @@ import org.scribble.util.RuntimeScribException;
 
 public class AssrtCoreContext extends CoreContext
 {
-	//protected final Map<ProtoName<Global>, GProtocol> imeds;
 
-	/*// N.B. protos have pruned role decls -- CHECKME: prune args?
-	// Mods are preserved
-  // Keys are full names
-	protected final Map<ProtoName<Global>, GProtocol> inlined = new HashMap<>();
-
-	// CHECKME: rename projis?
-	protected final Map<ProtoName<Local>, LProjection> iprojs = new HashMap<>();  // Projected from inlined; keys are full names*/
-	
 	protected AssrtCoreContext(Core core, Set<GProtocol> imeds)
 	{
 		super(core, imeds);
@@ -75,7 +66,7 @@ public class AssrtCoreContext extends CoreContext
 
 			AssrtGProtocol cast = (AssrtGProtocol) inlined;
 
-			// TODO FIXME: here, Map requires distinct annotvars -- but AssrtCore.runGlobalSyntaxWfPasses currently comes after getInlined (runSyntaxTransformPasses)
+			// TODO refactor: here, Map requires distinct annotvars -- but AssrtCore.runGlobalSyntaxWfPasses currently comes after getInlined (cf. runSyntaxTransformPasses)
 			List<Entry<AssrtVar, DataName>> res = cast.type.assrtCoreGather(
 					new AssrtVarEnvGatherer<Global, AssrtGType>()::visit)
 					.collect(Collectors.toList());
@@ -84,13 +75,13 @@ public class AssrtCoreContext extends CoreContext
 							&& !x.getValue().equals(y.getValue()))))
 			{
 				throw new RuntimeScribException(
-						"[FIXME] Duplicate annot var names with different types: " + res);
+						"Duplicate annot var names with different types: " + res);
 				// TODO: refactor with AssrtCore.runGlobalSyntaxWfPasses (which comes later than getInlined pass)
 			}
 
 			Map<AssrtVar, DataName> env = res.stream().distinct()
 					.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
-			cast.statevars.keySet().forEach(x -> env.put(x, new DataName("int")));  // FIXME "int"
+			cast.statevars.keySet().forEach(x -> env.put(x, new DataName("int")));  // TODO: non-int statevars, cf. AssrtCoreGTypeTranslator.translate
 			/*AssrtCoreGType tmp = cast.type;  // Cf. AssrtCoreSConfig.getInitRecAssertCheck
 			while (tmp instanceof AssrtCoreGRec)
 			{

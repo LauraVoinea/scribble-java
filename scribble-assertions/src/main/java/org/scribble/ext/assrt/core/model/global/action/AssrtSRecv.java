@@ -47,10 +47,6 @@ public class AssrtSRecv extends SRecv implements AssrtSAction
 		return super.toString()
 				+ assertionToString()
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
-				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.expr + ">");  // FIXME
-				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");
-		/*return this.subj + getCommSymbol() + this.obj + ":" + this.mid
-				+ this.payload + stateExprsToString() + assertionToString();*/
 	}
 
 	@Override

@@ -21,7 +21,7 @@ public interface AssrtSAction
 	default String stateExprsToString()
 	{
 		List<AssrtAFormula> exprs = getStateExprs();
-		return //(exprs.isEmpty() ? "" :
+		return
 			"<" + exprs.stream().map(Object::toString)
 						.collect(Collectors.joining(", ")) + ">";
 	}

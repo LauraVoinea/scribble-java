@@ -54,7 +54,7 @@ public class AssrtERecv extends ERecv implements AssrtEAction
 	// Also: AssrtSConfig.async -> AssrtCoreESend.toTrueAssertion
 	public AssrtERecv dropStateArgs()
 	{
-		return ((AssrtEModelFactory) this.mf.local).AssrtCoreERecv(this.peer, this.mid,
+		return ((AssrtEModelFactory) this.mf.local).AssrtERecv(this.peer, this.mid,
 				this.payload, this.ass, Collections.emptyList(),
 				new LinkedList<>(), AssrtTrueFormula.TRUE);  // CHECKME
 	}
@@ -62,7 +62,7 @@ public class AssrtERecv extends ERecv implements AssrtEAction
 	@Override
 	public AssrtESend toDual(Role self)
 	{
-		return ((AssrtEModelFactory) this.mf.local).AssrtCoreESend(self, this.mid,
+		return ((AssrtEModelFactory) this.mf.local).AssrtESend(self, this.mid,
 				this.payload, this.ass, this.stateexprs,
 				this.phantom, this.phantAss);
 	}
@@ -81,10 +81,8 @@ public class AssrtERecv extends ERecv implements AssrtEAction
 	}*/
 
 	@Override
-	//public AssrtArithFormula getArithExpr()
 	public List<AssrtAFormula> getStateExprs()
 	{
-		//return this.expr;
 		return this.stateexprs;
 	}
 
@@ -103,16 +101,12 @@ public class AssrtERecv extends ERecv implements AssrtEAction
 	@Override
 	public String toString()
 	{
-		//return super.toString() + "@" + this.ass + ";";
 		return super.toString()
 				+ assertionToString()
 				+ phantomsToString()
 				+ phantomAssertionToString()  // cf. super.assertionToString
 				+ stateExprsToString();  // "First", assertion must hold; "second" pass sexprs
 				//+ ((this.annot.toString().startsWith("_dum")) ? "" : "<" + this.annot + " := " + this.expr + ">");  // FIXME
-				//+ (this.stateexprs.isEmpty() ? "" : "<" + this.stateexprs.stream().map(Object::toString).collect(Collectors.joining(", ")) + ">");
-		/*return this.obj + getCommSymbol() + this.mid + this.payload
-				+ stateExprsToString() + assertionToString();*/
 	}
 	
 	@Override

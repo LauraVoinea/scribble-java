@@ -138,7 +138,7 @@ public class AssrtSGraphBuilderUtil extends SGraphBuilderUtil
 		{
 			AssrtVarFormula old = AssrtFormulaFactory.AssrtIntVar(v.toString());  // N.B. making *Formula*
 			AssrtVarFormula fresh = AssrtFormulaFactory
-					.AssrtIntVar("_" + v.toString());  // FIXME HACK
+					.AssrtIntVar("_" + v.toString());  // TODO: hack, refactor
 			f = f.subs(old, fresh);  // N.B., works on Formulas
 		}
 		return f;

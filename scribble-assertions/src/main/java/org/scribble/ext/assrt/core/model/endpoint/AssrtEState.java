@@ -37,13 +37,11 @@ public class AssrtEState extends EState
 	private final LinkedHashMap<AssrtVar, AssrtAFormula> phantom;
 	
 	private //final
-			AssrtBFormula ass;  // TODO FIXME: make Set -- and eliminate placeholder True from various, use empty set instead
+	AssrtBFormula ass;  // TODO: make Set -- and eliminate placeholder True from various, use empty set instead
 
-	// FIXME: make AssrtIntTypeVar?
-	//protected 
-	public AssrtEState(Set<RecVar> labs,
+	protected AssrtEState(Set<RecVar> labs,
 			LinkedHashMap<AssrtVar, AssrtAFormula> vars,
-			AssrtBFormula ass, LinkedHashMap<AssrtVar, AssrtAFormula> phantom)  // FIXME: currently syntactically restricted to one annot var
+			AssrtBFormula ass, LinkedHashMap<AssrtVar, AssrtAFormula> phantom)  // Current syntax restricts to one annot var
 	{
 		super(labs);
 		//this.vars = Collections.unmodifiableMap(vars);
@@ -79,19 +77,20 @@ public class AssrtEState extends EState
 	protected final void addStateVars(LinkedHashMap<AssrtVar, AssrtAFormula> svars,
 			AssrtBFormula ass)
 	{
-		this.statevars.putAll(svars);  // FIXME: ordering w.r.t. nested recs (i.e., multiple calls to here)
+		this.statevars.putAll(svars);  // TODO: ordering w.r.t. nested recs (i.e., multiple calls to here)
 		this.ass = (this.ass.equals(AssrtTrueFormula.TRUE))
 				? ass
 				: (ass.equals(AssrtTrueFormula.TRUE))   // E.g., addStateVars for the implicitly generated top-level rec, onto the actual entry
 						? this.ass
-						: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, this.ass, ass);  // FIXME: make Set
+						: AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And,
+								this.ass, ass);  // TODO: make Set
 	}
 
 	// For public access, do via AssrtEGraphBuilderUtil
 	protected final void addPhantoms(
 			LinkedHashMap<AssrtVar, AssrtAFormula> phantom)
 	{
-		this.phantom.putAll(phantom);  // FIXME: ordering w.r.t. nested recs (i.e., multiple calls to here)
+		this.phantom.putAll(phantom);  // TODO: ordering w.r.t. nested recs (i.e., multiple calls to here)
 	}
 
 	@Override
@@ -99,8 +98,6 @@ public class AssrtEState extends EState
 	{
 		String labs = this.labs.toString();
 		return "label=\"" + this.id + ": " + labs.substring(1, labs.length() - 1)
-				/*+ (this.statevars.isEmpty() ? "" : ", " + this.statevars)
-				+ (this.ass.equals(AssrtTrueFormula.TRUE) ? "" : ", " + this.ass)*/
 				+ " <" + this.statevars.entrySet().stream()
 						.map(x -> x.getKey() + ":=" + x.getValue())
 						.collect(Collectors.joining(", "))
@@ -110,7 +107,7 @@ public class AssrtEState extends EState
 						.collect(Collectors.joining(", "))
 				+ "] "
 				+ this.ass
-				+ "\"";  // FIXME: would be more convenient for this method to return only the label body
+				+ "\"";  // TODO: would be more convenient for this method to return only the label body
 	}
 
 	@Override

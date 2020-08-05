@@ -11,9 +11,7 @@ import org.scribble.core.type.name.Role;
 
 			
 //.. do we really need receive-exists?  i.e., "local" vs. "global" TS? -- is global TS really justified/used? -- local TS vs coherence?
-					
 //.. for scribble, need a property connecting "unrefined" safety and "refined"...
-
 
 // N.B. does *not* extend AssrtSState -- affects, e.g., dot printing -- CHECKME: what is the problem? the generic param args? and SConfig constr arg
 public class AssrtSState extends //MPrettyState<Void, SAction, AssrtCoreSState, Global>
@@ -65,7 +63,7 @@ public class AssrtSState extends //MPrettyState<Void, SAction, AssrtCoreSState, 
 		return hash;
 	}
 
-	// Not using id, cf. ModelState -- FIXME? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
+	// Not using id, cf. ModelState -- refactor? -- use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
 	@Override
 	public boolean equals(Object o)
 	{

@@ -211,7 +211,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 				es.stateexprs,
 				rename.get(self)));  // Now doing toTrueAssertion on message at receive side*/
 
-		AssrtEMsg msg = ((AssrtEModelFactory) this.mf.local).AssrtCoreEMsg(
+		AssrtEMsg msg = ((AssrtEModelFactory) this.mf.local).AssrtEMsg(
 				a.peer, a.mid, a.payload, a.ass);//, a.sexprs);//, rename.get(self));
 		SSingleBuffers Q = this.Q.send(self, msg);
 

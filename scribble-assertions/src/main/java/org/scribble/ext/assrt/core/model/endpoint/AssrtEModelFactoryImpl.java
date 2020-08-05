@@ -55,7 +55,7 @@ public class AssrtEModelFactoryImpl extends EModelFactoryImpl//AssrtEModelFactor
 	}
 
 	@Override
-	public AssrtESend AssrtCoreESend(Role peer, MsgId<?> mid,
+	public AssrtESend AssrtESend(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
@@ -64,7 +64,7 @@ public class AssrtEModelFactoryImpl extends EModelFactoryImpl//AssrtEModelFactor
 	}
 
 	@Override
-	public AssrtERecv AssrtCoreERecv(Role peer, MsgId<?> mid,
+	public AssrtERecv AssrtERecv(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs,
 			List<AssrtAnnotDataName> phantom, AssrtBFormula phantAss)
 	{
@@ -73,21 +73,23 @@ public class AssrtEModelFactoryImpl extends EModelFactoryImpl//AssrtEModelFactor
 	}
 
 	/*@Override
-	public AssrtCoreEReq AssrtCoreEReq(Role peer, MsgId<?> mid,
+	public AssrtEReq AssrtEReq(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs)
 	{
-		return new AssrtCoreEReq(this.mf, peer, mid, pay, ass, sexprs);
+		//return new AssrtEReq(this.mf, peer, mid, pay, ass, sexprs);
+		throw new RuntimeException("TODO");
 	}
 	
 	@Override
-	public AssrtCoreEAcc AssrtCoreEAcc(Role peer, MsgId<?> mid,
+	public AssrtEAcc AssrtEAcc(Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass, List<AssrtAFormula> sexprs)
 	{
-		return new AssrtCoreEAcc(this.mf, peer, mid, pay, ass, sexprs);
+		//return new AssrtEAcc(this.mf, peer, mid, pay, ass, sexprs);
+		throw new RuntimeException("TODO");
 	}*/
 	
 	@Override
-	public AssrtEMsg AssrtCoreEMsg(Role peer, MsgId<?> mid, Payload pay,
+	public AssrtEMsg AssrtEMsg(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass)//, List<AssrtAFormula> sexprs)
 			//Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow)
 	{

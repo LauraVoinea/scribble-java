@@ -32,18 +32,13 @@ public interface AssrtEAction
 	default String stateExprsToString()
 	{
 		List<AssrtAFormula> aforms = getStateExprs();
-		/*return aforms.isEmpty() 
-				? "" 
-				: ("<" + aforms.stream().map(Object::toString)
-						.collect(Collectors.joining(", ")) + ">");*/
 		return "<" + aforms.stream().map(Object::toString)
 						.collect(Collectors.joining(", ")) + ">";
 	}
 
-	// FIXME: take Map<AssrtIntVar, String> env
+	// TODO: take Map<AssrtIntVar, String> env
 	default String phantomsToString()
 	{
-		//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom = getPhantoms();
 		List<AssrtAnnotDataName> phantom = getPhantoms();
 		return "[" + phantom.stream().map(Object::toString)
 				.collect(Collectors.joining(", ")) + "]";

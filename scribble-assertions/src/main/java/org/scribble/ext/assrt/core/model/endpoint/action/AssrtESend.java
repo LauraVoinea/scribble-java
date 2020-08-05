@@ -33,7 +33,6 @@ public class AssrtESend extends ESend implements AssrtEAction
 
 	public AssrtESend(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload payload, AssrtBFormula ass, List<AssrtAFormula> stateexprs,
-			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantom,
 			List<AssrtAnnotDataName> phantom,
 			AssrtBFormula phantAss)
 	{
@@ -41,15 +40,8 @@ public class AssrtESend extends ESend implements AssrtEAction
 		this.ass = ass;
 		//this.annot = annot;
 		this.sexprs = Collections.unmodifiableList(stateexprs);
-		//this.phantom = new LinkedHashMap<>(phantom);
 		this.phantom = new LinkedList<>(phantom);
 		this.phantAss = phantAss;
-	}
-	
-	@Deprecated
-	public ModelFactory getModelFactory()
-	{
-		return this.mf;
 	}
 	
 	@Override
@@ -61,15 +53,15 @@ public class AssrtESend extends ESend implements AssrtEAction
 	// Used by AssrtCoreSSingleBuffers.canReceive and AssrtCoreSConfig.getStuckMessages
 	public AssrtESend toTrueAssertion()  // CHECKME: for model building, currently need send assertion to match (syntactical equal) receive assertion -- which is always True(?), to be fireable
 	{
-		return ((AssrtEModelFactory) this.mf.local).AssrtCoreESend(this.peer,
+		return ((AssrtEModelFactory) this.mf.local).AssrtESend(this.peer,
 				this.mid, this.payload, AssrtTrueFormula.TRUE, this.sexprs,
-				this.phantom, AssrtTrueFormula.TRUE);  // CHECKME
+				this.phantom, AssrtTrueFormula.TRUE);
 	}
 
 	@Override
 	public AssrtERecv toDual(Role self)
 	{
-		return ((AssrtEModelFactory) this.mf.local).AssrtCoreERecv(self,
+		return ((AssrtEModelFactory) this.mf.local).AssrtERecv(self,
 				this.mid, this.payload, this.ass, this.sexprs,
 				this.phantom, this.phantAss);
 	}
@@ -88,14 +80,12 @@ public class AssrtESend extends ESend implements AssrtEAction
 	}*/
 
 	@Override
-	//public AssrtArithFormula getArithExpr()
 	public List<AssrtAFormula> getStateExprs()
 	{
 		return this.sexprs;
 	}
 
 	@Override
-	//public LinkedHashMap<AssrtIntVar, AssrtAFormula> getPhantoms()
 	public List<AssrtAnnotDataName> getPhantoms()
 	{
 		return this.phantom;

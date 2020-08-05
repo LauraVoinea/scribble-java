@@ -179,7 +179,7 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
-global protocol Proto1(role A, role B) @'[x: int = 0]' {
+global protocol Proto1(role A, role B) @'[x: String = 0]' {
 	1() from A to B;
 	//do Proto1(A, B);  // Testing do arg checking
 	do Proto1(A, B);  @'[1, 1]'  // Testing do arg checking

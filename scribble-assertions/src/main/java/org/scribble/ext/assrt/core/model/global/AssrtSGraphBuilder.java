@@ -35,7 +35,7 @@ public class AssrtSGraphBuilder extends SGraphBuilder
 		AssrtSGraphBuilderUtil util = (AssrtSGraphBuilderUtil) this.util;
 
 		AssrtSConfig c0 = util.createInitConfig(egraphs, isExplicit,
-				Collections.emptyMap());  // FIXME: should take statevar sorts from top-level (but need to refactor base `build` params)
+				Collections.emptyMap());  // TODO0: should take statevar sorts from top-level (but need to refactor base `build` params)
 		// ^Currently just empty, hacked inside AssrtCoreSConfig for now
 
 		AssrtSState init = (AssrtSState) util.newState(c0);
@@ -44,7 +44,6 @@ public class AssrtSGraphBuilder extends SGraphBuilder
 		todo.add(init);
 		
 		while (!todo.isEmpty())
-		//for (int zz = 0; !todo.isEmpty(); zz++)
 		{
 			Iterator<SState> i = todo.iterator();
 			SState curr = i.next();

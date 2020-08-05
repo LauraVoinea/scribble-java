@@ -24,18 +24,17 @@ public interface AssrtEModelFactory extends EModelFactory
 			LinkedHashMap<AssrtVar, AssrtAFormula> svars,
 			AssrtBFormula ass, LinkedHashMap<AssrtVar, AssrtAFormula> phantom);
 
-	AssrtESend AssrtCoreESend(Role peer, MsgId<?> mid, Payload pay,
+	AssrtESend AssrtESend(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms,
 			List<AssrtAnnotDataName> phantoms,
 			AssrtBFormula phantAss);
-	AssrtERecv AssrtCoreERecv(Role peer, MsgId<?> mid, Payload pay,
+
+	AssrtERecv AssrtERecv(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass, List<AssrtAFormula> sexprs,
-			//LinkedHashMap<AssrtIntVar, AssrtAFormula> phantoms,
 			List<AssrtAnnotDataName> phantoms,
 			AssrtBFormula phantAss);
 	
-	AssrtEMsg AssrtCoreEMsg(Role peer, MsgId<?> mid, Payload pay,
+	AssrtEMsg AssrtEMsg(Role peer, MsgId<?> mid, Payload pay,
 			AssrtBFormula ass);// List<AssrtAFormula> sexprs);
 			//Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow);
 }

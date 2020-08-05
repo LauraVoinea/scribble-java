@@ -23,7 +23,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-public class AssrtSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelFactoryImpl
+public class AssrtSModelFactoryImpl extends SModelFactoryImpl
 		implements AssrtSModelFactory
 {
 
@@ -55,9 +55,7 @@ public class AssrtSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelFacto
 			Map<Role, Set<AssrtVar>> K,
 			Map<Role, Set<AssrtBFormula>> F, Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
-
 			Map<AssrtVar, DataName> Env
-
 	)
 			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename
 			//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes)
@@ -81,7 +79,7 @@ public class AssrtSModelFactoryImpl extends SModelFactoryImpl //AssrtSModelFacto
 		throw new RuntimeException("Deprecated for " + getClass());
 	}
 
-	// FIXME: breaks super pattern, extra core arg -- cf. Core.validateByScribble -- CHECKME: core really needed?
+	// TODO: fix, breaks super pattern, extra core arg -- cf. Core.validateByScribble -- CHECKME: core really needed?
 	@Override
 	public AssrtSModel AssrtCoreSModel(AssrtCore core, AssrtSGraph graph)
 	{

@@ -34,8 +34,7 @@ public class AssrtSModel extends SModel
 		this.core = core;
 	}
 	
-	//public AssrtCoreSafetyErrors getSafetyErrors(Job job, GProtoName simpname)
-			// Maybe refactor simpname (root proto) into the (AssrtCore)Job
+	// Maybe refactor simpname (root proto) into the (AssrtCore)Job
 	@Override
 	protected SortedMap<Integer, AssrtSStateErrors> getSafetyErrors()  // s.id key lighter than full SConfig
 	{

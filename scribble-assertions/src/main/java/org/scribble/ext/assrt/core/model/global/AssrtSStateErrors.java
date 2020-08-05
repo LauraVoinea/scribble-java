@@ -28,6 +28,7 @@ import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtEState;
 import org.scribble.ext.assrt.core.model.endpoint.action.AssrtEAction;
 
+// Batching done by AssrtSModel
 public class AssrtSStateErrors extends SStateErrors
 {
 	// TODO: factor out explicit error classes -- for error message formatting
@@ -40,7 +41,6 @@ public class AssrtSStateErrors extends SStateErrors
 	public final Map<Role, Set<AssrtEAction>> recass;  // CHECKME: equiv of assprog for rec asserts?
 
 		
-	// TODO batching
 	// TODO refactor super to take core
 	// CHECKME: core and fullname really necessary?
 	public AssrtSStateErrors(AssrtCore core, GProtoName fullname,

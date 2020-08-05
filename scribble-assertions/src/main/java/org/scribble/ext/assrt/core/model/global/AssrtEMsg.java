@@ -17,16 +17,10 @@ public class AssrtEMsg extends AssrtESend
 		// Otherwise duality mismatch re. startexprs, e.g., A->B.A->C.X<123> w.r.t. A/B (cf. DbC)
 {
 	//public final Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow;  // N.B. not in equals/hash
-	
-	/*public AssrtCoreEMsg(EModelFactory ef, AssrtCoreESend es)
-	{
-		this(ef, es.peer, es.mid, es.payload, es.ass, es.annot, es.expr);
-	}*/
 
 	public AssrtEMsg(ModelFactory mf, Role peer, MsgId<?> mid,
 			Payload pay, AssrtBFormula ass)//, List<AssrtAFormula> sexprs)
 	{
-		//this(mf, peer, mid, pay, ass, sexprs, Collections.emptyMap());
 		super(mf, peer, mid, pay, ass,
 				// Cf. AssrtCoreERecv.dropStateArgs, AssrtCoreSSingleBuffers.canReceive
 				Collections.emptyList(),  // TODO: empty state exprs, refactor
@@ -70,7 +64,7 @@ public class AssrtEMsg extends AssrtESend
 	}
 	
 	@Override
-	public boolean canEquals(Object o)  // FIXME: rename canEquals
+	public boolean canEquals(Object o)  // TODO: rename canEquals
 	{
 		return o instanceof AssrtEMsg;
 	}
