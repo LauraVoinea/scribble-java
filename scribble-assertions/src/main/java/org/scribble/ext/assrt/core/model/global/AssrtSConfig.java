@@ -142,51 +142,6 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 		return res;
 		//R.get(self).putAll(succ.getAnnotVars());  // Should "overwrite" previous var values -- no, do later (and from action info, not state)
 	}
-	
-	@Override
-	public List<SConfig> sync(Role r1, EAction a1, Role r2, EAction a2)
-	{
-		throw new RuntimeException(
-				"[TODO] :\n\t" + r1 + " ,, " + a1 + "\n\t" + r2 + " ,, " + a2);
-		/*List<SConfig> res = new LinkedList<>();
-		List<EFsm> succs1 = this.efsms.get(r1).getSuccs(a1);
-		List<EFsm> succs2 = this.efsms.get(r2).getSuccs(a2);
-		if (succs1.size() > 1 || succs2.size() > 1)
-		{
-			throw new RuntimeException(
-					"[assrt-core][TODO] Non-deteterministic actions not supported: "
-							+ succs1 + " ,, " + succs2);
-		}
-		for (EFsm succ1 : succs1)
-		{
-			for (EFsm succ2 : succs2)
-			{
-				Map<Role, EFsm> efsms = new HashMap<>(this.efsms);
-				// a1 and a2 are a "sync" pair, add all combinations of succ1 and succ2 that may arise
-				efsms.put(r1, succ1);  // Overwrite existing r1/r2 entries
-				efsms.put(r2, succ2);
-				SingleBuffers queues;
-				// a1 and a2 definitely "sync", now just determine whether it is a connect or wrap
-				if (((a1.isRequest() && a2.isAccept())
-						|| (a1.isAccept() && a2.isRequest())))
-				{
-					queues = this.queues.connect(r1, r2);  // N.B. queue updates are insensitive to non-det "a"
-				}
-				else if (((a1.isClientWrap() && a2.isServerWrap())
-						|| (a1.isServerWrap() && a2.isClientWrap())))
-				{
-					// Doesn't affect queue state
-					queues = this.queues;  // OK, immutable?
-				}
-				else
-				{
-					throw new RuntimeException("Shouldn't get in here: " + a1 + ", " + a2);
-				}
-				res.add(this.mf.global.SConfig(efsms, queues));
-			}
-		}
-		return res;*/
-	}
 
 	// Update (in place) P, Q, K, F and R
 	private AssrtSConfig fireSend(Role self, AssrtESend a, EFsm succ)
@@ -204,19 +159,12 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 		Map<AssrtVar, DataName> Env = new HashMap<>(this.Env);
 
 		P.put(self, succ);
-		/*//Q.get(es.peer).put(self, es.toTrueAssertion());  // HACK FIXME: cf. AssrtSConfig::fire
-		//Q.get(es.peer).put(self, es);  // Now doing toTrueAssertion on message at receive side
-		Q.get(es.peer).put(self, new AssrtCoreEMsg(es.getModelFactory(), es.peer, es.mid, es.payload, es.ass, 
-				//es.annot,
-				es.stateexprs,
-				rename.get(self)));  // Now doing toTrueAssertion on message at receive side*/
 
 		AssrtEMsg msg = ((AssrtEModelFactory) this.mf.local).AssrtEMsg(
 				a.peer, a.mid, a.payload, a.ass);//, a.sexprs);//, rename.get(self));
 		SSingleBuffers Q = this.Q.send(self, msg);
 
 		updateOutput(self, a, succ, K, F, V, R, Env); //rename, scopes);
-		//updateR(R, self, es);
 
 		return ((AssrtSModelFactory) this.mf.global).AssrtCoreSConfig(P, Q, K,
 				F, V, R, Env); //rename scopes, 
@@ -228,35 +176,56 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			Map<Role, Set<AssrtBFormula>> F,
 			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
-
 			Map<AssrtVar, DataName> Env
-
 	)
 			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename)
 			//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes)
 	{
 		updateKFVR(self, a, a.getAssertion(), succ, K, F, V, R, Env);
-		
-		/*for (PayElemType<?> e : ((EAction) a).payload.elems)  // CHECKME: EAction closest base type
-		{
-			if (e instanceof AssrtAnnotDataName)
-			{
-				AssrtIntVar v = ((AssrtAnnotDataName) e).var;
-				//renameOldVarsInF(self, v, F);//, rename);  // CHECKME
-				updateForAnnotVar(v, K.get(self));  // Currently, addAnnotVarToK
-			}
-			else
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + a);  
-						// Regular DataType pay elems have been given fresh annot vars (AssrtCoreGProtoDeclTranslator.parsePayload) -- no other pay elems allowed
-			}
-		}
-		updateForAssertionAndStateExprs(self,
-				a.getAssertion(), a.getStateExprs(), succ,  // FIXME: assumes v is the only var (o/w ass/svars repeated) -- ?
-				K, F, V, R);//, rename);
+	}
 
-		updateScopes(self, a, succ, K.get(self), F.get(self), scopes.get(self));
-				// FIXME TODO: V/R and scopes -- scopes records statevardecls ?*/
+	// CHECKME: manage F with receive assertions?
+	private AssrtSConfig fireRecv(Role self, AssrtERecv a, EFsm succ)
+	{
+		Map<Role, EFsm> P = new HashMap<>(this.P);
+		Map<Role, Set<AssrtVar>> K = copyK(this.K);
+		Map<Role, Set<AssrtBFormula>> F = copyF(this.F);
+		Map<Role, Map<AssrtVar, AssrtAFormula>> V = copyR(this.V);
+		//R.get(self).putAll(succ.getAnnotVars());  // Should "overwrite" previous var values -- no, do later (and from action info, not state)
+		Map<Role, Set<AssrtBFormula>> R = copyRass(this.R);
+		/*Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename = copyRename(
+				this.rename);*/
+		//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes = copyScopes(this.scopes);
+
+		Map<AssrtVar, DataName> Env = new HashMap<>(this.Env);
+
+		P.put(self, succ);
+		AssrtEMsg msg = (AssrtEMsg) this.Q.getQueue(self).get(a.peer);  // null is \epsilon
+		SSingleBuffers Q = this.Q.receive(self, a);
+
+		updateInput(self, a, msg, //msg.shadow, 
+				succ, K, F, V, R,//, rename, scopes
+				Env);
+
+		return ((AssrtSModelFactory) this.mf.global).AssrtCoreSConfig(P, Q, K,
+				F, V, R,
+				//, rename scopes
+				Env);
+	}
+
+	// "a" is the EFSM input action, which has (hacked) True ass; msg is the dequeued msg, which carries the (actual) ass from the output side
+	// CHECKME: factor better with updateOutput ?
+	private void updateInput(Role self, AssrtEAction a,
+			AssrtEMsg msg, //Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow,
+			EFsm succ,
+			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F,
+			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
+			Map<Role, Set<AssrtBFormula>> R,
+			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename  // CHECKME: EAction closest base type -- ?
+			//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes
+			Map<AssrtVar, DataName> Env)
+	{
+		updateKFVR(self, a, msg.getAssertion(), succ, K, F, V, R, Env);
 	}
 
 	// TODO: pass `Kself`, `Fself`, etc. directly (and not `self`)
@@ -266,9 +235,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			Map<Role, Set<AssrtBFormula>> F,
 			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
 			Map<Role, Set<AssrtBFormula>> R,
-
 			Map<AssrtVar, DataName> Env
-
 	)
 	{
 		//- first K, F
@@ -286,9 +253,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 				AssrtVar v = cast.var;
 				gcF(Fself, v);
 				Kself.add(v);
-
 				Env.put(v, cast.data);
-
 			}
 			else
 			{
@@ -305,9 +270,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			AssrtVar v = p.var;
 			gcF(Fself, v);
 			Kself.add(v);
-
 			Env.put(v, p.data);
-
 		}
 
 		// (Source of) `ass` is the difference between output and input -- CHECKME: payvar vs. msg? or old?
@@ -336,7 +299,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			//boolean isEntry = aexprs.isEmpty() && !svars.isEmpty();  
 			boolean isContinue = !aexprs.isEmpty();
 					// Rec-entry: expr args already inlined into the rec statevars (i.e., by proto inlining) -- CHECKME: means "forwards entry?" robust?  refactor?
-			// FIXME: now always true, cf. AssrtCoreEGraphBuiler.buildEdgeAndContinuation AssrtCoreLRec `cont` f/w-rec case
+			// CHECKME: now always true?, cf. AssrtCoreEGraphBuiler.buildEdgeAndContinuation AssrtCoreLRec `cont` f/w-rec case
 
 			Iterator<AssrtAFormula> i = aexprs.iterator();
 			for (Entry<AssrtVar, AssrtAFormula> e : svars.entrySet())
@@ -351,25 +314,6 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 				else
 				{
 					AssrtAFormula next = i.next();
-					/*sexpr = (next instanceof AssrtIntVarFormula)
-							&& Vself.keySet().stream()
-									.anyMatch(x -> x.toString().equals(next.toString())) // CHECKME: dubious hacks, but cf. good.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest08f/g -- no: broken, get `y=y`
-							? next  // A "direct" equality to a state var can be left "unerased" without increasing the overall state space -- no: e.g., do Fib <y, z1>, `x=y` where (old) `y` unerased conflicts with `y=z1`
-											: (AssrtAFormula) renameFormula(next);*/
-					/* // Deprecated special case treatment of statevar init exprs and "constant propagation" (and constants) from model building -- now restored
-					if (next instanceof AssrtIntVarFormula)
-					{
-						Optional<AssrtIntValFormula> con = isConst(Vself_orig,
-								(AssrtIntVarFormula) next, new HashSet<>());
-						if (con.isPresent())
-						{
-							sexpr = con.get();
-						}
-					}
-					if (sexpr == null)
-					{
-						sexpr = (AssrtAFormula) renameFormula(next);
-					}*/
 					if (next.isConstant())
 					// Deprecated special case treatment of statevar init exprs and "constant propagation" from model building -- now restored
 					// Original intuition was to model "base case" and "induction step", but this is incompatible with unsat checking + loop counting
@@ -379,18 +323,14 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 					}
 					else
 					{
-						sexpr = (AssrtAFormula) AssrtSGraphBuilderUtil
-								.renameFormula(next);
+						sexpr = (AssrtAFormula) AssrtSGraphBuilderUtil.renameFormula(next);
 					}
 				}
-				if (isContinue   // CHECKME: "shadowing", e.g., forwards statevar has same name as a previous
-				/*&& !((sexpr instanceof AssrtIntVarFormula)  // CHECKME: dubious hacks, but cf. good.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest08f/g
-					&& sexpr.toString().equals(svar.toString()))*/  // Now disabled, related to deprecating special case treatment of state var init exprs and "constants" from model building
-				)
-					{
+				if (isContinue)  // CHECKME: "shadowing", e.g., forwards statevar has same name as a previous
+				{
 					// CHECKME: inside loop?
-						gcVR(Vself, Rself, svar);  // GC V , sexpr may be different than that removed
-						gcF(Fself, svar);
+					gcVR(Vself, Rself, svar);  // GC V , sexpr may be different than that removed
+					gcF(Fself, svar);
 				}
 				Vself.put(svar, sexpr);
 			}
@@ -415,33 +355,6 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			compactF(Rself);
 		}
 	}
-
-	/*private Optional<AssrtIntValFormula> isConst(
-			Map<AssrtIntVar, AssrtAFormula> Vself_orig, AssrtIntVarFormula next,
-			Set<AssrtIntVarFormula> seen)
-	{
-		if (seen.contains(next))
-		{
-			return Optional.empty();
-		}
-		AssrtIntVar v_tmp = new AssrtIntVar(next.toString());  // CHECKME: do via typefact?
-		if (Vself_orig.containsKey(v_tmp))
-		{
-			AssrtAFormula f_tmp = Vself_orig.get(v_tmp);
-			//System.out.println("aaaa: " + v_tmp + " ,, " + f_tmp + " ,, " + f_tmp.getClass());
-			if (f_tmp instanceof AssrtIntValFormula)
-			{  // TODO: generalise to any constant expr?
-				return Optional.of((AssrtIntValFormula) f_tmp);
-			}
-			else if (f_tmp instanceof AssrtIntVarFormula)
-			{
-				Set<AssrtIntVarFormula> tmp = new HashSet<>(seen);
-				tmp.add(next);
-				return isConst(Vself_orig, (AssrtIntVarFormula) f_tmp, tmp);
-			}
-		}
-		return Optional.empty();
-	}*/
 	
 	private void gcF(Set<AssrtBFormula> Fself, AssrtVar v) 
 	{
@@ -477,7 +390,6 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			if (f.equals(AssrtTrueFormula.TRUE) 
 					|| f.getIntVars().stream().anyMatch(x -> x.toString().startsWith("_"))  // CHECKME: still needed?
 					) 
-			// Pruning if formula contains "old" var renamed by renameOldVarsInF -- FIXME refactor to renameOldVarsInF? -- old
 			// CHECKME: other sources of renaming? makeFreshIntVar, and AssrtCoreSGraphBuilderUtil::renameFormula
 			{
 				i.remove();
@@ -485,165 +397,8 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 		}
 	}
 
-	// CHECKME: manage F with receive assertions?
-	private AssrtSConfig fireRecv(Role self, AssrtERecv a, EFsm succ)
-	{
-		Map<Role, EFsm> P = new HashMap<>(this.P);
-		Map<Role, Set<AssrtVar>> K = copyK(this.K);
-		Map<Role, Set<AssrtBFormula>> F = copyF(this.F);
-		Map<Role, Map<AssrtVar, AssrtAFormula>> V = copyR(this.V);
-		//R.get(self).putAll(succ.getAnnotVars());  // Should "overwrite" previous var values -- no, do later (and from action info, not state)
-		Map<Role, Set<AssrtBFormula>> R = copyRass(this.R);
-		/*Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename = copyRename(
-				this.rename);*/
-		//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes = copyScopes(this.scopes);
-
-		Map<AssrtVar, DataName> Env = new HashMap<>(this.Env);
-
-		P.put(self, succ);
-		AssrtEMsg msg = (AssrtEMsg) this.Q.getQueue(self).get(a.peer);  // null is \epsilon
-		SSingleBuffers Q = this.Q.receive(self, a);
-
-		updateInput(self, a, msg, //msg.shadow, 
-				succ, K, F, V, R,//, rename, scopes
-
-				Env
-
-				);
-		//updateR(R, self, es);
-
-		return ((AssrtSModelFactory) this.mf.global).AssrtCoreSConfig(P, Q, K,
-				F, V, R,
-		//, rename scopes
-
-				Env
-
-				);
-	}
-
-	// "a" is the EFSM input action, which has (hacked) True ass; msg is the dequeued msg, which carries the (actual) ass from the output side
-	// CHECKME: factor better with updateOutput ?
-	private void updateInput(Role self, AssrtEAction a,
-			AssrtEMsg msg, //Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow,
-			EFsm succ,
-			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F,
-			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
-			Map<Role, Set<AssrtBFormula>> R,
-			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename  // CHECKME: EAction closest base type -- ?
-			//Map<Role, LinkedHashMap<Integer, Set<AssrtIntVar>>> scopes
-
-			Map<AssrtVar, DataName> Env
-
-			)
-	{
-		updateKFVR(self, a, msg.getAssertion(), succ, K, F, V, R, Env);
-
-		/*for (PayElemType<?> pt : ((EAction) a).payload.elems)
-		{
-			if (pt instanceof AssrtAnnotDataName)
-			{
-				AssrtIntVar v = ((AssrtAnnotDataName) pt).var;
-				updateForAnnotVar(v, K.get(self));  // Update K
-			}
-			else
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + a);
-						// Regular DataName pay elems have been given fresh annot vars (AssrtCoreGProtoDeclTranslator.parsePayload) -- no other pay elems allowed
-			}
-		}
-
-		// N.B. no "updateRfromF" -- actually, "update V from payload annot" -- leaving V statevars as they are is OK, validation only done from F's and V already incorporated into F (and updates handled by updateFfromV)
-		// But would it be more consistent to update V?
-		
-		/*
-		// CHECKME: what is an example?
-		Set<AssrtBFormula> H = F.get(self);
-		Set<Entry<AssrtIntVarFormula, AssrtIntVarFormula>> reself = rename
-				.get(self).entrySet();
-		for (Entry<AssrtIntVarFormula, AssrtIntVarFormula> e : shadow.entrySet()
-				.stream().filter(x -> !reself.contains(x))
-				.collect(Collectors.toList()))
-		{
-			H = H.stream().map(x -> x.subs(e.getKey(), e.getValue())).collect(Collectors.toSet());
-		}
-		F.put(self, H);
-		rename.get(self).putAll(shadow);
-		* /
-
-		updateForAssertionAndStateExprs(self,
-				msg.getAssertion(), a.getStateExprs(), succ, 
-				K, F, V, R);//, rename);
-				// Actual assertion (f) for annotvar (v) added in here
-		
-		updateScopes(self, a, succ, K.get(self), F.get(self), scopes.get(self));
-		*/
-	}
-
-	/*// FIXME: V
-	private void fireAcc(Map<Role, EFsm> P, SSingleBuffers Q,
-			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
-			Map<Role, Set<AssrtBFormula>> R,
-			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F, 
-			Map<Role, Map<AssrtVarFormula, AssrtVarFormula>> rename,
-			Role self, AssrtCoreEAcc a, EFsm succ)
-	{
-		throw new RuntimeException("[TODO] : " + a);
-	//		P.put(self, succ);
-	//		AssrtCoreEPendingRequest pr = (AssrtCoreEPendingRequest) Q.get(self)
-	//				.put(a.peer, null);
-	//		AssrtCoreEReq msg = pr.getMsg();  // CHECKME
-	//		Q.get(a.peer).put(self, null);
-	//
-	//		updateInput(self, a, pr,  // msg?
-	//				pr.shadow, succ, 
-	//				K, F, V, R, rename);
-	}*/
-
-	/*private void fireReq(Map<Role, EFsm> P, SSingleBuffers Q,
-			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
-			Map<Role, Set<AssrtBFormula>> R,
-			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F,
-			Map<Role, Map<AssrtVarFormula, AssrtVarFormula>> rename,
-			Role self, AssrtCoreEReq a, EFsm succ)
-	{
-		throw new RuntimeException("[TODO] : " + a);
-	//		P.put(self, succ);
-	//
-	//		updateOutput(self, a, succ, K, F, V, R, rename);
-	//
-	//		Q.get(a.peer).put(self, new AssrtCoreEPendingRequest(a, rename.get(self)));  // Now doing toTrueAssertion on accept side
-	}*/
-
-	/*// Doesn't include pending requests, checks isInputQueueEstablished
-	private boolean hasMsg(Role self, Role peer)
-	{
-		return isInputQueueEstablished(self, peer)  // input queue is established (not \bot and not <a>)
-				&& this.Q.get(self).get(peer) != null;  // input queue is not empty
-	}
 	
-	// Direction sensitive (not symmetric) -- isConnected means dest has established input queue from src
-	// i.e. "fully" established, not "pending" -- semantics relies on all action firing being guarded on !hasPendingConnect
-	private boolean isInputQueueEstablished(Role dest, Role src)  // N.B. is more like the "input buffer" at r1 for r2 -- not the actual "connection from r1 to r2"
-	{
-		AssrtCoreEMsg m = this.Q.get(dest).get(src);
-		return !(m instanceof AssrtCoreEBot)
-				&& !(m instanceof AssrtCoreEPendingRequest);
-		//return es != null && es.equals(AssrtCoreEBot.ASSSRTCORE_BOT);  // Would be same as above
-	}
-
-	// req waiting for acc -- cf. reverse direction to isConnect
-	private boolean isPendingRequest(Role req, Role acc)  // FIXME: for open/port annotations
-	{
-		//return (this.ports.get(r1).get(r2) != null) || (this.ports.get(r2).get(r1) != null);
-		AssrtCoreEMsg m = this.Q.get(acc).get(req);  // N.B. reverse direction to isConnected
-		return m instanceof AssrtCoreEPendingRequest;
-	}
-
-	private boolean hasPendingRequest(Role req)
-	{
-		return this.Q.keySet().stream().anyMatch(acc -> isPendingRequest(req, acc));
-	}*/
-	
+	/* Error checks */
 
 	// Need to consider hasPendingRequest? -- no: the semantics blocks both sides until connected, so don't need to validate those "intermediate" states
 	//public boolean isReceptionError()
@@ -664,7 +419,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 					AssrtERecv dual = msg//.toTrueAssertion()
 							.toDual(peer);  // N.B. toTrueAssertion
 					//if (!s.curr.hasAction(dual))  // CHECKME: ...map(a -> ((AssrtCoreESend) a.toDual(dst)).toTrueAssertion()) ?
-								// FIXME: check assertion implication (not just syntactic equals) -- cf. AssrtSConfig::fire
+					// TODO: check assertion implication (not just syntactic equals) -- cf. AssrtSConfig::fire
 					if (s.curr.getActions().stream()
 							.noneMatch(x -> ((AssrtERecv) x).dropStateArgs().equals(dual)))
 					{
@@ -674,98 +429,6 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			}
 		}
 		return res;
-	}
-
-	/*@Override
-	protected Set<Role> getWaitingFor(Role r)
-	{
-		throw new RuntimeException("[TODO] : " + r);
-	}*/
-
-	/*// TODO: orphan pending requests -- maybe shouldn't?  handled by synchronisation error?
-	//public boolean isOrphanError(Map<Role, AssrtEState> E0)
-	public Map<Role, Set<? extends AssrtCoreESend>> getOrphanMessages()
-	{
-		Map<Role, Set<? extends AssrtCoreESend>> res = new HashMap<>();
-		for (Role r : this.efsms.keySet())
-		{
-			Set<ESend> orphs = new HashSet<>();
-			EFsm fsm = this.efsms.get(r);
-			if (fsm.curr.isTerminal())  // Local termination of r, i.e. not necessarily "full deadlock cycle"
-			{
-				orphs.addAll(this.queues.getQueue(r).values().stream()
-						.filter(v -> v != null).collect(Collectors.toSet()));
-			}
-			else
-			{
-				this.efsms.keySet().stream()
-						.filter(x -> !r.equals(x) && !this.queues.isConnected(r, x))  // !isConnected(r, x), means r considers its side closed
-						.map(x -> this.queues.getQueue(r).get(x)).filter(x -> x != null)  // r's side is closed, but remaining message(s) in r's buff
-						.forEachOrdered(x -> orphs.add(x));
-			}
-			if (!orphs.isEmpty())
-			{
-				res.put(r, orphs);
-			}
-		}
-		return res;
-	}*/
-
-	// Request/accept are bad if local queue is established
-	// N.B. request/accept when remote queue is established is not an error -- relying on semantics to block until both remote/local queues not established; i.e., error precluded by design of model, not by validation
-	// N.B. not considering pending requests, for the same reason as above and as why not considered for, e.g., reception errors -- i.e., not validating those "intermediate" states
-	// Deadlock/progress errors that could be related to "decoupled" connection sync still caught by existing checks, e.g., orphan message or unfinished role
-	@Deprecated
-	public boolean isConnectionError()
-	{
-		throw new RuntimeException("[TODO] : ");
-		/*return this.P.entrySet().stream().anyMatch(e -> 
-				e.getValue().getActions().stream().anyMatch(a ->
-						(a.isRequest() || a.isAccept()) && isInputQueueEstablished(e.getKey(), a.peer)
-		));
-				// FIXME: check for pending port, if so then port is used -- need to extend an AnnotEConnect type with ScribAnnot (cf. AnnotPayloadType)*/
-	}
-
-	// Send is bad if either local queue or remote queue is not established, and no pending request to the target
-	// Receive is bad if local queue is not established and no pending request to the target
-	@Deprecated
-	public boolean isUnconnectedError()
-	{
-		throw new RuntimeException("[TODO] : ");
-		/*return this.P.entrySet().stream().anyMatch(e -> 
-		{
-			Role r = e.getKey();
-			return 
-					e.getValue().getActions().stream().anyMatch(a ->
-									(a.isSend() &&
-										(!isInputQueueEstablished(r, a.peer) || !isInputQueueEstablished(a.peer, r)) && !isPendingRequest(r, a.peer))
-							|| (a.isReceive() && !isInputQueueEstablished(r, a.peer) && !isPendingRequest(r, a.peer)));
-			// Don't need to use isPendingRequest(a.peer, r) because only requestor is "at the next state" while request pending 
-		});*/
-	}
-
-	// "Connection message" reception error
-	@Deprecated
-	public boolean isSynchronisationError()
-	{
-		throw new RuntimeException("[TODO] : ");
-		/*return this.P.entrySet().stream().anyMatch(e ->  // e: Entry<Role, EState>
-		{
-			EState s = e.getValue();
-			EStateKind k = s.getStateKind();
-			if (k != EStateKind.ACCEPT)
-			{
-				return false;
-			}
-			Role dest = e.getKey();
-			List<EAction> as = s.getActions();
-			Role src = as.get(0).peer;
-			return isPendingRequest(src, dest)
-					&& !as.contains(
-								 ((AssrtCoreEPendingRequest) this.Q.get(dest).get(src)).getMsg()
-								.toTrueAssertion().toDual(src)
-							);
-		});*/
 	}
 	
 	// Cf. refactor syntactically?  cf. connection errors
@@ -979,13 +642,13 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			// Cannot actually check on input side, e.g., recursive choice of b>=0 || b<0, after one loop one action can be unsat w.r.t. F-knowledge of previously chosen action
 			// May need at least three parties (or some other asynchrony) to expose (need an "intermediate" state where input role is "passively waiting" with prev-K and new-actions)
 			// E.g., SH -- cf. good.extensions.assrtcore.safety.unsat.AssrtCoreTest35 
-			// FIXME: factor out with getAssertSatChecks
+			// TODO: factor out with getAssertSatChecks
 			// N.B. this is the only "get errors" operation to impose "additional conditions" on top of the "get check", cf. assert-prog, rec-assert don't -- TODO refactor into "get check"?
 			{
 				continue;
 			}
 			List<EAction> as = curr.getActions(); // N.B. getActions includes non-fireable
-			if (as.size() <= 1)  // Optimisation // FIXME: out with getAssertSatChecks
+			if (as.size() <= 1)  // Optimisation // TODO: factor out with getAssertSatChecks
 			// Can do only on non-unary choices -- for unary, assrt-prog implies assrt-sat
 					// Note: this means "downstream" assrt-unsat errors for unary-choice continuations will not be caught (i.e., false => false for assrt-prog)
 			{
@@ -1106,11 +769,9 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			GProtoName fullname)
 	{
 		return this.P.entrySet().stream()
-
 				// Consistent with getAssertUnsatErrors -- TODO refactor
 				.filter(x -> x.getValue().curr.getStateKind() == EStateKind.OUTPUT  // Cannot check on input side, see getAssertUnsatErrors
 						&& x.getValue().curr.getActions().size() > 1)  // Optimisation
-
 				.flatMap(e ->  // anyMatch is on the endpoints (not actions)
 				e.getValue().curr.getActions().stream().map(a ->
 				getAssertSatCheck(core, fullname, e.getKey(), (AssrtEAction) a))
@@ -1270,26 +931,6 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 					res.put(self, tmp);
 				}
 			}
-			/*else if (kind == EStateKind.UNARY_RECEIVE
-					|| kind == EStateKind.POLY_RECIEVE)
-			{
-				Role peer = curr.getActions().iterator().next().peer;
-				if (!this.Q.isConnected(self, peer)
-						|| this.Q.getQueue(self).get(peer) == null)
-				{
-					continue;
-				}
-				AssrtCoreEMsg m = (AssrtCoreEMsg) this.Q.getQueue(self).get(peer);
-				EAction a = m.toDual(peer);  // Stuck messages already checked -- CHECKME: currently includes check between msg-assertion and action-assertion?
-				
-				System.out.println("1111: " + m + " ,, " + m.toDual(peer));
-				
-				if (!isSat.test(a))
-				{
-					res.put(self,
-							Stream.of((AssrtCoreEAction) a).collect(Collectors.toSet()));
-				}
-			}*/
 			else if (kind != EStateKind.TERMINAL)
 			{
 				throw new RuntimeException(
@@ -1389,7 +1030,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			
 		List<AssrtAFormula> aexprs = a.getStateExprs();
 		if (aexprs.isEmpty())  // "Forwards" rec entry -- cf. updateForAssertionAndStateExprs, updateRecEntry/Continue
-		// FIXME: now obsolete, cf. AssrtCoreEGraphBuiler.buildEdgeAndContinuation AssrtCoreLRec `cont` f/w-rec case
+		// TODO: now obsolete, cf. AssrtCoreEGraphBuiler.buildEdgeAndContinuation AssrtCoreLRec `cont` f/w-rec case
 		{
 			// Next for lhs, state var eq-terms for initial rec entry
 			LinkedHashMap<AssrtVar, AssrtAFormula> svars = succ.getStateVars();
@@ -1451,7 +1092,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 					(x1, x2) -> AssrtFormulaFactory
 							.AssrtBinBool(AssrtBinBFormula.Op.And, x1, x2));
 					// CHECKME: do check, even if AA is True?  To check state var update isn't a contradiction?
-					// FIXME: that won't be checked by this, lhs just becomes false -- this should be checked by unsat? (but that is only poly choices)*/
+					// TODO: that won't be checked by this, lhs just becomes false -- this should be checked by unsat? (but that is only poly choices)*/
 			AssrtBFormula rhs = sass;
 			if (rhs.equals(AssrtTrueFormula.TRUE))
 			{
@@ -1459,7 +1100,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 			}
 
 			// Next for rhs, rename target rec state vars
-			List<AssrtVar> old = new LinkedList<>(succ.getStateVars().keySet());  // FIXME state var ordering w.r.t. exprs
+			List<AssrtVar> old = new LinkedList<>(succ.getStateVars().keySet());  // TODO: state var ordering w.r.t. exprs
 			List<AssrtVarFormula> fresh = old.stream()
 					.map(AssrtSConfig::makeFreshIntVar)
 					.collect(Collectors.toList());
@@ -1527,7 +1168,7 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 		return hash;
 	}
 
-	// Not using id, cf. ModelState -- FIXME? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
+	// Not using id, cf. ModelState -- CHECKME: use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
 	@Override
 	public boolean equals(Object o)
 	{
@@ -1563,37 +1204,9 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 				|| (s.id == init && s.getStateKind() == EStateKind.ACCEPT);
 				// s.isTerminal means non-empty actions (i.e., edges) -- i.e., non-end (cf., fireable)
 	}
-	
 
 	
 	/* P/Q/K/F/V/R helpers */
-
-	// CHECKME: factor out into separate classes?  c.f., SingleBuffers for Q
-
-	/*private static void putR(Map<Role, Map<AssrtDataTypeVar, AssrtArithFormula>> R, Role r, AssrtDataTypeVar annot, AssrtArithFormula expr)
-	{
-		/*Set<AssrtDataTypeVar> vs = expr.getVars();
-		if (vs.contains(annot))
-		{
-			//expr = AssrtFormulaFactory.AssrtExistsFormula(Arrays.asList(AssrtFormulaFactory.AssrtIntVar(annot.toString())), expr);
-			
-			// Substitute var in expr by fresh -- will get forall quantified in sat check -- which is conservative (previous var refinement lost)
-			expr = expr.subs(AssrtFormulaFactory.AssrtIntVar(annot.toString()), makeFreshIntVar(annot));
-		}* /
-
-		R.get(r).put(annot, expr);
-	}*/
-
-	/*private static Map<Role, Map<Role, AssrtCoreEMsg>> copyQ(
-			Map<Role, Map<Role, AssrtCoreEMsg>> Q)
-	{
-		Map<Role, Map<Role, AssrtCoreEMsg>> copy = new HashMap<>();
-		for (Role r : Q.keySet())
-		{
-			copy.put(r, new HashMap<>(Q.get(r)));
-		}
-		return copy;
-	}*/
 
 	private static Map<Role, Set<AssrtVar>> copyK(
 			Map<Role, Set<AssrtVar>> K)
@@ -1668,706 +1281,247 @@ public class AssrtSConfig extends SConfig  // TODO: not AssrtSConfig
 		return bform;
 	}
 
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/*private void updateScopes(Role self, AssrtCoreEAction a, EFsm succ, 
-			Set<AssrtIntVar> Kself, Set<AssrtBFormula> Fself, 
-			LinkedHashMap<Integer, Set<AssrtIntVar>> scopesSelf)
-	{
-		int curr = this.P.get(self).curr.id;
-		/* // Would be an optimisation
-		if (succ.curr.id == this.P.get(self).graph.init.id)  // Includes, e.g., mu X.A->B.X
-		{
-			Kself.clear();
-			Fself.clear();  // FIXME TODO: V/R -- e.g., rec assertion
-			scopesSelf.clear();
-		}
-		else* / if (curr == succ.curr.id  // Includes, e.g., mu X.A->B.X (scope always empty), but also A->B.mu X.A->B.X
-				|| scopesSelf.keySet().contains(succ.curr.id))
-		{
-			Set<AssrtIntVar> keep = new HashSet<>();
-			Iterator<Entry<Integer, Set<AssrtIntVar>>> es = scopesSelf.entrySet()
-					.iterator();
-			while (es.hasNext())  // Only keep scope entries up to (and excluding) succ recursion
-			{
-				Entry<Integer, Set<AssrtIntVar>> next = es.next();
-				if (next.getKey() == succ.curr.id)
-				{
-					es.remove();
-					break;
-				}
-				keep.addAll(next.getValue());
-			}
-			while (es.hasNext())
-			{
-				es.next();
-				es.remove();
-			}
-							
-			// Up to here, K/F/etc updated for "a" regardless of continue-edge or not -- now treat continue-edges based on scopes
-			Kself.retainAll(keep);
-			Iterator<AssrtBFormula> i = Fself.iterator();
-			while (i.hasNext())
-			{
-				if (i.next().getIntVars().stream().anyMatch(x -> !keep.contains(x))) 
-				{
-					i.remove();
-				}
-			}
-
-			// FIXME TODO: V/R
-		}
-		else
-		{
-			scopesSelf.put(curr, ((EAction) a).payload.elems.stream()
-					.map(x -> ((AssrtAnnotDataName) x).var).collect(Collectors.toSet()));
-			return;
-		}
-	}
-	//*/
-
 	/*
-	// Mutating 'F' and 'rename'
-	// Rename existing vars that have the same name as 'v' -- renaming is basically an implementation of exist-quant (final sat checks implicitly quant over free names)
-	// E.g., rec X . A->B: 1(x:int) . X -- loop renames existing x to some fresh name
-	// N.B. no "updateRfromF" -- actually, "update R from payload annot" -- leaving R statevars as they are is OK, validation only done from F's and R already incorporated into F (and updates handled by updateFfromR)
-	// But would it be more consistent to update R?
-	private static void renameOldVarsInF(Role self, AssrtIntVar v, 
-			Map<Role, Set<AssrtBFormula>> F)
-			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename)
-	{
-		Set<AssrtBFormula> H = F.get(self);
-		if (H.stream().anyMatch(x -> x.getIntVars().contains(v)))
-		{
-			AssrtIntVarFormula old = AssrtFormulaFactory
-					.AssrtIntVar(v.toString());
-			AssrtIntVarFormula fresh = makeFreshIntVar(v);
-			//rename.get(self).put(old, fresh);
-			H = H.stream().map(x -> x.subs(old, fresh)).collect(Collectors.toSet());
-			F.put(self, H);
-		}
-	}
-
-	private static void updateForAnnotVar(AssrtIntVar v, Set<AssrtIntVar> Kself)
-	{
-		addAnnotVarToK(v, Kself);  // Update K
-	}
-
-  // CHECKME: only need to update self entries of Maps -- almost: except for addAnnotOpensToF, and some renaming via Streams
-	private static void updateForAssertionAndStateExprs(Role self,  // CHECKME: EAction closest base type -- ?
-			AssrtBFormula ass, List<AssrtAFormula> aexprs, EFsm succ,  // From an AssrtAnnotDataName pay elem
-			Map<Role, Set<AssrtIntVar>> K, 
-			Map<Role, Set<AssrtBFormula>> F, 
-			Map<Role, Map<AssrtIntVar, AssrtAFormula>> V, 
-			Map<Role, Set<AssrtBFormula>> R)
-			//Map<Role, Map<AssrtIntVarFormula, AssrtIntVarFormula>> rename)  
-	{
-		addAnnotOpensToF(ass, F);  // CHECKME HACK?  for port forwarding
-		addAssertionToF(ass, F.get(self));
-
-		Map<AssrtIntVar, AssrtAFormula> Vself = V.get(self);  
-				// Rename old R vars -- must come before adding new F and R clauses  // CHECKME: not done?
-
-		// "forward" recs will have state vars (svars) but no action state-exprs (aexprs)
-		AssrtEState s = (AssrtEState) succ.curr;
-		LinkedHashMap<AssrtIntVar, AssrtAFormula> svars = s.getStateVars();
-				// aforms = action update exprs for state vars  // CHECKME: svars.size() == aforms.size() ?
-
-		// Following must come after F update (addAnnotBexprToF)
-		// Update R from state -- entering a rec "forwards", i.e., not via a continue
-		if (aexprs.isEmpty())  // Rec-entry: statevar expr args already inlined into the rec statevars (i.e., by inlining) -- CHECKME
-				// CHECKME: means "forwards entry?" robust?  refactor?
-		{
-			if (!svars.isEmpty())
-			{
-				updateRecEntry(self, svars, s.getAssertion(), F, Vself, R.get(self));
-			}
-		}
-		else //if (!aforms.isEmpty())
-		{
-			if (svars.size() != aexprs.size())
-			{
-				throw new RuntimeException(
-						"[assrt-core] Shouldn't get here: " + svars + ", " + aexprs); 
-						// CHECKME: not actually syntactically checked yet
-			}
-			updateRecContinue(self,
-					svars.keySet().stream().collect(Collectors.toList()),  // Ordered because LinkedHashMap
-					aexprs, 
-					F,  Vself);
-		}
-
-		compactF(F.get(self));
-		//return rename;
-	}
-
-	private static void addAnnotOpensToF(AssrtBFormula bform,
-			Map<Role, Set<AssrtBFormula>> F)
-	{
-		Set<AssrtUnintPredicateFormula> preds = Z3Wrapper.getUnintPreds.func
-				.apply(bform);  // CHECKME: refactor out of Z3Wrapper
-		// CHECKME: unint-pref currrently has to be a top-level clause (assuming CNF), but should generalise
-		// CHECKME: factor out API for unint-funs properly
-		List<AssrtUnintPredicateFormula> opens = preds.stream()
-				.filter(x -> x.name.toString().equals("open"))
-				.collect(Collectors.toList());
-		for (AssrtUnintPredicateFormula p : opens)
-		{
-			if (p.args.size() != 2)
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + p);
-			}
-			//String port = ((AssrtIntVarFormula) i.next()).name;
-			Role client = new Role(((AssrtIntVarFormula) p.args.get(1)).name);  // FIXME: port/role values hacked as int var formulas
-
-			appendToF(p, F.get(client));
-		}
-	}
-
-	private static void addAnnotVarToK(AssrtIntVar v, Set<AssrtIntVar> Kself)
-	{
-		Kself.add(v);
-	}
-
-	private static void addAssertionToF(AssrtBFormula ass,
-			Set<AssrtBFormula> Fself)
-	{
-		appendToF(ass, Fself);  //...record assertions so far -- later error checking: *for all* values that satisify those, it should imply the next assertion
-			// CHECKME: filter open from f -- i.e., don't add to sender K
-			// Maybe make f CNF? -- https://stackoverflow.com/questions/10992531/convert-formula-to-cnf 
-	}
-
-	// Must come after initial F update (addAnnotBexprToF)
-	private static void updateRecEntry(Role self,
-			LinkedHashMap<AssrtIntVar, AssrtAFormula> svars, AssrtBFormula ass,
-			Map<Role, Set<AssrtBFormula>> F,
-			Map<AssrtIntVar, AssrtAFormula> Vself, 
-			Set<AssrtBFormula> Rself)
-	{
-		for (Entry<AssrtIntVar, AssrtAFormula> e : svars.entrySet())
-		{
-			AssrtIntVar svar = e.getKey();
-			AssrtAFormula sexpr = e.getValue();  // "Init" state var expr
-			
-			// CHECKME: record statevar mapping for "direct substitution" modelling special case? (i.e., no "old var" renaming)...
-			// ...e.g., x -> x, or x -> y -> x -- i.e. treat subproto statevars more like formal params
-			// Anyway, need to check something about new vs. shadowed vs. udapted vs. etc state vars -- currently nothing is checked syntactically
-			// "forwards" entry rec should also be handled by action statevar update?
-			
-			if (!Vself.containsKey(svar))// || !Vself.get(svar).equals(sexpr))  // Optimisation only?
-					// CHECKME: need to treat statevars more like roles? i.e., statevar must be explicitly declared/passed to stay "in scope" in the subproto?
-			{
-				updateVAndFFromStateVar(self, svar, sexpr, F, Vself, true);
-				//putK(K, self, k);
-			}
-		}
-
-		// Cf. addAssertionToF, history recording
-		if (!ass.equals(AssrtTrueFormula.TRUE))
-		{
-			appendToR(ass, Rself);
-		}
-	}
-
-	// Must come after initial F update (addAnnotBexprToF)
-	private static void updateRecContinue(Role self,
-			List<AssrtIntVar> svars,
-			List<AssrtAFormula> aexprs,			
-			Map<Role, Set<AssrtBFormula>> F,
-			Map<AssrtIntVar, AssrtAFormula> Vself)
-	{
-		Iterator<AssrtAFormula> iaexprs = aexprs.iterator();
-		for (AssrtIntVar svar : svars)  // FIXME: statevar ordering
-		{
-			AssrtAFormula aexpr = iaexprs.next();
-
-			/* // CHECKME
-			if (expr.getIntVars().contains(svar))  // CHECKME: what is the example?
-			{
-				// CHECKME: renaming like this OK? -- basically all V vars are being left open for top-level forall
-				expr = expr.subs(AssrtFormulaFactory.AssrtIntVar(svar.toString()), 
-						//fresh  // No: don't need to "link" V vars and F vars -- only F matters for direct formula checking
-						//makeFreshIntVar(annot)  // Makes model construction non-terminating, e.g., mu X(x:=..) ... X<x> -- makes unbounded fresh in x = fresh(x)
-						AssrtFormulaFactory.AssrtIntVar("_" + svar.toString())  // CHECKME: is this OK?
-				);	
-			}* /
-
-			// Update V from action -- recursion back to a rec, via a continue
-			AssrtAFormula curr = Vself.get(svar);
-			if (!curr.equals(aexpr)  // CHECKME: "syntactic" check is what we want here?
-					&& !((aexpr instanceof AssrtIntVarFormula)
-							&& ((AssrtIntVarFormula) aexpr).name
-									.equals("_" + svar.toString())))
-						// Hacky? if expr is just the var occurrence, then value doesn't change
-						// FIXME: generalise -- occurences of other vars can be first substituted, before "old var renaming"? -- also for rec-state updates?
-			{
-				updateVAndFFromStateVar(self, svar, aexpr, F, Vself, false);
-			}
-		}
-	}
-
-	// F part is only a renaming(?)
-	private static void updateVAndFFromStateVar(Role self, AssrtIntVar svar,
-			AssrtAFormula aform,
-			Map<Role, Set<AssrtBFormula>> F,  // Currently renaming creates new Set, so need to replace the entry in F (cf. mutate Fself)
-			Map<AssrtIntVar, AssrtAFormula> Vself, 
-			boolean forwards)
-	{
-		if (!forwards)
-		{
-			/* // CHECKME: what is an example?
-			for (AssrtDataVar v : aform.getIntVars())
-			{
-				AssrtIntVarFormula fresh = AssrtFormulaFactory
-						.AssrtIntVar("__" + v.toString());
-				aform = aform.subs(AssrtFormulaFactory.AssrtIntVar(v.toString()),
-						fresh);
-			}* /
-		}
-
-		// Must come after initial F update (addAnnotBexprToF)
-		Vself.put(svar, aform);   // "Overwrite" (if already known)
-
-		/*
-		// CHECKME: what is an example? -- old/new vars due to looping?  __ renaming above?  // CHECKME: if (!forwards)?
-		AssrtIntVarFormula old = AssrtFormulaFactory.AssrtIntVar(svar.toString());
-		AssrtIntVarFormula fresh = makeFreshIntVar(svar);
-		Set<AssrtBFormula> H = F.get(self);
-		H = H.stream().map(x -> x.subs(old, fresh)).collect(Collectors.toSet());
-		F.put(self, H);
-		* /
-	}
-
-	private static void appendToF(AssrtBFormula bform, Set<AssrtBFormula> Fself)
-	{
-		Fself.add(bform);
-	}
-
-	private static void appendToR(AssrtBFormula bform, Set<AssrtBFormula> Rself)
-	{
-		Rself.add(bform);
-	}
-*/
+	  
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	 
+	 */
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/*// CHECKME: List<AssrtCoreEAction> -- after also doing assert-core request/accept
 	@Override
-	public Map<Role, Set<EAction>> getFireable()
+	public List<SConfig> sync(Role r1, EAction a1, Role r2, EAction a2)
 	{
-		Map<Role, Set<EAction>> res = new HashMap<>();
-		for (Entry<Role, EFsm> e : this.P.entrySet())
+		throw new RuntimeException(
+				"[assrt] TODO:\n\t" + r1 + " ,, " + a1 + "\n\t" + r2 + " ,, " + a2);
+		/*List<SConfig> res = new LinkedList<>();
+		List<EFsm> succs1 = this.efsms.get(r1).getSuccs(a1);
+		List<EFsm> succs2 = this.efsms.get(r2).getSuccs(a2);
+		if (succs1.size() > 1 || succs2.size() > 1)
 		{
-			Role self = e.getKey();
-			EState s = e.getValue().curr;
-			res.put(self, new LinkedHashSet<>());
-			for (EAction a : s.getDetActions())
+			throw new RuntimeException(
+					"[assrt-core][TODO] Non-deteterministic actions not supported: "
+							+ succs1 + " ,, " + succs2);
+		}
+		for (EFsm succ1 : succs1)
+		{
+			for (EFsm succ2 : succs2)
 			{
-				if (a.isSend())
+				Map<Role, EFsm> efsms = new HashMap<>(this.efsms);
+				// a1 and a2 are a "sync" pair, add all combinations of succ1 and succ2 that may arise
+				efsms.put(r1, succ1);  // Overwrite existing r1/r2 entries
+				efsms.put(r2, succ2);
+				SingleBuffers queues;
+				// a1 and a2 definitely "sync", now just determine whether it is a connect or wrap
+				if (((a1.isRequest() && a2.isAccept())
+						|| (a1.isAccept() && a2.isRequest())))
 				{
-					AssrtCoreESend es = (AssrtCoreESend) a;
-					getSendFireable(res, self, es);
+					queues = this.queues.connect(r1, r2);  // N.B. queue updates are insensitive to non-det "a"
 				}
-				else if (a.isReceive())
+				else if (((a1.isClientWrap() && a2.isServerWrap())
+						|| (a1.isServerWrap() && a2.isClientWrap())))
 				{
-					AssrtCoreERecv er = (AssrtCoreERecv) a;
-					getReceiveFireable(res, self, er);
-				}
-				else if (a.isRequest())
-				{
-					AssrtCoreEReq ec = (AssrtCoreEReq) a;  // FIXME: core
-					getRequestFireable(res, self, ec);
-				}
-				else if (a.isAccept())
-				{
-					AssrtCoreEAcc ea = (AssrtCoreEAcc) a;  // FIXME: core
-					getAcceptFireable(res, self, ea);
-				}
-				else if (a.isDisconnect())
-				{
-					EDisconnect ld = (EDisconnect) a;
-					getDisconnectFireable(res, self, ld);
+					// Doesn't affect queue state
+					queues = this.queues;  // OK, immutable?
 				}
 				else
 				{
-					throw new RuntimeException("[assrt-core] [TODO]: " + a);
+					throw new RuntimeException("Shouldn't get in here: " + a1 + ", " + a2);
 				}
+				res.add(this.mf.global.SConfig(efsms, queues));
+			}
+		}
+		return res;*/
+	}
+
+	/*// TODO: V
+	private void fireAcc(Map<Role, EFsm> P, SSingleBuffers Q,
+			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
+			Map<Role, Set<AssrtBFormula>> R,
+			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F, 
+			Map<Role, Map<AssrtVarFormula, AssrtVarFormula>> rename,
+			Role self, AssrtCoreEAcc a, EFsm succ)
+	{
+		throw new RuntimeException("[TODO] : " + a);
+	//		P.put(self, succ);
+	//		AssrtCoreEPendingRequest pr = (AssrtCoreEPendingRequest) Q.get(self)
+	//				.put(a.peer, null);
+	//		AssrtCoreEReq msg = pr.getMsg();  // CHECKME
+	//		Q.get(a.peer).put(self, null);
+	//
+	//		updateInput(self, a, pr,  // msg?
+	//				pr.shadow, succ, 
+	//				K, F, V, R, rename);
+	}*/
+
+	/*private void fireReq(Map<Role, EFsm> P, SSingleBuffers Q,
+			Map<Role, Map<AssrtVar, AssrtAFormula>> V,
+			Map<Role, Set<AssrtBFormula>> R,
+			Map<Role, Set<AssrtVar>> K, Map<Role, Set<AssrtBFormula>> F,
+			Map<Role, Map<AssrtVarFormula, AssrtVarFormula>> rename,
+			Role self, AssrtCoreEReq a, EFsm succ)
+	{
+		throw new RuntimeException("[TODO] : " + a);
+	//		P.put(self, succ);
+	//
+	//		updateOutput(self, a, succ, K, F, V, R, rename);
+	//
+	//		Q.get(a.peer).put(self, new AssrtCoreEPendingRequest(a, rename.get(self)));  // Now doing toTrueAssertion on accept side
+	}*/
+
+	/*// Doesn't include pending requests, checks isInputQueueEstablished
+	private boolean hasMsg(Role self, Role peer)
+	{
+		return isInputQueueEstablished(self, peer)  // input queue is established (not \bot and not <a>)
+				&& this.Q.get(self).get(peer) != null;  // input queue is not empty
+	}
+	
+	// Direction sensitive (not symmetric) -- isConnected means dest has established input queue from src
+	// i.e. "fully" established, not "pending" -- semantics relies on all action firing being guarded on !hasPendingConnect
+	private boolean isInputQueueEstablished(Role dest, Role src)  // N.B. is more like the "input buffer" at r1 for r2 -- not the actual "connection from r1 to r2"
+	{
+		AssrtCoreEMsg m = this.Q.get(dest).get(src);
+		return !(m instanceof AssrtCoreEBot)
+				&& !(m instanceof AssrtCoreEPendingRequest);
+		//return es != null && es.equals(AssrtCoreEBot.ASSSRTCORE_BOT);  // Would be same as above
+	}
+	
+	// req waiting for acc -- cf. reverse direction to isConnect
+	private boolean isPendingRequest(Role req, Role acc)  // TODO: for open/port annotations
+	{
+		//return (this.ports.get(r1).get(r2) != null) || (this.ports.get(r2).get(r1) != null);
+		AssrtCoreEMsg m = this.Q.get(acc).get(req);  // N.B. reverse direction to isConnected
+		return m instanceof AssrtCoreEPendingRequest;
+	}
+	
+	private boolean hasPendingRequest(Role req)
+	{
+		return this.Q.keySet().stream().anyMatch(acc -> isPendingRequest(req, acc));
+	}*/
+
+	/*// TODO: orphan pending requests -- maybe shouldn't?  handled by synchronisation error?
+	//public boolean isOrphanError(Map<Role, AssrtEState> E0)
+	public Map<Role, Set<? extends AssrtCoreESend>> getOrphanMessages()
+	{
+		Map<Role, Set<? extends AssrtCoreESend>> res = new HashMap<>();
+		for (Role r : this.efsms.keySet())
+		{
+			Set<ESend> orphs = new HashSet<>();
+			EFsm fsm = this.efsms.get(r);
+			if (fsm.curr.isTerminal())  // Local termination of r, i.e. not necessarily "full deadlock cycle"
+			{
+				orphs.addAll(this.queues.getQueue(r).values().stream()
+						.filter(v -> v != null).collect(Collectors.toSet()));
+			}
+			else
+			{
+				this.efsms.keySet().stream()
+						.filter(x -> !r.equals(x) && !this.queues.isConnected(r, x))  // !isConnected(r, x), means r considers its side closed
+						.map(x -> this.queues.getQueue(r).get(x)).filter(x -> x != null)  // r's side is closed, but remaining message(s) in r's buff
+						.forEachOrdered(x -> orphs.add(x));
+			}
+			if (!orphs.isEmpty())
+			{
+				res.put(r, orphs);
 			}
 		}
 		return res;
 	}*/
 
-	/*@Override
-	protected Set<EAction> getOutputFireable(Role self, EFsm fsm)
-	//private void getSendFireable(Map<Role, List<EAction>> res, Role self, AssrtCoreESend es)
+	// Request/accept are bad if local queue is established
+	// N.B. request/accept when remote queue is established is not an error -- relying on semantics to block until both remote/local queues not established; i.e., error precluded by design of model, not by validation
+	// N.B. not considering pending requests, for the same reason as above and as why not considered for, e.g., reception errors -- i.e., not validating those "intermediate" states
+	// Deadlock/progress errors that could be related to "decoupled" connection sync still caught by existing checks, e.g., orphan message or unfinished role
+	@Deprecated
+	public boolean isConnectionError()
 	{
-		if (hasPendingRequest(self) || !isInputQueueEstablished(self, es.peer)
-				|| hasMsg(es.peer, self))
-		{
-			return;
-		}
+		throw new RuntimeException("Deprecated");
+		/*return this.P.entrySet().stream().anyMatch(e -> 
+				e.getValue().getActions().stream().anyMatch(a ->
+						(a.isRequest() || a.isAccept()) && isInputQueueEstablished(e.getKey(), a.peer)
+		));
+				// TODO: check for pending port, if so then port is used -- need to extend an AnnotEConnect type with ScribAnnot (cf. AnnotPayloadType)*/
+	}
 
-		// Check assertion?
-		//boolean ok = JavaSmtWrapper.getInstance().isSat(es.assertion.getFormula(), context);
-	
-		//...can only send if true? (by API gen assertion failure means definitely not sending it) -- unsat as bad terminal state (safety error)?  no: won't catch all assert errors (branches)
-		// check assertion satisfiable?  i.e., satisfiability part of operational semantics for model construction? or just record constraints and check later?
-		// -- current assertions *imply* additional ones?
-				
-		// Or: assertion error as special queue token? for error preservation -- Cf. "decoupled" request/accept
-		
-		boolean ok = true;
-//		for (PayloadElemType<?> pt : (Iterable<PayloadElemType<?>>) 
-//				es.payload.elems.stream().filter(x -> x instanceof AssrtPayloadElemType<?>)::iterator)
-		for (PayElemType<?> pt : es.payload.elems)  // assrt-core is hardcoded to one payload elem (empty source payload is filled in)
+	// Send is bad if either local queue or remote queue is not established, and no pending request to the target
+	// Receive is bad if local queue is not established and no pending request to the target
+	@Deprecated
+	public boolean isUnconnectedError()
+	{
+		throw new RuntimeException("Deprecated");
+		/*return this.P.entrySet().stream().anyMatch(e -> 
 		{
-			if (pt instanceof AssrtAnnotDataName)
+			Role r = e.getKey();
+			return 
+					e.getValue().getActions().stream().anyMatch(a ->
+									(a.isSend() &&
+										(!isInputQueueEstablished(r, a.peer) || !isInputQueueEstablished(a.peer, r)) && !isPendingRequest(r, a.peer))
+							|| (a.isReceive() && !isInputQueueEstablished(r, a.peer) && !isPendingRequest(r, a.peer)));
+			// Don't need to use isPendingRequest(a.peer, r) because only requestor is "at the next state" while request pending 
+		});*/
+	}
+
+	// "Connection message" reception error
+	@Deprecated
+	public boolean isSynchronisationError()
+	{
+		throw new RuntimeException("Deprecated");
+		/*return this.P.entrySet().stream().anyMatch(e ->  // e: Entry<Role, EState>
+		{
+			EState s = e.getValue();
+			EStateKind k = s.getStateKind();
+			if (k != EStateKind.ACCEPT)
 			{
-				// OK -- currently not checking K-bound assertion vars (cf. isUnknownVarError) -- nor satisfiability (send ass implies receive ss)
-				// FIXME: currently fire requires send and receive assertions (and both hacked to True) to be syntactically equal, which is wrong
+				return false;
 			}
-			else
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + pt);  // "Encode" pay elem vars by fresh annot data elems for now
-			}
-		}
-		if (ok)
-		{	
-			res.get(self).add(es);
-		}
-	}*/
-
-	/*@Override
-	protected Set<ERecv> getRecvFireable(Role self, EFsm fsm)
-	//private void getReceiveFireable(Map<Role, List<EAction>> res, Role self, ERecv er)
-	{
-		if (hasPendingRequest(self) || !hasMsg(self, er.peer))
-		{
-			return;
-		}
-
-		AssrtCoreESend m = this.Q.get(self).get(er.peer);
-		//if (er.toDual(self).equals(m))  //&& !(m instanceof F17EBot)
-		if (((AssrtCoreESend) er.toDual(self)).toTrueAssertion()
-				.equals(m.toTrueAssertion()))
-				// HACK FIXME: check assertion implication (not just syntactic equals) -- cf. AssrtSConfig::fire
-		{
-			res.get(self).add(er);
-		}
-	}*/
-
-	/*private void getRequestFireable(Map<Role, List<EAction>> res, Role self,
-			AssrtCoreEReq es)
-	{
-		if (hasPendingRequest(self) ||
-				   // not ( Q(r, r') = Q(r', r) = \bot ) -- i.e., either of them are not \bot
-				   isInputQueueEstablished(self, es.peer) || isInputQueueEstablished(es.peer, self)
-				|| isPendingRequest(es.peer, self))  // self input queue from es.peer is <a>
-						// isPendingConnection(self, es.peer) subsumed by hasPendingConnect(self)
-		{
-			return;
-		}
-		
-		// FIXME: factor out with send?
-		boolean ok = true;
-		for (PayElemType<?> pt : es.payload.elems)  // assrt-core is hardcoded to one payload elem (empty source payload is filled in)
-		{
-			if (pt instanceof AssrtAnnotDataName)
-			{
-				// OK -- currently not checking K-bound assertion vars (cf. isUnknownVarError) -- nor satisfiability (send ass implies receive ss)
-				// FIXME: currently fire requires send and receive assertions (and both hacked to True) to be syntactically equal, which is wrong
-			}
-			else
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + pt);  // "Encode" pay elem vars by fresh annot data elems for now
-			}
-		}
-		if (ok)
-		{	
-			res.get(self).add(es);
-		}
-	}*/
-
-	/*// Based on getReceiveFireable
-	@Override
-	protected Set<EAcc> getAccFireable(Role self, EFsm fsm)
-	//private void getAcceptFireable(Map<Role, List<EAction>> res, Role self, AssrtCoreEAcc ea)
-	{
-		if (hasPendingRequest(self) || !isPendingRequest(ea.peer, self))
-		{
-			return;
-		}
-
-		AssrtCoreEReq ec = ((AssrtCoreEPendingRequest) this.Q.get(self).get(ea.peer)).getMsg();
-		//if (ea.toDual(self).equals(ec))
-		if (((AssrtCoreEReq) ea.toDual(self)).toTrueAssertion().equals(ec.toTrueAssertion()))  
-				// HACK FIXME: check assertion implication (not just syntactic equals) -- cf. getReceiveFireable
-		{
-			res.get(self).add(ea);
-		}
-	}*/
-
-	/*private void getDisconnectFireable(Map<Role, List<EAction>> res, Role self, EDisconnect ld)
-	{
-		if (!(this.Q.get(self).get(ld.peer) instanceof F17EBot)  // FIXME: isConnected
-				&& this.Q.get(self).get(ld.peer) == null)
-		{
-			res.get(self).add(ld);
-		}
-	}*/
-
-
-/*// \bot
-class AssrtCoreEBot extends AssrtCoreEMsg
-{
-	// N.B. must be initialised *before* ASSSRTCORE_BOT
-	private static final Payload ASSRTCORE_EMPTY_PAYLOAD =
-			new Payload(
-					Arrays.asList(new AssrtAnnotDataName(new AssrtIntVar("_BOT"),
-							AssrtCoreGProtoDeclTranslator.UNIT_DATATYPE)));
-			// Cf. Payload.EMPTY_PAYLOAD
-
-	public static final AssrtCoreEBot ASSSRTCORE_BOT = new AssrtCoreEBot();
-
-	//public AssrtCoreEBot(EModelFactory ef)
-	private AssrtCoreEBot()
-	{
-		super(null, Role.EMPTY_ROLE, Op.EMPTY_OP, ASSRTCORE_EMPTY_PAYLOAD, AssrtTrueFormula.TRUE,  // null ef OK?
-				//AssrtCoreEAction.DUMMY_VAR, AssrtIntValFormula.ZERO);
-				Collections.emptyList());
-	}
-	
-	@Override
-	public boolean isSend()
-	{
-		return false;
-	}
-	
-	@Override
-	public AssrtCoreERecv toDual(Role self)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public AssrtCoreSSend toGlobal(Role self)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return "BOT";
-	} 
-
-	@Override
-	public int hashCode()
-	{
-		int hash = 2273;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-		{
-			return true;
-		}
-		if (!(obj instanceof AssrtCoreEBot))
-		{
-			return false;
-		}
-		return super.equals(obj);
-	}
-	
-	@Override
-	public boolean canEquals(Object o)  // FIXME: rename canEquals
-	{
-		return o instanceof AssrtCoreEBot;
+			Role dest = e.getKey();
+			List<EAction> as = s.getActions();
+			Role src = as.get(0).peer;
+			return isPendingRequest(src, dest)
+					&& !as.contains(
+								 ((AssrtCoreEPendingRequest) this.Q.get(dest).get(src)).getMsg()
+								.toTrueAssertion().toDual(src)
+							);
+		});*/
 	}
 }
-
-// <a> -- TODO: for open/port annotations
-class AssrtCoreEPendingRequest extends AssrtCoreEMsg
-{
-	public static final Payload ASSRTCORE_EMPTY_PAYLOAD =
-			new Payload(
-					Arrays.asList(new AssrtAnnotDataName(new AssrtIntVar("_BOT"),
-							AssrtCoreGProtoDeclTranslator.UNIT_DATATYPE)));
-			// Cf. Payload.EMPTY_PAYLOAD
-	
-	private final AssrtCoreEReq msg;  // Not included in equals/hashCode
-
-	//public AssrtCoreEPendingConnection(AssrtEModelFactory ef, Role r, MsgId<?> op, Payload pay, AssrtBoolFormula ass)
-	public AssrtCoreEPendingRequest(AssrtCoreEReq msg,
-			Map<AssrtIntVarFormula, AssrtIntVarFormula> shadow)
-	{
-		super(null, msg.peer, msg.mid, msg.payload, msg.ass,  // HACK: null ef OK?  cannot access es.ef
-				//AssrtCoreEAction.DUMMY_VAR, AssrtIntValFormula.ZERO,
-				Collections.emptyList(),
-				shadow);
-		this.msg = msg;
-	}
-	
-	public AssrtCoreEReq getMsg()
-	{
-		return this.msg;
-	}
-	
-	@Override
-	public boolean isSend()
-	{
-		return false;
-	}
-	
-	@Override
-	public AssrtCoreERecv toDual(Role self)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-
-	@Override
-	public AssrtCoreSSend toGlobal(Role self)
-	{
-		throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return "<" + super.toString() + ">";
-	} 
-
-	@Override
-	public int hashCode()
-	{
-		int hash = 6091;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-		{
-			return true;
-		}
-		if (!(obj instanceof AssrtCoreEPendingRequest))
-		{
-			return false;
-		}
-		return super.equals(obj);
-	}
-	
-	@Override
-	public boolean canEquals(Object o)  // FIXME: rename canEquals
-	{
-		return o instanceof AssrtCoreEPendingRequest;
-	}
-}
-//*/
