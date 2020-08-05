@@ -22,7 +22,7 @@ global protocol ProtSimple(role C, role S)
 
 
 
-// FIXME: make separate test
+// TODO: make separate test
 // Recursion with Annotations (Complicated)
 global protocol ProtComplex(role A, role B, role C)
 {
@@ -38,5 +38,5 @@ rec Loop {
 		}
 	}
 	
-	RES(z) from B to C;   // FIXME: only need z on all exit loops -- motivation for model checking based WF
+	RES(z) from B to C;   // TODO: only need z on all exit loops -- motivation for model checking based WF
 }

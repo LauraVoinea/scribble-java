@@ -1,7 +1,7 @@
 module bad.extensions.assrt.syntax.distinctannotvars.AssrtCoreTest02;
 
 
-type <java> "java.lang.Integer" from "rt.jar" as int;  // FIXME: int keyword
+type <java> "java.lang.Integer" from "rt.jar" as int;
 
 
 //*  // CHECKME: will be skipped by assrt-core, non-core syntax -- but currently not supported by base assrt either
