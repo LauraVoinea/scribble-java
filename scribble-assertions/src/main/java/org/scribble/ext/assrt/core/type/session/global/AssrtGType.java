@@ -28,8 +28,10 @@ public interface AssrtGType extends AssrtSType<Global, AssrtGType>
 	// FIXME TODO: deprecate -- all vars now Assrt(Int)Var
 	AssrtGType disamb(AssrtCore core, Map<AssrtVar, DataName> env);  // FIXME: throw ScribbleException, WF errors
 	
+	// Assrt overrides base STypeVisitor pattern -- explicitly declare each pass here ("Visitor" is just dumb data holder), instead of generic visitWith
 	// CHECKME: some may need to be factored up to base
 	AssrtGType substitute(AssrtCore core, Substitutions subs);
+	AssrtGType checkDoArgs(AssrtCore core);
 	AssrtGType inline(AssrtGTypeInliner v);
 	AssrtGType pruneRecs(AssrtCore core);
 

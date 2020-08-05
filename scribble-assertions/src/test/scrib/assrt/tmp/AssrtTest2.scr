@@ -155,7 +155,7 @@ global protocol Test017(role A, role B)  @"[x: int = 0]"
 
 global protocol Test017a(role A, role B)  @"A[xa: int = 0] B[xb: int = 0]"
 {
-	do Test017(A, B);  @"A[1] B[1]"  // FIXME: A, B, not used
+	do Test017a(A, B);  @"A[1] B[1]"  // FIXME: A, B, not used
 }
 
 
@@ -168,7 +168,7 @@ global protocol Test018(role A, role B)  @"[x: int = 0]"
 global protocol Test018a(role A, role B)  @"A[xa: int = 0] B[xb: int = 0]"
 {
 	1() from A to B;
-	do Test018(A, B);  @"A[1] B[1]"
+	do Test018a(A, B);  @"A[1] B[1]"
 }
 
 
@@ -231,16 +231,16 @@ aux global protocol Test022Aux(role A, role B)  @"A[xa: int = 1] B[xb: int = 1] 
 }
 
 
-global protocol Test023(role A, role B)
+/*global protocol Test023(role A, role B)
 {
 	1() from A to B;	
-	do Test023Aux(A, B);  @"A[2] B[2]"  // FIXME: no target satate var
+	do Test023Aux(A, B);  @"A[2] B[2]"  // no target satate var
 }
 
 aux global protocol Test023Aux(role A, role B)  //@"x>0"
 {
 	2() from B to A;	
-}
+}*/
 
 
 global protocol Test025(role A, role B)

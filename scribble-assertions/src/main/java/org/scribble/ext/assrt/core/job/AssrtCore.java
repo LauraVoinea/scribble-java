@@ -111,6 +111,15 @@ public class AssrtCore extends Core
 	@Override
 	protected void runSyntaxTransformPasses()  // No ScribException, no errors expected
 	{
+		// More like WF (cf. runGlobalSyntaxWfPasses), but doing before inlining to visit Do's directly
+		verbosePrintPass("Checking do argument arities...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			AssrtGProtocol proto = (AssrtGProtocol) this.context
+					.getIntermediate(fullname);
+			proto.type.checkDoArgs(this);
+		}
+
 		verbosePrintPass("Inlining subprotocols for all globals...");
 		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
 		{
@@ -129,9 +138,9 @@ public class AssrtCore extends Core
 		// ^TODO: base API currently not compatible
 		// E.g., `this.context.getInlined(fullname).def` is null
 		
-		// CHECKME: is below necessary? -- goes against unfolding, duplicates should be allowed in such contexts?
 		verbosePrintPass(
 				"Checking for distinct annot vars in each inlined global...");
+		// CHECKME: necessary? -- goes against unfolding, duplicates should be allowed in such contexts?
 		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
 		{
 			/*List<AssrtIntVar> vs = ((AssrtCoreGProtocol)

@@ -50,6 +50,13 @@ public class AssrtGRecVar extends AssrtRecVar<Global, AssrtGType>
 	}
 
 	@Override
+	public AssrtGType checkDoArgs(AssrtCore core)
+	{
+		throw new RuntimeException(
+				"[assrt] TODO: AssrtGRecVar.checkDoArgs\n\t" + this);
+	}
+
+	@Override
 	public AssrtGType inline(AssrtGTypeInliner v)
 	{
 		RecVar rv = v.getInlinedRecVar(this.recvar);

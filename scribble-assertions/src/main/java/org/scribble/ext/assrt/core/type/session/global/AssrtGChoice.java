@@ -79,6 +79,13 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 	}
 
 	@Override
+	public AssrtGType checkDoArgs(AssrtCore core)
+	{
+		this.cases.entrySet().stream().forEach(x -> x.getValue().checkDoArgs(core));
+		return this;
+	}
+
+	@Override
 	public AssrtGType inline(AssrtGTypeInliner v)
 	{
 		LinkedHashMap<AssrtMsg, AssrtGType> cases = new LinkedHashMap<>();

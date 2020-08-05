@@ -44,6 +44,12 @@ public class AssrtGEnd extends AssrtEnd<Global, AssrtGType>
 	}
 
 	@Override
+	public AssrtGType checkDoArgs(AssrtCore core)
+	{
+		return this;
+	}
+
+	@Override
 	public AssrtGType inline(AssrtGTypeInliner v)
 	{
 		return this;

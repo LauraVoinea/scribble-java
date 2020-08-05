@@ -42,6 +42,7 @@ import org.scribble.ext.assrt.core.type.session.AssrtDo;
 import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
 import org.scribble.ext.assrt.core.visit.global.AssrtGTypeInliner;
+import org.scribble.util.RuntimeScribException;
 
 public class AssrtGDo extends AssrtDo<Global, AssrtGType>
 		implements AssrtGType
@@ -76,6 +77,20 @@ public class AssrtGDo extends AssrtDo<Global, AssrtGType>
 		}
 		return ((AssrtGTypeFactory) core.config.tf.global).AssrtCoreGDo(
 				getSource(), this.proto, roles, this.args, this.stateexprs);
+	}
+
+	@Override
+	public AssrtGType checkDoArgs(AssrtCore core)
+	{
+		AssrtGProtocol gpro = getTarget(core);
+		if (gpro.statevars.size() != this.stateexprs.size())
+		{
+			String tmp = gpro.toString();
+			throw new RuntimeScribException(
+					"Do arity mismatch:\n\t" + this + "\nfor\n\t"
+							+ tmp.substring(0, tmp.indexOf('{')));
+		}
+		return this;
 	}
 
 	@Override

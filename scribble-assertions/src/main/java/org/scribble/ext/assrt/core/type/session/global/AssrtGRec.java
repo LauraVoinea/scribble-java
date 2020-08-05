@@ -75,6 +75,13 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 	}
 
 	@Override
+	public AssrtGType checkDoArgs(AssrtCore core)
+	{
+		this.body.checkDoArgs(core);
+		return this;
+	}
+
+	@Override
 	public AssrtGType inline(AssrtGTypeInliner v)
 	{
 		throw new RuntimeException("[TODO] :\n" + this);

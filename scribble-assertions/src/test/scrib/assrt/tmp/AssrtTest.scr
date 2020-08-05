@@ -143,7 +143,7 @@
 - so model checked errors: unknownvar (HS), assert-prog (TS?), sat (TS?), recursion-assert
 */
 
-module assrt.tmp.AssrtCoreTest;
+module assrt.tmp.AssrtTest;
 
 
 /*type <dotnet> "System.UInt32" from "..." as int;
@@ -179,10 +179,22 @@ type <fstar> "string" from "..." as String;
 // - deprecate "constant propagation" -- prevents loops counting or any example where assertion not valid now under constant but could be later -- now: restored
 
 
+global protocol Proto1(role A, role B) @'[x: int = 0]' {
+	1() from A to B;
+	//do Proto1(A, B);  // Testing do arg checking
+	do Proto1(A, B);  @'[1, 1]'  // Testing do arg checking
+}
 
-global protocol Proto1(role A, role B) @"B[z: int = 1] z>0" {
+
+
+
+
+/*
+global protocol Proto1(role A, role B) @'B[z: int = 1] y>0' {  // Testing unknown variable
 	1() from A to B;
 }
+//*/
+
 
 
 /*
