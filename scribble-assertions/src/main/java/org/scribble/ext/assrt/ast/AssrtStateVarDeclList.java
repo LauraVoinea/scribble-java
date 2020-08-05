@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 import org.antlr.runtime.Token;
 import org.scribble.ast.ParamDeclList;
 import org.scribble.del.DelFactory;
-import org.scribble.ext.assrt.core.type.kind.AssrtIntVarKind;
+import org.scribble.ext.assrt.core.type.kind.AssrtVarKind;
 import org.scribble.ext.assrt.del.AssrtDelFactory;
 
 
-public class AssrtStateVarDeclList extends ParamDeclList<AssrtIntVarKind>
+public class AssrtStateVarDeclList extends ParamDeclList<AssrtVarKind>
 {
 	// ScribTreeAdaptor#create constructor
 	public AssrtStateVarDeclList(Token t)

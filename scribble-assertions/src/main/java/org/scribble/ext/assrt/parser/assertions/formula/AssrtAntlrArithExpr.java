@@ -15,10 +15,11 @@ public class AssrtAntlrArithExpr
 	//private static Integer CHILD_RIGHT_FORMULA_INDEX = 2;
 	
 	//public static AssrtBinArithFormula parseBinArithFormula(AssrtAntlrToFormulaParser parser, CommonTree root) //throws AssertionsParseException {
-	public static AssrtSmtFormula<?> parseArithExpr(AssrtAntlrToFormulaParser parser, CommonTree root) //throws AssertionsParseException {
+	public static AssrtSmtFormula parseArithExpr(AssrtAntlrToFormulaParser parser,
+			CommonTree root) //throws AssertionsParseException {
 	{	
 		// Unary cases
-		AssrtSmtFormula<?> left = parser.parse(getLeftChild(root)); 
+		AssrtSmtFormula left = parser.parse(getLeftChild(root));
 		if (root.getChildCount() < 2)
 		{
 			return left;

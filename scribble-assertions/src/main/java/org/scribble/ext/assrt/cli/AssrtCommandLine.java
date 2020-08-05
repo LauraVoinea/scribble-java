@@ -33,16 +33,16 @@ public class AssrtCommandLine extends CommandLine
 	}
 
 	@Override
-	protected AssrtCoreCLFlags newCLFlags()
+	protected AssrtCLFlags newCLFlags()
 	{
-		return new AssrtCoreCLFlags();
+		return new AssrtCLFlags();
 	}
 	
 	// Based on CommandLine.newMainContext
 	@Override
 	protected Main newMain() throws ScribParserException, ScribException
 	{
-		if (!hasFlag(AssrtCoreCLFlags.ASSRT_CORE_FLAG))
+		if (!hasFlag(AssrtCLFlags.ASSRT_CORE_FLAG))
 		{
 			return super.newMain();
 		}
@@ -56,10 +56,10 @@ public class AssrtCommandLine extends CommandLine
 	@Override
 	protected AssrtCoreArgs newCoreArgs()
 	{
-		Solver solver = hasFlag(AssrtCoreCLFlags.ASSRT_CORE_NATIVE_Z3_FLAG)
+		Solver solver = hasFlag(AssrtCLFlags.ASSRT_CORE_NATIVE_Z3_FLAG)
 				? AssrtJob.Solver.NATIVE_Z3
-				: AssrtJob.Solver.NONE;  // FIXME: 
-		boolean z3Batch = hasFlag(AssrtCoreCLFlags.ASSRT_CORE_BATCH_Z3_FLAG);  // TODO: subsume by -z3-batch
+				: AssrtJob.Solver.NONE;  // TODO: 
+		boolean z3Batch = hasFlag(AssrtCLFlags.ASSRT_CORE_BATCH_Z3_FLAG);
 		Set<CoreFlags> flags = parseCoreFlags();
 		return new AssrtCoreArgs(flags, solver, z3Batch);
 	}

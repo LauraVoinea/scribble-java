@@ -3,26 +3,17 @@ package org.scribble.ext.assrt.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.job.AssrtCore;
-import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
+import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBinFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtQuantifiedIntVarsFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtUnintPredicateFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribUtil;
 
@@ -41,11 +32,10 @@ public class Z3Wrapper
 			return true;
 		}
 
-		Map<AssrtIntVar, DataName> sorts = /*((AssrtCoreGProtocol) core.getContext()
-																				.getInlined(intermed.fullname)).type
-																				.getSortEnv();*/
-				((AssrtCoreGProtocol) core.getContext()
-						.getInlined(intermed.fullname)).getSortEnv();
+		Map<AssrtVar, DataName> sorts =
+				/*((AssrtCoreGProtocol) core.getContext().getInlined(intermed.fullname)).type.getSortEnv();*/
+				((AssrtGProtocol) core.getContext().getInlined(intermed.fullname))
+						.getSortEnv();
 		String smt2 = toSmt2(intermed, bforms, sorts);
 
 		core.verbosePrintln(
@@ -97,17 +87,17 @@ public class Z3Wrapper
 	
 	// fs shouldn't be empty (but OK)
 	private static String toSmt2(GProtocol intermed, Set<AssrtBFormula> bforms,
-			Map<AssrtIntVar, DataName> env)
+			Map<AssrtVar, DataName> env)
 	{
 		String smt2 = "";
-		List<String> rs = intermed.roles.stream().map(Object::toString).sorted()
+		/*List<String> rs = intermed.roles.stream().map(Object::toString).sorted()
 				.collect(Collectors.toList());
 		smt2 += IntStream
 				.range(0, rs.size()).mapToObj(i -> "(declare-const " + rs.get(i)
 						+ " Int)\n(assert (= " + rs.get(i) + " " + i + "))\n")
 				.collect(Collectors.joining(""));
-						// FIXME: make a Role sort?
-
+		// TODO: make a Role sort?
+		
 		Set<AssrtUnintPredicateFormula> preds = bforms.stream()
 				.flatMap(f -> getUnintPreds.func.apply(f).stream())
 				.collect(Collectors.toSet());
@@ -120,7 +110,7 @@ public class Z3Wrapper
 		if (preds.stream().anyMatch(p -> p.name.equals("port")))  // FIXME: factor out
 		{
 			smt2 += "(assert (forall ((p Int) (r Int)) (=> (port p r) (open p r))))\n";
-		}
+		}*/
 		
 		return smt2
 				+ bforms.stream().map(f -> "(assert " + f.toSmt2Formula(env) + ")\n")
@@ -128,41 +118,90 @@ public class Z3Wrapper
 				+ "(check-sat)\n"
 				+ "(exit)";
 	}
-
-	// FIXME: move to utils?
-	public static final 
-			RecursiveFunctionalInterface<
-					Function<AssrtSmtFormula<?>, Set<AssrtUnintPredicateFormula>>> 
-			getUnintPreds = 
-			new RecursiveFunctionalInterface<
-					Function<AssrtSmtFormula<?>, Set<AssrtUnintPredicateFormula>>>()
-	{{
-		this.func = x ->
-		{
-			if (x instanceof AssrtBinFormula)
-			{
-				AssrtBinFormula<?> bf = (AssrtBinFormula<?>) x;
-									return Stream.of(bf.getLeft(), bf.getRight())
-											.flatMap(y -> this.func.apply(y).stream())
-											.collect(Collectors.toSet());
-			}
-			else if (x instanceof AssrtQuantifiedIntVarsFormula)
-			{
-				return this.func.apply(((AssrtQuantifiedIntVarsFormula) x).expr);
-			}
-			else if (x instanceof AssrtUnintPredicateFormula)
-			{
-				return Stream.of((AssrtUnintPredicateFormula) x)
-						.collect(Collectors.toSet());
-						// Nested predicates not possible
-			}
-			else
-			{
-				return Collections.emptySet();
-			}
-		};
-	}};
 }
+
+
+	/*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// TODO: move to utils?
+
+public static final 
+		RecursiveFunctionalInterface<
+				Function<AssrtSmtFormula<?>, Set<AssrtUnintPredicateFormula>>> 
+		getUnintPreds = 
+		new RecursiveFunctionalInterface<
+				Function<AssrtSmtFormula<?>, Set<AssrtUnintPredicateFormula>>>()
+{{
+	this.func = x ->
+	{
+		if (x instanceof AssrtBinFormula)
+		{
+			AssrtBinFormula<?> bf = (AssrtBinFormula<?>) x;
+								return Stream.of(bf.getLeft(), bf.getRight())
+										.flatMap(y -> this.func.apply(y).stream())
+										.collect(Collectors.toSet());
+		}
+		else if (x instanceof AssrtQuantifiedFormula)
+		{
+			return this.func.apply(((AssrtQuantifiedFormula) x).expr);
+		}
+		else if (x instanceof AssrtUnintPredicateFormula)
+		{
+			return Stream.of((AssrtUnintPredicateFormula) x)
+					.collect(Collectors.toSet());
+					// Nested predicates not possible
+		}
+		else
+		{
+			return Collections.emptySet();
+		}
+	};
+}};*/
+
 
 	/*private static Set<AssrtUnPredicateFormula> getUnPredicates(AssrtSmtFormula<?> f) 
 	{

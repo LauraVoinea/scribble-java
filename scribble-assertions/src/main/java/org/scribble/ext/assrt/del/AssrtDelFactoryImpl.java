@@ -21,34 +21,25 @@ import org.scribble.ast.name.simple.AmbigNameNode;
 import org.scribble.del.DelFactoryImpl;
 import org.scribble.ext.assrt.ast.AssrtAExprNode;
 import org.scribble.ext.assrt.ast.AssrtAnnotDataElem;
-import org.scribble.ext.assrt.ast.AssrtAssertDecl;
 import org.scribble.ext.assrt.ast.AssrtBExprNode;
 import org.scribble.ext.assrt.ast.AssrtModule;
-import org.scribble.ext.assrt.ast.AssrtStateVarHeaderAnnot;
 import org.scribble.ext.assrt.ast.AssrtStateVarArgList;
 import org.scribble.ext.assrt.ast.AssrtStateVarDecl;
 import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
+import org.scribble.ext.assrt.ast.AssrtStateVarHeaderAnnot;
 import org.scribble.ext.assrt.ast.global.AssrtGConnect;
-import org.scribble.ext.assrt.ast.global.AssrtGContinue;
 import org.scribble.ext.assrt.ast.global.AssrtGDo;
 import org.scribble.ext.assrt.ast.global.AssrtGMsgTransfer;
 import org.scribble.ext.assrt.ast.global.AssrtGProtoHeader;
-import org.scribble.ext.assrt.ast.global.AssrtGRecursion;
-import org.scribble.ext.assrt.ast.local.AssrtLContinue;
 import org.scribble.ext.assrt.ast.local.AssrtLDo;
 import org.scribble.ext.assrt.ast.local.AssrtLProtoHeader;
-import org.scribble.ext.assrt.ast.local.AssrtLRecursion;
 import org.scribble.ext.assrt.ast.local.AssrtLReq;
 import org.scribble.ext.assrt.ast.local.AssrtLSend;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 import org.scribble.ext.assrt.del.global.AssrtGConnectDel;
-import org.scribble.ext.assrt.del.global.AssrtGContinueDel;
 import org.scribble.ext.assrt.del.global.AssrtGDoDel;
 import org.scribble.ext.assrt.del.global.AssrtGMsgTransferDel;
-import org.scribble.ext.assrt.del.global.AssrtGRecursionDel;
-import org.scribble.ext.assrt.del.local.AssrtLContinueDel;
 import org.scribble.ext.assrt.del.local.AssrtLDoDel;
-import org.scribble.ext.assrt.del.local.AssrtLRecursionDel;
 import org.scribble.ext.assrt.del.local.AssrtLRecvDel;
 import org.scribble.ext.assrt.del.local.AssrtLReqDel;
 import org.scribble.ext.assrt.del.local.AssrtLSendDel;
@@ -62,7 +53,8 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
    * (Instantiating existing node classes with new dels)
 	 */
 
-	//Names
+	/* Names */
+
 	@Override
 	public void AmbigNameNode(AmbigNameNode n)
 	{
@@ -70,82 +62,32 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 	}
 	
 	
-	// General and globals
-	/*@Override
-	public void GProtoDecl(GProtoDecl n)
-	{
-		setDel(n, new AssrtGProtoDeclDel());  // TODO: drop "empty" del's (like this one)
-	}
-	
-	// N.B. no GProtoHeader override, still default del (cf. AssrtGProtoHeader)
-	
-	@Override
-	public void GProtoDef(GProtoDef n)
-	{
-		setDel(n, new AssrtGProtoDefDel());  // Uses header annot to do AssrtAnnotationChecker Def enter/exit
-	}
-	
-	@Override
-	public void GProtoBlock(GProtoBlock n)
-	{
-		setDel(n, new AssrtGProtoBlockDel());
-	}*/
+	/* General and globals */
 
+	// Cf/ AssrtScribble.g and AssrtScribTreeAdaptor
 	@Override
 	public void GMsgTransfer(GMsgTransfer n)
 	{
-		setDel(n, new AssrtGMsgTransferDel());
+		//setDel(n, new AssrtGMsgTransferDel());
+		throw new RuntimeException("Deprecated");
 	}
-
+	
 	@Override
 	public void GConnect(GConnect n)
 	{
-		setDel(n, new AssrtGConnectDel());
+		//setDel(n, new AssrtGConnectDel());
+		throw new RuntimeException("Deprecated");
 	}
-
-	/*@Override
-	public void GContinue(GContinue n)
-	{
-		setDel(n, new AssrtGContinueDel());
-	}*/
-
+	
 	@Override
 	public void GDo(GDo n)
 	{
-		setDel(n, new AssrtGDoDel());
+		//setDel(n, new AssrtGDoDel());
+		throw new RuntimeException("Deprecated");
 	}
 
-	/*@Override
-	public void GChoice(GChoice n)
-	{
-		setDel(n, new AssrtGChoiceDel());
-	}
 
-	@Override
-	public void GRecursion(GRecursion n)
-	{
-		setDel(n, new AssrtGRecursionDel());
-	}*/
-
-
-	// Locals
-	/*@Override
-	public void LProjectionDecl(LProjectionDecl n)
-	{
-		setDel(n, new AssrtLProjectionDeclDel());
-	}
-
-	@Override
-	public void LProtoDef(LProtoDef n)
-	{
-		setDel(n, new AssrtLProtoDefDel());
-	}
-
-	@Override
-	public void LProtoBlock(LProtoBlock n)
-	{
-		setDel(n, new AssrtLProtoBlockDel());
-	}*/
+	/* Locals */
 
 	@Override
 	public void LRecv(LRecv n)
@@ -153,19 +95,22 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 		setDel(n, new AssrtLRecvDel());  // CHECKME: AssrtLReceive with assertion?
 	}
 	
+
 	/**
 	 * New (Assrt) node types  
 	 */
 	
-	// Names
+	/* Names */
+
 	@Override
-	public void AssrtIntVarNameNode(AssrtIntVarNameNode n)
+	public void AssrtIntVarNameNode(AssrtVarNameNode n)
 	{
 		setDel(n, createDefaultDel());
 	}
 
 
-	// General and globals
+	/* General and globals */
+
 	@Override
 	public void AssrtModule(AssrtModule n)
 	{
@@ -178,7 +123,8 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 	 * (Explicitly creating new Assrt nodes)
 	 */
 
-	// General and globals
+	/* General and globals */
+
 	@Override
 	public void AssrtAssertion(AssrtBExprNode n)
 	{
@@ -187,12 +133,6 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 
 	@Override
 	public void AssrtArithExpr(AssrtAExprNode n)
-	{
-		setDel(n, createDefaultDel());
-	}
-
-	@Override
-	public void AssrtAssertDecl(AssrtAssertDecl n)
 	{
 		setDel(n, createDefaultDel());
 	}
@@ -240,31 +180,14 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 	}
 
 	@Override
-	public void AssrtGConnect(AssrtGConnect n)
-	{
-		setDel(n, new AssrtGConnectDel());
-	}
-
-	@Override
-	public void AssrtGContinue(AssrtGContinue n)
-	{
-		setDel(n, new AssrtGContinueDel());
-	}
-
-	@Override
 	public void AssrtGDo(AssrtGDo n)
 	{
 		setDel(n, new AssrtGDoDel());
 	}
 
-	@Override
-	public void AssrtGRecursion(AssrtGRecursion n)
-	{
-		setDel(n, new AssrtGRecursionDel());
-	}
 
+	/* Locals */
 
-	// Locals
 	@Override
 	public void AssrtLProtoHeader(AssrtLProtoHeader n)
 	{
@@ -278,9 +201,103 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 	}
 
 	@Override
+	public void AssrtLDo(AssrtLDo n)
+	{
+		setDel(n, new AssrtLDoDel());
+	}
+
+	/*
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	 */
+
+	@Override
+	public void AssrtGConnect(AssrtGConnect n)
+	{
+		setDel(n, new AssrtGConnectDel());
+	}
+
+	@Override
 	public void AssrtLReq(AssrtLReq n)
 	{
 		setDel(n, new AssrtLReqDel());
+	}
+}
+
+/*
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  // TODO 
+
+	@Override
+	public void AssrtGContinue(AssrtGContinue n)
+	{
+		setDel(n, new AssrtGContinueDel());
+	}
+
+	@Override
+	public void AssrtGRecursion(AssrtGRecursion n)
+	{
+		setDel(n, new AssrtGRecursionDel());
 	}
 
 	@Override
@@ -290,16 +307,8 @@ public class AssrtDelFactoryImpl extends DelFactoryImpl implements AssrtDelFacto
 	}
 
 	@Override
-	public void AssrtLDo(AssrtLDo n)
-	{
-		setDel(n, new AssrtLDoDel());
-	}
-
-	@Override
 	public void AssrtLRecursion(AssrtLRecursion n)
 	{
 		setDel(n, new AssrtLRecursionDel());
 	}
-}
-	
-	
+*/

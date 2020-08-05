@@ -1,14 +1,14 @@
 module bad.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest21;
 
 
-type <java> "java.lang.Integer" from "rt.jar" as int;  // FIXME: int keyword
+type <java> "java.lang.Integer" from "rt.jar" as int;
 
 
 //*
 global protocol Proto1(role B, role S)
 {
 	ok() from B to S;
-	do Proto2(B, S); @"<Quote>"  // TODO FIXME: disamb, unknown name -- disamb (getInlined?) should throw ScribbleException
+	do Proto2(B, S); @"<Quote>"  // TODO: disamb, unknown name -- disamb (getInlined?) should throw ScribbleException
 }
 
 aux global protocol Proto2(role B, role S) @"<x:=0>" 

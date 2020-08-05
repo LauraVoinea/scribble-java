@@ -71,9 +71,9 @@ public class AssrtScribTreeAdaptor extends ScribTreeAdaptor
 			 *  Parser returns an ext token type, we create the corresponding ext node type
 			 */
 			
-			// Simple names "constructed directly" by parser, cf. assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ;
+		/* Simple names "constructed directly" by parser, cf. assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ; */
 
-			// Compound names 
+		/* Compound names */
 
 			// Non-name (i.e., general) AST nodes
 			case "ASSRT_MODULE": n = new AssrtModule(t); break;

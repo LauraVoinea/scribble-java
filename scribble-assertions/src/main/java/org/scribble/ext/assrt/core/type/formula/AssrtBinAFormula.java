@@ -5,14 +5,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
-import org.sosy_lab.java_smt.api.IntegerFormulaManager;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 
 // Binary arithmetic -- FIXME: AssrtIntVarFormula no longer just ints
-public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<IntegerFormula>
+public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula
 {
 	public enum Op
 	{
@@ -47,7 +44,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 
 	@Override
-	public AssrtBinAFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtBinAFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return new AssrtBinAFormula(this.op, (AssrtAFormula) this.left.disamb(env),
 				(AssrtAFormula) this.right.disamb(env));
@@ -68,7 +65,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 
 	@Override
-	public DataName getSort(Map<AssrtIntVar, DataName> env)
+	public DataName getSort(Map<AssrtVar, DataName> env)
 	{
 		DataName intSort = new DataName("int");
 		if (!this.left.getSort(env).equals(intSort)
@@ -87,7 +84,7 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 	
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		String left = this.left.toSmt2Formula(env);
 		String right = this.right.toSmt2Formula(env);
@@ -103,29 +100,9 @@ public class AssrtBinAFormula extends AssrtAFormula implements AssrtBinFormula<I
 	}
 
 	@Override
-	public IntegerFormula toJavaSmtFormula() //throws AssertionParseException
+	public Set<AssrtVar> getIntVars()
 	{
-		IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
-		IntegerFormula fleft = this.left.toJavaSmtFormula();
-		IntegerFormula fright = this.right.toJavaSmtFormula();
-		switch(this.op)
-		{
-			case Add:
-				return fmanager.add(fleft, fright);
-			case Subt:
-				return fmanager.subtract(fleft, fright);
-			case Mult:
-				return fmanager.multiply(fleft, fright);
-			default:
-				//throw new AssertionParseException("No matchin ooperation for boolean formula");
-				throw new RuntimeException("[assrt] Shouldn't get in here: " + op);
-		}
-	}
-
-	@Override
-	public Set<AssrtIntVar> getIntVars()
-	{
-		Set<AssrtIntVar> vars = new HashSet<>(this.left.getIntVars());
+		Set<AssrtVar> vars = new HashSet<>(this.left.getIntVars());
 		vars.addAll(this.right.getIntVars());
 		return vars;
 	}

@@ -7,14 +7,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
-import org.sosy_lab.java_smt.api.BooleanFormula;
-import org.sosy_lab.java_smt.api.BooleanFormulaManager;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 // Binary boolean
 // Top-level formula of assertions
-public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<BooleanFormula>
+public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula
 {
 	public enum Op
 	{
@@ -58,102 +55,11 @@ public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<B
 	}
 
 	@Override
-	public AssrtBinBFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtBinBFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return new AssrtBinBFormula(this.op, (AssrtBFormula) this.left.disamb(env),
 				(AssrtBFormula) this.right.disamb(env));
 	}
-
-	@Override
-	public AssrtBFormula getCnf()
-	{
-		switch (this.op)
-		{
-			case And:
-			{
-				AssrtBFormula l = this.left.getCnf();
-				AssrtBFormula r = this.right.getCnf();
-				return AssrtFormulaFactory.AssrtBinBool(Op.And, l, r);
-			}
-			case Imply:
-			{
-				throw new RuntimeException("[assrt-core] TODO: " + this);
-			}
-			case Or:
-			{
-				if (this.left.hasOp(Op.And))
-				{
-					List<AssrtBFormula> fs = getCnfClauses(this.left.getCnf());
-					AssrtBinBFormula res = fs.stream().map(f -> AssrtFormulaFactory.AssrtBinBool(Op.Or, f, this.right))
-							.reduce((f1, f2) -> AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, f1, f2)).get();
-					return res.getCnf();
-				}
-				else if (this.right.hasOp(Op.And))  // FIXME: factor out with above
-				{
-					List<AssrtBFormula> fs = getCnfClauses(this.right.getCnf());
-					AssrtBinBFormula res = fs.stream().map(f -> AssrtFormulaFactory.AssrtBinBool(Op.Or, this.left, f))
-							.reduce((f1, f2) -> AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, f1, f2)).get();
-					return res.getCnf();
-				}
-				else
-				{
-					return this;
-				}
-			}
-			default:
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-			}
-		}
-	}
-	
-	//public boolean isDisjunction()
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op top)
-	{
-		if (this.op == top)
-		{
-			return this.left.isNF(top) && this.right.isNF(top);
-		}
-		else
-		{
-			return !this.left.hasOp(top) && !this.right.hasOp(top);
-		}
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		return (this.op == op) || this.left.hasOp(op) || this.right.hasOp(op);
-	}
-
-	/*@Override
-	public AssrtBoolFormula getDisjunction()
-	{
-		switch (this.op)
-		{
-			case And:
-			{
-				AssrtBoolFormula l = this.left.getCnf();
-				AssrtBoolFormula r = this.right.getCnf();
-				return AssrtFormulaFactory.AssrtBinBool(Op.And, l, r);
-			}
-			case Imply:
-			{
-				throw new RuntimeException("[assrt-core] TODO: " + this);
-			}
-			case Or:
-			{
-				AssrtBoolFormula l = this.left.getCnf();
-				AssrtBoolFormula r = this.right.getCnf();
-				return AssrtFormulaFactory.AssrtBinBool(Op.And, l, r);
-			}
-			default:
-			{
-				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + this);
-			}
-		}
-	}*/
 	
 	@Override
 	public AssrtBFormula squash()
@@ -221,7 +127,7 @@ public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<B
 	}
 	
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		String left = this.left.toSmt2Formula(env);
 		String right = this.right.toSmt2Formula(env);
@@ -237,26 +143,9 @@ public class AssrtBinBFormula extends AssrtBFormula implements AssrtBinFormula<B
 	}
 	
 	@Override
-	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException
+	public Set<AssrtVar> getIntVars()
 	{
-		BooleanFormulaManager fmanager = JavaSmtWrapper.getInstance().bfm;
-		BooleanFormula bleft = this.left.toJavaSmtFormula();
-		BooleanFormula bright = this.right.toJavaSmtFormula();
-		switch(this.op)
-		{
-			case And:   return fmanager.and(bleft, bright); 
-			case Or:    return fmanager.or(bleft, bright); 
-			case Imply: return fmanager.implication(bleft, bright); 
-			default:
-				//throw new AssertionParseException("No matchin ooperation for boolean formula"); 
-				throw new RuntimeException("[assrt] Shouldn't get in here: " + op);
-		}		
-	}
-	
-	@Override
-	public Set<AssrtIntVar> getIntVars()
-	{
-		Set<AssrtIntVar> vars = new HashSet<>(this.left.getIntVars()); 
+		Set<AssrtVar> vars = new HashSet<>(this.left.getIntVars()); 
 		vars.addAll(this.right.getIntVars()); 
 		return vars; 
 	}

@@ -24,10 +24,10 @@ public class AssrtVisitorFactoryImpl extends VisitorFactoryImpl
 	// SimpleVisitors
 
 	@Override
-	public AssrtCoreGTypeTranslator GTypeTranslator(Job job, ModuleName rootFullname,
+	public AssrtGTypeTranslator GTypeTranslator(Job job, ModuleName rootFullname,
 			STypeFactory tf)
 	{
-		return new AssrtCoreGTypeTranslator(job, rootFullname, tf);
+		return new AssrtGTypeTranslator(job, rootFullname, tf);
 	}
 	
 	

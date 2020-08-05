@@ -8,14 +8,6 @@
 grammar Assertions;  // TODO: rename AssrtExt(Id), or AssrtAnnotation
 
 
-/*
- * TODO: 
- * - refactor AssrtAntlrToFormulaParser ito AssertionsTreeAdaptor?
- * - and set ASTLabelType=ScribNodeBase? -- would need to refactor, e.g., 
- *   AssrtBExprNode wrapping of AssrtBFormula from AssrtScribble.g into here,
- *   cf. EXTID<AssrtBExprNode>[$t, AssertionsParser.parseAssertion($t.text)]
- */
-
 options
 {
 	language = Java;
@@ -42,7 +34,6 @@ tokens
 	 * 
 	 * These token names are cased on by AssrtAntlrToFormulaParser.
 	 */
-	//EMPTY_LIST = 'EMPTY_LIST';
 	
 	// TODO: rename EXT_... (or ANNOT_...)
 	ROOT; 
@@ -52,7 +43,7 @@ tokens
 	ARITHEXPR; 
 	NEGEXPR;
 
-	INTVAR;  // FIXME: rename Ambig
+	VAR;  // TODO: rename Ambig
 	INTVAL; 
 	NEGINTVAL; 
 	STRVAL; 
@@ -66,9 +57,6 @@ tokens
 	ASSRT_STATEVARARG_LIST;
 
 	ASSRT_LOCATEDSTATEVARARGS_TEMP;
-	
-	/*UNFUN;
-	UNFUNARGLIST;*/
 }
 
 
@@ -89,7 +77,7 @@ tokens
 	import org.scribble.ext.assrt.ast.AssrtStateVarArgList;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDecl;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
-  import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+  import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 	import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
@@ -120,7 +108,7 @@ tokens
 		AssertionsLexer lexer = new AssertionsLexer(new ANTLRStringStream(source));
 		AssertionsParser parser = new AssertionsParser(
 				new CommonTokenStream(lexer));
-		AssrtSmtFormula<?> res = AssrtAntlrToFormulaParser
+		AssrtSmtFormula res = AssrtAntlrToFormulaParser
 				.getInstance().parse((CommonTree) parser.bool_root().getTree());
 		if (!(res instanceof AssrtBFormula))
 		{
@@ -255,7 +243,10 @@ WHITESPACE:
 	}
 ;
 
-IDENTIFIER:
+
+/* Duplicated from AssrtScribble.g */
+
+ID:
 	LETTER (LETTER | DIGIT)*
 ;  
 
@@ -277,9 +268,16 @@ fragment DIGIT:
 	'0'..'9'
 ;
 
+ambigname: t=ID -> ID<AmbigNameNode>[$t] ;
+rolename: t=ID -> ID<RoleNode>[$t] ;
+
+
+/* Assrt */
+
+assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
-	IDENTIFIER -> ^(INTVAR IDENTIFIER)
+	ID -> ^(VAR ID)
 ; 	  
 
 intlit: 
@@ -386,20 +384,6 @@ literal:
 |
 	stringlit
 ;
-
-/*
-unint_fun:
-	IDENTIFIER unint_fun_arg_list
-->
-	^(UNFUN IDENTIFIER unint_fun_arg_list)
-; 
-	
-unint_fun_arg_list:
-	'(' (arith_expr (',' arith_expr )*)? ')'
-->
-	^(UNFUNARGLIST arith_expr*)
-;
-*/
 	
 // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 assrt_headerannot:
@@ -431,19 +415,14 @@ assrt_statevardecls:
 
 // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
 assrt_statevardecl:  // cf. payelem
-	assrt_intvarname ':' ambigname '=' arith_expr
+	assrt_varname ':' ambigname '=' arith_expr
 ->
-	^(ASSRT_STATEVARDECL assrt_intvarname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
+	^(ASSRT_STATEVARDECL assrt_varname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
 /*|
-	assrt_intvarname ':' qualifieddataname '=' arith_expr  // TODO: qualifieddataname
+	assrt_varname ':' qualifieddataname '=' arith_expr  // TODO: qualifieddataname
 ->
-	^(ASSRT_STATEVARDECL assrt_intvarname qualifieddataname arith_expr)*/
+	^(ASSRT_STATEVARDECL assrt_varname qualifieddataname arith_expr)*/
 ;
-
-// Duplicated from AssrtScribble.g
-ambigname: t=IDENTIFIER -> IDENTIFIER<AmbigNameNode>[$t] ;
-rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
-assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // Currently, int or string
 
 // An intermediary category, resolved by bar
 assrt_statevarargs:
@@ -453,12 +432,10 @@ assrt_statevarargs:
 |
 	(rolename assrt_nonlocatedstatevarargs)+
 ->
-	//{bar($rolename.tree, $assrt_statevardecls.tree)}  // TODO: record rolename
 	^(ASSRT_LOCATEDSTATEVARARGS_TEMP assrt_nonlocatedstatevarargs+)
 ;
 
 assrt_nonlocatedstatevarargs:
-	//'<' assrt_statevararg (',' assrt_statevararg)* '>'
 	'[' assrt_statevararg (',' assrt_statevararg)* ']'
 ->
 	^(ASSRT_STATEVARARG_LIST assrt_statevararg+)
@@ -468,3 +445,36 @@ assrt_statevararg:
 	arith_expr  // Parsed to AssrtAExprNode by parseStateVarArgList
 ;
 	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+/*
+unint_fun:
+	ID unint_fun_arg_list
+->
+	^(UNFUN ID unint_fun_arg_list)
+; 
+	
+unint_fun_arg_list:
+	'(' (arith_expr (',' arith_expr )*)? ')'
+->
+	^(UNFUNARGLIST arith_expr*)
+;
+*/

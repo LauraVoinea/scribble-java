@@ -1,0 +1,232 @@
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtTest.scr -V -ass Proto1
+
+
+module assrt.tmp.AssrtTest;
+
+
+type <dotnet> "System.UInt32" from "..." as int;
+type <dotnet> "System.String" from "..." as str;
+
+
+
+//---
+// base assrt
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	choice at A
+	{
+		1(x:int) from A to B;
+	}
+	or
+	{
+		2(y:int) from A to B;
+	}
+	2(z:int) from A to B; 
+	//2(y:int) from A to B;  // Uncomment is bad
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	(y:int) from A to C;
+	(x:int) from A to B;
+	[x=y]
+	(x) from A to B;
+	[x=y]
+	(x) from A to B;
+
+	(x:int) from A to B;
+	(x) from A to B;
+
+	(x:int) from A to B;
+	(x) from B to A;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+	/*rec X
+	{* /
+		choice at A
+		{
+			1(y:int) from A to B;
+			1(x:int) from B to C;
+			//continue X;
+		}
+		or
+		{
+			2(y:int) from A to B;
+			2(int) from B to C;
+			2(x:int) from B to A;
+		}
+	//}
+	[z=x]
+	3(z:int) from B to A;  // In one case A knows x already, the other not
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+	choice at A
+	{
+		1(y:int) from A to B;
+		1(x:int) from B to C;
+		//continue X;
+	}
+	or
+	{
+		2(x:int) from A to B;
+		2(int) from B to C;
+	}
+	3(x) from B to C;  // CHECKME: One case B knows as receiver, the other as sender
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+	rec X
+	{
+		choice at A
+		{
+			1(y:int) from A to B;
+			1(x:int) from B to C;
+			continue X;
+		}
+		or
+		{
+			2(y:int) from A to B;
+			2(x:int) from B to C;
+		}
+	}
+	3(x) from B to C;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+	rec X
+	{
+		choice at A
+		{
+			1(y:int) from A to B;
+			1(x:int) from B to C;
+			//continue X;
+		}
+		or
+		{
+			2(y:int) from A to B;
+			2(x:int) from B to C;
+		}
+	}
+	3(x) from B to C;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+		choice at A
+		{
+			1(y:int) from A to B;
+			1(x:int) from B to C;
+		}
+		or
+		{
+			2(y:int) from A to B;
+			2(x:int) from B to C;
+		}
+	3(x) from B to C;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+	choice at A
+	{
+		1(y:int) from A to B;
+		1(x:int) from B to C;
+		//continue X;
+	}
+	or
+	{
+		2(y:int) from A to B;
+		2(z:int) from B to C;
+	}
+	3(y) from A to B;
+	//3(x) from A to B;  // Uncomment is bad
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B, role C)
+{
+	choice at A
+	{
+		1(y:int) from A to B;
+		1(x:int) from B to C;
+	}
+	3(y) from A to B;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	rec X
+	{
+		1(x:int) from A to B;
+	}
+	2(x) from B to A;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	choice at A
+	{
+		1(x:int) from A to B;
+	}
+	or
+	{
+		2(y:int) from A to B;
+	}
+	3(y) from B to A;
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B)
+{
+	1(x:int) from A to B;
+	2(x) from B to A;
+}
+//*/
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+	1(x:int) from A to B;
+	2(x) from A to B;
+}
+//*/

@@ -3,10 +3,9 @@ package org.scribble.ext.assrt.core.type.formula;
 import java.util.Map;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-public abstract class AssrtAFormula extends AssrtSmtFormula<IntegerFormula>
+public abstract class AssrtAFormula extends AssrtSmtFormula
 {
 	@Override
 	public abstract AssrtAFormula squash();
@@ -17,7 +16,7 @@ public abstract class AssrtAFormula extends AssrtSmtFormula<IntegerFormula>
 			AssrtAVarFormula neu);
 
 	// TODO: factor out a SortEnv type
-	public abstract DataName getSort(Map<AssrtIntVar, DataName> env);
+	public abstract DataName getSort(Map<AssrtVar, DataName> env);
 
 	// i.e., does not contain any AssrtIntVarFormula -- n.b., includes but not equal to literals
 	public abstract boolean isConstant();

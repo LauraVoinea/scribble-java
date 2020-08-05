@@ -1,7 +1,7 @@
 module bad.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest15c;
 
 
-type <java> "java.lang.Integer" from "rt.jar" as int;  // FIXME: int keyword
+type <java> "java.lang.Integer" from "rt.jar" as int;
 
 
 //*
