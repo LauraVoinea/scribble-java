@@ -217,7 +217,7 @@ tokens
 
   import org.scribble.ext.assrt.ast.AssrtAExprNode;
   import org.scribble.ext.assrt.ast.AssrtBExprNode;
-  import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+  import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
   import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 }
 
@@ -349,7 +349,7 @@ rolename: t=ID -> ID<RoleNode>[$t] ;
 sigparamname: t=ID -> ID<SigParamNode>[$t] ;
 
 // Assrt
-assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
+assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // N.B. Specifically int
 
 
 /**
