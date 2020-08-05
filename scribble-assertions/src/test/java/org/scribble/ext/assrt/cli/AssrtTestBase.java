@@ -10,12 +10,12 @@ import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
 import org.scribble.test.ScribTestBase;
 import org.scribble.util.AntlrSourceException;
 
-public abstract class AssrtCoreTestBase extends ScribTestBase
+public abstract class AssrtTestBase extends ScribTestBase
 {
 	// relative to cli/src/test/resources (or target/test-classes/)
 	protected static final String ASSRT_TEST_ROOT_DIR = ".";
 
-	public AssrtCoreTestBase(String example, boolean isBadTest)
+	public AssrtTestBase(String example, boolean isBadTest)
 	{
 		super(example, isBadTest);
 	}
@@ -27,7 +27,7 @@ public abstract class AssrtCoreTestBase extends ScribTestBase
 		/*return "../../../scribble-test/target/test-classes/";  
 				// FIXME: not needed?  only doing assrt tests (not scribble-test)
 				// Why does this still work?*/
-		return AssrtCoreTestBase.ASSRT_TEST_ROOT_DIR;
+		return AssrtTestBase.ASSRT_TEST_ROOT_DIR;
 	}
 
 	@Override

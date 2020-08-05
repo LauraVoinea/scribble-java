@@ -12,9 +12,9 @@ import org.scribble.test.ScribTestBase;
 
 
 @RunWith(Parameterized.class)
-public class AssrtCoreAllTest extends AssrtCoreTestBase
+public class AssrtAllTest extends AssrtTestBase
 {
-	public AssrtCoreAllTest(String example, boolean isBadTest)
+	public AssrtAllTest(String example, boolean isBadTest)
 	{
 		super(example, isBadTest);
 	}
@@ -22,8 +22,8 @@ public class AssrtCoreAllTest extends AssrtCoreTestBase
 	@Parameters(name = "{0}")
 	public static Collection<Object[]> data()
 	{
-		String dir_good = ClassLoader.getSystemResource(AssrtCoreGoodTest.GOOD_DIR).getFile();
-		String dir_bad = ClassLoader.getSystemResource(AssrtCoreBadTest.BAD_DIR).getFile();
+		String dir_good = ClassLoader.getSystemResource(AssrtGoodTest.GOOD_DIR).getFile();
+		String dir_bad = ClassLoader.getSystemResource(AssrtBadTest.BAD_DIR).getFile();
 		List<Object[]> result = new LinkedList<>();
 		result.addAll(Harness.makeTests(ScribTestBase.GOOD_TEST, dir_good));
 		result.addAll(Harness.makeTests(ScribTestBase.BAD_TEST, dir_bad));

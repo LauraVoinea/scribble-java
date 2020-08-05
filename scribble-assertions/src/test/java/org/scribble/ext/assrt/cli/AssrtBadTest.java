@@ -8,12 +8,12 @@ import org.junit.runners.Parameterized.Parameters;
 import org.scribble.test.Harness;
 import org.scribble.test.ScribTestBase;
 
-@RunWith(value = Parameterized.class)
-public class AssrtCoreGoodTest extends AssrtCoreTestBase
+@RunWith(Parameterized.class)
+public class AssrtBadTest extends AssrtTestBase
 {
-	protected static final String GOOD_DIR = "good";
+	protected static final String BAD_DIR = "bad";
 
-	public AssrtCoreGoodTest(String example, boolean isBadTest)
+	public AssrtBadTest(String example, boolean isBadTest)
 	{
 		super(example, isBadTest);
 	}
@@ -21,7 +21,6 @@ public class AssrtCoreGoodTest extends AssrtCoreTestBase
 	@Parameters(name = "{0}")
 	public static Collection<Object[]> data()
 	{
-		String dir = AssrtCoreGoodTest.GOOD_DIR;
-		return Harness.checkTestDirProperty(ScribTestBase.GOOD_TEST, dir);
+		return Harness.checkTestDirProperty(ScribTestBase.BAD_TEST, AssrtBadTest.BAD_DIR);
 	}
 }
