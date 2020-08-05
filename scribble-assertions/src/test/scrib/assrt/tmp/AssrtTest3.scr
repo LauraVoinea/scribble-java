@@ -1,8 +1,8 @@
 //Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rhu1-assrt/scribble-java
-//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtCoreTest3.scr -fair -z3 -assrt
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtTest3.scr -fair -z3 -assrt
 
 
-module assrt.tmp.AssrtCoreTest3;
+module assrt.tmp.AssrtTest3;
 
 
 type <dotnet> "System.UInt32" from "..." as int;

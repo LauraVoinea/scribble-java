@@ -1,8 +1,8 @@
 //Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rhu1-assrt/scribble-java
-//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtCoreTest2.scr -fair -z3 -assrt 
-//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtCoreTest2.scr -fair -z3 -assrt -modelpng Test001 Test.png -fsmpng Test001 A Test_A.png -fsmpng Test001 B Test_B.png
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtTest2.scr -fair -z3 -assrt 
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtTest2.scr -fair -z3 -assrt -modelpng Test001 Test.png -fsmpng Test001 A Test_A.png -fsmpng Test001 B Test_B.png
 
-module assrt.tmp.AssrtCoreTest2;
+module assrt.tmp.AssrtTest2;
 
 
 type <dotnet> "System.UInt32" from "..." as int;
@@ -15,7 +15,7 @@ global protocol Test001(role A, role B)
 
 global protocol Test002(role A, role B)
 {
-	1(x: AssrtCoreTest2.int) from A to B;  @"True"
+	1(x: AssrtTest2.int) from A to B;  @"True"
 }
 
 global protocol Test003(role A, role B)
