@@ -130,25 +130,6 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 			AssrtBFormula fproj = AssrtFormulaFactory
 					.AssrtBinBool(AssrtBinBFormula.Op.And, f, a.ass);
 
-			/*if (this.dst.equals(self))  // Projecting receiver side
-			{
-//				Set<AssrtDataTypeVar> vs = fproj.getVars();
-//						// FIXME: converting Set to List
-//				vs.remove(a.ass.getVars());
-//				if (!vs.isEmpty())
-//				{
-//					List<AssrtIntVarFormula> tmp = vs.stream().map(v -> AssrtFormulaFactory.AssrtIntVar(v.toString())).collect(Collectors.toList());  
-//					fproj = AssrtFormulaFactory.AssrtExistsFormula(tmp, fproj);
-//				}
-				//..FIXME: Checking TS on model, so we don't need the projection to "syntactically" record the "assertion history" in this way?
-				//..or just follow original sender-only assertion implementation?
-				fproj = AssrtTrueFormula.TRUE;  
-						// HACK FIXME: currently also hacking all "message-carried assertions" to True, i.e., AssrtCoreState::fireSend/Request -- cf. AssrtSConfig::fire
-						// AssrtCoreState::getReceive/AcceptFireable currently use syntactic equality of assertions
-
-				a = ((AssrtCoreSTypeFactory) core.config.tf).AssrtCoreAction(a.op,
-						a.pay, fproj);
-			}*/
 			Map<Role, Set<AssrtVar>> tmp = new HashMap<>(known);
 			if (this.src.equals(self) || this.dst.equals(self))
 			{
@@ -162,7 +143,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 						e.getValue().projectInlined(core, self, fproj, tmp, located,
 								Collections.emptyList(), AssrtTrueFormula.TRUE));
 				// N.B. local actions directly preserved from globals -- so core-receive also has assertion (cf. AssrtGMessageTransfer.project, currently no AssrtLReceive)
-				// FIXME: receive assertion projection -- should not be the same as send?
+				// CHECKME: receive assertion projection -- should not be the same as send?
 			}
 			else
 			{
@@ -214,8 +195,6 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		
 		List<AssrtLType> filtered = projs.values().stream()
 			.filter(v -> !v.equals(AssrtLEnd.END))
-			////.collect(Collectors.toMap(e -> Map.Entry<AssrtCoreAction, AssrtCoreLType>::getKey, e -> Map.Entry<AssrtCoreAction, AssrtCoreLType>::getValue));
-			//.map(v -> (AssrtCoreLChoice) v)
 			.collect(Collectors.toList());
 	
 		if (filtered.size() == 0)

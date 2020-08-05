@@ -25,7 +25,7 @@ public interface AssrtGType extends AssrtSType<Global, AssrtGType>
 	
 	// CHECKME: refactor as visitors? -- base Core visitor pattern not currently ported
 
-	// FIXME TODO: deprecate -- all vars now Assrt(Int)Var
+	// TODO: deprecate -- all vars now Assrt(Int)Var
 	AssrtGType disamb(AssrtCore core, Map<AssrtVar, DataName> env);  // FIXME: throw ScribbleException, WF errors
 	
 	// Assrt overrides base STypeVisitor pattern -- explicitly declare each pass here ("Visitor" is just dumb data holder), instead of generic visitWith

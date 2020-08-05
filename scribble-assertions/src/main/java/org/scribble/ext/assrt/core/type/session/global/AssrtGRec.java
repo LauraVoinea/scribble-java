@@ -109,7 +109,7 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 
 		LinkedHashMap<AssrtVar, AssrtAFormula> svars = new LinkedHashMap<>();
 		LinkedHashMap<AssrtVar, AssrtAFormula> phantomSVars = new LinkedHashMap<>();
-		/*this.statevars.entrySet().stream()  // ordered
+		/*this.statevars.entrySet().stream()  // Ordered
 				.filter(x ->
 					{
 						Role r = this.located.get(x.getKey());
@@ -144,7 +144,7 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 		Set<AssrtVar> assVars = this.assertion.getIntVars();
 		Set<AssrtVar> k = known.get(self);
 		AssrtBFormula ass = this.assertion;
-		if (!k.containsAll(assVars))  // FIXME: phantoms -- HERE: treat phantoms as known, i.e., assvars not really "projected" any more  // similarly in model building
+		if (!k.containsAll(assVars))  // TODO: phantoms -- HERE: treat phantoms as known, i.e., assvars not really "projected" any more  // Similarly in model building
 		{
 			assVars.retainAll(k);
 			if (!assVars.isEmpty())
@@ -153,7 +153,7 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 						"Cannot project assertion onto " + self
 								+ ", some (but not all) variables unknown: "
 								+ assVars + "\n\t" + this);
-				// HACK FIXME: cf. model K (do in model checking?)
+				// TODO: hack, fix -- cf. model K (do in model checking?)
 			}
 			ass = AssrtTrueFormula.TRUE;
 		}
@@ -191,11 +191,11 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 								+ (this.located.get(x.getKey()) == null  // Cf. AssrtCoreGProtocol
 										? " :"
 										: ":" + this.located.get(x.getKey()) + " ")
-								+ "= " + x.getValue())
+								+ "= " + x.getValue())  // TODO: sort
 						.collect(Collectors.joining(", "))
 				+ ">["
 				+ this.phantom.entrySet().stream()
-						.map(x -> x.getKey() + ":=" + x.getValue())
+						.map(x -> x.getKey() + ":=" + x.getValue())  // TODO: sort
 						.collect(Collectors.joining(", "))
 				+ "]"
 				+ this.assertion + "." + this.body;

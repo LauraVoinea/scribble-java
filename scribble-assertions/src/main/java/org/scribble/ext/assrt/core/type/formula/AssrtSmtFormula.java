@@ -6,15 +6,14 @@ import java.util.Set;
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-// FIXME: rename AnnotFormula
-// FIXME: equals/hashCode? -- e.g., for AssrtESend/Receive? -- already done?
-		// FIXME: still treated as String in some places, e.g., AssrtESend
 // Formula is a "top-level" base class, cf. (Abstract)Name 
+// TODO: rename AnnotFormula?
+// CHECKME: Formulae still treated as String in some places, e.g., AssrtESend
 public abstract class AssrtSmtFormula
 {
 
 	// TODO: deprecate
-	public abstract AssrtSmtFormula disamb(Map<AssrtVar, DataName> env);  // FIXME: throws ScribException -- e.g., WF errors (getInlined comes before current WF pass)
+	public abstract AssrtSmtFormula disamb(Map<AssrtVar, DataName> env);  // TODO: throws ScribException -- e.g., WF errors (getInlined comes before current WF pass)
 
 	// Currently no redundant quantifier elimination
 	public abstract AssrtSmtFormula squash();  // Needs to be here (not AssrtBoolFormula) because whole tree needs to be copied -- otherwise this.formula is inconsistent

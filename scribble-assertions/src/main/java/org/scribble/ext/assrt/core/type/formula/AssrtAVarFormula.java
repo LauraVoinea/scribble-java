@@ -7,7 +7,7 @@ import java.util.Set;
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-// FIXME: not just "A" anymore, e.g., String sort
+// TODO: refactor, not just "A(rith)" anymore, e.g., String sort
 public abstract class AssrtAVarFormula extends AssrtAFormula
 {
 	public final String name; 
@@ -36,7 +36,7 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 	@Override
 	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
-		/*if (this.name.startsWith("_dum"))  // FIXME
+		/*if (this.name.startsWith("_dum"))  // CHECKME
 		{
 			throw new RuntimeException("[assrt] Use squash first: " + this);
 		}*/
@@ -48,7 +48,7 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 	public Set<AssrtVar> getIntVars()
 	{
 		Set<AssrtVar> vars = new HashSet<>();
-		vars.add(toName());  // FIXME: currently may also be a role
+		vars.add(toName());  // TODO: currently may also be a role
 		return vars; 
 	}
 	

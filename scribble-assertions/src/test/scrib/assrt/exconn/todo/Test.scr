@@ -1,11 +1,7 @@
-//Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rumineykova/scribble-javaHello
-//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/exconn/Test.scr -Z3 -ass Proto1
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/misc/exconn/Test.scr -Z3 -ass Proto1
 
 
-// http://sandbox.kidstrythisathome.com/erdos/
-
-
-module assrt.exconn.Test;
+module assrt.misc.exconn.Test;
 
 
 type <dotnet> "System.UInt32" from "..." as int;

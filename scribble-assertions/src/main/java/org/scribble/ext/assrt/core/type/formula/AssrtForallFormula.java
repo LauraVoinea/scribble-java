@@ -142,7 +142,7 @@ public class AssrtForallFormula extends AssrtQuantifiedFormula
 		case "int":
 			return "Int";
 		case "string":  // TODO factor out
-		case "String":
+		case "String":  // Z3 needs "String"
 			return "String";
 		default:
 			throw new RuntimeException("Unsupported sort: " + data);

@@ -43,15 +43,14 @@ public class AssrtLRec extends AssrtRec<Local, AssrtLType> implements AssrtLType
 	{
 		return "mu " + this.recvar + "<"
 				+ this.statevars.entrySet().stream()
-						.map(x -> x.getKey() + " := " + x.getValue()).collect(  // FIXME: sort
+						.map(x -> x.getKey() + " := " + x.getValue()).collect(  // TODO: sort
 								Collectors.joining(", "))
 				+ ">"
 				+ "[" + this.phantom.entrySet().stream()
-						.map(x -> x.getKey() + ":=" + x.getValue())  // FIXME: sort
+						.map(x -> x.getKey() + ":=" + x.getValue())  // TODO: sort
 						.collect(Collectors.joining(", "))
 				+ "]"
 				+ this.assertion
-				//+ this.phantom.entrySet().stream().map(x -> "&&" + x.getValue()).collect(Collectors.joining())  // No: currently actual assertion is already monolithic (here is init expr)
 				+ "." + this.body;
 	}
 

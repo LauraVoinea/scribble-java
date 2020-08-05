@@ -1,4 +1,4 @@
-module assrt.icse18.Fib;
+module assrt.misc.Fib;
 
 
 type <dotnet> "System.UInt32" from "..." as int;

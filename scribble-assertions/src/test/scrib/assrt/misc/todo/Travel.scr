@@ -1,11 +1,7 @@
-//Raymond@"HZHL3 ~/code/eclipse/scribble/github.com/rumineykova/scribble-java
-//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/icse18/Travel.scr 
+//$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/misc/Travel.scr 
 
 
-// http://sandbox.kidstrythisathome.com/erdos/
-
-
-module assrt.icse18.Travel;
+module assrt.misc.Travel;
 
 
 type <dotnet> "System.UInt32" from "..." as int;

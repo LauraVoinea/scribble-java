@@ -8,7 +8,7 @@ import org.scribble.ext.assrt.core.type.kind.AssrtVarKind;
 // TODO: integrate with AssrtVarFormula
 // CHECKME: AssrtVar a different syntactic category than the SmtFormula vars --
 // unify?
-// FIXME: String formulae coming under AFormula
+// TODO: refactor, String formulae coming under AFormula
 public class AssrtVar extends AbstractName<AssrtVarKind>
 		implements AssrtPayElemType<AssrtVarKind>
 {

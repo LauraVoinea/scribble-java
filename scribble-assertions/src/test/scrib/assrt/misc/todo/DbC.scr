@@ -1,8 +1,7 @@
-//Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rumineykova/scribble-java
 //$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtTest.scr -V -ass Proto1
 
 
-module assrt.icse18.DbC;
+module assrt.misc.DbC;
 
 
 type <dotnet> "System.UInt32" from "..." as int;

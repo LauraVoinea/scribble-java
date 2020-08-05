@@ -1,4 +1,3 @@
-//Raymond@HZHL3 ~/code/eclipse/scribble/github.com/rhu1-assrt/scribble-java
 //$ bin/scribblec-assrt.sh -ip scribble-assertions/src/test/scrib/ -d scribble-assertions/src/test/scrib/ scribble-assertions/src/test/scrib/assrt/tmp/AssrtTest6.scr -batch -fair -z3 -assrt
 
 
