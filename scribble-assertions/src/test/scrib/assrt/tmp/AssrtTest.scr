@@ -11,12 +11,63 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
+//*
+global protocol MyProto(role A, role B) {
+	choice at A {
+		1() from B to A;  // Testing merge, mixed action kinds
+	}
+}
+//*/
 
+
+/*
+global protocol MyProto(role A, role B, role C) {
+	choice at A {
+		1() from A to B;
+		// Testing, merge with "missing" cases
+		3() from A to C;
+		//2() from A to C;  // Testing merge, duplicate labels (regardless of continuation equal or not)
+	} or {
+		2() from A to B;
+		//2() from C to A;  // Testing merge, mixed action kinds
+		2() from A to C;
+	}
+}
+//*
+
+
+
+
+
+/*
+global protocol MyProto(role A, role B, role C) {
+    1(x1: int) from A to B;        @'x1>0'
+    2(x2: int) from A to C;        @'x2=x1'j
+    do MyProtoAux(A, B, C);        @'B[x1] C[x2]'
+}
+
+aux global protocol MyProtoAux(role A, role B, role C) 
+                                   @'B[xB: int = 0] C[xC: int = 0] xB>=0' {
+    choice at B {
+        2(curr: int) from B to C;  @'xB>0 && curr=xB'
+        3(orig: int) from C to A;  @'orig=xC'
+        do MyProtoAux(A, B, C);    @'B[xB-1] C[xC]'
+    } or {
+        Bye() from B to C;         @'xB=0'
+        Bye() from C to A;
+    }
+}
+//*/
+
+
+
+/*
 global protocol Proto1(role A, role B) @'[x: int = 0]' {
 	1() from A to B;
 	//do Proto1(A, B);  // Testing do arg checking
 	do Proto1(A, B);  @'[1, 1]'  // Testing do arg checking
 }
+//*/
 
 
 

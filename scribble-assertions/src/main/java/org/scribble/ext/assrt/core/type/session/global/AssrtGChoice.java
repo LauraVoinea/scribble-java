@@ -163,11 +163,22 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		if (this.src.equals(self) || this.dst.equals(self))
 		{
 			Role role = this.src.equals(self) ? this.dst : this.src;
-			return tf.AssrtCoreLChoice(
-					null, role, getKind().project(this.src, self), projs);
+			AssrtLActionKind k = getKind().project(this.src, self);
+			return tf.AssrtCoreLChoice(null, role, k, projs);
 		}
 
-		// "Merge" -- simply disregard phantoms now, assume incorporated downstream (or discarded by end) -- CHECKME: recvar?
+		/* "Merge" -- simply disregard phantoms now, assume incorporated downstream (or discarded by end) */
+
+		if (projs.values().stream().anyMatch(v -> (v instanceof AssrtLEnd)))
+		{
+			if (projs.values().stream()
+					.anyMatch(v -> !(v instanceof AssrtLEnd)))
+			{
+				throw new AssrtSyntaxException("[assrt-core] Cannot project \n"
+						+ this + "\n onto " + self + ": cannot merge mixed termination.");
+			}
+		}
+
 		if (projs.values().stream().anyMatch(v -> (v instanceof AssrtLRecVar)))
 		{
 			if (projs.values().stream()
@@ -194,14 +205,14 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		}
 		
 		List<AssrtLType> filtered = projs.values().stream()
-			.filter(v -> !v.equals(AssrtLEnd.END))
+				//.filter(v -> !v.equals(AssrtLEnd.END))
 			.collect(Collectors.toList());
 	
-		if (filtered.size() == 0)
+		/*if (filtered.size() == 0)
 		{
 			return AssrtLEnd.END;
 		}
-		else if (filtered.size() == 1)
+		else */if (this.cases.size() == 1 && filtered.size() == 1)  // Basic sequencing (unary choice)
 		{
 			return //(AssrtCoreLChoice)
 					filtered.iterator().next();  // RecVar disallowed above
@@ -247,7 +258,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 							/*if (!(k.ass.equals(AssrtTrueFormula.TRUE) 
 									&& collect.stream().allMatch(x -> x.ass.equals(AssrtTrueFormula.TRUE)))) // Should be singleton ...TODO: check continuations equal*/
 							{
-								throw new RuntimeException(
+								throw new AssrtSyntaxException(
 										"[assrt-core] Cannot project \n" + this + "\n onto " + self
 												+ ": cannot merge labels of: " + k + " and "
 												+ merged.keySet());
