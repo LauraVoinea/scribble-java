@@ -249,9 +249,15 @@ public class AssrtGTypeTranslator extends GTypeTranslator
 			{
 				throw new RuntimeException("[assrt-core] Shouldn't get in here: " + c);
 			}
-			
+
 			if (kind == null)
 			{
+				if (!tmp.src.equals(n.getSubjectChild().toName()))
+				{
+					throw new AssrtSyntaxException(n.getSource(),
+							"[assrt-core] Choice case not located at subject: " + c + "\n"
+									+ n);
+				}
 				kind = tmp.kind;
 				src = tmp.src;
 				dst = tmp.dst;
@@ -266,7 +272,7 @@ public class AssrtGTypeTranslator extends GTypeTranslator
 				throw new AssrtSyntaxException(n.getSource(),
 						"[assrt-core] Non-directed choice not supported:\n" + n);
 			}
-			
+
 			// "Flatten" nested choices (already checked they are guarded) -- Scribble choice subjects ignored
 			for (Entry<AssrtMsg, AssrtGType> e : tmp.cases.entrySet())
 			{

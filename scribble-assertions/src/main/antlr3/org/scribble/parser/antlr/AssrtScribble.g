@@ -349,7 +349,7 @@ rolename: t=ID -> ID<RoleNode>[$t] ;
 sigparamname: t=ID -> ID<SigParamNode>[$t] ;
 
 // Assrt
-assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // N.B. Specifically int
+assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;
 
 
 /**
