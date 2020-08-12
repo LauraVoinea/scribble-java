@@ -39,7 +39,7 @@ public class AssrtAntlrToFormulaParser
 	// Parses directly to Formula "types" (not ast)
 	// ct should be the first child of the root node of the assertion subtree (i.e., AssrtAntlrGMessageTransfer.getAssertionChild.getChild(0))
 	// Does not parse ROOT directly -- AssrtAntlr[...] methods extract the children
-	public AssrtSmtFormula<?> parse(CommonTree ct) //throws AssertionsParseException
+	public AssrtSmtFormula parse(CommonTree ct) //throws AssertionsParseException
 	{
 		ScribAntlrWrapper.checkForAntlrErrors(ct);
 		
@@ -58,10 +58,9 @@ public class AssrtAntlrToFormulaParser
 			return AssrtAntlrArithExpr.parseArithExpr(this, ct);
 		case "NEGEXPR":
 			return AssrtAntlrNegExpr.parseNegExpr(this, ct);
-		//case "UNFUN":     return AssrtAntlrUnFun.parseUnFun(this, ct);
-		case "INTVAR":  // FIXME: rename Ambig
-			//return AssrtAntlrIntVar.parseIntVar(this, ct);
-			return AssrtAntlrAmbigVar.parseAmbigVar(this, ct);  // FIXME: deprecate ambig (all should be IntVar now)
+		case "VAR":
+			// Disamb (AssrtAmbigVarFormula.disamb) currently checks var is bound and type is supported
+			return AssrtAntlrAmbigVar.parseAmbigVar(this, ct);
 		case "INTVAL":
 			return AssrtAntlrIntVal.parseIntVal(this, ct);
 		case "NEGINTVAL":
@@ -72,6 +71,8 @@ public class AssrtAntlrToFormulaParser
 			return AssrtTrueFormula.TRUE;
 		case "STRVAL":
 			return AssrtAntlrStrVal.parseStrVal(this, ct);
+
+		//case "UNFUN":     return AssrtAntlrUnFun.parseUnFun(this, ct);
 
 		default:
 			throw new RuntimeException("[assrt] Unexpected ANTLR node type: " + lab);

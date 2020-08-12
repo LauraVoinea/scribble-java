@@ -6,7 +6,7 @@ type <java> "java.lang.Integer" from "rt.jar" as int;
 
 //*
 // Testing statevar WF -- init exprs (constants)
-global protocol Proto1(role A, role B) @'<x:=0>' {
+global protocol Proto1(role A, role B) @'[x: int = 0]' {
 	1() from A to B;  @'x=0'
 }
 //*/

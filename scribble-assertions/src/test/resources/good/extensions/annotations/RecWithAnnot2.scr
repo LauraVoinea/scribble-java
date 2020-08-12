@@ -19,9 +19,9 @@ global protocol ProtSimple(role C, role S)
 	do ProtSimple(C, S); 
 }
 
-// FIXME: make separate test
+// TODO: make separate test
 // Recursion with Annotations (complicated)
-/*global protocol Proto2(role A, role B, role C)  // FIXME: check model -- unexpected sat checking output
+/*global protocol Proto2(role A, role B, role C)  // TODO: check model -- unexpected sat checking output
 {
 	rec Loop
 	{
@@ -39,7 +39,7 @@ global protocol ProtSimple(role C, role S)
 		}
 	}
 }*/
-global protocol Proto2(role A, role B, role C)  // FIXME: check model -- unexpected sat checking output
+global protocol Proto2(role A, role B, role C)  // TODO: check model -- unexpected sat checking output
 {
 	choice at A
 	{

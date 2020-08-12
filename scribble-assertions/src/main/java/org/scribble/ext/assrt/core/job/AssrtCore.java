@@ -13,7 +13,6 @@
  */
 package org.scribble.ext.assrt.core.job;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,14 +40,14 @@ import org.scribble.core.type.session.STypeFactory;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
-import org.scribble.ext.assrt.core.lang.global.AssrtCoreGProtocol;
-import org.scribble.ext.assrt.core.model.endpoint.AssrtCoreEModelFactoryImpl;
-import org.scribble.ext.assrt.core.model.global.AssrtCoreSGraph;
-import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactory;
-import org.scribble.ext.assrt.core.model.global.AssrtCoreSModelFactoryImpl;
+import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
+import org.scribble.ext.assrt.core.model.endpoint.AssrtEModelFactoryImpl;
+import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
-import org.scribble.ext.assrt.core.visit.local.AssrtCoreLTypeVisitorFactoryImpl;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
 import org.scribble.util.ScribException;
@@ -68,7 +67,7 @@ public class AssrtCore extends Core
 	protected STypeVisitorFactory newSTypeVisitorFactory()
 	{
 		return new STypeVisitorFactoryImpl(new GTypeVisitorFactoryImpl(),
-				new AssrtCoreLTypeVisitorFactoryImpl());
+				new AssrtLTypeVisitorFactoryImpl());
 	}
 	
 	// A Scribble extension should override newSTypeVisitorFactory/ModelFactory as appropriate
@@ -76,8 +75,8 @@ public class AssrtCore extends Core
 	protected ModelFactory newModelFactory()
 	{
 		return new ModelFactory(
-				(Function<ModelFactory, EModelFactory>) AssrtCoreEModelFactoryImpl::new,  // Explicit cast necessary (CHECKME, why?)
-				(Function<ModelFactory, SModelFactory>) AssrtCoreSModelFactoryImpl::new);
+				(Function<ModelFactory, EModelFactory>) AssrtEModelFactoryImpl::new,  // Explicit cast necessary (CHECKME, why?)
+				(Function<ModelFactory, SModelFactory>) AssrtSModelFactoryImpl::new);
 	}
 
 	/*// A Scribble extension should override newCoreConfig/Context/etc as appropriate
@@ -112,6 +111,15 @@ public class AssrtCore extends Core
 	@Override
 	protected void runSyntaxTransformPasses()  // No ScribException, no errors expected
 	{
+		// More like WF (cf. runGlobalSyntaxWfPasses), but doing before inlining to visit Do's directly
+		verbosePrintPass("Checking do argument arities...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			AssrtGProtocol proto = (AssrtGProtocol) this.context
+					.getIntermediate(fullname);
+			proto.type.checkDoArgs(this);
+		}
+
 		verbosePrintPass("Inlining subprotocols for all globals...");
 		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
 		{
@@ -127,12 +135,12 @@ public class AssrtCore extends Core
 	protected void runGlobalSyntaxWfPasses() throws ScribException
 	{
 		// super.runGlobalSyntaxWfPasses();
-		// ^TODO FIXME: base API currently not compatible
+		// ^TODO: base API currently not compatible
 		// E.g., `this.context.getInlined(fullname).def` is null
 		
-		// CHECKME: is below necessary? -- goes against unfolding, duplicates should be allowed in such contexts?
 		verbosePrintPass(
 				"Checking for distinct annot vars in each inlined global...");
+		// CHECKME: necessary? -- goes against unfolding, duplicates should be allowed in such contexts?
 		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
 		{
 			/*List<AssrtIntVar> vs = ((AssrtCoreGProtocol)
@@ -140,14 +148,14 @@ public class AssrtCore extends Core
 					.assrtCoreGather(  // TODO: factor out with base gatherer
 							new AssrtCoreIntVarGatherer<Global, AssrtCoreGType>()::visit)
 					.collect(Collectors.toList());*/
-			AssrtCoreGProtocol proto = (AssrtCoreGProtocol) this.context
+			AssrtGProtocol proto = (AssrtGProtocol) this.context
 					.getInlined(fullname);
-			Map<AssrtIntVar, DataName> svars = new HashMap<>();
+			Map<AssrtVar, DataName> svars = new HashMap<>();
 			proto.statevars.entrySet()
 					.forEach(x -> svars.put(x.getKey(), x.getValue().getSort(svars)));
-			List<AssrtIntVar> vs = proto.type.collectAnnotDataVarDecls(svars).stream()
+			List<AssrtVar> vs = proto.type.collectAnnotDataVarDecls(svars).stream()
 							.map(x -> x.var).collect(Collectors.toList());
-			Set<AssrtIntVar> distinct = new HashSet<>(vs);
+			Set<AssrtVar> distinct = new HashSet<>(vs);
 			if (vs.size() != distinct.size())
 			{
 				throw new ScribException("Duplicate annot var name(s): " + vs);
@@ -199,8 +207,8 @@ public class AssrtCore extends Core
 
 		verbosePrintPass("Checking " + (!fair ? "\"unfair\" " : "")
 				+ "global model: " + fullname);
-		((AssrtCoreSModelFactory) this.config.mf.global)
-				.AssrtCoreSModel(this, (AssrtCoreSGraph) graph).validate(this);  // FIXME: overriding only for this line (extra core arg)
+		((AssrtSModelFactory) this.config.mf.global)
+				.AssrtCoreSModel(this, (AssrtSGraph) graph).validate(this);  // FIXME: overriding only for this line (extra core arg)
 	}
 	
 	@Override
@@ -215,25 +223,27 @@ public class AssrtCore extends Core
 	
 	
 	
-	// TODO: refactor, to util?
+	// Refactor to util?
   // Maybe record simpname as field (for core)
 	public boolean checkSat(GProtoName fullname, Set<AssrtBFormula> bforms)
 	{
 		Solver solver = ((AssrtCoreArgs) this.config.args).SOLVER;
+		AssrtCoreContext corec = getContext();
 		switch (solver)
 		{
 			case NATIVE_Z3:
 			{
-				AssrtCoreContext corec = getContext();
 				return Z3Wrapper.checkSat(this, corec.getIntermediate(fullname), bforms);
 			}
 			case NONE:
 			{
-			Map<AssrtIntVar, DataName> sorts = ((AssrtCoreGProtocol) getContext()
-					.getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
-				verbosePrintln("\n[assrt-core] [WARNING] Skipping sat check:\n\t"
-					+ bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")
-								.collect(Collectors.joining("")));
+			Map<AssrtVar, DataName> sorts =
+					//((AssrtCoreGProtocol) getContext().getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
+					((AssrtGProtocol) corec.getInlined(fullname)).getSortEnv();
+			verbosePrintln(
+					"\n[WARNING] Skipping sat check (did you forget -z3?):\n\t" +
+					bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")
+							.collect(Collectors.joining("")));
 				return true;
 			}
 			default:

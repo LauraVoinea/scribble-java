@@ -5,12 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
-import org.sosy_lab.java_smt.api.IntegerFormulaManager;
-import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
-// FIXME: not just "A" anymore, e.g., String sort
+// TODO: refactor, not just "A(rith)" anymore, e.g., String sort
 public abstract class AssrtAVarFormula extends AssrtAFormula
 {
 	public final String name; 
@@ -22,7 +19,7 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 	
 	// i.e., to "type"
 	public abstract //AssrtPayElemType<?> 
-	AssrtIntVar toName();
+	AssrtVar toName();
 
 	@Override
 	public AssrtAVarFormula subs(AssrtAVarFormula old, AssrtAVarFormula neu)
@@ -37,9 +34,9 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 	}
 		
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
-		/*if (this.name.startsWith("_dum"))  // FIXME
+		/*if (this.name.startsWith("_dum"))  // CHECKME
 		{
 			throw new RuntimeException("[assrt] Use squash first: " + this);
 		}*/
@@ -48,17 +45,10 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 	}
 	
 	@Override
-	public IntegerFormula toJavaSmtFormula()
+	public Set<AssrtVar> getIntVars()
 	{
-		IntegerFormulaManager fmanager = JavaSmtWrapper.getInstance().ifm;
-		return fmanager.makeVariable(this.name);   
-	}
-	
-	@Override
-	public Set<AssrtIntVar> getIntVars()
-	{
-		Set<AssrtIntVar> vars = new HashSet<>();
-		vars.add(toName());  // FIXME: currently may also be a role
+		Set<AssrtVar> vars = new HashSet<>();
+		vars.add(toName());  // TODO: currently may also be a role
 		return vars; 
 	}
 	
@@ -75,12 +65,12 @@ public abstract class AssrtAVarFormula extends AssrtAFormula
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtIntVarFormula))
+		if (!(o instanceof AssrtVarFormula))
 		{
 			return false;
 		}
 		return super.equals(this)  // Does canEqual
-				&& this.name.equals(((AssrtIntVarFormula) o).name);
+				&& this.name.equals(((AssrtVarFormula) o).name);
 	}
 
 	@Override

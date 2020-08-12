@@ -1,13 +1,13 @@
 module good.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest27;
 
 
-type <java> "java.lang.Integer" from "rt.jar" as int;  // FIXME: int keyword
+type <java> "java.lang.Integer" from "rt.jar" as int;
 
 
 //*
-global protocol Proto1(role A, role B) @"<z:=0>"
+global protocol Proto1(role A, role B) @"[z: int = 0]"
 {
 	1(x:int) from A to B;	@"(x>z)"  // testing against: compacting doesn't terminate
-	do Proto1(A, B); @"<0>"
+	do Proto1(A, B); @"[0]"
 }
 //*/

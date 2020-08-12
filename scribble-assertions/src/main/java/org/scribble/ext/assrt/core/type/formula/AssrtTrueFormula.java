@@ -5,9 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.type.name.DataName;
-import org.scribble.ext.assrt.core.type.name.AssrtIntVar;
-import org.scribble.ext.assrt.util.JavaSmtWrapper;
-import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 
 // FIXME: declare singleton constant
 public class AssrtTrueFormula extends AssrtBFormula
@@ -20,27 +18,9 @@ public class AssrtTrueFormula extends AssrtBFormula
 	}
 
 	@Override
-	public AssrtTrueFormula disamb(Map<AssrtIntVar, DataName> env)
+	public AssrtTrueFormula disamb(Map<AssrtVar, DataName> env)
 	{
 		return this;
-	}
-
-	@Override
-	public AssrtBFormula getCnf()
-	{
-		return this;
-	}
-
-	@Override
-	public boolean isNF(AssrtBinBFormula.Op op)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean hasOp(AssrtBinBFormula.Op op)
-	{
-		return false;
 	}
 
 	@Override
@@ -56,19 +36,13 @@ public class AssrtTrueFormula extends AssrtBFormula
 	}
 	
 	@Override
-	public String toSmt2Formula(Map<AssrtIntVar, DataName> env)
+	public String toSmt2Formula(Map<AssrtVar, DataName> env)
 	{
 		return "true";
 	}
 	
 	@Override
-	protected BooleanFormula toJavaSmtFormula() //throws AssertionParseException {
-	{
-		return JavaSmtWrapper.getInstance().bfm.makeTrue();
-	}
-	
-	@Override
-	public Set<AssrtIntVar> getIntVars()
+	public Set<AssrtVar> getIntVars()
 	{
 		return Collections.emptySet(); 
 	}

@@ -1,4 +1,4 @@
- //$ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3 scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
+//$ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3 scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
 
 // Windows:
 //$ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3/org/scribble/parser/antlr scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
@@ -7,14 +7,6 @@
 
 grammar Assertions;  // TODO: rename AssrtExt(Id), or AssrtAnnotation
 
-
-/*
- * TODO: 
- * - refactor AssrtAntlrToFormulaParser ito AssertionsTreeAdaptor?
- * - and set ASTLabelType=ScribNodeBase? -- would need to refactor, e.g., 
- *   AssrtBExprNode wrapping of AssrtBFormula from AssrtScribble.g into here,
- *   cf. EXTID<AssrtBExprNode>[$t, AssertionsParser.parseAssertion($t.text)]
- */
 
 options
 {
@@ -42,7 +34,6 @@ tokens
 	 * 
 	 * These token names are cased on by AssrtAntlrToFormulaParser.
 	 */
-	//EMPTY_LIST = 'EMPTY_LIST';
 	
 	// TODO: rename EXT_... (or ANNOT_...)
 	ROOT; 
@@ -52,7 +43,7 @@ tokens
 	ARITHEXPR; 
 	NEGEXPR;
 
-	INTVAR;  // FIXME: rename Ambig
+	VAR;  // TODO: rename Ambig
 	INTVAL; 
 	NEGINTVAL; 
 	STRVAL; 
@@ -64,9 +55,8 @@ tokens
 	ASSRT_STATEVARDECL_LIST;
 	ASSRT_STATEVARDECL;
 	ASSRT_STATEVARARG_LIST;
-	
-	/*UNFUN;
-	UNFUNARGLIST;*/
+
+	ASSRT_LOCATEDSTATEVARARGS_TEMP;
 }
 
 
@@ -78,6 +68,7 @@ tokens
 	import org.antlr.runtime.tree.CommonTree;
 
   import org.scribble.ast.ScribNodeBase;
+  import org.scribble.ast.name.simple.AmbigNameNode;
   import org.scribble.ast.name.simple.RoleNode;
 
   import org.scribble.ext.assrt.ast.AssrtAExprNode;
@@ -86,7 +77,7 @@ tokens
 	import org.scribble.ext.assrt.ast.AssrtStateVarArgList;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDecl;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
-  import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+  import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 	import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
@@ -117,7 +108,7 @@ tokens
 		AssertionsLexer lexer = new AssertionsLexer(new ANTLRStringStream(source));
 		AssertionsParser parser = new AssertionsParser(
 				new CommonTokenStream(lexer));
-		AssrtSmtFormula<?> res = AssrtAntlrToFormulaParser
+		AssrtSmtFormula res = AssrtAntlrToFormulaParser
 				.getInstance().parse((CommonTree) parser.bool_root().getTree());
 		if (!(res instanceof AssrtBFormula))
 		{
@@ -152,6 +143,19 @@ tokens
 		parser.setTreeAdaptor(new AssertionsTreeAdaptor());
 		AssrtStateVarHeaderAnnot tmp = (AssrtStateVarHeaderAnnot) 
 				parser.assrt_headerannot().getTree();
+		
+		int count = tmp.getChildCount();
+		if (count > 1) {
+			AssrtStateVarDeclList first = (AssrtStateVarDeclList) tmp.getChild(0);
+			CommonTree last = (CommonTree) tmp.getChild(count - 1);
+			boolean hasExpr = !(last instanceof AssrtStateVarDeclList);  // assertion still just a CommonTree (converted notAssrtBExprNode below)
+			for (int i = 1; i < (hasExpr ? count - 1 : count); i++) {
+				AssrtStateVarDeclList next = (AssrtStateVarDeclList) tmp.getChild(1);  // N.B. 1, not i
+				next.getDeclChildren().forEach(c -> first.addChild(c));
+				tmp.deleteChild(1);
+			}
+		}
+		
 		AssrtStateVarDeclList svars = (AssrtStateVarDeclList)
 				tmp.getChild(AssrtStateVarHeaderAnnot.ASSRT_STATEVARDECLLIST_CHILD_INDEX);
 		for (int i = 0; i < svars.getChildCount(); i++)
@@ -183,8 +187,24 @@ tokens
 		AssertionsLexer lexer = new AssertionsLexer(new ANTLRStringStream(source));
 		AssertionsParser parser = new AssertionsParser(new CommonTokenStream(lexer));
 		parser.setTreeAdaptor(new AssertionsTreeAdaptor());
+		
+		CommonTree bar = (CommonTree) parser.assrt_statevarargs().getTree();
+		if (bar.getText().equals("ASSRT_LOCATEDSTATEVARARGS_TEMP")) { // Located, and potentially multiple  // TODO: record rolename
+			AssrtStateVarArgList first = (AssrtStateVarArgList) bar.getChild(0);
+			for (int i = 1; i < bar.getChildCount(); i++) {
+				//((CommonTree) bar.getChild(1)).getChildren().forEach(x -> first.addChild((AssrtAExprNode) x));  // N.B. 1, not i // getChildren broken by ScribNode override
+				AssrtStateVarArgList next = (AssrtStateVarArgList) bar.getChild(1);
+				for (int j = 0; j < next.getChildCount(); j++) {
+					first.addChild(next.getChild(j));  // N.B. 1, not i
+				}
+				bar.deleteChild(1);
+			}
+			bar = first;
+		}
+		
 		AssrtStateVarArgList tmp = (AssrtStateVarArgList) 
-				parser.assrt_statevarargs().getTree();
+				//parser.assrt_statevarargs().getTree();
+				bar;
 		for (int i = 0; i < tmp.getChildCount(); i++)
 		{
 			CommonTree arith_expr = (CommonTree) tmp.getChild(i);
@@ -193,6 +213,17 @@ tokens
 			tmp.setChild(i, arg);
 		}
 		return tmp;
+	}
+
+	public static AssrtStateVarDeclList foo(CommonTree r,  CommonTree s) 
+			throws RecognitionException
+	{
+		RoleNode rn = (RoleNode) r;
+		AssrtStateVarDeclList svars = (AssrtStateVarDeclList) s;
+		for (AssrtStateVarDecl svar : svars.getDeclChildren()) {
+			svar.addChild(rn);  // AssrtStateVarDecl.ASSRT_ROLE_CHILD_INDEX
+		}
+		return svars;
 	}
 
 	public static CommonTree parseStringLit(Token t) 
@@ -212,7 +243,10 @@ WHITESPACE:
 	}
 ;
 
-IDENTIFIER:
+
+/* Duplicated from AssrtScribble.g */
+
+ID:
 	LETTER (LETTER | DIGIT)*
 ;  
 
@@ -234,9 +268,16 @@ fragment DIGIT:
 	'0'..'9'
 ;
 
+ambigname: t=ID -> ID<AmbigNameNode>[$t] ;
+rolename: t=ID -> ID<RoleNode>[$t] ;
+
+
+/* Assrt */
+
+assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
-	IDENTIFIER -> ^(INTVAR IDENTIFIER)
+	ID -> ^(VAR ID)
 ; 	  
 
 intlit: 
@@ -343,54 +384,59 @@ literal:
 |
 	stringlit
 ;
-
-/*
-unint_fun:
-	IDENTIFIER unint_fun_arg_list
-->
-	^(UNFUN IDENTIFIER unint_fun_arg_list)
-; 
 	
-unint_fun_arg_list:
-	'(' (arith_expr (',' arith_expr )*)? ')'
-->
-	^(UNFUNARGLIST arith_expr*)
-;
-*/
-	
+// bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 assrt_headerannot:
 	bool_expr
 ->
-	^(ASSRT_HEADERANNOT ^(ASSRT_STATEVARDECL_LIST) bool_expr)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
+	^(ASSRT_HEADERANNOT ^(ASSRT_STATEVARDECL_LIST) bool_expr)
 |
 	assrt_statevardecls bool_expr?
 ->
-	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)  // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
+	^(ASSRT_HEADERANNOT assrt_statevardecls bool_expr?)
+|
+	assrt_locatedstatevardecls_temp+ bool_expr?
+->
+	^(ASSRT_HEADERANNOT assrt_locatedstatevardecls_temp+ bool_expr?)
+;
+
+// An intermediary category, resolved by foo
+assrt_locatedstatevardecls_temp:
+	rolename assrt_statevardecls
+->
+	{foo($rolename.tree, $assrt_statevardecls.tree)}
 ;
 
 assrt_statevardecls:
-	'<' assrt_statevardecl (',' assrt_statevardecl)* '>'
+	'[' assrt_statevardecl (',' assrt_statevardecl)* ']'
 ->
 	^(ASSRT_STATEVARDECL_LIST assrt_statevardecl+)
 ;
 
-assrt_statevardecl:
-	assrt_intvarname ':=' arith_expr  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+// arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+assrt_statevardecl:  // cf. payelem
+	assrt_varname ':' ambigname '=' arith_expr
 ->
-	^(ASSRT_STATEVARDECL assrt_intvarname arith_expr)
-|
-	assrt_intvarname ':' rolename '=' arith_expr  // arith_expr parsed to AssrtAExprNode by parseStateVarHeader
+	^(ASSRT_STATEVARDECL assrt_varname ambigname arith_expr)  // N.B. rolename to be added by parseStateVarArgList
+/*|
+	assrt_varname ':' qualifieddataname '=' arith_expr  // TODO: qualifieddataname
 ->
-	^(ASSRT_STATEVARDECL assrt_intvarname arith_expr rolename)
+	^(ASSRT_STATEVARDECL assrt_varname qualifieddataname arith_expr)*/
 ;
 
-// Duplicated from AssrtScribble.g
-rolename: t=IDENTIFIER -> IDENTIFIER<RoleNode>[$t] ;
-//assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
-assrt_intvarname: t=IDENTIFIER -> IDENTIFIER<AssrtIntVarNameNode>[$t] ;  // N.B. Specifically int
-
+// An intermediary category, resolved by bar
 assrt_statevarargs:
-	'<' assrt_statevararg (',' assrt_statevararg)* '>'
+	assrt_nonlocatedstatevarargs
+-> 
+	assrt_nonlocatedstatevarargs
+|
+	(rolename assrt_nonlocatedstatevarargs)+
+->
+	^(ASSRT_LOCATEDSTATEVARARGS_TEMP assrt_nonlocatedstatevarargs+)
+;
+
+assrt_nonlocatedstatevarargs:
+	'[' assrt_statevararg (',' assrt_statevararg)* ']'
 ->
 	^(ASSRT_STATEVARARG_LIST assrt_statevararg+)
 ;
@@ -399,3 +445,36 @@ assrt_statevararg:
 	arith_expr  // Parsed to AssrtAExprNode by parseStateVarArgList
 ;
 	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+/*
+unint_fun:
+	ID unint_fun_arg_list
+->
+	^(UNFUN ID unint_fun_arg_list)
+; 
+	
+unint_fun_arg_list:
+	'(' (arith_expr (',' arith_expr )*)? ')'
+->
+	^(UNFUNARGLIST arith_expr*)
+;
+*/

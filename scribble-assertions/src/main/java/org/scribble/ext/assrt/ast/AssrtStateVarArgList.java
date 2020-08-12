@@ -84,7 +84,7 @@ public class AssrtStateVarArgList extends ScribNodeBase//ParamDeclList<AssrtIntV
 	@Override
 	public String toString()
 	{
-		return "<" + getChildren().stream().map(Object::toString)
-				.collect(Collectors.joining(", ")) + ">";
+		return "@'[" + getChildren().stream().map(Object::toString)
+				.collect(Collectors.joining(", ")) + "]'";
 	}
 }

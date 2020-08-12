@@ -15,11 +15,11 @@ public class AssrtAntlrBoolExpr
 	private static Integer CHILD_LEFT_FORMULA_INDEX = 0;
 	//private static Integer CHILD_RIGHT_FORMULA_INDEX = 2;
 	
-	public static AssrtSmtFormula<?> parseBoolExpr(
+	public static AssrtSmtFormula parseBoolExpr(
 			AssrtAntlrToFormulaParser parser, CommonTree root)
 			//throws AssertionsParseException {
 	{	
-		AssrtSmtFormula<?> left = parser.parse(getLeftChild(root));
+		AssrtSmtFormula left = parser.parse(getLeftChild(root));
 		// Unary cases
 		if (root.getChildCount() < 2)
 		{

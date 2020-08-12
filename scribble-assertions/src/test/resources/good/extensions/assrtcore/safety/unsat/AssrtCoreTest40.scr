@@ -1,13 +1,15 @@
 module good.extensions.assrtcore.safety.unsat.AssrtCoreTest40;
 
 
+type <java> "java.lang.Integer" from "rt.jar" as int;
+
 
 //*  // Testing new unsat
-global protocol Proto1(role A, role B) @'<x:=0>' {
+global protocol Proto1(role A, role B) @'[x: int = 0]' {
 	choice at A {
 		1() from A to B;
 		//do Proto1(A, B);  @'<0>'  // Bad
-		do Proto1(A, B);  @'<1>'
+		do Proto1(A, B);  @'[1]'
 	} or {
 		2() from A to B;  @'x=1'
 	}

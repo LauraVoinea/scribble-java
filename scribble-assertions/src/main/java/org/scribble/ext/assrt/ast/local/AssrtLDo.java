@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.antlr.runtime.Token;
-import org.scribble.ast.Do;
 import org.scribble.ast.NonRoleArgList;
 import org.scribble.ast.RoleArgList;
 import org.scribble.ast.ScribNode;

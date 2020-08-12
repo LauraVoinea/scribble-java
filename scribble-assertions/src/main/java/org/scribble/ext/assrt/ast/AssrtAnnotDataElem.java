@@ -7,7 +7,7 @@ import org.scribble.ast.name.PayElemNameNode;
 import org.scribble.core.type.kind.DataKind;
 import org.scribble.core.type.name.DataName;
 import org.scribble.del.DelFactory;
-import org.scribble.ext.assrt.ast.name.simple.AssrtIntVarNameNode;
+import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.del.AssrtDelFactory;
 import org.scribble.util.ScribException;
@@ -34,19 +34,19 @@ public class AssrtAnnotDataElem extends ScribNodeBase
 		super(node);
 	}
 	
-	public AssrtIntVarNameNode getVarNameChild()
+	public AssrtVarNameNode getVarNameChild()
 	{
-		return (AssrtIntVarNameNode) getChild(VAR_CHILD_INDEX);
+		return (AssrtVarNameNode) getChild(VAR_CHILD_INDEX);
 	}
 	
-	// FIXME: <DataKind> incompatible with AmbigNameNode -- cf. UnaryPayElem
+	// TODO: <DataKind> incompatible with AmbigNameNode -- cf. UnaryPayElem
 	public PayElemNameNode<DataKind> getDataNameChild()
 	{
 		return (PayElemNameNode<DataKind>) getChild(DATA_CHILD_INDEX);
 	}
 
 	// "add", not "set"
-	public void addScribChildren(AssrtIntVarNameNode var,
+	public void addScribChildren(AssrtVarNameNode var,
 			PayElemNameNode<DataKind> data)
 	{
 		// Cf. above getters and Scribble.g children order
@@ -66,7 +66,7 @@ public class AssrtAnnotDataElem extends ScribNodeBase
 		((AssrtDelFactory) df).AssrtAnnotDataElem(this);
 	}
 	
-	public AssrtAnnotDataElem reconstruct(AssrtIntVarNameNode var,
+	public AssrtAnnotDataElem reconstruct(AssrtVarNameNode var,
 			PayElemNameNode<DataKind> data)
 	{
 		AssrtAnnotDataElem dup = dupNode();
@@ -78,10 +78,10 @@ public class AssrtAnnotDataElem extends ScribNodeBase
 	@Override 
 	public AssrtAnnotDataElem visitChildren(AstVisitor v) throws ScribException
 	{
-		AssrtIntVarNameNode var = (AssrtIntVarNameNode) visitChild(
+		AssrtVarNameNode var = (AssrtVarNameNode) visitChild(
 				getVarNameChild(), v);
-		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(  // Cf. UnaryPayElem
-				getDataNameChild(), v);
+		PayElemNameNode<DataKind> data = (PayElemNameNode<DataKind>) visitChild(
+				getDataNameChild(), v);  // Cf. UnaryPayElem
 		return reconstruct(var, data);
 	}
 
@@ -94,7 +94,7 @@ public class AssrtAnnotDataElem extends ScribNodeBase
 	}
 
 	@Override
-	public AssrtIntVarNameNode getAnnotVar()
+	public AssrtVarNameNode getAnnotVar()
 	{
 		return getVarNameChild();
 	}
