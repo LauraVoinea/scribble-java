@@ -11,7 +11,19 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
-//*
+global protocol MyProto(role A, role B, role C) {
+	choice at A {
+		1() from A to B;
+		2() from A to C;
+	} or {
+		3() from A to B;
+		//2() from A to C;
+		4() from A to C;
+	}
+}
+
+
+/*
 global protocol MyProto(role A, role B) {
 	choice at A {
 		1() from B to A;  // Testing merge, mixed action kinds
