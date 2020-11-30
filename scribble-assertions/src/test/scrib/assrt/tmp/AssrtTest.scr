@@ -13,7 +13,7 @@ type <fstar> "string" from "..." as String;
 
 global protocol MyProto(role A, role B, role C) {
 	choice at A {
-		1() from A to B;
+		1(x: int) from A to B;  @'x>0'
 		2() from A to C;
 	} or {
 		3() from A to B;
@@ -58,7 +58,7 @@ global protocol MyProto(role A, role B, role C) {
     do MyProtoAux(A, B, C);        @'B[x1] C[x2]'
 }
 
-aux global protocol MyProtoAux(role A, role B, role C) 
+aux global protocol MyProtoAux(role A, role B, role C)
                                    @'B[xB: int = 0] C[xC: int = 0] xB>=0' {
     choice at B {
         2(curr: int) from B to C;  @'xB>0 && curr=xB'
@@ -110,7 +110,7 @@ global protocol Proto1(role A, role B)
 
 aux global protocol Proto1Aux(role A, role B) @"A[z1: int = 1] z1>0"  // N.B. statevars, phantoms with only two roles
 {
-	2(y: int) from B to A;  @'y = z1'  
+	2(y: int) from B to A;  @'y = z1'
 			// TODO: separate phantoms explicitly in model ("variable" and assertion known, but "value" unknown) -- issue of (phantom) statevars (vs. payvars) is initialiser expr
 			// Currently allowed ( phantom statevars globally known by default), but unimplementable in F* (z1 value at B unknown, refinement can't be proved)
 }
@@ -144,7 +144,7 @@ global protocol Proto1(role A, role B, role C)
 	1(x: int) from A to B;  @'x>0'
 	0() from B to C;  // Comment is bad: C!A would be from initial state (bad is debatable? "statically extract" phantom knowledge? -- but knowledge should still depend on choice?)
 	// As is, x phantom added (via projection) to B!C message
-	2(y: int) from C to A;  
+	2(y: int) from C to A;
 			//@'y=x'
 			@'x>0'
 }
@@ -284,13 +284,13 @@ global protocol Proto1(role A, role B)  @'A[xa: String = 1]'  // TODO: statevars
 /*
 //global protocol Proto1(role A, role B, role C) @'<x:A = 1, x:B = 1> x>0'  // Phantom statevar for C
 //global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] x>0'
-//global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] B[x: int = 1] x>0'  // TODO: test string sort (cf. AssrtForallIntVars: getSmt2VarDecl, env; toSmt2Sort)  
+//global protocol Proto1(role A, role B, role C)  @'A[x: int = 1] B[x: int = 1] x>0'  // TODO: test string sort (cf. AssrtForallIntVars: getSmt2VarDecl, env; toSmt2Sort)
 		// TODO: disjoint varnames
 global protocol Proto1(role A, role B, role C)  @'A[xa: int = 1] B[xb: int = 1] xa>0 && xb>0'
 {
-	//1(y: int) from A to B;  @'y>x'	
-	1(y: int) from A to B;  @'y>xa'	
-	2() from B to C;	
+	//1(y: int) from A to B;  @'y>x'
+	1(y: int) from A to B;  @'y>xa'
+	2() from B to C;
 	//do Proto1(A, B, C);  @'<1>'
 	//do Proto1(A, B, C);  @'A[1]'
 	do Proto1(A, B, C);  @'A[1] B[1]'  // TODO: record/use rolename -- currently, AssrtStateVarArgList directly stores AExprs (i.e., no sort or role)
@@ -299,8 +299,8 @@ global protocol Proto1(role A, role B, role C)  @'A[xa: int = 1] B[xb: int = 1] 
 
 /*
 global protocol Proto1(role A, role B, role C) @'<x:A = 1, x:B = 2> x>0' {
-	1(y: int) from A to B;  @'x=1'	
-	2() from B to C;	
+	1(y: int) from A to B;  @'x=1'
+	2() from B to C;
 }
 //*/
 
@@ -427,7 +427,7 @@ aux global protocol Aux(role A, role B, role C) @'<n:B=0, t:B=1> (0 <= n && n < 
 	guess(x:int) from C to B;  @'0<=x && x<100'  // Next guess by C
 	choice at B
 	{
-		higher() from B to C;  @'n>x && t>1'    
+		higher() from B to C;  @'n>x && t>1'
 		higher() from B to A;
 		do Aux(A, B, C);  @'<n, t-1>'
 	}
@@ -453,17 +453,17 @@ aux global protocol Aux(role A, role B, role C) @'<n:B=0, t:B=1> (0 <= n && n < 
 	guess(x:int) from C to B;  @'0<=x && x<100'  // Next guess by C
 	choice at B
 	{
-		higher() from B to C;  @'n>x && t>1'    
+		higher() from B to C;  @'n>x && t>1'
 		higher() from B to A;
 		do Aux(A, B, C);  @'<n, t-1>'
 	}
 	or
-	{ 
-		win() from B to C;  @'n=x'   
+	{
+		win() from B to C;  @'n=x'
 		lose() from B to A;
 	}
 	or
-	{ 
+	{
 		lower() from B to C;  @'n<x && t>1'
 		lower() from B to A;
 		do Aux(A, B, C);  @'<n, t-1>'
@@ -472,7 +472,7 @@ aux global protocol Aux(role A, role B, role C) @'<n:B=0, t:B=1> (0 <= n && n < 
 	{
 		lose() from B to C;  @'(!(n=x)) && t=1'
 		win() from B to A;
-	}      
+	}
 }
 //*/
 
@@ -560,7 +560,7 @@ global protocol Proto1(role A, role B) @'<xA:A=1, xB:B=1>' {
 
 
 /*
-global protocol Proto1(role A, role B) @'<xA:A=1, xB:B=1>' {  
+global protocol Proto1(role A, role B) @'<xA:A=1, xB:B=1>' {
 // Maybe don't need or shouldn't have "sync'd" state vars, i.e., keep all distributed (distinct var names)
 // Rely on explicit payload vars -- comm'd will be know anyway, and can manually assign to statevar locally
 // And since assertion depends on statevars, means statevar annots are "localised" one role per rec
@@ -572,7 +572,7 @@ global protocol Proto1(role A, role B) @'<xA:A=1, xB:B=1>' {
 
 
 /*
-global protocol Proto1(role A, role B) {  
+global protocol Proto1(role A, role B) {
 	1(x:int) from A to B;
 	do Proto1(A, B); @'<x, x>'  // TODO: fix error
 	do Proto1Aux(A, B); @'<x, x>'
@@ -585,7 +585,7 @@ aux global protocol Proto1Aux(role A, role B) @'<xA:A=1, xB:B=1>' {  // TODO dro
 
 
 /*
-global protocol Proto1(role A, role B, role C) {  
+global protocol Proto1(role A, role B, role C) {
 	1(x:int) from A to B;  @'x>0'
 	do Proto1Aux(A, B, C); @'<x, x>'
 }
@@ -598,7 +598,7 @@ aux global protocol Proto1Aux(role A, role B, role C) @'<xA:A=1, xB:B=1> xB>0' {
 
 
 /*
-global protocol Proto1(role A, role B) @'<x:=1, y:=2> x>1 || y>1'  
+global protocol Proto1(role A, role B) @'<x:=1, y:=2> x>1 || y>1'
 // Cannot do "fine-grained projection" of assertions onto located statevars
 // TODO add bad test
 {
@@ -606,10 +606,10 @@ global protocol Proto1(role A, role B) @'<x:=1, y:=2> x>1 || y>1'
 	{
 		1() from A to B; @'x>1'
 	}
-	or 
+	or
 	{
 		2() from A to B;
-	}	
+	}
 }
 //*/
 
@@ -714,7 +714,7 @@ global protocol Proto1(role A, role B, role C) {
   do Proto1Aux(A, B, C);        @'<n, t, x, x>'
 }
 
-aux global protocol Proto1Aux(role A, role B, role C) 
+aux global protocol Proto1Aux(role A, role B, role C)
                                 @'<n1:B=0, t1:B=0, xB:B=0, xC:C=0> t1>=0' {
   choice at B {
     higher() from B to C;       @'n1>xB && t1>0'
@@ -737,7 +737,7 @@ aux global protocol Proto1Aux(role A, role B, role C)
 //*/
 
 
-/*  // TODO z3 bitvec 
+/*  // TODO z3 bitvec
 global protocol Proto1(role A, role B) @'<x:=0>' {
 	1(y:int) from A to B;  @'...'
 }
@@ -868,10 +868,10 @@ aux global protocol Proto1Aux(role A, role B) @'<y:=0> y>=0' {
 /*
 global protocol Proto1(role A, role B, role C) @'<x:=0>' {
 	choice at A {
-		1() from A to B;  @'x=0'	
+		1() from A to B;  @'x=0'
 		1() from B to C;	@'x=0'  // Shows "global statevar" exprs must be statically fixed (not locally/dynamically set)
 	} or {
-		2() from A to B;  //@'x=1'	
+		2() from A to B;  //@'x=1'
 		2() from B to C;	//@'x=1'
 	}
 }
@@ -1024,23 +1024,23 @@ global protocol Proto2(role A, role B) { //@"<y:='def'>"
 global protocol Proto1(role A, role B) @"<x_A:=1> x_A>=0" {
 
 	0(z:int) from A to B;	@"z=x_A"// && z=y_B"
-	
+
 	do Proto1Aux(A, B);  @"<z, z>"
 }
-	
+
 //global protocol Proto1Aux(role A, role B) @"px_A>=0 && px_B>=0" { }
 
 global protocol Proto1Aux(role A, role B) @"<x_A:=*, y_B:=*> x_A>=0 && y_B>=0" {
 
 	choice at A
 	{
-		1() from A to B; @"x_A<5"	
+		1() from A to B; @"x_A<5"
 		3() from B to A; @"y_B<5"
 		do Lock(A, B);  @"<x_A+1>"
 	}
 	or
 	{
-		2() from A to B; @"x_A>=5"	
+		2() from A to B; @"x_A>=5"
 	}
 }
 //*/
@@ -1119,11 +1119,11 @@ global protocol Lock(role A, role B, role C)
 
 
 /*
-global protocol Proto1(role A, role B) 
+global protocol Proto1(role A, role B)
 		//@"<x:=3>"  // Bad
 		@"<x:=3> x=3"
 {
-	1() from A to B; @"x=3"	
+	1() from A to B; @"x=3"
 	do Proto1(A, B); @"<3>"
 	//do Proto1(A, B); @"<4>"  // Bad
 }
@@ -1131,7 +1131,7 @@ global protocol Proto1(role A, role B)
 
 
 /*
-global protocol Proto1(role A, role B) 
+global protocol Proto1(role A, role B)
 		//@"<x:=0> x>=0"
 		@"<x:=0> x>0"  // Testing revised init-rec-assert check -- TODO: add test
 {
@@ -1168,10 +1168,10 @@ aux global protocol Proto1Aux(role A, role B) @"<x:=0>"
 	{
 		2() from A to B; @"x<5"
 		do Proto1Aux(A, B); @"<x+1>"
-	}	
+	}
 	or
 	{
-		3() from A to B; @"x>=5"  
+		3() from A to B; @"x>=5"
 	}
 }
 //*/
@@ -1187,10 +1187,10 @@ global protocol Proto1(role A, role B) @"<x:=0> x>=0"
 		//do Proto1(A, B); @"<x+1>"
 		//do Proto1(A, B); @"<x>"
 		do Proto1(A, B); @"<x-1>"  // Bad -- TODO: add tests
-	}	
+	}
 	or
 	{
-		2() from A to B; @"x>=5"  
+		2() from A to B; @"x>=5"
 	}
 }
 //*/
@@ -1204,7 +1204,7 @@ global protocol Proto1(role A, role B)
 	do Proto1Aux(A, B); @"<0>"  // Testing f/w rec statevar expr endpoint graph building
 }
 
-aux global protocol Proto1Aux(role A, role B) 
+aux global protocol Proto1Aux(role A, role B)
 		//@"<x:=0> x>5"  // TODO: add tests
 		@"<x:=0> x>=0"
 {
@@ -1220,10 +1220,10 @@ global protocol Proto1(role A, role B) @"<x:=0>"
 	{
 		1() from A to B; @"x<5"
 		do Proto1(A, B); @"<x+1>"
-	}	
+	}
 	or
 	{
-		2() from A to B; @"x>=5"  
+		2() from A to B; @"x>=5"
 				// Testing unsat after deprecating state var init exprs and "constant propagation"
 				// Original intuition was to model "base case" and "induction step", but this is incompatible with unsat checking + loop counting
 				//@"x=5"  // Bad assrt-prog
@@ -1327,7 +1327,7 @@ global protocol Proto1(role A, role B) @<x:="0">
 {
 	choice at A
 	{
-		1() from A to B;	@"x<5"  
+		1() from A to B;	@"x<5"
 		do Proto1(A, B); @<"x+1">
 	}
 	or
@@ -1342,7 +1342,7 @@ global protocol Proto1(role A, role B) @<x:="0">
 /*
 global protocol Proto1(role A, role B)
 {
-	(x: int) from A to B;  @"(!!True)" 
+	(x: int) from A to B;  @"(!!True)"
 	//2(y:int) from A to B; @"((y=2) && (y=(4+1)))"
 	//(x: int) from A to B;  @"x = 1 + 3 - 4 *5"  // TODO add syntax tests (op precedence and assoc)
 	//(y: int) from B to A;  @"y<0 || y > 1 && y>2"
@@ -1350,7 +1350,7 @@ global protocol Proto1(role A, role B)
 //*/
 
 
-/* // CHECKME -- [assrt-core] Cannot project 
+/* // CHECKME -- [assrt-core] Cannot project
 global protocol Proto1(role A, role B, role R)
 {
 	() from A to R;
@@ -1382,7 +1382,7 @@ aux global protocol Loop(role A, role B)
 global protocol Proto1(role A, role B) @<x:="1", y:="2"> "x>=1 && y>x"
 {
 	3(z1: int) from A to B;	 @"z1=x+y"
-	do Proto1(A, B);         @<"y", "z1">  
+	do Proto1(A, B);         @<"y", "z1">
 			// Testing `y` vs `y1` state arg -- differentiating V update between general renaming (x=_y) and "constant propagation" (x=2) special case
 			// Cf. Fib -- also AssrtCoreTest08f/g
 }
@@ -1392,7 +1392,7 @@ global protocol Proto1(role A, role B) @<x:="1", y:="2"> "x>=1 && y>x"
 /* // AssrtCoreTest08f
 global protocol Proto1(role A, role B) @<x:="3">
 {
-	1() from A to B; @"(x>2)"  // Testing ass in F, independent of pay 
+	1() from A to B; @"(x>2)"  // Testing ass in F, independent of pay
 	do Proto2(A, B); @<"x">
 }
 
@@ -1499,7 +1499,7 @@ global protocol Proto1(role A, role B) @<x:="3">
 /*
 global protocol Proto1(role A, role B) @<x:="3">
 {
-	1() from A to B; @"(x>2)"  // Testing ass in F, independent of pay 
+	1() from A to B; @"(x>2)"  // Testing ass in F, independent of pay
 	do Proto2(A, B); @<"x">
 }
 
@@ -1546,7 +1546,7 @@ global protocol Proto1(role A, role B) @<x:="0", y:="1"> "x>=0 && y>=x"
 }
 //*/
 
-/* 
+/*
 global protocol Proto1(role A, role B) @<x:="1", y:="2"> "x>=1 && y>x"
 {
 	1(x1: int) from A to B;	 @"x1=x"
@@ -1716,8 +1716,8 @@ global protocol Proto1(role A, role B, role C)
 
 aux global protocol Loop(role A, role B, role C)
 {
-	IsAbove(v1:int) from A to B;  
-	SecOut(r2:int) from A to C;  
+	IsAbove(v1:int) from A to B;
+	SecOut(r2:int) from A to C;
 			// Testing updateScopes model construction -- v1 can be dropped and re-sent before first r2 is picked (async recursion) -- increases state space
 			// Tests updateScopes, non-initial self-recursion
 	do Loop(A, B, C);
@@ -1736,9 +1736,9 @@ aux global protocol Loop(role P, role R, role C)
 {
 	choice at P
 	{
-		IsAbove(v1:int) from P to R;   
+		IsAbove(v1:int) from P to R;
 		Res(b1:int) from R to P;
-		IsAbove(v2:int) from P to R;   
+		IsAbove(v2:int) from P to R;
 		Res(b2:int) from R to P;
 		choice at P
 		{
@@ -1770,7 +1770,7 @@ aux global protocol Loop(role P, role R, role C)
 	}
 	or
 	{
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;
 	}
 }
@@ -1817,7 +1817,7 @@ global protocol Proto1(role A, role B)
 /*
 global protocol Proto1(role A, role B) @"x>0"  // test unknown x -- also tested empty lhs for getRecAssertCheck
 {
-	1() from A to B;	
+	1() from A to B;
 }
 //*/
 
@@ -1825,14 +1825,14 @@ global protocol Proto1(role A, role B) @"x>0"  // test unknown x -- also tested 
 /*
 global protocol Proto1(role A, role B)
 {
-	1() from A to B;	
+	1() from A to B;
 	//do Proto1Aux(A, B);  // TODO: do-sexpr WF -- CHECKME: or allow? (cf., below)
 	do Proto1Aux(A, B);  @<"1">
 }
 
 aux global protocol Proto1Aux(role A, role B)  @<x := "1"> "x>0"  // Testing getRecAssertCheck lhs building
 {
-	2() from B to A;	
+	2() from B to A;
 }
 //*/
 
@@ -1849,13 +1849,13 @@ global protocol Proto1(role A, role B) @<x := "1">
 /*
 global protocol Proto1(role A, role B)
 {
-	1() from A to B;	
+	1() from A to B;
 	do Proto1Aux(A, B);  @<"2">  // Testing "inlining" of do-sexpr args as rec-svar exprs by proto inlining
 }
 
 aux global protocol Proto1Aux(role A, role B)  @<x := "1"> "x>0"
 {
-	2() from B to A;	
+	2() from B to A;
 }
 //*/
 
@@ -1863,13 +1863,13 @@ aux global protocol Proto1Aux(role A, role B)  @<x := "1"> "x>0"
 /*
 global protocol Proto1(role A, role B)
 {
-	1() from A to B;	
+	1() from A to B;
 	do Proto1Aux(A, B);  @<"2">  // testing, no target satate var
 }
 
 aux global protocol Proto1Aux(role A, role B)  //@"x>0"
 {
-	2() from B to A;	
+	2() from B to A;
 }
 //*/
 
@@ -1877,13 +1877,13 @@ aux global protocol Proto1Aux(role A, role B)  //@"x>0"
 /*
 global protocol Proto1(role A, role B)
 {
-	1() from A to B;	
+	1() from A to B;
 	do Proto1Aux(A, B);  // TODO CHECKME: allow? (omitted state args)
 }
 
 aux global protocol Proto1Aux(role A, role B)  @<x := "1">
 {
-	2() from B to A;	
+	2() from B to A;
 }
 //*/
 
@@ -1911,7 +1911,7 @@ global protocol Proto1(role A, role B) @<x := "1">
 {
 	1() from A to B;
 	2() from B to A;
-	do Proto1(A, B);  @<"2"> 
+	do Proto1(A, B);  @<"2">
 }
 //*/
 
@@ -1947,7 +1947,7 @@ global protocol Proto1(role A, role B) @<x := "1">
 /*
 global protocol Proto1(role A, role B) @<x := "1">
 {
-	1() from A to B;	
+	1() from A to B;
 	do Proto1(A, B);  // CHECKME: OK?
 }
 //*/
@@ -2122,7 +2122,7 @@ global protocol Proto1(role A, role B)
 
 aux global protocol Proto1Aux(role A, role B)  @<x := "1">
 {
-	1() from A to B;	
+	1() from A to B;
 }
 //*/
 
@@ -2135,7 +2135,7 @@ global protocol Proto1(role A, role B)
 
 aux global protocol Proto1Aux(role A, role B)  @<x := "1">
 {
-	1() from A to B;	
+	1() from A to B;
 }
 //*/
 
@@ -2180,8 +2180,8 @@ global protocol Proto1(role C, role S)
 	HELLO(u:int) from C to S;
 	choice at C
 	{
-		ADD(w:int) from C to S; 
-		ADD(v:int) from C to S; 
+		ADD(w:int) from C to S;
+		ADD(v:int) from C to S;
 		RES(f:int) from S to C;
 		do Proto1(C, S);
 	}
@@ -2225,9 +2225,9 @@ aux global protocol Loop(role P, role R, role C)
 {
 	choice at P
 	{
-		IsAbove(int) from P to R;   
+		IsAbove(int) from P to R;
 		Res(int) from R to P;
-		IsAbove(int) from P to R;   
+		IsAbove(int) from P to R;
 		Res(int) from R to P;
 		choice at P
 		{
@@ -2259,7 +2259,7 @@ aux global protocol Loop(role P, role R, role C)
 	}
 	or
 	{
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;
 	}
 }
@@ -2277,9 +2277,9 @@ aux global protocol Loop(role P, role R, role C)
 {
 	choice at P
 	{
-		IsAbove(v1:int) from P to R;   
+		IsAbove(v1:int) from P to R;
 		Res(b1:int) from R to P;
-		IsAbove(v2:int) from P to R;   
+		IsAbove(v2:int) from P to R;
 		Res(b2:int) from R to P;
 		choice at P
 		{
@@ -2311,7 +2311,7 @@ aux global protocol Loop(role P, role R, role C)
 	}
 	or
 	{
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;
 	}
 }
@@ -2329,9 +2329,9 @@ aux global protocol Loop(role P, role R, role C)
 {
 	choice at P
 	{
-		IsAbove(v1:int) from P to R;   
+		IsAbove(v1:int) from P to R;
 		Res(b1:int) from R to P;  @"b1=0 || b1=1"
-		IsAbove(v2:int) from P to R;   
+		IsAbove(v2:int) from P to R;
 		Res(b2:int) from R to P;  @"b2=0 || b2=1"
 		choice at P
 		{
@@ -2363,7 +2363,7 @@ aux global protocol Loop(role P, role R, role C)
 	}
 	or
 	{
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;
 	}
 }
@@ -2540,7 +2540,7 @@ global protocol Proto1(role A, role B, role C)
 	{
 		3(y : int) from B to A; @"((y > (x + 1)) && y < 4)"
 	}*/
-	
+
 	/*1(x : int) from A to B; @"x > 3"
 	2(y : int) from C to B; @"True"
 	choice at B
@@ -2551,7 +2551,7 @@ global protocol Proto1(role A, role B, role C)
 	{
 		4() from B to A; @"y > x"
 	}* /
-	
+
 	1(x:int) from A to B;  @"x>3"
 	2(y:int) from A to C;  @"y>x"
 
@@ -2567,10 +2567,10 @@ global protocol Proto1(role A, role B, role C)
 	{
 		2(y:int) from A to B;   @"(y>3)"
 	}*/
-		
-	
-	
-	
+
+
+
+
 	/*choice at B
 	{
 		2(y:int) from B to A;   @"y=x && y>3"
@@ -2584,7 +2584,7 @@ global protocol Proto1(role A, role B, role C)
 
 
 /*
-assert f(x:int) bool = "x";  
+assert f(x:int) bool = "x";
 		// Cannot be recursive as an assertion -- so not so useful for "explicit" code gen?  (vs. basic expr capturing) -- mainly use as "assertion code gen"?
 		// Should only be for validation?
 
@@ -2620,9 +2620,9 @@ global protocol SH(role P, role R, role C) {
 
 global protocol Loop(role P, role R, role C) {
 	choice at P {
-		Above(v1:int) from P to R;   
+		Above(v1:int) from P to R;
 		Res(b1:int) from R to P;  @"b1=0 || b1=1"
-		Above(v2:int) from P to R;   
+		Above(v2:int) from P to R;
 		Res(b2:int) from R to P;  @"b2=0 || b2=1"
 		choice at P {
 				BothIn() from P to R;  @"b1=1 && b2=1"
@@ -2643,7 +2643,7 @@ global protocol Loop(role P, role R, role C) {
 				do Loop(P, R, C);  // Recursion
 		} }
 	} or {
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;  // End
 	}
 }
@@ -2664,7 +2664,7 @@ global protocol SH(role P, role R, role C) {
 			} or {
 				noPoints() from R to P; @"res=0"
 				noPoints() from P to C;
-				continue Loop; 
+				continue Loop;
 			} or {
 				intersection(p3:int) from R to P; @"res=1 || res=2"
 				choice at P {
@@ -2727,16 +2727,16 @@ global protocol Proto1(role A, role B)
 global protocol Proto1(role A, role B)
 {
 	1(x:int) from A to B;  @"x>3"
-	
+
 	choice at B
 	{
 		2() from B to A;  @"x<0"
 		4() from B to A;  @"False"
-	}	
+	}
 	or
 	{
 		3() from B to A;  @"True"
-	}	
+	}
 }
 //*/
 
@@ -2768,7 +2768,7 @@ global protocol Proto1(role A, role B)
 /*
 global protocol Proto1a(role A, role B)  @"(x:=1)"
 {
-	1(x:int) from A to B;	
+	1(x:int) from A to B;
 	2(y:int) from B to A;	 @"y>x"
 
 	do Proto1a(A, B);  @"<x+1>"
@@ -2776,7 +2776,7 @@ global protocol Proto1a(role A, role B)  @"(x:=1)"
 
 global protocol Proto1b(role A, role B)
 {
-	1() from A to B;	
+	1() from A to B;
 	2(y:int) from B to A;	 @"y>x"
 }
 
@@ -2789,7 +2789,7 @@ global protocol Proto1c(role A, role B)
 global protocol Proto1d(role A, role B, role C)
 {
 	1(x:int) from A to B;	 @"x>3"
-	2(y:int) from B to C;	 @"y>x"  // y>x added to F(C), but x *not* added to F(C) -- N.B. x will be forall quantified at C, and x>3 *not* in F(C) 
+	2(y:int) from B to C;	 @"y>x"  // y>x added to F(C), but x *not* added to F(C) -- N.B. x will be forall quantified at C, and x>3 *not* in F(C)
 	3(z:int) from C to A;	 @"z>x"
 }
 
@@ -2807,7 +2807,7 @@ global protocol Proto1f(role A, role B, role C, role D)
 
 	3(y1:int) from B to C;	@"y1=x1"
 	4(y2:int) from D to C;	@"y2=x2"
-	
+
 	5(z:int) from C to A;   @"z=y1 && z=y2"  // only adding "immediate" assertion to F is weak? can strengthen?
 }
 //*/
@@ -2895,14 +2895,14 @@ global protocol Proto1(role A, role B)  @"(x := 1)"
 //*/
 
 /*
-global protocol Proto1(role A, role B)  
+global protocol Proto1(role A, role B)
 		@"(x := 3) (x>2)"
 		//@"(x := 3) (x>0)"
 		//@"(x := 3) (x>1)"
 {
 	1() from A to B; @"(x>1)"
 	//2() from B to A;
-	//do Proto1(A, B);  @"(x)"  
+	//do Proto1(A, B);  @"(x)"
 			// CHECKME: no longer needs to be special case, given appropriate rec-assertion? -- but at least is an optimisation?
 			// no: special case still different, no "old var" renaming (no "inductive unrolling")
 	//do Proto1(A, B);  @"((x+1))"
@@ -2958,11 +2958,11 @@ explicit global protocol Proto1(role A, role B, role C)
 {
 	connect A to B;
 	1(lin x:int) from A to B; @port(x, C);  // implies port(x, C) and not(port(x, A)), not(port(x, B))
-	
+
 	rec X1 (used_x = 0) {
 
 		1(z:int) from B to C; @(fw(x -> z) ... used_x =0); // implies port(x, C) and not(port(x, A)), not(port(x, B))
-		
+
 		rec X2 (used_x = 1) {
 
 			1(z2:int) from B to C; @(... used_x = 0); // implies port(x, C) and not(port(x, A)), not(port(x, B))
@@ -2980,7 +2980,7 @@ explicit global protocol Proto1(role A, role B, role C)
 /*
 global protocol Proto1(role A, role B)
 {
-	1(x:int) from A to B; 
+	1(x:int) from A to B;
 	2(y:int) from B to A; @(x=y);
 	3(z:int) from B to A; @(z=y);  // Should this be "linearity" error?
 }
@@ -3061,8 +3061,8 @@ global protocol Proto1(role A, role B) @(z=3);
 /*
 global protocol Proto1(role A, role B) @(x=3);
 {
-	1() from A to B; @(x>2);	
-	do Proto2(A, B); @(x);  
+	1() from A to B; @(x>2);
+	do Proto2(A, B); @(x);
 			// CHECKME: need to make expr vars "old" in F? -- proto shouldn't be valid?
 			// could rename target y to x in this case? relies on "globally" (across subprotos) unique vars -- cf. rolename substitution
 }
@@ -3070,7 +3070,7 @@ global protocol Proto1(role A, role B) @(x=3);
 // Not aux
 global protocol Proto2(role A, role B) @(y=4);
 {
-	1() from A to B; @(y>2);	
+	1() from A to B; @(y>2);
 	do Proto1(A, B); @(y);
 }
 //*/
@@ -3078,7 +3078,7 @@ global protocol Proto2(role A, role B) @(y=4);
 /*
 global protocol Proto1(role A, role B)
 {
-	do Proto2(A, B); @1;  
+	do Proto2(A, B); @1;
 			// CHECKME: in this case, consider substituting the x in Proto1<x+1> like DbC? but would be inconsistent generally?
 			// CHECKME: at least consider case for substituting x if syntactically just "x" and still just x -- cf. bad.extensions.assrtcore.safety.assrtprog.statevar.AssrtCoreTest08b
 }
@@ -3088,10 +3088,10 @@ global protocol Proto2(role A, role B) @(x=1);
 	1(y:int) from A to B; @((y=x) && (x=1));
 
 	//do Proto1(A, B); @1;
-	do Proto2(A, B); @(x+1);  
-			// Unsat -- cf. DbC? -- OK there? but relies on two-unfolding cut off? 
+	do Proto2(A, B); @(x+1);
+			// Unsat -- cf. DbC? -- OK there? but relies on two-unfolding cut off?
 			// No: DbC subs the x in X<x+1> fixing it to two at two unfoldings and forever after? that's why safe there
-			
+
 	// TODO: check tests for "loop counting", e.g., X<x+1> -- and also with lower bounded ints (do bounds manually)
 }
 //*/
@@ -3099,7 +3099,7 @@ global protocol Proto2(role A, role B) @(x=1);
 /*
 global protocol Proto1(role A, role B) @(x=3);
 {
-	1() from A to B; @(x>2);	
+	1() from A to B; @(x>2);
 
 	//do Proto1(A, B); @x;  // Currently unsat -- cf. DbC? -- DbC it wouldn't be "x", it would "already" be 3 from substitution
 			// Note, Proto1 could be called from "any context", so x can really be anything
@@ -3153,9 +3153,9 @@ global protocol Proto1(role A, role B, role C)
 	2() from B to C;
 	3(y:int) from C to B; @(y>x);  // Bad: C doesn't know x -- though it knows x > 3 -- CHECKME: how to disallow this? but still allow the below
 			// CHECKME: DbC -- cf. HS
-	
-	//---	
-	
+
+	//---
+
 	1(x:int) from A to B; @(x=3);  // CHECKME: but equality should be strong enough?
 	2() from B to C;
 	3(y:int) from C to B; @(y>x);
@@ -3169,7 +3169,7 @@ global protocol Proto1(role A, role B) @(z=0);
 	1(x:int) from A to B; @(x>3);
 	2(y:int) from B to C; @(y>x);  // C does *not* "know" x -- but knows constraints must be satisfied up to here
 	3(z:int) from C to D; @(z>y);
-	
+
 //--- vs.
 
 	1(x:int) from A to B; @(x=3);  // equality is "precise" enough for "strong path inference"
@@ -3309,12 +3309,12 @@ global protocol Proto1(role A, role B) @(x=3);
 	{
 		2(int) from A to B;
 		do Proto1(A, B); @3;
-	}	
+	}
 
 		//1(y:int) from A to B; @(x=4);
 
 		//1(y:int) from A to B; @((y=4) && (x=y));
-		
+
 		//1(y:int) from A to B; @(x=y);
 
 
@@ -3327,7 +3327,7 @@ global protocol Proto1(role A, role B) @(x=3);
 global protocol Proto1(role A, role B, role C)
 {
 	choice at A
-	{	
+	{
 		1(int) from A to B;
 		4(int) from A to C;
 	}
@@ -3344,7 +3344,7 @@ global protocol Proto1(role A, role B, role C)
 global protocol Proto1(role A, role B)
 {
 	choice at A
-	{	
+	{
 		1(x:int) from A to B;
 		choice at A
 		{
@@ -3355,7 +3355,7 @@ global protocol Proto1(role A, role B)
 		{
 			3(z:int) from A to B;
 		}
-	
+
 	}
 	or
 	{

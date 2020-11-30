@@ -14,12 +14,15 @@ import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.util.RuntimeScribException;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribUtil;
 
 // "Native" Z3 -- not Z3 Java API
 public class Z3Wrapper
 {
+	private static String Z3_BIN = null;
+	
 
 	// Based on CommandLine::runDot, JobContext::runAut, etc
 	public static boolean checkSat(AssrtCore core, GProtocol intermed,
@@ -47,6 +50,27 @@ public class Z3Wrapper
 	// smt2 is the full Z3 source
 	private static boolean checkSat(String smt2) //throws ScribbleException
 	{
+		if (Z3_BIN == null)
+		{
+			try
+			{
+				ScribUtil.runProcess("z3", "-version");
+				Z3_BIN = "z3";
+			}
+			catch (ScribException ex)
+			{
+				/*try
+				{
+					ScribUtil.runProcess("z3.exe", "-version");
+					Z3_BIN = "z3.exe";
+				}
+				catch (ScribException ex2)*/
+				{
+					throw new RuntimeScribException("z3 binary not found.");
+				}
+			}
+		}
+		
 		File tmp;
 		try
 		{
@@ -55,7 +79,7 @@ public class Z3Wrapper
 			{
 				String tmpName = tmp.getAbsolutePath();				
 				ScribUtil.writeToFile(tmpName, smt2);
-				String[] res = ScribUtil.runProcess("z3", tmpName);
+				String[] res = ScribUtil.runProcess(Z3_BIN, tmpName);
 				String trim = res[0].trim();
 				if (trim.equals("sat"))  // FIXME: factor out
 				{
