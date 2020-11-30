@@ -59,12 +59,12 @@ public class Z3Wrapper
 			}
 			catch (ScribException ex)
 			{
-				/*try
+				try
 				{
 					ScribUtil.runProcess("z3.exe", "-version");
 					Z3_BIN = "z3.exe";
 				}
-				catch (ScribException ex2)*/
+				catch (ScribException ex2)
 				{
 					throw new RuntimeScribException("z3 binary not found.");
 				}
