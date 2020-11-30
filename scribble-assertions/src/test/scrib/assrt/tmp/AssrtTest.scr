@@ -23,6 +23,7 @@ global protocol MyProto(role A, role B, role C) {
 }
 
 
+
 /*
 global protocol MyProto(role A, role B) {
 	choice at A {
