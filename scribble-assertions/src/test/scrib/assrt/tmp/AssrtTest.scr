@@ -11,7 +11,33 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
-global protocol MyProto(role A, role B, role C) {
+
+global protocol MyProto(role A, role B) {
+	//1(x: int) from A to B;  @'!False'
+	//1(x: int) from A to B;  @'(x > (1+1)) && True'
+	//1(x: int) from A to B;  @'x > (1+1)'
+	//1(x: int) from A to B;  @'!False'
+	//1(x: int) from A to B;  @'(!False) || True'
+	1(x: int) from A to B;  @'!False || True'
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*global protocol MyProto(role A, role B, role C) {
 	choice at A {
 		1(x: int) from A to B;  @'x>0'
 		2() from A to C;
@@ -21,6 +47,8 @@ global protocol MyProto(role A, role B, role C) {
 		4() from A to C;
 	}
 }
+//*/
+
 
 
 
