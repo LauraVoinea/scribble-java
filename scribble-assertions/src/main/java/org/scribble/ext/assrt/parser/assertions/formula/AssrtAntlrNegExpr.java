@@ -5,6 +5,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
 import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
 import org.scribble.ext.assrt.parser.assertions.AssrtAntlrToFormulaParser;
+import org.scribble.util.RuntimeScribSyntaxException;
 
 
 public class AssrtAntlrNegExpr
@@ -14,7 +15,12 @@ public class AssrtAntlrNegExpr
 	public static AssrtSmtFormula parseNegExpr(AssrtAntlrToFormulaParser parser,
 			CommonTree root) //throws AssertionsParseException {
 	{	
-		AssrtBFormula child = (AssrtBFormula) parser.parse(getChild(root)); 
+		AssrtSmtFormula f = parser.parse(getChild(root));
+		if (!(f instanceof AssrtBFormula)) {
+			throw new RuntimeScribSyntaxException("Invalid negate on non"
+					+ " boolean expr: " + f.toString());
+		}
+		AssrtBFormula child = (AssrtBFormula) f; 
 		return AssrtFormulaFactory.AssrtNeg(child); 
 	}
 	
