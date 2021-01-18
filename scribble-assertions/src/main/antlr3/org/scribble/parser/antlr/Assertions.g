@@ -37,7 +37,7 @@ tokens
 	
 	// TODO: rename EXT_... (or ANNOT_...)
 	ROOT; 
-	
+
 	BOOLEXPR;
 	COMPEXPR;
 	ARITHEXPR;
@@ -99,7 +99,7 @@ tokens
 		super.displayRecognitionError(tokenNames, e);
   	System.exit(1);
 	}
-  
+
 	// source is an EXTID.text, including the quotes
 	public static AssrtBFormula parseAssertion(String source) 
 			throws RecognitionException
@@ -130,7 +130,7 @@ tokens
 				.getInstance().parse((CommonTree) parser.arith_root().getTree());
 		return res;
 	}
-  
+
 	// t is an EXTID token
 	public static AssrtStateVarHeaderAnnot parseStateVarHeader(Token t) 
 			throws RecognitionException
@@ -278,7 +278,7 @@ assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
 	ID -> ^(VAR ID)
-; 	  
+;
 
 intlit: 
 	NUMBER -> ^(INTVAL NUMBER)	   
@@ -304,14 +304,7 @@ arith_root:  // EOF useful?
 ;
 
 
-paren_expr:
-	'(' bool_expr ')' -> bool_expr
-;
 
-/*expr:
-	bool_expr
-;*/
-	
 bool_expr:
 	bool_or_expr
 ;
@@ -354,28 +347,30 @@ bool_arith_mul_expr:
 ->
 	^(ARITHEXPR bool_arith_unary_expr ($op bool_arith_unary_expr)*)
 ;
-	
+
 bool_arith_unary_expr:
 	// Highly binding, so nest deeply
-//	'!' bool_expr -> ^(NEGEXPR bool_expr)  // HERE
-	//'!' bool_arith_mul_expr -> ^(NEGEXPR bool_arith_mul_expr)*/
 	'!' bool_arith_unary_expr -> ^(NEGEXPR bool_arith_unary_expr)
 |
-	primary_expr
+	bool_primary_expr
 ;
 // '¬' doesn't seem to work
 
-primary_expr:
-	paren_expr
+bool_primary_expr:
+	bool_paren_expr
 |
 	variable
 |
-	literal
+	bool_literal
 /*|
 	unint_fun*/
 ;
 
-literal:
+bool_paren_expr:
+	'(' bool_expr ')' -> bool_expr
+;
+
+bool_literal:
 	TRUE_KW -> ^(TRUE)
 |
 	FALSE_KW -> ^(FALSE)
@@ -384,10 +379,11 @@ literal:
 |
 	stringlit
 ;
-	
-	
-	
-	
+
+
+
+
+// Duplicated from bool_arith_expr
 arith_expr:
 	arith_add_expr
 ;
@@ -431,12 +427,12 @@ arith_literal:
 |
 	stringlit
 ;
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 
 // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 assrt_headerannot:
@@ -497,34 +493,34 @@ assrt_nonlocatedstatevarargs:
 assrt_statevararg:
 	arith_expr  // Parsed to AssrtAExprNode by parseStateVarArgList
 ;
-	
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 unint_fun:
 	ID unint_fun_arg_list
 ->
 	^(UNFUN ID unint_fun_arg_list)
 ; 
-	
+
 unint_fun_arg_list:
 	'(' (arith_expr (',' arith_expr )*)? ')'
 ->

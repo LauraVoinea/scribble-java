@@ -20,7 +20,7 @@ global protocol MyProto(role A, role B) {
 	//1(x: int) from A to B;  @'!False'
 	//1(x: int) from A to B;  @'(!False) || True'
 	//1(x: int) from A to B;  @'!False || True'  // TODO: add test
-	1(x: int) from A to B;  @'x>(!0)'  // TODO: add test
+	1(x: int) from A to B;  @'!0 > 1'  // TODO: add test
 }
 //*/
 
