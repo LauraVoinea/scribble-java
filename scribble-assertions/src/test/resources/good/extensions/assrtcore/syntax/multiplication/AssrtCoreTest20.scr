@@ -1,0 +1,19 @@
+module good.extensions.assrtcore.syntax.parsing.AssrtCoreTest20;
+
+
+type <java> "java.lang.Integer" from "rt.jar" as int;
+
+
+//*
+global protocol Proto1(role A, role B) {
+	choice at A
+	{
+		Mul(x: int, y: int) from A to B;
+		Res(z: int) from B to A;  @'z = x * y'
+	}
+	or
+	{
+		Bye() from A to B;
+	}
+}
+//*/
