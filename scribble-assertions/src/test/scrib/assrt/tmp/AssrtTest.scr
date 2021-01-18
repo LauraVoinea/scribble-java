@@ -12,18 +12,38 @@ type <fstar> "string" from "..." as String;
 
 
 
+//*
 global protocol MyProto(role A, role B) {
 	//1(x: int) from A to B;  @'!False'
 	//1(x: int) from A to B;  @'(x > (1+1)) && True'
 	//1(x: int) from A to B;  @'x > (1+1)'
 	//1(x: int) from A to B;  @'!False'
 	//1(x: int) from A to B;  @'(!False) || True'
-	1(x: int) from A to B;  @'!False || True'  // TODO: add test
-	//1(x: int) from A to B;  @'x>(!0)'
+	//1(x: int) from A to B;  @'!False || True'  // TODO: add test
+	1(x: int) from A to B;  @'x>(!0)'  // TODO: add test
+}
+//*/
+
+
+/*
+global protocol Test(role A, role B) {
+  choice at A {
+    do Foo(A, B); @'A[0]'
+  } or {
+    do Bar(A, B); @'A[1]'
+  }
 }
 
+aux global protocol Foo(role A, role B) @'A[x: int = 0]' {
+  Foo() from A to B;
+  do Foo(A, B); @'A[1]'
+}
 
-
+aux global protocol Bar(role A, role B) @'A[y: int = 1]' {
+  Bar() from A to B;
+  do Bar(A, B); @'A[0]'
+}
+//*/
 
 
 
