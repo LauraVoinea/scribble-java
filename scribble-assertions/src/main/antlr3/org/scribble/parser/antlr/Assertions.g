@@ -1,7 +1,7 @@
-//$ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3 scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
+//$ java.exe -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3 scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
 
 // Windows:
-//$ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3/org/scribble/parser/antlr scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
+//$ java.exe -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-assertions/target/generated-sources/antlr3/org/scribble/parser/antlr scribble-assertions/src/main/antlr3/org/scribble/parser/antlr/Assertions.g
 //$ mv scribble-assertions/target/generated-sources/antlr3/org/scribble/parser/antlr/Assertions.tokens scribble-assertions/target/generated-sources/antlr3/
 
 
@@ -37,10 +37,10 @@ tokens
 	
 	// TODO: rename EXT_... (or ANNOT_...)
 	ROOT; 
-	
-	BOOLEXPR; 
-	COMPEXPR; 
-	ARITHEXPR; 
+
+	BOOLEXPR;
+	COMPEXPR;
+	ARITHEXPR;
 	NEGEXPR;
 
 	VAR;  // TODO: rename Ambig
@@ -67,21 +67,21 @@ tokens
 	import org.antlr.runtime.Token;
 	import org.antlr.runtime.tree.CommonTree;
 
-  import org.scribble.ast.ScribNodeBase;
-  import org.scribble.ast.name.simple.AmbigNameNode;
-  import org.scribble.ast.name.simple.RoleNode;
+	import org.scribble.ast.ScribNodeBase;
+	import org.scribble.ast.name.simple.AmbigNameNode;
+	import org.scribble.ast.name.simple.RoleNode;
 
-  import org.scribble.ext.assrt.ast.AssrtAExprNode;
-  import org.scribble.ext.assrt.ast.AssrtBExprNode;
+	import org.scribble.ext.assrt.ast.AssrtAExprNode;
+	import org.scribble.ext.assrt.ast.AssrtBExprNode;
 	import org.scribble.ext.assrt.ast.AssrtStateVarHeaderAnnot;
 	import org.scribble.ext.assrt.ast.AssrtStateVarArgList;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDecl;
 	import org.scribble.ext.assrt.ast.AssrtStateVarDeclList;
-  import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
+	import org.scribble.ext.assrt.ast.name.simple.AssrtVarNameNode;
 	import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 	import org.scribble.ext.assrt.core.type.formula.AssrtSmtFormula;
-  import org.scribble.ext.assrt.parser.assertions.AssertionsTreeAdaptor;
+	import org.scribble.ext.assrt.parser.assertions.AssertionsTreeAdaptor;
 	import org.scribble.ext.assrt.parser.assertions.AssrtAntlrToFormulaParser;
 }
 
@@ -99,7 +99,7 @@ tokens
 		super.displayRecognitionError(tokenNames, e);
   	System.exit(1);
 	}
-  
+
 	// source is an EXTID.text, including the quotes
 	public static AssrtBFormula parseAssertion(String source) 
 			throws RecognitionException
@@ -130,7 +130,7 @@ tokens
 				.getInstance().parse((CommonTree) parser.arith_root().getTree());
 		return res;
 	}
-  
+
 	// t is an EXTID token
 	public static AssrtStateVarHeaderAnnot parseStateVarHeader(Token t) 
 			throws RecognitionException
@@ -248,11 +248,11 @@ WHITESPACE:
 
 ID:
 	LETTER (LETTER | DIGIT)*
-;  
+;
 
 NUMBER: 
 	(DIGIT)+
-; 
+;
 
 STRING_LIT:
 	'\'' (LETTER | DIGIT | WHITESPACE)* '\''
@@ -278,13 +278,13 @@ assrt_varname: t=ID -> ID<AssrtVarNameNode>[$t] ;  // Currently, int or string
 
 variable: 
 	ID -> ^(VAR ID)
-; 	  
+;
 
 intlit: 
 	NUMBER -> ^(INTVAL NUMBER)	   
 |
 	'-' NUMBER -> ^(NEGINTVAL NUMBER)
-; 
+;
 	
 stringlit:
 	t=STRING_LIT -> ^(STRVAL {AssertionsParser.parseStringLit($t)})
@@ -304,10 +304,7 @@ arith_root:  // EOF useful?
 ;
 
 
-expr:
-	bool_expr
-;
-	
+
 bool_expr:
 	bool_or_expr
 ;
@@ -321,6 +318,7 @@ bool_or_expr:
 // Cf. https://github.com/antlr/grammars-v3/blob/master/Java1.6/Java.g#L943
 // ^Expr categories are all "nested", bottoming out at primary which recursively contains `parExpression`
 // Precedence follows the nesting order, e.g., 1+2*3 -> 1+(2*3); o/w left-assoc (preserved by AssrtAntlr... routines)
+// Seems to make it hard to separate expr kinds, e.g., arith and bool
 
 bool_and_expr:
 	comp_expr (op=('&&') comp_expr)*
@@ -329,11 +327,61 @@ bool_and_expr:
 ;
 
 comp_expr:  // "relational" expr
-	arith_expr (op=('=' | '<' | '<=' | '>' | '>=') arith_expr)?
+	bool_arith_add_expr (op=('=' | '<' | '<=' | '>' | '>=') bool_arith_add_expr)?
 ->
-	^(COMPEXPR arith_expr $op? arith_expr?)
+	^(COMPEXPR bool_arith_add_expr $op? bool_arith_add_expr?)
 ;
-	
+
+bool_arith_add_expr:
+	bool_arith_mul_expr (bool_arith_addsub_op bool_arith_mul_expr)*
+->
+	^(ARITHEXPR bool_arith_mul_expr (bool_arith_addsub_op bool_arith_mul_expr)*)  // Cannot distinguish the ops args?  Always the last one?
+;
+
+bool_arith_addsub_op:
+	'+' | '-'
+;
+
+bool_arith_mul_expr:
+	bool_arith_unary_expr (op=('*') bool_arith_unary_expr)*
+->
+	^(ARITHEXPR bool_arith_unary_expr ($op bool_arith_unary_expr)*)
+;
+
+bool_arith_unary_expr:
+	// Highly binding, so nest deeply
+	'!' bool_arith_unary_expr -> ^(NEGEXPR bool_arith_unary_expr)
+|
+	bool_primary_expr
+;
+// '¬' doesn't seem to work
+
+bool_primary_expr:
+	bool_paren_expr
+|
+	variable
+|
+	bool_literal
+/*|
+	unint_fun*/
+;
+
+bool_paren_expr:
+	'(' bool_expr ')' -> bool_expr
+;
+
+bool_literal:
+	TRUE_KW -> ^(TRUE)
+|
+	FALSE_KW -> ^(FALSE)
+|
+	intlit
+|
+	stringlit
+;
+
+
+// Duplicated from bool_arith_expr
 arith_expr:
 	arith_add_expr
 ;
@@ -353,38 +401,32 @@ arith_mul_expr:
 ->
 	^(ARITHEXPR arith_unary_expr ($op arith_unary_expr)*)
 ;
-	
-arith_unary_expr:
-	primary_expr
-|
-	'!' bool_expr -> ^(NEGEXPR bool_expr)  // Highly binding, so nest deeply
-;
-// '¬' doesn't seem to work
 
-primary_expr:
-	paren_expr
+arith_unary_expr:
+	arith_primary_expr
+;
+
+arith_primary_expr:
+	arith_paren_expr
 |
-	literal
+	arith_literal
 |
 	variable
 /*|
 	unint_fun*/
 ;
-	
-paren_expr:
-	'(' expr ')' -> expr
+
+arith_paren_expr:
+	'(' arith_expr ')' -> arith_expr
 ;
 
-literal:
-	TRUE_KW -> ^(TRUE)
-|
-	FALSE_KW -> ^(FALSE)
-|
+arith_literal:
 	intlit
 |
 	stringlit
 ;
-	
+
+
 // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
 assrt_headerannot:
 	bool_expr
@@ -444,34 +486,34 @@ assrt_nonlocatedstatevarargs:
 assrt_statevararg:
 	arith_expr  // Parsed to AssrtAExprNode by parseStateVarArgList
 ;
-	
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 unint_fun:
 	ID unint_fun_arg_list
 ->
 	^(UNFUN ID unint_fun_arg_list)
 ; 
-	
+
 unint_fun_arg_list:
 	'(' (arith_expr (',' arith_expr )*)? ')'
 ->

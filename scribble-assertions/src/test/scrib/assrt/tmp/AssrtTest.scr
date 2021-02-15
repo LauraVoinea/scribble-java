@@ -11,7 +11,83 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
-global protocol MyProto(role A, role B, role C) {
+
+global protocol MyProto(role A, role B) {
+	choice at A
+	{
+		Mul(x: int, y: int) from A to B;
+		Res(z: int) from B to A;  @'z = x * y'
+	}
+	or
+	{
+		Bye() from A to B;
+	}
+}
+
+
+/*
+global protocol MyProto(role A, role B) {
+	//1() from A to B;  @'3 > (2 * 1)'  // TODO: add test?
+	1(x: int) from A to B;  @'x > (3 * 2)'
+}
+//*/
+
+
+/*
+global protocol MyProto(role A, role B) {
+	//1(x: int) from A to B;  @'!False'
+	//1(x: int) from A to B;  @'(x > (1+1)) && True'
+	//1(x: int) from A to B;  @'x > (1+1)'
+	//1(x: int) from A to B;  @'(!False) || True'
+	1(x: int) from A to B;  @'!False || True'
+	//1(x: int) from A to B;  @'!0 > 1'
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+/*
+global protocol Test(role A, role B) {
+  choice at A {
+    do Foo(A, B); @'A[0]'
+  } or {
+    do Bar(A, B); @'A[1]'
+  }
+}
+
+aux global protocol Foo(role A, role B) @'A[x: int = 0]' {
+  Foo() from A to B;
+  do Foo(A, B); @'A[1]'
+}
+
+aux global protocol Bar(role A, role B) @'A[y: int = 1]' {
+  Bar() from A to B;
+  do Bar(A, B); @'A[0]'
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*global protocol MyProto(role A, role B, role C) {
 	choice at A {
 		1(x: int) from A to B;  @'x>0'
 		2() from A to C;
@@ -21,6 +97,8 @@ global protocol MyProto(role A, role B, role C) {
 		4() from A to C;
 	}
 }
+//*/
+
 
 
 
