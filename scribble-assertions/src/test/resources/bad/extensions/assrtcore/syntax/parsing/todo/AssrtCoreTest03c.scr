@@ -4,7 +4,7 @@ module good.extensions.assrtcore.syntax.parsing.AssrtCoreTest03c;
 type <java> "java.lang.Integer" from "rt.jar" as int;
 
 
-//*
+//*  // FIXME: currently throws RuntimeScribSyntaxException, which isn't compatible with test harness -- cf. AssrtSyntaxException (currently only for filtering incompatible base Scribble tests)
 global protocol Proto1(role A, role B)
 {
 	1(x: int) from A to B;  @"!0 > 1"  // Testing negation precedence

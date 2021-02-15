@@ -248,11 +248,11 @@ WHITESPACE:
 
 ID:
 	LETTER (LETTER | DIGIT)*
-;  
+;
 
 NUMBER: 
 	(DIGIT)+
-; 
+;
 
 STRING_LIT:
 	'\'' (LETTER | DIGIT | WHITESPACE)* '\''
@@ -284,7 +284,7 @@ intlit:
 	NUMBER -> ^(INTVAL NUMBER)	   
 |
 	'-' NUMBER -> ^(NEGINTVAL NUMBER)
-; 
+;
 	
 stringlit:
 	t=STRING_LIT -> ^(STRVAL {AssertionsParser.parseStringLit($t)})
@@ -381,8 +381,6 @@ bool_literal:
 ;
 
 
-
-
 // Duplicated from bool_arith_expr
 arith_expr:
 	arith_add_expr
@@ -403,7 +401,7 @@ arith_mul_expr:
 ->
 	^(ARITHEXPR arith_unary_expr ($op arith_unary_expr)*)
 ;
-	
+
 arith_unary_expr:
 	arith_primary_expr
 ;
@@ -427,11 +425,6 @@ arith_literal:
 |
 	stringlit
 ;
-
-
-
-
-
 
 
 // bool_expr parsed to AssrtBExprNode by parseStateVarHeader
