@@ -13,58 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.type.session.global;
 
-import java.util.List;
+package org.scribble.core.type.session.global;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.Choice;
+import org.scribble.core.type.session.base.ChoiceBase;
 
-public class GChoice extends Choice<Global, GSeq> implements GType
-{
-	protected GChoice(CommonTree source, Role subj,
-			List<GSeq> blocks)
-	{
-		super(source, subj, blocks);
-	}
-	
-	@Override
-	public GChoice reconstruct(CommonTree source, Role subj,
-			List<GSeq> blocks)
-			//List<? extends Seq<Global>> blocks)
-	{
-		return new GChoice(source, subj, blocks);
-	}
+import java.util.List;
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 3067;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+public class GChoice extends ChoiceBase<Global, GSeq> implements GType {
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof GChoice))
-		{
-			return false;
-		}
-		return super.equals(o);
-	}
+    protected GChoice(CommonTree source, Role subj, List<GSeq> blocks) {
+        super(source, subj, blocks);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof GChoice;
-	}
+    @Override
+    public GChoice reconstruct(CommonTree source, Role subj, List<GSeq> blocks) { //List<? extends Seq<Global>> blocks)
+        return new GChoice(source, subj, blocks);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3067;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GChoice)) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GChoice;
+    }
 }
 
 

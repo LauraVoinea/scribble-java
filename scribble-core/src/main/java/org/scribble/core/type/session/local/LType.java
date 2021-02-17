@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session.local;
 
 import org.scribble.core.lang.local.LNode;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.session.SType;
 
-public interface LType extends SType<Local, LSeq>, LNode
-{
-	//Role getSelf();  // CHECKME: useful?  maybe only specifically for interactions
-	
-	//void buildGraph(EGraphBuilderUtil2 b);
+public interface LType extends SType<Local, LSeq>, LNode {
+    //Role getSelf();  // CHECKME: useful?  maybe only specifically for interactions
+
+    //void buildGraph(EGraphBuilderUtil2 b);
 }
 
 

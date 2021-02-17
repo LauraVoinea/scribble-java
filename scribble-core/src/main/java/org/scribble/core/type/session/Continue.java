@@ -21,74 +21,65 @@ import java.util.stream.Stream;
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.RecVar;
+import org.scribble.core.type.session.base.STypeBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
 public abstract class Continue<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeBase<K, B>
-{
-	public final RecVar recvar;
+        extends STypeBase<K, B> {
+    public final RecVar recvar;
 
-	public Continue(//org.scribble.ast.Continue<K> source,
-			CommonTree source,  // Due to inlining, do -> continue
-			RecVar recvar)
-	{
-		super(source);
-		this.recvar = recvar;
-	}
+    public Continue(//org.scribble.ast.Continue<K> source,
+                    CommonTree source,  // Due to inlining, do -> continue
+                    RecVar recvar) {
+        super(source);
+        this.recvar = recvar;
+    }
 
-	public abstract Continue<K, B> reconstruct(
-			CommonTree source, RecVar recvar);
+    public abstract Continue<K, B> reconstruct(
+            CommonTree source, RecVar recvar);
 
-	@Override
-	public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException
-	{
-		return v.visitContinue(this);
-	}
-	
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v)
-	{
-		return v.visitContinue(this);
-	}
-	
-	@Override
-	public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f)
-	{
-		return f.apply(this);
-	}
+    @Override
+    public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+        return v.visitContinue(this);
+    }
 
-	@Override
-	public String toString()
-	{
-		return "continue " + this.recvar + ";";
-	}
+    @Override
+    public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+        return v.visitContinue(this);
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 3217;
-		hash = 31 * hash + super.hashCode();
-		hash = 31 * hash + this.recvar.hashCode();
-		return hash;
-	}
+    @Override
+    public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
+        return f.apply(this);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof Continue))
-		{
-			return false;
-		}
-		Continue<?, ?> them = (Continue<?, ?>) o;
-		return super.equals(this)  // Does canEquals
-				&& this.recvar.equals(them.recvar);
-	}
+    @Override
+    public String toString() {
+        return "continue " + this.recvar + ";";
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3217;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.recvar.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Continue)) {
+            return false;
+        }
+        Continue<?, ?> them = (Continue<?, ?>) o;
+        return super.equals(this)  // Does canEquals
+                && this.recvar.equals(them.recvar);
+    }
 	
 	
 	

@@ -17,20 +17,18 @@ package org.scribble.core.type.session;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
+import org.scribble.core.type.session.base.STypeBase;
 
 public abstract class BasicInteraction<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeBase<K, B> implements SType<K, B>
-{
-	public BasicInteraction(CommonTree source)
-	{
-		super(source);
-	}
-	
-	@Override
-	public CommonTree getSource()
-	{
-		return (CommonTree) super.getSource();
-	}
+        extends STypeBase<K, B> implements SType<K, B> {
+    public BasicInteraction(CommonTree source) {
+        super(source);
+    }
+
+    @Override
+    public CommonTree getSource() {
+        return (CommonTree) super.getSource();
+    }
 	
 	
 	

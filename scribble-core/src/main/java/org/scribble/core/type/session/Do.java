@@ -28,93 +28,84 @@ import org.scribble.core.type.kind.NonRoleParamKind;
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.base.STypeBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
 public abstract class Do<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeBase<K, B>
-{
-	public final ProtoName<K> proto;  // Currently disamb'd to fullname by GTypeTranslator (see GDoDel::translate)
-	public final List<Role> roles;  // Ordered role args; pre: size > 2
-	public final List<Arg<? extends NonRoleParamKind>> args;
-			// NonRoleParamKind, not NonRoleArgKind, because latter includes AmbigKind due to parsing requirements
+        extends STypeBase<K, B> {
+    public final ProtoName<K> proto;  // Currently disamb'd to fullname by GTypeTranslator (see GDoDel::translate)
+    public final List<Role> roles;  // Ordered role args; pre: size > 2
+    public final List<Arg<? extends NonRoleParamKind>> args;
+    // NonRoleParamKind, not NonRoleArgKind, because latter includes AmbigKind due to parsing requirements
 
-	public Do(CommonTree source, ProtoName<K> proto,
-			List<Role> roles, List<Arg<? extends NonRoleParamKind>> args)
-	{
-		super(source);
-		this.proto = proto;
-		this.roles = Collections.unmodifiableList(roles);
-		this.args = Collections.unmodifiableList(args);
-	}
+    public Do(CommonTree source, ProtoName<K> proto,
+              List<Role> roles, List<Arg<? extends NonRoleParamKind>> args) {
+        super(source);
+        this.proto = proto;
+        this.roles = Collections.unmodifiableList(roles);
+        this.args = Collections.unmodifiableList(args);
+    }
 
 	/*// Not that useful: calling on Do<K, B> doesn't give the overridden return
 	public abstract ProtoName<K> getProto();  // Override with concrete return*/
-	
-	public abstract Protocol<K, ?, B> getTarget(Core core);  // CHECKME: "?"
 
-	public abstract Do<K, B> reconstruct(CommonTree source,
-			ProtoName<K> proto, List<Role> roles, List<Arg<? extends NonRoleParamKind>> args);
-	
-	@Override
-	public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException
-	{
-		return v.visitDo(this);
-	}
-	
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v)
-	{
-		return v.visitDo(this);
-	}
-	
-	@Override
-	public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f)
-	{
-		return f.apply(this);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return "do " + this.proto 
-				+ "<"
-				+ this.args.stream().map(x -> x.toString())
-						.collect(Collectors.joining(", "))
-				+ ">"
-				+ "(" + this.roles.stream().map(x -> x.toString())
-						.collect(Collectors.joining(", "))
-				+ ");";
-	}
+    public abstract Protocol<K, ?, B> getTarget(Core core);  // CHECKME: "?"
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 193;
-		hash = 31 * hash + super.hashCode();
-		hash = 31 * hash + this.proto.hashCode();
-		hash = 31 * hash + this.roles.hashCode();
-		hash = 31 * hash + this.args.hashCode();
-		return hash;
-	}
+    public abstract Do<K, B> reconstruct(CommonTree source,
+                                         ProtoName<K> proto, List<Role> roles, List<Arg<? extends NonRoleParamKind>> args);
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof Do))
-		{
-			return false;
-		}
-		Do<?, ?> them = (Do<?, ?>) o;
-		return super.equals(this)  // Does canEquals
-				&& this.proto.equals(them.proto) && this.roles.equals(them.roles) 
-				&& this.args.equals(them.args);
-	}
+    @Override
+    public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+        return v.visitDo(this);
+    }
+
+    @Override
+    public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+        return v.visitDo(this);
+    }
+
+    @Override
+    public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
+        return f.apply(this);
+    }
+
+    @Override
+    public String toString() {
+        return "do " + this.proto
+                + "<"
+                + this.args.stream().map(x -> x.toString())
+                .collect(Collectors.joining(", "))
+                + ">"
+                + "(" + this.roles.stream().map(x -> x.toString())
+                .collect(Collectors.joining(", "))
+                + ");";
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 193;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.proto.hashCode();
+        hash = 31 * hash + this.roles.hashCode();
+        hash = 31 * hash + this.args.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Do)) {
+            return false;
+        }
+        Do<?, ?> them = (Do<?, ?>) o;
+        return super.equals(this)  // Does canEquals
+                && this.proto.equals(them.proto) && this.roles.equals(them.roles)
+                && this.args.equals(them.args);
+    }
 	
 	
 	

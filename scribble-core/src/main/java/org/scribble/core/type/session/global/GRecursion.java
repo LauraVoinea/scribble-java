@@ -13,54 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session.global;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.session.Recursion;
+import org.scribble.core.type.session.base.RecursionBase;
 
-public class GRecursion extends Recursion<Global, GSeq> implements GType
-{
-	protected GRecursion(CommonTree source,  // Due to inlining, protocoldecl -> rec
-			RecVar recvar, GSeq body)
-	{
-		super(source, recvar, body);
-	}
-	
-	@Override
-	public GRecursion reconstruct(CommonTree source, RecVar recvar, GSeq block)
-	{
-		return new GRecursion(source, recvar, block);
-	}
+public class GRecursion extends RecursionBase<Global, GSeq> implements GType {
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 2309;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    protected GRecursion(CommonTree source, RecVar recvar, GSeq body) {
+        super(source, recvar, body);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof GRecursion))
-		{
-			return false;
-		}
-		return super.equals(o);
-	}
+    @Override
+    public GRecursion reconstruct(CommonTree source, RecVar recvar, GSeq block) {
+        return new GRecursion(source, recvar, block);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof GRecursion;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 2309;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GRecursion)) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GRecursion;
+    }
 }
 
 

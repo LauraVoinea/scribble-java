@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.visit;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package org.scribble.core.visit;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.session.Choice;
@@ -25,45 +22,44 @@ import org.scribble.core.type.session.Recursion;
 import org.scribble.core.type.session.SType;
 import org.scribble.core.type.session.Seq;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 // For comments, see STypeVisitor
 public abstract class STypeVisitorNoThrow<K extends ProtoKind, B extends Seq<K, B>>
-	extends STypeAggNoThrow<K, B, SType<K, B>>
-{
-	@Override
-	protected final SType<K, B> unit(SType<K, B> n)
-	{
-		return n;
-	}
+        extends STypeAggNoThrow<K, B, SType<K, B>> {
+   
+    @Override
+    protected final SType<K, B> unit(SType<K, B> n) {
+        return n;
+    }
 
-	// Should disregard agg for STypeVisitors -- the STypeVisitor pattern is instead to manually reconstruct within each visit[Node]
-	@Override
-	protected final SType<K, B> agg(SType<K, B> n, Stream<SType<K, B>> ns)
-	{
-		throw new RuntimeException("Disregarded for STypeVisitorNoEx: " + n + " ,, " + ns);
-	}
+    // Should disregard agg for STypeVisitors -- the STypeVisitor pattern is instead to manually reconstruct within each visit[Node]
+    @Override
+    protected final SType<K, B> agg(SType<K, B> n, Stream<SType<K, B>> ns) {
+        throw new RuntimeException("Disregarded for STypeVisitorNoEx: " + n + " ,, " + ns);
+    }
 
-	@Override
-	public SType<K, B> visitChoice(Choice<K, B> n)
-	{
-		List<B> blocks = n.blocks.stream().map(x -> visitSeq(x))
-				.collect(Collectors.toList());
-		return n.reconstruct(n.getSource(), n.subj, blocks);  // Disregarding agg (reconstruction done here)
-	}
+    @Override
+    public SType<K, B> visitChoice(Choice<K, B> n) {
+        List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+                .collect(Collectors.toList());
+        return n.reconstruct(n.getSource(), n.getSubject(), blocks);  // Disregarding agg (reconstruction done here)
+    }
 
-	@Override
-	public SType<K, B> visitRecursion(Recursion<K, B> n)
-	{
-		B body = visitSeq(n.body);
-		return n.reconstruct(n.getSource(), n.recvar, body);  // Disregarding agg (reconstruction done here)
-	}
-	
-	@Override
-	public B visitSeq(B n)
-	{
-		List<SType<K, B>> elems = n.elems.stream().map(x -> x.visitWithNoThrow(this))
-				.collect(Collectors.toList());
-		return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
-	}
+    @Override
+    public SType<K, B> visitRecursion(Recursion<K, B> n) {
+        B body = visitSeq(n.getBody());
+        return n.reconstruct(n.getSource(), n.getRecVar(), body);  // Disregarding agg (reconstruction done here)
+    }
+
+    @Override
+    public B visitSeq(B n) {
+        List<SType<K, B>> elems = n.elems.stream().map(x -> x.visitWithNoThrow(this))
+                .collect(Collectors.toList());
+        return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
+    }
 
 }
 

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.visit.gather;
 
-import java.util.stream.Stream;
+package org.scribble.core.visit.gather;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.Role;
@@ -24,26 +23,24 @@ import org.scribble.core.type.session.DirectedInteraction;
 import org.scribble.core.type.session.DisconnectAction;
 import org.scribble.core.type.session.Seq;
 
+import java.util.stream.Stream;
+
 // N.B. does *not* gather do-args, nor follow subprotos
 public class RoleGatherer<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeGatherer<K, B, Role>
-{
+        extends STypeGatherer<K, B, Role> {
 
-	@Override
-	public Stream<Role> visitChoice(Choice<K, B> n)
-	{
-		return Stream.of(n.subj);
-	}
+    @Override
+    public Stream<Role> visitChoice(Choice<K, B> n) {
+        return Stream.of(n.getSubject());
+    }
 
-	@Override
-	public Stream<Role> visitDirectedInteraction(DirectedInteraction<K, B> n)
-	{
-		return Stream.of(n.src, n.dst);
-	}
+    @Override
+    public Stream<Role> visitDirectedInteraction(DirectedInteraction<K, B> n) {
+        return Stream.of(n.src, n.dst);
+    }
 
-	@Override
-	public Stream<Role> visitDisconnect(DisconnectAction<K, B> n)
-	{
-		return Stream.of(n.left, n.right);
-	}
+    @Override
+    public Stream<Role> visitDisconnect(DisconnectAction<K, B> n) {
+        return Stream.of(n.left, n.right);
+    }
 }
