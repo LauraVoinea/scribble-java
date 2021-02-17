@@ -13,56 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session.global;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.session.Continue;
+import org.scribble.core.type.session.base.ContinueBase;
 
-public class GContinue extends Continue<Global, GSeq> implements GType
-{
-	protected GContinue(CommonTree source,  // Due to inlining, do -> continue
-			RecVar recvar)
-	{
-		super(source, recvar);
-	}
-	
-	@Override
-	public GContinue reconstruct(CommonTree source,
-			RecVar recvar)
-	{
-		return new GContinue(source, recvar);
-	}
+public class GContinue extends ContinueBase<Global, GSeq> implements GType {
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 3457;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    protected GContinue(CommonTree source, RecVar recvar) {
+        super(source, recvar);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof GContinue))
-		{
-			return false;
-		}
-		return super.equals(o);
-	}
+    @Override
+    public GContinue reconstruct(CommonTree source, RecVar recvar) {
+        return new GContinue(source, recvar);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof GContinue;
-	}
-	
+    @Override
+    public int hashCode() {
+        int hash = 3457;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GContinue)) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GContinue;
+    }
+
 }
 	
 	

@@ -92,12 +92,12 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         }
         SType<Local, LSeq> e = block.elems.get(0);
         return (e instanceof LContinue)
-                && this.unguarded.contains(((LContinue) e).recvar);  // Bound recvars already checked
+                && this.unguarded.contains(((LContinue) e).getRecVar());  // Bound recvars already checked
     }
 
     @Override
     public LType visitContinue(Continue<Global, GSeq> n) {
-        return this.core.config.tf.local.LContinue(null, n.recvar);
+        return this.core.config.tf.local.LContinue(null, n.getRecVar());
     }
 
     @Override
@@ -153,7 +153,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         // "Generalised" single-continue checked now unnecessary, single-continues pruned in choice visiting above
         if (body.elems.size() == 1) {
             SType<Local, LSeq> e = body.elems.get(0);
-            if (e instanceof LContinue && ((LContinue) e).recvar.equals(recvar0)) {
+            if (e instanceof LContinue && ((LContinue) e).getRecVar().equals(recvar0)) {
                 return LSkip.SKIP;
             }
         }

@@ -49,7 +49,7 @@ public abstract class STypeInliner<K extends ProtoKind, B extends Seq<K, B>>
 
     @Override
     public SType<K, B> visitContinue(Continue<K, B> n) {
-        RecVar rv = getInlinedRecVar(n.recvar);
+        RecVar rv = getInlinedRecVar(n.getRecVar());
         return n.reconstruct(n.getSource(), rv);
     }
 

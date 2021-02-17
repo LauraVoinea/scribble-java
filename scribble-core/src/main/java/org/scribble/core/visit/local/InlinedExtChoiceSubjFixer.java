@@ -101,8 +101,9 @@ class InlinedEnablerInferer extends STypeAggNoThrow<Local, LSeq, Optional<Role>>
 
     @Override
     public Optional<Role> visitContinue(Continue<Local, LSeq> n) {
-        return this.recs.containsKey(n.recvar)
-                ? this.recs.get(n.recvar)
+        RecVar recvar = n.getRecVar();
+        return this.recs.containsKey(recvar)
+                ? this.recs.get(recvar)
                 : Optional.empty();
         // Empty corner case, e.g., bad sequence after unguarded continue (will be caught be reachability, e.g., bad.reach.globals.gdo.Test04)
         // Empty allows (bad) Seq to continue to next element

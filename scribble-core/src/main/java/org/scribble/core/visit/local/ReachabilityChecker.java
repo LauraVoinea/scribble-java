@@ -57,7 +57,7 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
     public SType<Local, LSeq> visitContinue(Continue<Local, LSeq> n) throws ScribException {
         ReachabilityEnv env = getEnv();
         Set<RecVar> tmp = new HashSet<>(env.recvars);
-        tmp.add(n.recvar);
+        tmp.add(n.getRecVar());
         setEnv(new ReachabilityEnv(true, tmp));
         return n;
     }

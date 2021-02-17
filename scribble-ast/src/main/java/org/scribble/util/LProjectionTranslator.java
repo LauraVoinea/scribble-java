@@ -168,7 +168,7 @@ public class LProjectionTranslator {
     }
 
     protected org.scribble.ast.local.LContinue translate(LContinue t) {
-        RecVarNode rv = this.af.RecVarNode(null, t.recvar.toString());
+        RecVarNode rv = this.af.RecVarNode(null, t.getRecVar().toString());
         return this.af.LContinue(null, rv);
     }
 

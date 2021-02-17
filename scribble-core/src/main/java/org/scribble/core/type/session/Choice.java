@@ -35,8 +35,7 @@ public interface Choice<K extends ProtoKind, B extends Seq<K, B>>
     List<B> getBlocks();
 
     // Corresponds to all getters (incl. super)
-    Choice<K, B> reconstruct(
-            CommonTree source, Role subj, List<B> blocks); //List<? extends Seq<K, B>> blocks);
+    Choice<K, B> reconstruct(CommonTree source, Role subj, List<B> blocks); //List<? extends Seq<K, B>> blocks);
 
     @Override
     default <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {

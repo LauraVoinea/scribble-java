@@ -19,7 +19,6 @@ package org.scribble.core.type.session;
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.session.base.RecursionBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
@@ -35,8 +34,7 @@ public interface Recursion<K extends ProtoKind, B extends Seq<K, B>>
     B getBody();
 
     // Corresponds to all getters (incl. super)
-    RecursionBase<K, B> reconstruct(
-            CommonTree source, RecVar recvar, B body);
+    Recursion<K, B> reconstruct(CommonTree source, RecVar recvar, B body);
 
     @Override
     default <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {

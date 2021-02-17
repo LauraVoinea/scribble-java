@@ -63,7 +63,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
                 // Cannot treat choice-unguarded-continue in "a single pass", because may not have built all recursion enacting edges yet
                 // (Single-pass building would be sensitive to order of choice block visiting)
                 LContinue cont = (LContinue) first;  // First and only element
-                util.addUnguardedContinueEdge(util.getEntry(), cont.recvar);
+                util.addUnguardedContinueEdge(util.getEntry(), cont.getRecVar());
             } else if (first instanceof LRecursion)  // CHECKME: do this here?  refactor into builderutil?
             {
                 buildUnguardedRecursion(util, elems);
@@ -116,14 +116,13 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     public SType<Local, LSeq> visitContinue(Continue<Local, LSeq> n) {
         // Choice-guarded continue -- choice-unguarded continue detected and handled above in visitChoice
         EState curr = this.util.getEntry();
-        for (EState pred : this.util.getPreds(curr))  // Does getSuccs (i.e., gets all), e.g., choice sequenced to continue
-        {
+        for (EState pred : this.util.getPreds(curr)) {  // Does getSuccs (i.e., gets all), e.g., choice sequenced to continue
             // CHECKME: identical edges? i.e. same pred/prev/succ (e.g. rec X { choice at A { A->B:1 } or { A->B:1 } continue X; })
             for (EAction a : new LinkedList<>(pred.getActions())) {
                 // Following caters for non-det edges (to different succs)
                 for (EState succ : pred.getSuccs(a)) {
                     if (succ.equals(curr)) {
-                        this.util.fixContinueEdge(pred, a, curr, n.recvar);
+                        this.util.fixContinueEdge(pred, a, curr, n.getRecVar());
                     }
                 }
             }
