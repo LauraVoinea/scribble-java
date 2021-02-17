@@ -282,6 +282,9 @@
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
 				<configuration>
+					<mapping>
+						<java>SLASHSTAR_STYLE</java>
+					</mapping>
 					<header>header.txt</header>
 					<failIfMissing>true</failIfMissing>
 					<failIfUnknown>true</failIfUnknown>
@@ -406,5 +409,4 @@
 			</build>
 		</profile>
 	</profiles>
-
 </project>

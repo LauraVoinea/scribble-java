@@ -1,15 +1,17 @@
-/**
+/*
  * Copyright 2008 The Scribble Authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.scribble.core.job;
 
@@ -55,7 +57,7 @@ public class Core
 	public final CoreConfig config;  // Immutable
 
 	private final CoreContext context;  // Mutable (Visitor passes replace modules)
-	
+
 	public Core(ModuleName mainFullname, Map<CoreArgs, Boolean> args,
 			//Map<ModuleName, ModuleContext> modcs, 
 			Set<GProtocol> imeds, STypeFactory tf)
@@ -64,13 +66,13 @@ public class Core
 		this.context = newCoreContext(//modcs, 
 				imeds);  // Single instance per Core and should never be shared
 	}
-	
+
 	protected STypeVisitorFactory newSTypeVisitorFactory()
 	{
 		return new STypeVisitorFactoryImpl(new GTypeVisitorFactoryImpl(),
 				new LTypeVisitorFactoryImpl());
 	}
-	
+
 	protected ModelFactory newModelFactory()
 	{
 		return new ModelFactory(EModelFactoryImpl::new,
@@ -123,7 +125,7 @@ public class Core
 		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
 		{
 			// TODO: currently, unfolded not actually stored by Context -- unfoldAllOnce repeated manually when needed, e.g., runSyntaxWfPasses
-			GProtocol unf = this.context.getOnceUnfolded(fullname);  // CHECKME: twice unfolding? instead of "unguarded"-unfolding?
+			GProtocol unf = this.context.getOnceUnfolded(fullname);  // CHECK: twice unfolding? instead of "unguarded"-unfolding?
 			verbosePrintPass(
 					"Unfolded all recursions once: " + unf.fullname + "\n" + unf);
 		}
