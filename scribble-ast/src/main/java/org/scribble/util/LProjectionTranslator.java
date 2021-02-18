@@ -174,7 +174,7 @@ public class LProjectionTranslator {
 
     protected org.scribble.ast.local.LDo translate(LDo t) {
         List<NonRoleArg> args = new LinkedList<>();
-        for (Arg<? extends NonRoleParamKind> p : t.args) {
+        for (Arg<? extends NonRoleParamKind> p : t.getArgs()) {
             NonRoleArgKind k = p.getKind();
             NonRoleArgNode a;
             if (k.equals(SigKind.KIND)) {
@@ -210,10 +210,11 @@ public class LProjectionTranslator {
         NonRoleArgList as = this.af.NonRoleArgList(null, args);
 
         LProtoNameNode proto = this.af.LProtoNameNode(null,
-                IdNode.from(this.af, t.proto.getElements()));
+                IdNode.from(this.af, t.getProto().getElements()));
         RoleArgList rs = this.af.RoleArgList(null,  // Cf. translate(LProjectionDecl)
-                t.roles.stream().map(
-                        x -> this.af.RoleArg(null, this.af.RoleNode(null, x.toString())))  // Includes "self"
+                t.getRoles().stream().map(
+                        x -> this.af.RoleArg(null,
+                                this.af.RoleNode(null, x.toString())))  // Includes "self"
                         .collect(Collectors.toList()));
         return this.af.LDo(null, proto, as, rs);
     }

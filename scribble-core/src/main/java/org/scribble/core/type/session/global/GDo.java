@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.type.session.global;
 
-import java.util.List;
+package org.scribble.core.type.session.global;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.job.Core;
@@ -25,58 +24,52 @@ import org.scribble.core.type.kind.NonRoleParamKind;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Arg;
-import org.scribble.core.type.session.Do;
+import org.scribble.core.type.session.base.DoBase;
 
-public class GDo extends Do<Global, GSeq> implements GType
-{
-	protected GDo(CommonTree source, ProtoName<Global> proto,
-			List<Role> roles, List<Arg<? extends NonRoleParamKind>> args)
-	{
-		super(source, proto, roles, args);
-	}
-	
-	@Override
-	public GProtocol getTarget(Core core)
-	{
-		return core.getContext().getIntermediate(this.proto);  // Subproto visiting hardcoded to intermediate (i.e., parsed)
-	}
+import java.util.List;
 
-	@Override
-	public GDo reconstruct(CommonTree source,
-			ProtoName<Global> proto, List<Role> roles,
-			List<Arg<? extends NonRoleParamKind>> args)
-	{
-		return new GDo(source, proto, roles, args);
-	}
+public class GDo extends DoBase<Global, GSeq> implements GType {
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 1303;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    protected GDo(CommonTree source, ProtoName<Global> proto,
+                  List<Role> roles, List<Arg<? extends NonRoleParamKind>> args) {
+        super(source, proto, roles, args);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof GDo))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public GProtocol getTarget(Core core) {
+        return core.getContext().getIntermediate(getProto());  // Subproto visiting hardcoded to intermediate (i.e., parsed)
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof GDo;
-	}
-	
+    @Override
+    public GDo reconstruct(CommonTree source,
+                           ProtoName<Global> proto, List<Role> roles,
+                           List<Arg<? extends NonRoleParamKind>> args) {
+        return new GDo(source, proto, roles, args);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1303;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GDo)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GDo;
+    }
+
 }
 
 

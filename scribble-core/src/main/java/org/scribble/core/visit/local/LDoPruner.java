@@ -91,7 +91,7 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
 
     @Override
     public SType<Local, LSeq> visitDo(Do<Local, LSeq> n) {
-        SubprotoSig sig = new SubprotoSig(n.proto, n.roles, n.args);
+        SubprotoSig sig = new SubprotoSig(n.getProto(), n.getRoles(), n.getArgs());
         if (this.stack.contains(sig)) {
             return this.unguarded.contains(sig) ? LSkip.SKIP : n;
         }

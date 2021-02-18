@@ -68,11 +68,11 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
 
     @Override
     public SType<K, B> visitDo(Do<K, B> n) {
-        List<Role> roles = n.roles.stream()
+        List<Role> roles = n.getRoles().stream()
                 .map(x -> this.subs.subsRole(x, this.passive))
                 .collect(Collectors.toList());
         List<Arg<? extends NonRoleParamKind>> args = new LinkedList<>();
-        for (Arg<? extends NonRoleParamKind> a : n.args) {
+        for (Arg<? extends NonRoleParamKind> a : n.getArgs()) {
             if (a instanceof MemberName<?> && this.subs.hasArg((MemberName<?>) a)) {
                 if (a instanceof DataName) {
                     a = this.subs.subsArg((DataName) a, this.passive);
@@ -82,6 +82,6 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
             }
             args.add(a);
         }
-        return n.reconstruct(n.getSource(), n.proto, roles, args);
+        return n.reconstruct(n.getSource(), n.getProto(), roles, args);
     }
 }

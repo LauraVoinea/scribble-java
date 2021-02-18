@@ -27,31 +27,28 @@ import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.visit.STypeInliner;
 import org.scribble.core.visit.Substitutor;
 
-public class GTypeInliner extends STypeInliner<Global, GSeq>
-{
-	protected GTypeInliner(Core core)
-	{
-		super(core);
-	}
+public class GTypeInliner extends STypeInliner<Global, GSeq> {
+   
+    protected GTypeInliner(Core core) {
+        super(core);
+    }
 
-	@Override
-	public SType<Global, GSeq> visitDo(Do<Global, GSeq> n)
-	{
-		ProtoName<Global> fullname = n.proto;
-		SubprotoSig sig = new SubprotoSig(fullname, n.roles, n.args);
-		RecVar rv = getInlinedRecVar(sig);
-		if (hasSig(sig))
-		{
-			return this.core.config.tf.global.GContinue(n.getSource(), rv);
-		}
-		pushSig(sig);
-		GProtocol g = this.core.getContext().getIntermediate(fullname);
-		Substitutor<Global, GSeq> subs = this.core.config.vf.Substitutor(g.roles,
-				n.roles, g.params, n.args);
-		//GSeq inlined = (GSeq) g.def.visitWithNoEx(subs).visitWithNoEx(this);
-		GSeq inlined = visitSeq(subs.visitSeq(g.def));
-				// i.e. returning a GSeq -- rely on parent GSeq to inline
-		popSig();
-		return this.core.config.tf.global.GRecursion(null, rv, inlined);
-	}
+    @Override
+    public SType<Global, GSeq> visitDo(Do<Global, GSeq> n) {
+        ProtoName<Global> fullname = n.getProto();
+        SubprotoSig sig = new SubprotoSig(fullname, n.getRoles(), n.getArgs());
+        RecVar rv = getInlinedRecVar(sig);
+        if (hasSig(sig)) {
+            return this.core.config.tf.global.GContinue(n.getSource(), rv);
+        }
+        pushSig(sig);
+        GProtocol g = this.core.getContext().getIntermediate(fullname);
+        Substitutor<Global, GSeq> subs = this.core.config.vf.Substitutor(
+                g.roles, n.getRoles(), g.params, n.getArgs());
+        //GSeq inlined = (GSeq) g.def.visitWithNoEx(subs).visitWithNoEx(this);
+        GSeq inlined = visitSeq(subs.visitSeq(g.def));
+        // i.e. returning a GSeq -- rely on parent GSeq to inline
+        popSig();
+        return this.core.config.tf.global.GRecursion(null, rv, inlined);
+    }
 }

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+// Seq is a SType: an "ad hoc sequential composition", and convenient for, e.g., STypeVisitor's return type
 public interface Seq<K extends ProtoKind, B extends Seq<K, B>>
         extends SType<K, B> {
 

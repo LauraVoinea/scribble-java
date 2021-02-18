@@ -13,7 +13,7 @@ public abstract class SeqBase<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeBase<K, B> implements Seq<K, B> {
 
     // GType or LType -- could make SType subclasses take themself as another param, but not worth it
-    protected final List<SType<K, B>> elems;
+    protected final List<SType<K, B>> elems;  // Pre: unmodifiable
 
     public SeqBase(CommonTree source, List<? extends SType<K, B>> elems) {
         super(source);
@@ -43,7 +43,7 @@ public abstract class SeqBase<K extends ProtoKind, B extends Seq<K, B>>
             return false;
         }
         SeqBase<?, ?> them = (SeqBase<?, ?>) o;
-        return super.equals(this)  // Does canEquals
+        return super.equals(o)  // Does canEquals
                 && this.elems.equals(them.elems);
     }
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.visit.local;
 
 import org.scribble.core.job.Core;
@@ -27,31 +28,27 @@ import org.scribble.core.type.session.local.LType;
 import org.scribble.core.visit.STypeInliner;
 import org.scribble.core.visit.Substitutor;
 
-public class LTypeInliner extends STypeInliner<Local, LSeq>
-{
-	protected LTypeInliner(Core core)
-	{
-		super(core);
-	}
+public class LTypeInliner extends STypeInliner<Local, LSeq> {
+    protected LTypeInliner(Core core) {
+        super(core);
+    }
 
-	@Override
-	public LType visitDo(Do<Local, LSeq> n)
-	{
-		ProtoName<Local> fullname = n.proto;
-		SubprotoSig sig = new SubprotoSig(fullname, n.roles, n.args);
-		RecVar rv = getInlinedRecVar(sig);
-		if (hasSig(sig))
-		{
-			return this.core.config.tf.local.LContinue(n.getSource(), rv);
-		}
-		pushSig(sig);
-		LProtocol p = this.core.getContext().getProjection(fullname);  // This line differs from GDo version
-		Substitutor<Local, LSeq> subs = this.core.config.vf.Substitutor(p.roles,
-				n.roles, p.params, n.args);
-		//LSeq inlined = (LSeq) p.def.visitWithNoThrow(subs).visitWithNoThrow(this);
-		LSeq inlined = visitSeq(subs.visitSeq(p.def));
-				// i.e. returning a Seq -- rely on parent Seq to inline
-		popSig();
-		return this.core.config.tf.local.LRecursion(null, rv, inlined);
-	}
+    @Override
+    public LType visitDo(Do<Local, LSeq> n) {
+        ProtoName<Local> fullname = n.getProto();
+        SubprotoSig sig = new SubprotoSig(fullname, n.getRoles(), n.getArgs());
+        RecVar rv = getInlinedRecVar(sig);
+        if (hasSig(sig)) {
+            return this.core.config.tf.local.LContinue(n.getSource(), rv);
+        }
+        pushSig(sig);
+        LProtocol p = this.core.getContext().getProjection(fullname);  // This line differs from GDo version
+        Substitutor<Local, LSeq> subs = this.core.config.vf.Substitutor(
+                p.roles, n.getRoles(), p.params, n.getArgs());
+        //LSeq inlined = (LSeq) p.def.visitWithNoThrow(subs).visitWithNoThrow(this);
+        LSeq inlined = visitSeq(subs.visitSeq(p.def));
+        // i.e. returning a Seq -- rely on parent Seq to inline
+        popSig();
+        return this.core.config.tf.local.LRecursion(null, rv, inlined);
+    }
 }
