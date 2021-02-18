@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
-   
+
     // Internal use
     // Pre: agg(Stream.of(unit())) = unit()
     protected abstract T unit(SType<K, B> n) throws ScribException;
@@ -68,7 +68,7 @@ public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
     // Param "hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction
     public T visitSeq(B n) throws ScribException {
         List<T> elems = new LinkedList<>();
-        for (SType<K, B> e : n.elems) {
+        for (SType<K, B> e : n.getElements()) {
             elems.add(e.visitWith(this));
         }
         return agg(n, elems.stream());

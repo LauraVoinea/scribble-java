@@ -122,7 +122,7 @@ class InlinedEnablerInferer extends STypeAggNoThrow<Local, LSeq, Optional<Role>>
 
     @Override
     public Optional<Role> visitSeq(LSeq n) {
-        for (SType<Local, LSeq> e : n.elems) {
+        for (SType<Local, LSeq> e : n.getElements()) {
             Optional<Role> res = e.visitWithNoThrow(this);
             if (res.isPresent()) {
                 return res;

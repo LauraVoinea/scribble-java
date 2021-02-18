@@ -15,86 +15,75 @@
  */
 package org.scribble.core.type.session.local;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.session.SType;
-import org.scribble.core.type.session.Seq;
+import org.scribble.core.type.session.base.SeqBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
-public class LSeq extends Seq<Local, LSeq> implements LType
-{
-	// GInteractionSeq or GBlock better as source?
-	//protected LSeq(CommonTree source, List<? extends SType<Local, LSeq>> elems)
-	protected LSeq(CommonTree source, List<LType> elems)
-	{
-		super(source, elems);
-	}
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-	@Override
-	public LSeq reconstruct(CommonTree source,
-			List<? extends SType<Local, LSeq>> elems)
-	{
-		return new LSeq(source,
-				castElems(elems.stream()).collect(Collectors.toList()));
-	}
-	
-	protected static Stream<LType> castElems(
-			Stream<? extends SType<Local, LSeq>> elems)
-	{
-		return elems.map(x -> (LType) x);
-	}
-	
-	@Override
-	public <T> T visitWith(STypeAgg<Local, LSeq, T> v) throws ScribException
-	{
-		return v.visitSeq(this);
-	}
-	
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<Local, LSeq, T> v)
-	{
-		return v.visitSeq(this);
-	}
+public class LSeq extends SeqBase<Local, LSeq> implements LType {
 
-	@Override
-	public List<LType> getElements()
-	{
-		return castElems(this.elems.stream()).collect(Collectors.toList());
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 29;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    // GInteractionSeq or GBlock better as source?
+    //protected LSeq(CommonTree source, List<? extends SType<Local, LSeq>> elems)
+    protected LSeq(CommonTree source, List<LType> elems) {
+        super(source, elems);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof LSeq))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public LSeq reconstruct(CommonTree source,
+                            List<? extends SType<Local, LSeq>> elems) {
+        return new LSeq(source,
+                castElems(elems.stream()).collect(Collectors.toList()));
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof LSeq;
-	}
+    protected static Stream<LType> castElems(
+            Stream<? extends SType<Local, LSeq>> elems) {
+        return elems.map(x -> (LType) x);
+    }
+
+    @Override
+    public <T> T visitWith(STypeAgg<Local, LSeq, T> v) throws ScribException {
+        return v.visitSeq(this);
+    }
+
+    @Override
+    public <T> T visitWithNoThrow(STypeAggNoThrow<Local, LSeq, T> v) {
+        return v.visitSeq(this);
+    }
+
+    @Override
+    public List<LType> getElements() {
+        return castElems(this.elems.stream()).collect(Collectors.toList());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 29;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LSeq)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof LSeq;
+    }
 }
 
 

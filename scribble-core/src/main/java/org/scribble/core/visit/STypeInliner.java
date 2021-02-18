@@ -68,10 +68,10 @@ public abstract class STypeInliner<K extends ProtoKind, B extends Seq<K, B>>
     @Override
     public B visitSeq(B n) {
         List<SType<K, B>> elems = new LinkedList<>();
-        for (SType<K, B> e : n.elems) {
+        for (SType<K, B> e : n.getElements()) {
             SType<K, B> e1 = e.visitWithNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {
-                elems.addAll(((Seq<K, B>) e1).elems);
+                elems.addAll(((Seq<K, B>) e1).getElements());
             } else {
                 elems.add(e1);
             }

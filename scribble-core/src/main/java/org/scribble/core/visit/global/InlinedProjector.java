@@ -87,10 +87,11 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
 
     // N.B. won't prune unguarded continues that have a bad sequence, will be caught later by reachability checking (e.g., bad.reach.globals.gdo.Test04)
     private boolean isUnguardedSingleContinue(LSeq block) {
-        if (block.elems.size() != 1) {
+        List<LType> elems = block.getElements();
+        if (elems.size() != 1) {
             return false;
         }
-        SType<Local, LSeq> e = block.elems.get(0);
+        SType<Local, LSeq> e = elems.get(0);
         return (e instanceof LContinue)
                 && this.unguarded.contains(((LContinue) e).getRecVar());  // Bound recvars already checked
     }
@@ -151,9 +152,11 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         rvs.add(recvar0);
         //if (body.visitWithNoThrow(new SingleContinueChecker(rvs)))
         // "Generalised" single-continue checked now unnecessary, single-continues pruned in choice visiting above
-        if (body.elems.size() == 1) {
-            SType<Local, LSeq> e = body.elems.get(0);
-            if (e instanceof LContinue && ((LContinue) e).getRecVar().equals(recvar0)) {
+        List<LType> elems = body.getElements();
+        if (elems.size() == 1) {
+            SType<Local, LSeq> e = elems.get(0);
+            if (e instanceof LContinue
+                    && ((LContinue) e).getRecVar().equals(recvar0)) {
                 return LSkip.SKIP;
             }
         }
@@ -165,7 +168,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
     @Override
     public LSeq visitSeq(GSeq n) {
         List<LType> elems = new LinkedList<>();
-        for (SType<Global, GSeq> e : n.elems) {
+        for (SType<Global, GSeq> e : n.getElements()) {
             LType e1 = e.visitWithNoThrow(this);
             if (!(e1 instanceof LSkip)) {
                 elems.add(e1);

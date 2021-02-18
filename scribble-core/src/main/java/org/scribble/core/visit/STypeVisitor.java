@@ -73,7 +73,7 @@ public abstract class STypeVisitor<K extends ProtoKind, B extends Seq<K, B>>
     @Override
     public B visitSeq(B n) throws ScribException {
         List<SType<K, B>> elems = new LinkedList<>();
-        for (SType<K, B> e : n.elems) {
+        for (SType<K, B> e : n.getElements()) {
             elems.add(e.visitWith(this));
         }
         return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)

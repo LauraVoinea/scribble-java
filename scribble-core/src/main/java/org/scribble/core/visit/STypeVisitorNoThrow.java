@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 // For comments, see STypeVisitor
 public abstract class STypeVisitorNoThrow<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeAggNoThrow<K, B, SType<K, B>> {
-   
+
     @Override
     protected final SType<K, B> unit(SType<K, B> n) {
         return n;
@@ -56,7 +56,8 @@ public abstract class STypeVisitorNoThrow<K extends ProtoKind, B extends Seq<K, 
 
     @Override
     public B visitSeq(B n) {
-        List<SType<K, B>> elems = n.elems.stream().map(x -> x.visitWithNoThrow(this))
+        List<SType<K, B>> elems = n.getElements().stream()
+                .map(x -> x.visitWithNoThrow(this))
                 .collect(Collectors.toList());
         return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
     }

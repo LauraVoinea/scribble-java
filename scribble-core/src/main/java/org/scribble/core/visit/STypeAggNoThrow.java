@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public abstract class STypeAggNoThrow<K extends ProtoKind, B extends Seq<K, B>, T>
         //extends STypeAgg<K, B, T>  // Not worth it, ex/no-ex method variants easily confused
 {
-   
+
     // Internal use
     // Pre: agg(Stream.of(unit())) = unit()
     protected abstract T unit(SType<K, B> n);
@@ -60,7 +60,8 @@ public abstract class STypeAggNoThrow<K extends ProtoKind, B extends Seq<K, B>, 
 
     // Param "hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction
     public T visitSeq(B n) {
-        return agg(n, n.elems.stream().map(x -> x.visitWithNoThrow(this)));
+        return agg(n, n.getElements().stream()
+                .map(x -> x.visitWithNoThrow(this)));
     }
 }
 
