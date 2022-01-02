@@ -28,7 +28,8 @@ import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 // CHECKME: override pattern not ideal, but maybe OK due to the "language shift" -- also no Impl suffix
 public class AssrtGTypeFactory extends GTypeFactoryImpl
 {
-	
+
+	// FIXME drop Core from name
 	public AssrtGChoice AssrtCoreGChoice(CommonTree source, Role src,
 			AssrtGActionKind kind, Role dst,
 			LinkedHashMap<AssrtMsg, AssrtGType> cases)

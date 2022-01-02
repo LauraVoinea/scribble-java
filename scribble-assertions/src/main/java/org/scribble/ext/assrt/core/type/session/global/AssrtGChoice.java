@@ -1,42 +1,26 @@
 package org.scribble.ext.assrt.core.type.session.global;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.DataName;
-import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.name.Role;
-import org.scribble.core.type.name.Substitutions;
+import org.scribble.core.type.kind.PayElemKind;
+import org.scribble.core.type.name.*;
+import org.scribble.core.type.session.Payload;
 import org.scribble.ext.assrt.core.job.AssrtCore;
-import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBinBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtFormulaFactory;
-import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
+import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
+import org.scribble.ext.assrt.core.type.formula.*;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.core.type.session.AssrtActionKind;
-import org.scribble.ext.assrt.core.type.session.AssrtChoice;
-import org.scribble.ext.assrt.core.type.session.AssrtMsg;
-import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
-import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLChoice;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLEnd;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLRecVar;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLTypeFactory;
+import org.scribble.ext.assrt.core.type.session.*;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
+import org.scribble.ext.assrt.core.type.session.local.*;
 import org.scribble.ext.assrt.core.visit.global.AssrtGTypeInliner;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // TODO: rename directed choice
 public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
@@ -289,6 +273,170 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 	public AssrtGActionKind getKind()
 	{
 		return (AssrtGActionKind) this.kind;
+	}
+
+	// Pre: no null in range of map
+	private static Map<Role, Set<AssrtSSend>> fooCopy(Map<Role, Set<AssrtSSend>> env) {
+		return env.entrySet().stream().collect(Collectors.toMap(
+				Entry::getKey,
+				x -> new HashSet(x.getValue())  // assume not null
+		));
+	}
+
+
+	@Override
+	public AssrtGType unfold(AssrtGTypeFactory gf, RecVar rv, AssrtGType body) {
+		LinkedHashMap<AssrtMsg, AssrtGType> cases_ = new LinkedHashMap<>();
+		for (Entry<AssrtMsg, AssrtGType> e : this.cases.entrySet()) {
+			cases_.put(e.getKey(), e.getValue().unfold(gf, rv, body));
+		}
+		return gf.AssrtCoreGChoice(null, this.src,
+				AssrtGActionKind.MSG_TRANSFER, this.dst, cases_);
+	}
+
+	private static void addMaybeNull(Map<Role, Set<AssrtSSend>> env, Role r, AssrtSSend action) {
+		Set<AssrtSSend> acts = env.get(r);
+		if (acts == null) {
+			acts = new HashSet<>();
+			env.put(r, acts);
+		}
+		acts.add(action);
+	}
+
+	private static AssrtSSend msgToSSnd(
+			AssrtSModelFactory mf, Role src, Role dst, AssrtMsg m) {
+		Payload pay = new Payload(m.pay.stream()
+				.map(x -> (PayElemType<?>) x).collect(Collectors.toList()));  // !!! CHECKME: awakward payload construct param type?
+		return mf.AssrtCoreSSend(src, dst, m.op, pay, m.ass, null);
+	}
+
+	@Override
+	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
+			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env) {
+		if (this.kind != AssrtGActionKind.MSG_TRANSFER) {
+			throw new RuntimeException("TODO: " + this.kind);
+		}
+
+		Set<Role> prev = env.keySet();
+		Map<Role, Set<AssrtSSend>> add = new HashMap<>();
+
+		List<Map<Role, Set<AssrtSSend>>> nested = new LinkedList<>();
+		// !!! synchronous semantics: if either one src/dst already has a pending action, then this current action is blocked
+		for (Entry<AssrtMsg, AssrtGType> c : this.cases.entrySet()) {
+			Map<Role, Set<AssrtSSend>> env_ = fooCopy(env);
+			if (!prev.contains(this.src) && !prev.contains(this.dst)) {
+				AssrtMsg m = c.getKey();
+				AssrtSSend action = msgToSSnd(mf, this.src, this.dst, m);
+				addMaybeNull(add, this.src, action);
+				addMaybeNull(env_, this.src, action);
+				addMaybeNull(add, this.dst, action);
+				addMaybeNull(env_, this.dst, action);
+			}
+			nested.add(c.getValue().collectImmediateActions(mf, env_));
+		}
+		if (!nested.isEmpty()) {
+			Map<Role, Set<AssrtSSend>> reduce = nested.stream().skip(1)
+					.reduce(nested.get(0), AssrtGChoice::retain);
+			for (Entry<Role, Set<AssrtSSend>> e : reduce.entrySet()) {
+				Role r = e.getKey();
+				Set<AssrtSSend> coll = e.getValue();
+				Set<AssrtSSend> acts = add.get(r);
+				if (acts == null) {
+					add.put(r, coll);
+				} else {
+					acts.addAll(coll);
+				}
+			}
+		}
+		return add;
+	}
+
+	private static Map<Role, Set<AssrtSSend>> retain(
+			Map<Role, Set<AssrtSSend>> m1, Map<Role, Set<AssrtSSend>> m2) {
+		Map<Role, Set<AssrtSSend>> res = new HashMap<>();
+		for (Role r1 : m1.keySet()) {
+			if (m2.containsKey(r1))	{
+				Set<AssrtSSend> as1	= m1.get(r1);
+				as1.retainAll(m2.get(r1));
+				res.put(r1, as1);
+			}
+		}
+		return res;
+	}
+
+	// Pre: action \in collectImmediateCases
+	@Override
+	public Optional<AssrtGConfig> step(
+			AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action)
+	{
+		if (this.kind != AssrtGActionKind.MSG_TRANSFER) {
+			throw new RuntimeException("TODO: " + this.kind);
+		}
+
+		if (this.src.equals(action.subj) && this.dst.equals(action.obj)) {
+			List<PayElemType<? extends PayElemKind>> elems = action.payload.elems;
+			if (elems.size() != 1)
+			{
+				throw new RuntimeException("TODO: " + action);
+			}
+			AssrtAnnotDataName pay = (AssrtAnnotDataName) elems.get(0);  // FIXME !!!
+			Op op = (Op) action.mid;
+			// !!! FIXME: factor out general AssrtMsg (cases keyset) to AssrtSSend
+			AssrtMsg msg = new AssrtMsg(op, Stream.of(pay).collect(Collectors.toList()),
+					action.ass, null, null);  // !!! Cf. AssrtMsg, null for globals
+			if (this.cases.keySet().contains(msg))
+			{
+				Set<Role> pq = Stream.of(this.src, this.dst).collect(Collectors.toSet());
+				AssrtGEnv gamma_ = gamma.extend(pay.var, pq, pay.data, action.ass);
+				return Optional.of(new AssrtGConfig(gamma_, this.cases.get(msg)));
+			}
+			else
+			{
+				throw new RuntimeException("Undefined:\n\tcases=" + this.cases
+						+ "\n\taction=" + action);
+			}
+		}
+		else
+		{
+			Set<Role> pq = Stream.of(action.subj, action.obj).collect(Collectors.toSet());
+			if (!pq.contains(this.src) && !pq.contains(this.dst))  // action.subj \not\in {src, dst}
+			{
+				List<AssrtGConfig> nested = new LinkedList<>();
+				for (Entry<AssrtMsg, AssrtGType> e : this.cases.entrySet()) {  // cf. LinkedHashMap
+					AssrtMsg m = e.getKey();
+					AssrtGType c = e.getValue();
+					if (m.pay.size() > 1) {
+						throw new RuntimeException("TODO: " + m);
+					}
+					AssrtGEnv gamma_ = gamma;
+					if (!m.pay.isEmpty()) {
+						AssrtAnnotDataName annot = m.pay.get(0);
+						gamma_ = gamma_.extend(annot.var,
+								Collections.emptySet(), annot.data, m.ass);
+					}
+					c.step(gf, gamma_, action).map(x -> nested.add(x));
+				}
+				if (nested.size() != this.cases.size())  // Some case was not executed
+				{
+					return Optional.empty();
+				}
+				List<AssrtGEnv> distinct = nested.stream().map(x -> x.gamma)
+						.distinct().collect(Collectors.toList());
+				if (distinct.size() != 1) {
+					return Optional.empty();
+				}
+				LinkedHashMap<AssrtMsg, AssrtGType> cases_
+						= new LinkedHashMap<>();
+				Iterator<AssrtGConfig> i = nested.iterator();
+				this.cases.keySet().forEach(x -> cases_.put(x, i.next().type));
+				AssrtGChoice res = gf.AssrtCoreGChoice(null, this.src,
+						AssrtGActionKind.MSG_TRANSFER, this.dst, cases_);
+				return Optional.of(new AssrtGConfig(distinct.get(0), res));
+			} else {
+				throw new RuntimeException("Undefined:\n\tcases=" + this.cases
+						+ "\n\taction=" + action);
+			}
+		}
 	}
 
 	@Override

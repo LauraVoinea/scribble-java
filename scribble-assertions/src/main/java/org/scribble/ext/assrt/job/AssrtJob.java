@@ -66,10 +66,12 @@ public class AssrtJob extends Job
 	
 	// A Scribble extension should override newJobConfig/Context/Core as appropriate
 	@Override
-	protected Core newCore(ModuleName mainFullname, CoreArgs args,
+	protected AssrtCore newCore(ModuleName mainFullname, CoreArgs args,
 			Set<GProtocol> imeds, STypeFactory tf)
 	{
-		return new AssrtCore(mainFullname, args, imeds, tf);
+		AssrtCoreArgs args_ = (AssrtCoreArgs) args;
+		AssrtSTypeFactory tf_ = (AssrtSTypeFactory) tf;
+		return new AssrtCore(mainFullname, args_, imeds, tf_);
 	}
 
 	@Override

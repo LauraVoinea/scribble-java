@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 
+// The _additional_ stuff an SSend/Recv needs to be an AssrtSSend/AssrtSRecv
 public interface AssrtSAction
 {
 	AssrtBFormula getAssertion();

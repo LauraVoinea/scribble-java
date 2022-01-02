@@ -18,7 +18,7 @@ public class AssrtNegFormula extends AssrtBFormula
 	@Override
 	public AssrtNegFormula disamb(Map<AssrtVar, DataName> env)
 	{
-		return new AssrtNegFormula((AssrtBFormula) this.expr.disamb(env));
+		return new AssrtNegFormula((AssrtBFormula) this.expr.disamb(env));  // CHECKME: use factory?
 	}
 
 	@Override

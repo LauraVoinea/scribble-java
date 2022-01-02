@@ -20,6 +20,7 @@ public class AssrtSSend extends SSend implements AssrtSAction
 
 	public final List<AssrtAFormula> stateexprs;
 
+	// public because in action subpackage up from factory -- refactor for protected?
 	public AssrtSSend(Role subj, Role obj, MsgId<?> mid, Payload payload,
 			AssrtBFormula ass, List<AssrtAFormula> stateexprs)
 	{

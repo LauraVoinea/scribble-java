@@ -1,21 +1,19 @@
 package org.scribble.ext.assrt.core.type.session.global;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.DataName;
-import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.name.Role;
-import org.scribble.core.type.name.Substitutions;
+import org.scribble.core.type.kind.PayElemKind;
+import org.scribble.core.type.name.*;
+import org.scribble.core.type.session.global.GSeq;
+import org.scribble.core.visit.gather.RoleGatherer;
 import org.scribble.ext.assrt.core.job.AssrtCore;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
+import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
@@ -23,6 +21,9 @@ import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtRec;
 import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
+import org.scribble.ext.assrt.core.type.session.NoSeq;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLEnd;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLRecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
@@ -180,6 +181,37 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 
 		res.addAll(this.body.collectAnnotDataVarDecls(env1));
 		return res;
+	}
+
+
+	@Override
+	public AssrtGType unfold(AssrtGTypeFactory gf, RecVar rv, AssrtGType body) {
+		return this.body.unfold(gf, rv, body);
+	}
+
+	// Pre: no unbounded recvars
+	@Override
+	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
+			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+	{
+		return this.body.collectImmediateActions(mf, env);
+	}
+
+	@Override
+	public Optional<AssrtGConfig> step(
+			AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action) {
+		List<PayElemType<? extends PayElemKind>> elems = action.payload.elems;
+		if (elems.size() != 1)
+		{
+			throw new RuntimeException("TODO: " + action);
+		}
+		AssrtAnnotDataName pay = (AssrtAnnotDataName) elems.get(0);  // FIXME !!!
+		Set<Role> rs =
+				this.body.gather(new RoleGatherer<Global, NoSeq<Global>>()::visit)  // N.B. NoSeq<Global> (cf. e.g., GSeq)
+				.collect(Collectors.toSet());
+		AssrtGEnv env_ = gamma.extend(pay.var, rs, pay.data, action.ass);
+		return this.body.unfold(gf, this.recvar, this.body)
+				.step(gf, env_, action);
 	}
 
 	@Override

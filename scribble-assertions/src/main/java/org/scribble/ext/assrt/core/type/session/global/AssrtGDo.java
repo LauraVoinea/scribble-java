@@ -13,12 +13,7 @@
  */
 package org.scribble.ext.assrt.core.type.session.global;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.antlr.runtime.tree.CommonTree;
@@ -34,12 +29,16 @@ import org.scribble.core.type.name.Substitutions;
 import org.scribble.core.type.session.Arg;
 import org.scribble.ext.assrt.core.job.AssrtCore;
 import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
+import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtDo;
 import org.scribble.ext.assrt.core.type.session.AssrtSyntaxException;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
 import org.scribble.ext.assrt.core.visit.global.AssrtGTypeInliner;
 import org.scribble.util.RuntimeScribException;
@@ -161,6 +160,26 @@ public class AssrtGDo extends AssrtDo<Global, AssrtGType>
 	public AssrtGProtocol getTarget(Core core)
 	{
 		return ((AssrtCore) core).getContext().getIntermediate(this.proto);  // Subproto visiting hardcoded to intermediate (i.e., parsed)
+	}
+
+
+	@Override
+	public AssrtGType unfold(AssrtGTypeFactory gf, RecVar rv, AssrtGType body) {
+		throw new RuntimeException("Not defined for `do`");
+	}
+
+	@Override
+	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
+			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+	{
+		throw new RuntimeException("Not defined for `do`");
+	}
+
+	@Override
+	public Optional<AssrtGConfig> step(
+			AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action)
+	{
+		throw new RuntimeException("Not defined for `do`");
 	}
 
 	@Override

@@ -1,21 +1,18 @@
 package org.scribble.ext.assrt.core.type.session.global;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.DataName;
-import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.name.Role;
-import org.scribble.core.type.name.Substitutions;
+import org.scribble.core.type.name.*;
 import org.scribble.ext.assrt.core.job.AssrtCore;
+import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
+import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtEnd;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLEnd;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLTypeFactory;
 import org.scribble.ext.assrt.core.visit.global.AssrtGTypeInliner;
@@ -76,7 +73,26 @@ public class AssrtGEnd extends AssrtEnd<Global, AssrtGType>
 	{
 		return Collections.emptyList();
 	}
-	
+
+
+	@Override
+	public AssrtGType unfold(AssrtGTypeFactory gf, RecVar rv, AssrtGType body) {
+		return this;
+	}
+
+	@Override
+	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
+			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+	{
+		return env;
+	}
+
+	@Override
+	public Optional<AssrtGConfig> step(
+			AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action) {
+		throw new RuntimeException("Not defined for `end`");
+	}
+
 	@Override
 	public boolean equals(Object obj)
 	{

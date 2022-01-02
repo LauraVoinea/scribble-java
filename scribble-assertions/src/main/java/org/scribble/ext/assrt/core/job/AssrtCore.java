@@ -47,6 +47,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
@@ -56,8 +57,8 @@ import org.scribble.util.ScribException;
 // A "compiler job" front-end that supports operations comprising visitor passes over the AST and/or local/global models
 public class AssrtCore extends Core
 {
-	public AssrtCore(ModuleName mainFullname, CoreArgs args, Set<GProtocol> imeds,
-			STypeFactory tf)
+	public AssrtCore(ModuleName mainFullname, AssrtCoreArgs args,
+					 Set<GProtocol> imeds, AssrtSTypeFactory tf)
 	{
 		super(mainFullname, args, imeds, tf);
 	}
@@ -223,8 +224,8 @@ public class AssrtCore extends Core
 	
 	
 	
-	// Refactor to util?
-  // Maybe record simpname as field (for core)
+	// Refactor to util? -- also, args (e.g., -z3) to AssrtCoreConfig
+	// Maybe record simpname as field (for core)
 	public boolean checkSat(GProtoName fullname, Set<AssrtBFormula> bforms)
 	{
 		Solver solver = ((AssrtCoreArgs) this.config.args).SOLVER;
@@ -237,14 +238,14 @@ public class AssrtCore extends Core
 			}
 			case NONE:
 			{
-			Map<AssrtVar, DataName> sorts =
-					//((AssrtCoreGProtocol) getContext().getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
-					((AssrtGProtocol) corec.getInlined(fullname)).getSortEnv();
-			verbosePrintln(
-					"\n[WARNING] Skipping sat check (did you forget -z3?):\n\t" +
-					bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")
-							.collect(Collectors.joining("")));
-				return true;
+				Map<AssrtVar, DataName> sorts =
+						//((AssrtCoreGProtocol) getContext().getInlined(fullname)).type.getBoundSortEnv(Collections.emptyMap());
+						((AssrtGProtocol) corec.getInlined(fullname)).getSortEnv();
+				verbosePrintln(
+						"\n[WARNING] Skipping sat check (did you forget -z3?):\n\t" +
+						bforms.stream().map(f -> f.toSmt2Formula(sorts) + "\n\t")
+								.collect(Collectors.joining("")));
+					return true;
 			}
 			default:
 				throw new RuntimeException(

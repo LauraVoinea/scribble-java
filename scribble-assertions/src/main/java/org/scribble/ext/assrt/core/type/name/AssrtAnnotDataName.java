@@ -3,6 +3,7 @@ package org.scribble.ext.assrt.core.type.name;
 import org.scribble.core.type.name.DataName;
 import org.scribble.ext.assrt.core.type.kind.AssrtAnnotDataKind;
 
+// E.g., x: int
 // Cf. GDelegType; similarly located in name package -- CHECKME: maybe refactor (both) out of name, and (Assrt)PayloadType
 public class AssrtAnnotDataName
 		implements AssrtPayElemType<AssrtAnnotDataKind>
