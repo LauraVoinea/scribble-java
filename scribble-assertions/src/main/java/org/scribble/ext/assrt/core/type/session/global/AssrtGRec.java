@@ -2,6 +2,7 @@ package org.scribble.ext.assrt.core.type.session.global;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -9,6 +10,7 @@ import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.kind.PayElemKind;
 import org.scribble.core.type.name.*;
+import org.scribble.core.type.session.SType;
 import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.visit.gather.RoleGatherer;
 import org.scribble.ext.assrt.core.job.AssrtCore;
@@ -29,6 +31,7 @@ import org.scribble.ext.assrt.core.type.session.local.AssrtLRecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLTypeFactory;
 import org.scribble.ext.assrt.core.visit.gather.AssrtRecVarGatherer;
+import org.scribble.ext.assrt.core.visit.gather.AssrtRoleGatherer;
 import org.scribble.ext.assrt.core.visit.global.AssrtGTypeInliner;
 
 public class AssrtGRec extends AssrtRec<Global, AssrtGType>
@@ -200,19 +203,20 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 	@Override
 	public Optional<AssrtGConfig> step(
 			AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action) {
-		List<PayElemType<? extends PayElemKind>> elems = action.payload.elems;
-		if (elems.size() != 1)
-		{
-			throw new RuntimeException("TODO: " + action);
-		}
-		AssrtAnnotDataName pay = (AssrtAnnotDataName) elems.get(0);  // FIXME !!!
-		Set<Role> rs =
-				this.body.gather(new RoleGatherer<Global, NoSeq<Global>>()::visit)  // N.B. NoSeq<Global> (cf. e.g., GSeq)
+		Set<Role> rs = this.body
+				.assrtCoreGather(  // TODO: factor out with base gatherer
+						new AssrtRoleGatherer()::visit)
 				.collect(Collectors.toSet());
-		AssrtGEnv env_ = gamma.extend(pay.var, rs, pay.data, action.ass);
-		return this.body.unfold(gf, this.recvar, this.body)
-				.step(gf, env_, action);
+			AssrtGEnv env_ = gamma;
+			DataName intType = new DataName("int");  // FIXME currently hardcoded to int, cf. AssrtGTypeTranslator.translate and AssrtRec
+			for (AssrtVar v : this.statevars.keySet())
+			{
+				env_ = env_.extend(v, rs, intType, action.ass);  // CHECKME ass is "duplicated", OK?
+			}
+			return this.body.unfold(gf, this.recvar, this)
+					.step(gf, env_, action);
 	}
+
 
 	@Override
 	public String toString()

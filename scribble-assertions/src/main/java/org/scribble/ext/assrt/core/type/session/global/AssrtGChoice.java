@@ -276,14 +276,14 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		return (AssrtGActionKind) this.kind;
 	}
 
+
 	// Pre: no null in range of map
-	private static Map<Role, Set<AssrtSSend>> fooCopy(Map<Role, Set<AssrtSSend>> env) {
+	private static Map<Role, Set<AssrtSSend>> envCopy(Map<Role, Set<AssrtSSend>> env) {
 		return env.entrySet().stream().collect(Collectors.toMap(
 				Entry::getKey,
 				x -> new HashSet(x.getValue())  // assume not null
 		));
 	}
-
 
 	@Override
 	public AssrtGType unfold(AssrtGTypeFactory gf, RecVar rv, AssrtGType body) {
@@ -291,7 +291,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		for (Entry<AssrtMsg, AssrtGType> e : this.cases.entrySet()) {
 			cases_.put(e.getKey(), e.getValue().unfold(gf, rv, body));
 		}
-		return gf.AssrtCoreGChoice(null, this.src,
+		return gf.AssrtCoreGChoice(null, this.src,  // !!! CHECKME null source OK? cf. other transforms?
 				AssrtGActionKind.MSG_TRANSFER, this.dst, cases_);
 	}
 
@@ -323,8 +323,9 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 
 		List<Map<Role, Set<AssrtSSend>>> nested = new LinkedList<>();
 		// !!! synchronous semantics: if either one src/dst already has a pending action, then this current action is blocked
+		// E.g., A->B; C->B -- C is blocked (no "immediate action", cf. redex)
 		for (Entry<AssrtMsg, AssrtGType> c : this.cases.entrySet()) {
-			Map<Role, Set<AssrtSSend>> env_ = fooCopy(env);
+			Map<Role, Set<AssrtSSend>> env_ = envCopy(env);
 			if (!prev.contains(this.src) && !prev.contains(this.dst)) {
 				AssrtMsg m = c.getKey();
 				AssrtSSend action = msgToSSnd(sf, this.src, this.dst, m);
@@ -374,30 +375,51 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 			throw new RuntimeException("TODO: " + this.kind);
 		}
 
-		if (this.src.equals(action.subj) && this.dst.equals(action.obj)) {
+		if (this.src.equals(action.subj) && this.dst.equals(action.obj)) {  // G-Pfx
 			List<PayElemType<? extends PayElemKind>> elems = action.payload.elems;
-			if (elems.size() != 1)
+			if (elems.size() > 1)
 			{
 				throw new RuntimeException("TODO: " + action);
 			}
-			AssrtAnnotDataName pay = (AssrtAnnotDataName) elems.get(0);  // FIXME !!!
+
 			Op op = (Op) action.mid;
-			// !!! FIXME: factor out general AssrtMsg (cases keyset) to AssrtSSend
-			AssrtMsg msg = new AssrtMsg(op, Stream.of(pay).collect(Collectors.toList()),
-					action.ass, null, null);  // !!! Cf. AssrtMsg, null for globals
+				// !!! FIXME: factor out general AssrtMsg (cases keyset) to AssrtSSend
+
+			AssrtAnnotDataName pay;
+			List<AssrtAnnotDataName> foo;
+			if (elems.isEmpty())
+			{
+				pay = null;
+				foo = new LinkedList<>();
+			}
+			else
+			{
+				pay = (AssrtAnnotDataName) elems.get(0);
+				foo = Stream.of(pay).collect(Collectors.toList());
+			}
+
+			AssrtMsg msg = new AssrtMsg(op, foo, action.ass, null, null);  // cf. AssrtMsg, "null for globals"
 			if (this.cases.keySet().contains(msg))
 			{
-				Set<Role> pq = Stream.of(this.src, this.dst).collect(Collectors.toSet());
-				AssrtGEnv gamma_ = gamma.extend(pay.var, pq, pay.data, action.ass);
+				AssrtGEnv gamma_;
+				if (elems.isEmpty())
+				{
+					gamma_ = gamma;
+				}
+				else
+				{
+					Set<Role> pq = Stream.of(this.src, this.dst).collect(Collectors.toSet());
+					gamma_ = gamma.extend(pay.var, pq, pay.data, action.ass);
+				}
 				return Optional.of(new AssrtGConfig(gamma_, this.cases.get(msg)));
 			}
 			else
 			{
-				throw new RuntimeException("Undefined:\n\tcases=" + this.cases
-						+ "\n\taction=" + action);
+				//throw new RuntimeException("Undefined:\n\tcases=" + this.cases + "\n\taction=" + action);
+				return Optional.empty();
 			}
 		}
-		else
+		else  // G-Cnt
 		{
 			Set<Role> pq = Stream.of(action.subj, action.obj).collect(Collectors.toSet());
 			if (!pq.contains(this.src) && !pq.contains(this.dst))  // action.subj \not\in {src, dst}
@@ -434,11 +456,12 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 						AssrtGActionKind.MSG_TRANSFER, this.dst, cases_);
 				return Optional.of(new AssrtGConfig(distinct.get(0), res));
 			} else {
-				throw new RuntimeException("Undefined:\n\tcases=" + this.cases
-						+ "\n\taction=" + action);
+				//throw new RuntimeException("Undefined:\n\tcases=" + this.cases + "\n\taction=" + action);
+				return Optional.empty();
 			}
 		}
 	}
+
 
 	@Override
 	public String toString()

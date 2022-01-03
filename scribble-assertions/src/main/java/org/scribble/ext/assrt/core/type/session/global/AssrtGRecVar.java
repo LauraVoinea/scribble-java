@@ -98,7 +98,8 @@ public class AssrtGRecVar extends AssrtRecVar<Global, AssrtGType>
 
 	@Override
 	public AssrtGType unfold(AssrtGTypeFactory gf, RecVar rv, AssrtGType body) {
-		return this.equals(rv) ? body : this;
+		//System.out.println("bbbb: " + rv + " ,, " this.rv);
+		return this.recvar.equals(rv) ? body : this;
 	}
 
 	@Override

@@ -21,7 +21,7 @@ public abstract class AssrtRec<K extends ProtoKind, B extends AssrtSType<K, B>> 
 {
 	public final RecVar recvar;  // CHECKME: RecVarNode?  (Cf. AssrtCoreAction.op/pay)
 	public final B body;
-	public final LinkedHashMap<AssrtVar, AssrtAFormula> statevars;  // Int  // Non-null  // CHECKME: factor out with AssrtCore(G)Protocol?
+	public final LinkedHashMap<AssrtVar, AssrtAFormula> statevars;  // Non-null  // TODO hardcoded Int, cf. AssrtGTypeTranslator.translate  // CHECKME: factor out with AssrtCore(G)Protocol?
 	public final AssrtBFormula assertion;
 	
 	protected AssrtRec(CommonTree source, RecVar recvar,

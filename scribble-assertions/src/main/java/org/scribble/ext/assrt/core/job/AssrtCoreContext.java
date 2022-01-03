@@ -105,6 +105,7 @@ public class AssrtCoreContext extends CoreContext
 		return inlined;
 	}
 
+	// XXX Temp
 	public Map<ProtoName<Global>, GProtocol> getInlined() {
 		return this.inlined;
 	}

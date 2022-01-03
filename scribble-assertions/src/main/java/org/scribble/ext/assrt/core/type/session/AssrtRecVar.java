@@ -18,7 +18,7 @@ import org.scribble.ext.assrt.core.type.name.AssrtVar;
 public abstract class AssrtRecVar<K extends ProtoKind, B extends AssrtSType<K, B>>
 		extends AssrtSTypeBase<K, B>
 {
-	public final RecVar recvar;
+	public final RecVar recvar;  // N.B. AssrtRecVar vs. RecVar...
 	public final List<AssrtAFormula> stateexprs;
 	
 	protected AssrtRecVar(CommonTree source, RecVar rv,

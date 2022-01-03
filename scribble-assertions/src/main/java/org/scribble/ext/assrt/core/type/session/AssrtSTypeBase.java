@@ -51,10 +51,9 @@ public abstract class AssrtSTypeBase<K extends ProtoKind,
 	}
 
 	@Override
-	public <T> Stream<T> gather(
-			Function<SType<K, NoSeq<K>>, Stream<T>> f)
+	public <T> Stream<T> gather(Function<SType<K, NoSeq<K>>, Stream<T>> f)
 	{
-		throw new RuntimeException("Unsupported: ");
+		throw new RuntimeException("Unsupported: (consider AssrtSType.assrtCoreGather instead?)");
 	}
 
 	// Does *not* include this.source -- equals/hashCode is for "surface-level" syntactic equality of SessType only

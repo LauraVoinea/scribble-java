@@ -43,13 +43,17 @@ import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
+import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
+import org.scribble.util.Pair;
 import org.scribble.util.ScribException;
 
 
@@ -108,13 +112,54 @@ public class AssrtCore extends Core
 		runGlobalModelCheckingPasses();
 
 		System.out.println("--------------------");
+		AssrtSModelFactory sf = (AssrtSModelFactory) this.config.mf.global;
+		AssrtGTypeFactory gf = (AssrtGTypeFactory) this.config.tf.global;
 		Map<ProtoName<Global>, GProtocol> inlined = ((AssrtCoreContext) this.context).getInlined();
 		AssrtGProtocol g = (AssrtGProtocol) inlined.values().iterator().next();
 		//inlined.values().forEach(System.out::println);
-		System.out.println(g.type);
+
+		/*System.out.println(g.type);
 		AssrtGType t = g.type;
-		Map<Role, Set<AssrtSSend>> res = t.collectImmediateActions((AssrtSModelFactory) this.config.mf.global, Collections.emptyMap());
-		System.out.println(res);
+		Map<Role, Set<AssrtSSend>> actions = t.collectImmediateActions((AssrtSModelFactory) this.config.mf.global, Collections.emptyMap());
+		System.out.println(actions);
+		Set<AssrtSSend> it = actions.values().iterator().next();
+		for (AssrtSSend a : it) {
+			AssrtGConfig cfg = t.step(gf,
+					new AssrtGEnv(Collections.EMPTY_MAP, Collections.EMPTY_MAP, AssrtTrueFormula.TRUE), a).get();
+			System.out.println(a + " ,, " + cfg.type);
+		}*/
+
+		Set<Pair<AssrtGConfig, AssrtSSend>> done = new HashSet<>();
+		Set<Pair<AssrtGConfig, AssrtSSend>> todo = new HashSet<>();
+		AssrtGConfig init = new AssrtGConfig(
+				new AssrtGEnv(Collections.EMPTY_MAP, Collections.EMPTY_MAP, AssrtTrueFormula.TRUE),
+				g.type);
+		Map<Role, Set<AssrtSSend>> actions
+				= g.type.collectImmediateActions(sf, Collections.emptyMap());
+		for (Map.Entry<Role, Set<AssrtSSend>> a : actions.entrySet()) {
+			a.getValue().forEach(x -> todo.add(new Pair<>(init, x)));
+		}
+
+		while (!todo.isEmpty()) {
+			Pair<AssrtGConfig, AssrtSSend> next = todo.iterator().next();
+			todo.remove(next);
+			done.add(next);
+			Optional<AssrtGConfig> step = next.left.type.step(gf, next.left.gamma, next.right);
+			if (step.isPresent()) {
+				AssrtGConfig succ = step.get();
+				System.out.println("aaaa: " + next.left.type + " ,, " + next.right + "\n  " + next.left.gamma + "\n  " + succ.type + "\n  " + succ.gamma);
+				Map<Role, Set<AssrtSSend>> as
+						= succ.type.collectImmediateActions(sf, Collections.emptyMap());
+				for (Map.Entry<Role, Set<AssrtSSend>> bs : as.entrySet()) {
+					for (AssrtSSend b : bs.getValue()) {
+						Pair<AssrtGConfig, AssrtSSend> p = new Pair<>(succ, b);
+						if (!done.contains(p)) {
+							todo.add(p);
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	@Override

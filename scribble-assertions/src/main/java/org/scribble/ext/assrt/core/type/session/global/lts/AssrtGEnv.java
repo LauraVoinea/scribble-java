@@ -71,6 +71,12 @@ public class AssrtGEnv {
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return "[know=" + this.know + ", sorts=" + this.sorts
+                + ", ass=" + this.ass + "]";
+    }
 
     @Override
     public int hashCode()

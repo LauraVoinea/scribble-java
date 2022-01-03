@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.type.session.global.lts;
 
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGChoice;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
 
@@ -23,5 +24,36 @@ public class AssrtGConfig {
                     + "\n\taction=" + action);
         }
         return step.get();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "(" + this.gamma + ", type=" + this.type + ")";
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7607;
+        hash = 31 * hash + this.gamma.hashCode();
+        hash = 31 * hash + this.type.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (!(obj instanceof AssrtGConfig))
+        {
+            return false;
+        }
+        AssrtGConfig them = (AssrtGConfig) obj;
+        return this.gamma.equals(them.gamma)
+                && this.type.equals(them.type);
     }
 }
