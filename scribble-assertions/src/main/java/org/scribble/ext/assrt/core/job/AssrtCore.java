@@ -101,8 +101,7 @@ public class AssrtCore extends Core
 	}
 
 	@Override
-	public void runPasses() throws ScribException
-	{
+	public void runPasses() throws ScribException {
 		runSyntaxTransformPasses();
 		runGlobalSyntaxWfPasses();  // TODO: consider WF problems that prevent inlining above (e.g., distinct annot vars, AssrtCoreContextget.Inlined)
 		runProjectionPasses();  // CHECKME: can try before validation (i.e., including syntactic WF), to promote greater tool feedback? (cf. CommandLine output "barrier")
@@ -111,23 +110,18 @@ public class AssrtCore extends Core
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
 
+		tempRunSyncSat();
+	}
+
+	private void tempRunSyncSat() throws ScribException {
 		System.out.println("--------------------");
 		AssrtSModelFactory sf = (AssrtSModelFactory) this.config.mf.global;
 		AssrtGTypeFactory gf = (AssrtGTypeFactory) this.config.tf.global;
 		Map<ProtoName<Global>, GProtocol> inlined = ((AssrtCoreContext) this.context).getInlined();
+		if (inlined.size() != 1) {  // FIXME do for all root protos
+			throw new RuntimeException("TODO: " + inlined);
+		}
 		AssrtGProtocol g = (AssrtGProtocol) inlined.values().iterator().next();
-		//inlined.values().forEach(System.out::println);
-
-		/*System.out.println(g.type);
-		AssrtGType t = g.type;
-		Map<Role, Set<AssrtSSend>> actions = t.collectImmediateActions((AssrtSModelFactory) this.config.mf.global, Collections.emptyMap());
-		System.out.println(actions);
-		Set<AssrtSSend> it = actions.values().iterator().next();
-		for (AssrtSSend a : it) {
-			AssrtGConfig cfg = t.step(gf,
-					new AssrtGEnv(Collections.EMPTY_MAP, Collections.EMPTY_MAP, AssrtTrueFormula.TRUE), a).get();
-			System.out.println(a + " ,, " + cfg.type);
-		}*/
 
 		Set<Pair<AssrtGConfig, AssrtSSend>> done = new HashSet<>();
 		Set<Pair<AssrtGConfig, AssrtSSend>> todo = new HashSet<>();

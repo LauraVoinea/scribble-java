@@ -57,6 +57,7 @@ public interface AssrtGType extends AssrtSType<Global, AssrtGType>
 	Map<Role, Set<AssrtSSend>> collectImmediateActions(
 			AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env);
 
+	// Return is present iff step is valid
 	Optional<AssrtGConfig> step(AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action);
 }
 

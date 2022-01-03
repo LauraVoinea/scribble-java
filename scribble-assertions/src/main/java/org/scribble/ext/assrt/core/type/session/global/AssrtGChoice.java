@@ -366,7 +366,6 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		return res;
 	}
 
-	// Pre: action \in collectImmediateCases
 	@Override
 	public Optional<AssrtGConfig> step(
 			AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action)
@@ -422,7 +421,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		else  // G-Cnt
 		{
 			Set<Role> pq = Stream.of(action.subj, action.obj).collect(Collectors.toSet());
-			if (!pq.contains(this.src) && !pq.contains(this.dst))  // action.subj \not\in {src, dst}
+			if (!pq.contains(this.src) && !pq.contains(this.dst))  // {src, dst} \cap {subj, obj} = 0
 			{
 				List<AssrtGConfig> nested = new LinkedList<>();
 				for (Entry<AssrtMsg, AssrtGType> e : this.cases.entrySet()) {  // cf. LinkedHashMap

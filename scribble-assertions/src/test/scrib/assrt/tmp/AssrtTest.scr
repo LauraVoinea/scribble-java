@@ -11,6 +11,30 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
+
+
+/*
+global protocol MyProto(role A, role B, role C) {
+    choice at A {
+        1() from A to B;
+        2() from A to C;
+        do MyProto(A, B, C);
+    } or {
+        3() from A to B;
+        4() from A to C;
+    }
+}
+//*/
+
+//*
+global protocol MyProto(role A, role B, role C, role D, role E) {
+    1() from A to B;
+    2() from C to D;  // TODO Add utest
+    3() from B to E;
+}
+//*/
+
+/*
 //global protocol MyProto(role A, role B, role C, role D) {
 global protocol MyProto(role A, role B) {
     //foo() from C to D;
@@ -23,6 +47,22 @@ global protocol MyProto(role A, role B) {
         4() from B to A;
     }
 }
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*global protocol MyProto(role A, role B) {
 	choice at A
@@ -34,7 +74,8 @@ global protocol MyProto(role A, role B) {
 	{
 		Bye() from A to B;
 	}
-}*/
+}
+//*/
 
 
 /*
