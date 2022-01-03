@@ -114,7 +114,7 @@ public class AssrtCore extends Core
 	}
 
 	private void tempRunSyncSat() throws ScribException {
-		System.out.println("--------------------");
+		System.out.println("\n--------------------\n");
 		AssrtSModelFactory sf = (AssrtSModelFactory) this.config.mf.global;
 		AssrtGTypeFactory gf = (AssrtGTypeFactory) this.config.tf.global;
 		Map<ProtoName<Global>, GProtocol> inlined = ((AssrtCoreContext) this.context).getInlined();
@@ -124,7 +124,7 @@ public class AssrtCore extends Core
 		AssrtGProtocol g = (AssrtGProtocol) inlined.values().iterator().next();
 
 		// Cf. SState -- needs SConfig which is coupled to EFSMs and queues (i.e., async)
-		Map<AssrtGType, Map<AssrtSSend, AssrtGType>> graph = new HashMap<>();
+		Map<AssrtGConfig, Map<AssrtSSend, AssrtGConfig>> graph = new HashMap<>();
 
 		Set<Pair<AssrtGConfig, AssrtSSend>> done = new HashSet<>();
 		Set<Pair<AssrtGConfig, AssrtSSend>> todo = new HashSet<>();
@@ -135,7 +135,7 @@ public class AssrtCore extends Core
 				= g.type.collectImmediateActions(sf, Collections.emptyMap());
 		for (Map.Entry<Role, Set<AssrtSSend>> a : actions.entrySet()) {
 			a.getValue().forEach(x -> todo.add(new Pair<>(init, x)));
-			graph.put(g.type, new HashMap<>());
+			graph.put(init, new HashMap<>());
 		}
 
 		while (!todo.isEmpty()) {
@@ -143,14 +143,14 @@ public class AssrtCore extends Core
 			todo.remove(next);
 			done.add(next);
 			if (!graph.containsKey(next.left.type)) {
-				graph.put(next.left.type, new HashMap<>());
+				graph.put(next.left, new HashMap<>());
 			}
 			Optional<AssrtGConfig> step = next.left.type.step(gf, next.left.gamma, next.right);
 			if (step.isPresent()) {
 				AssrtGConfig succ = step.get();
 				System.out.println("aaaa: " + next.left.type + " ,, " + next.right + "\n  " + next.left.gamma + "\n  " + succ.type + "\n  " + succ.gamma);
-				Map<AssrtSSend, AssrtGType> edges = graph.get(next.left.type);
-				edges.put(next.right, succ.type);
+				Map<AssrtSSend, AssrtGConfig> edges = graph.get(next.left);
+				edges.put(next.right, succ);
 				Map<Role, Set<AssrtSSend>> as
 						= succ.type.collectImmediateActions(sf, Collections.emptyMap());
 				for (Map.Entry<Role, Set<AssrtSSend>> bs : as.entrySet()) {
