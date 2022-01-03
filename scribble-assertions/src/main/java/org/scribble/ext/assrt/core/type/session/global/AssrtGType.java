@@ -55,7 +55,7 @@ public interface AssrtGType extends AssrtSType<Global, AssrtGType>
 	// Returns _newly collected_ actions (i.e., return doesn't contain env by default)
 	// Post: collected actions syntactically occur in all cases -- but no guarantees fire-able or safe (e.g., gammas may end up different)
 	Map<Role, Set<AssrtSSend>> collectImmediateActions(
-			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env);
+			AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env);
 
 	Optional<AssrtGConfig> step(AssrtGTypeFactory gf, AssrtGEnv gamma, AssrtSSend action);
 }

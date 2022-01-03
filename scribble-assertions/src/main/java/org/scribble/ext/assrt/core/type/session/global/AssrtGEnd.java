@@ -82,7 +82,7 @@ public class AssrtGEnd extends AssrtEnd<Global, AssrtGType>
 
 	@Override
 	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
-			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+            AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env)
 	{
 		return env;
 	}

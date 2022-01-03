@@ -192,9 +192,9 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 	// Pre: no unbounded recvars
 	@Override
 	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
-			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+            AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env)
 	{
-		return this.body.collectImmediateActions(mf, env);
+		return this.body.collectImmediateActions(sf, env);
 	}
 
 	@Override

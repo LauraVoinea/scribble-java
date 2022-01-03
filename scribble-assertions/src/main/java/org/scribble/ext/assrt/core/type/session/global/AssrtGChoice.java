@@ -161,6 +161,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 				throw new AssrtSyntaxException("[assrt-core] Cannot project \n"
 						+ this + "\n onto " + self + ": cannot merge mixed termination.");
 			}
+			return AssrtLEnd.END;
 		}
 
 		if (projs.values().stream().anyMatch(v -> (v instanceof AssrtLRecVar)))
@@ -203,7 +204,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 		}
 		
 		List<AssrtLChoice> choices = filtered.stream()
-				.map(v -> (AssrtLChoice) v).collect(Collectors.toList());
+				.map(v -> (AssrtLChoice) v).collect(Collectors.toList());  // !!! FIXME: third-party could be `end` or recvar
 	
 		Set<Role> roles = choices.stream().map(v -> v.peer)
 				.collect(Collectors.toSet());
@@ -307,12 +308,12 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 			AssrtSModelFactory mf, Role src, Role dst, AssrtMsg m) {
 		Payload pay = new Payload(m.pay.stream()
 				.map(x -> (PayElemType<?>) x).collect(Collectors.toList()));  // !!! CHECKME: awakward payload construct param type?
-		return mf.AssrtCoreSSend(src, dst, m.op, pay, m.ass, null);
+		return mf.AssrtCoreSSend(src, dst, m.op, pay, m.ass, Collections.emptyList());
 	}
 
 	@Override
 	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
-			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env) {
+			AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env) {
 		if (this.kind != AssrtGActionKind.MSG_TRANSFER) {
 			throw new RuntimeException("TODO: " + this.kind);
 		}
@@ -326,13 +327,13 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 			Map<Role, Set<AssrtSSend>> env_ = fooCopy(env);
 			if (!prev.contains(this.src) && !prev.contains(this.dst)) {
 				AssrtMsg m = c.getKey();
-				AssrtSSend action = msgToSSnd(mf, this.src, this.dst, m);
+				AssrtSSend action = msgToSSnd(sf, this.src, this.dst, m);
 				addMaybeNull(add, this.src, action);
 				addMaybeNull(env_, this.src, action);
 				addMaybeNull(add, this.dst, action);
 				addMaybeNull(env_, this.dst, action);
 			}
-			nested.add(c.getValue().collectImmediateActions(mf, env_));
+			nested.add(c.getValue().collectImmediateActions(sf, env_));
 		}
 		if (!nested.isEmpty()) {
 			Map<Role, Set<AssrtSSend>> reduce = nested.stream().skip(1)

@@ -170,7 +170,7 @@ public class AssrtGDo extends AssrtDo<Global, AssrtGType>
 
 	@Override
 	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
-			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+            AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env)
 	{
 		throw new RuntimeException("Not defined for `do`");
 	}

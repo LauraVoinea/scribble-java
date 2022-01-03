@@ -103,7 +103,7 @@ public class AssrtGRecVar extends AssrtRecVar<Global, AssrtGType>
 
 	@Override
 	public Map<Role, Set<AssrtSSend>> collectImmediateActions(
-			AssrtSModelFactory mf, Map<Role, Set<AssrtSSend>> env)
+            AssrtSModelFactory sf, Map<Role, Set<AssrtSSend>> env)
 	{
 		// N.B. assumes "role-balanced" choice cases -- this doesn't work if p,q don't occur in some recursion cases (cf. "ful unfold all once")
 		return env;

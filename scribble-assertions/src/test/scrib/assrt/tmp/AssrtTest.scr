@@ -7,12 +7,22 @@ module assrt.tmp.AssrtTest;
 
 
 type <fstar> "int" from "..." as int;
-//type <fstar> "string" from "..." as string;  // Z3 needs "String"
+//type <fstar> "string" from "..." as string;  // !!! Z3 needs "String"
 type <fstar> "string" from "..." as String;
 
 
+global protocol MyProto(role A, role B, role C, role D) {
+    foo() from C to D;
+    choice at A {
+    1() from A to B;
+    2() from B to A;
+    } or {
+    3() from A to B;
+    4() from B to A;
+    }
+}
 
-global protocol MyProto(role A, role B) {
+/*global protocol MyProto(role A, role B) {
 	choice at A
 	{
 		Mul(x: int, y: int) from A to B;
@@ -22,7 +32,7 @@ global protocol MyProto(role A, role B) {
 	{
 		Bye() from A to B;
 	}
-}
+}*/
 
 
 /*

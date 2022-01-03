@@ -13,11 +13,7 @@
  */
 package org.scribble.ext.assrt.core.job;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,9 +41,12 @@ import org.scribble.ext.assrt.core.model.endpoint.AssrtEModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
+import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
+import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
@@ -107,6 +106,15 @@ public class AssrtCore extends Core
 		runEfsmBuildingPasses();  // Currently, unfair-transform graph building must come after syntactic WF --- TODO fix graph building to prevent crash ?
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
+
+		System.out.println("--------------------");
+		Map<ProtoName<Global>, GProtocol> inlined = ((AssrtCoreContext) this.context).getInlined();
+		AssrtGProtocol g = (AssrtGProtocol) inlined.values().iterator().next();
+		//inlined.values().forEach(System.out::println);
+		System.out.println(g.type);
+		AssrtGType t = g.type;
+		Map<Role, Set<AssrtSSend>> res = t.collectImmediateActions((AssrtSModelFactory) this.config.mf.global, Collections.emptyMap());
+		System.out.println(res);
 	}
 	
 	@Override

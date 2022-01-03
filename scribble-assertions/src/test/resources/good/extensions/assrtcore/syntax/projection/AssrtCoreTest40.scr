@@ -1,0 +1,17 @@
+module good.extensions.assrtcore.syntax.parsing.AssrtCoreTest40;
+
+
+//type <java> "java.lang.Integer" from "rt.jar" as int;
+
+
+//*
+global protocol Proto1(role A, role B, role C, role D)
+{
+    1() from C to D;  // Merge end in below choice projection
+    choice at A {
+        2() from A to B;
+    } or {
+        3() from A to B;
+    }
+}
+//*/
