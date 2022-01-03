@@ -39,7 +39,7 @@ public class AssrtGEnv {
             if (this.sorts.get(x).equals(t)) {  // !!! FIXME need to compare this.ass and ass w.r.t. x -- XXX
                 if (roles.isEmpty()) {
                     Map<AssrtVar, Set<Role>> know_ = Stream.concat(
-                            this.know.entrySet().stream().filter(y -> !y.equals(x)),
+                            this.know.entrySet().stream().filter(y -> !x.equals(y.getKey())),
                             Stream.of(new AbstractMap.SimpleEntry<>(x, ps))
                     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                     AssrtBFormula ass_ = AssrtFormulaFactory.AssrtBinBool(

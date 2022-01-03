@@ -123,6 +123,9 @@ public class AssrtCore extends Core
 		}
 		AssrtGProtocol g = (AssrtGProtocol) inlined.values().iterator().next();
 
+		// Cf. SState -- needs SConfig which is coupled to EFSMs and queues (i.e., async)
+		Map<AssrtGType, Map<AssrtSSend, AssrtGType>> graph = new HashMap<>();
+
 		Set<Pair<AssrtGConfig, AssrtSSend>> done = new HashSet<>();
 		Set<Pair<AssrtGConfig, AssrtSSend>> todo = new HashSet<>();
 		AssrtGConfig init = new AssrtGConfig(
@@ -132,16 +135,22 @@ public class AssrtCore extends Core
 				= g.type.collectImmediateActions(sf, Collections.emptyMap());
 		for (Map.Entry<Role, Set<AssrtSSend>> a : actions.entrySet()) {
 			a.getValue().forEach(x -> todo.add(new Pair<>(init, x)));
+			graph.put(g.type, new HashMap<>());
 		}
 
 		while (!todo.isEmpty()) {
 			Pair<AssrtGConfig, AssrtSSend> next = todo.iterator().next();
 			todo.remove(next);
 			done.add(next);
+			if (!graph.containsKey(next.left.type)) {
+				graph.put(next.left.type, new HashMap<>());
+			}
 			Optional<AssrtGConfig> step = next.left.type.step(gf, next.left.gamma, next.right);
 			if (step.isPresent()) {
 				AssrtGConfig succ = step.get();
 				System.out.println("aaaa: " + next.left.type + " ,, " + next.right + "\n  " + next.left.gamma + "\n  " + succ.type + "\n  " + succ.gamma);
+				Map<AssrtSSend, AssrtGType> edges = graph.get(next.left.type);
+				edges.put(next.right, succ.type);
 				Map<Role, Set<AssrtSSend>> as
 						= succ.type.collectImmediateActions(sf, Collections.emptyMap());
 				for (Map.Entry<Role, Set<AssrtSSend>> bs : as.entrySet()) {
@@ -154,6 +163,9 @@ public class AssrtCore extends Core
 				}
 			}
 		}
+
+		System.out.println();
+		graph.entrySet().forEach(x -> System.out.println(x.getKey() + " ,, " + x.getValue()));
 	}
 	
 	@Override

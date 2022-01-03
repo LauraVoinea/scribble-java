@@ -28,9 +28,9 @@ global protocol MyProto(role A, role B, role C) {
 
 //*
 global protocol MyProto(role A, role B, role C, role D, role E) {
-    1() from A to B;
-    2() from C to D;  // TODO Add utest
-    3() from B to E;
+    1(x: int) from A to B;
+    2(y: int) from C to D;  // TODO Add utest
+    3(z: int) from B to E;
 }
 //*/
 
