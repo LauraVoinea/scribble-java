@@ -110,7 +110,7 @@ public class AssrtCore extends Core
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
 
-		tempRunSyncSat();
+		//tempRunSyncSat();  // HERE
 	}
 
 	private void tempRunSyncSat() throws ScribException {
@@ -166,7 +166,16 @@ public class AssrtCore extends Core
 
 		System.out.println();
 		graph.entrySet().forEach(x -> System.out.println(x.getKey() + " ,, " + x.getValue()));
+
+
 	}
+
+	private static AssrtBFormula assrtprog(AssrtGConfig n, Map<AssrtSSend, AssrtGConfig> edges) {
+		//n.gamma.
+		return null;
+	}
+
+	// knowledge is: all vars in p/q
 	
 	@Override
 	protected void runSyntaxTransformPasses()  // No ScribException, no errors expected

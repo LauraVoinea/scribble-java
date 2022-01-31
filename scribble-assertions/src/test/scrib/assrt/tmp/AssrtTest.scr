@@ -11,12 +11,44 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
+global protocol MyProto(role A, role B, role C) {
+    choice at A {
+        1() from A to B;
+    } or {
+        2() from A to B;
+    }
+}
 
-//*
+
+/*
+global protocol MyProto(role A, role B) {
+    /*1(x: int) from A to B;  @'x>0'
+    2(y: int) from B to C;  @'y<x'  // !!! not implementable -- "knowledge check" disabled for phantoms -- cf. DbC HS?
+    3(z: int) from C to A;  @'z>x'* /
+
+
+
+    0(x: int) from A to B; @'!(x=0)'
+    choice at A {
+        1() from A to B; @'x < 0'
+    } or {
+        2() from A to B;
+    } or {
+        3() from A to B; @'x=0'
+    }
+}
+//*/
+
+
+
+
+
+
+/*
 global protocol MyProto(role A, role B, role C) {
     1(x: int) from A to B;  @'x>0'
     2(y: int) from B to C;  @'y>x'
-    3(z: int) from C to A;  @'z>x'  // a.k.a. phantom hello world
+    3(z: int) from C to A;  @'z>x'  // a.k.a. phantom hello world -- how to static validate? ...good implementation: is z>y (=> z>x) -- cf. "subtyping"?
 }
 //*/
 
