@@ -177,6 +177,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 				throw new AssrtSyntaxException("[assrt-core] Cannot project \n"
 						+ this + "\n onto " + self + ": cannot merge mixed termination.");
 			}
+			return AssrtLEnd.END;
 		}
 
 		if (projs.values().stream().anyMatch(v -> (v instanceof AssrtLRecVar)))
