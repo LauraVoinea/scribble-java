@@ -211,7 +211,7 @@ public class AssrtGRec extends AssrtRec<Global, AssrtGType>
 			DataName intType = new DataName("int");  // FIXME currently hardcoded to int, cf. AssrtGTypeTranslator.translate and AssrtRec
 			for (AssrtVar v : this.statevars.keySet())
 			{
-				env_ = env_.extend(v, rs, intType, action.ass);  // CHECKME ass is "duplicated", OK?
+				env_ = env_.extend(v, rs, intType, action.ass);  // FIXME TODO: phantom statevars -- statevars need role annotations  // CHECKME ass is "duplicated", OK?
 			}
 			return this.body.unfold(gf, this.recvar, this)
 					.step(gf, env_, action);
