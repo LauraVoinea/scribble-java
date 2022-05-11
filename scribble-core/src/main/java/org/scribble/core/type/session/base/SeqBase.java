@@ -13,8 +13,9 @@ public abstract class SeqBase<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeBase<K, B> implements Seq<K, B> {
 
     // GType or LType -- could make SType subclasses take themself as another param, but not worth it
-    protected final List<SType<K, B>> elems;  // Pre: unmodifiable
+    protected final List<? extends SType<K, B>> elems;  // Pre: unmodifiable
 
+    // `?` will be, e.g., G/LType
     public SeqBase(CommonTree source, List<? extends SType<K, B>> elems) {
         super(source);
         this.elems = Collections.unmodifiableList(elems);
