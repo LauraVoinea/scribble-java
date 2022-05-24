@@ -53,6 +53,12 @@
 				<artifactId>scribble-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.scribble</groupId>
+				<artifactId>scribble-gt</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
 
 			<dependency>
 				<groupId>org.antlr</groupId>
@@ -99,7 +105,8 @@
 		<module>scribble-test</module>
 		<module>scribble-dist</module>
 		<module>scribble-demos</module>
-	</modules>
+        <module>scribble-gt</module>
+    </modules>
 
 	<properties>
 		<antlr.version>3.4</antlr.version>
@@ -307,6 +314,7 @@
 						<exclude>**/IGNORE</exclude>
 						<!-- FIXME: "extension" module excludes -->
 						<exclude>scribble-f17/**/*</exclude>
+						<exclude>scribble-gt/**/*</exclude>
 					</excludes>
 				</configuration>
 				<executions>
