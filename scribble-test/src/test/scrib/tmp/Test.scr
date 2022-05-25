@@ -142,6 +142,11 @@ data <java> "..." from "..." as T;
 global protocol Proto1(role A, role B)
 {
 	1(T) from A to B;
+	choice at A {
+	    2(T) from A to B;
+	} or {
+	    3(T) from A to B;
+	}
 }
 //*/
 

@@ -61,7 +61,9 @@ public class GTGTypeTranslator {
             throw new RuntimeException("TODO: " + g.msg);
         }
         Op op = ((SigLit) g.msg).op;
-        Map<Op, GTGType> cs = Collections.singletonMap(op, cont);
+        //Map<Op, GTGType> cs = Collections.singletonMap(op, cont);
+        LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
+        cs.put(op, cont);
         return this.fact.choice(g.src, g.dst, cs);
     }
 
@@ -69,7 +71,7 @@ public class GTGTypeTranslator {
     protected GTGChoice translateGChoice(GChoice g) {
         List<GTGType> cs = g.blocks.stream().map(x -> translate(x))
                 .collect(Collectors.toUnmodifiableList());  // cs.len > 0
-        Map<Op, GTGType> ds = new HashMap<>();
+        LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
         Role dst = null;
         for (GTGType c : cs) {
             if (!(c instanceof GTGChoice)) {  // !!! (all) end not currently allowed
