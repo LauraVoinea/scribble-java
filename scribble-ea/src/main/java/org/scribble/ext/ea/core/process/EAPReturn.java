@@ -15,6 +15,18 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPExpr beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
+    /* Aux */
+
+    @Override
     public EAPReturn subs(@NotNull Map<EAPVar, EAPVal> m) {
         EAPVal val1 = this.val.subs(m);
         return EAPFactory.factory.returnn(val1);
@@ -23,6 +35,11 @@ public class EAPReturn implements EAPExpr {
     @Override
     public Set<EAPVar> getFreeVars() {
         return this.val.getFreeVars();
+    }
+
+    @Override
+    public String toString() {
+        return "return " + this.val;
     }
 
     /* equals/canEquals, hashCode */

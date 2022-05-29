@@ -13,6 +13,8 @@ public class EAPUnit implements EAPVal {
     public EAPUnit() {
     }
 
+    /* Aux */
+
     @Override
     public Set<EAPVar> getFreeVars() {
         return Collections.emptySet();
@@ -21,6 +23,11 @@ public class EAPUnit implements EAPVal {
     @Override
     public EAPUnit subs(@NotNull Map<EAPVar, EAPVal> m) {
          return this;
+    }
+
+    @Override
+    public String toString() {
+        return "()";
     }
 
     /* equals/canEquals, hashCode */

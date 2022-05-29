@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-// !!! "Runtime names"
+// "Runtime names"
 public class EAPPid implements EAPVal {
 
     @NotNull public final String id;
@@ -14,6 +14,8 @@ public class EAPPid implements EAPVal {
     public EAPPid(@NotNull String id) {
         this.id = id;
     }
+
+    /* Aux */
 
     @Override
     public EAPPid subs(@NotNull Map<EAPVar, EAPVal> m) {
@@ -23,6 +25,11 @@ public class EAPPid implements EAPVal {
     @Override
     public Set<EAPVar> getFreeVars() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public String toString() {
+        return this.id;
     }
 
     /* equals/canEquals, hashCode */

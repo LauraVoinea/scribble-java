@@ -7,11 +7,23 @@ import java.util.Set;
 
 public class EAPSend implements EAPExpr {
 
-    @NotNull public final EAPVal val;  // !!! value, not expr
+    @NotNull public final EAPVal val;  // value, not expr
 
     public EAPSend(@NotNull EAPVal val) {
         this.val = val;
     }
+
+    @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPExpr beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
+    /* Aux */
 
     @Override
     public Set<EAPVar> getFreeVars() {
@@ -22,6 +34,11 @@ public class EAPSend implements EAPExpr {
     public EAPSend subs(@NotNull Map<EAPVar, EAPVal> m) {
         EAPVal val1 = this.val.subs(m);
         return EAPFactory.factory.send(val1);
+    }
+
+    @Override
+    public String toString() {
+        return "send " + this.val;
     }
 
     /* equals/canEquals, hashCode */

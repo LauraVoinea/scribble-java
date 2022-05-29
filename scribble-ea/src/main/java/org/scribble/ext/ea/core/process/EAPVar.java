@@ -15,6 +15,8 @@ public class EAPVar implements EAPVal {
         this.id = id;
     }
 
+    /* Aux */
+
     @Override
     public EAPVal subs(@NotNull Map<EAPVar, EAPVal> m) {
         return m.containsKey(this) ? m.get(this) : this;
@@ -23,6 +25,11 @@ public class EAPVar implements EAPVal {
     @Override
     public Set<EAPVar> getFreeVars() {
         return Set.of(this);
+    }
+
+    @Override
+    public String toString() {
+        return this.id;
     }
 
     /* equals/canEquals, hashCode */
