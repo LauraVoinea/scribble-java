@@ -1,6 +1,8 @@
 package org.scribble.ext.ea.core.process;
 
-public interface EATerm {
+import java.util.Map;
+
+public interface EAPTerm {
 
     int VAR = 3779;
     int NAME = 3793;
@@ -9,6 +11,7 @@ public interface EATerm {
     int RETURN = 3821;
     int SEND = 3823;
     int HANDLERS = 3833;
+    int SUSPEND = 3847;
 
     boolean canEquals(Object o);
 }

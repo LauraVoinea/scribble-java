@@ -2,14 +2,27 @@ package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
-public class EAName implements EAValue {
+// !!! "Runtime names"
+public class EAPPid implements EAPVal {
 
     @NotNull public final String id;
 
-    public EAName(@NotNull String id) {
+    public EAPPid(@NotNull String id) {
         this.id = id;
+    }
+
+    @Override
+    public EAPPid subs(@NotNull Map<EAPVar, EAPVal> m) {
+        return this;
+    }
+
+    @Override
+    public Set<EAPVar> getFreeVars() {
+        return Collections.emptySet();
     }
 
     /* equals/canEquals, hashCode */
@@ -18,18 +31,18 @@ public class EAName implements EAValue {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAName eaVar = (EAName) o;
+        EAPPid eaVar = (EAPPid) o;
         return eaVar.canEquals(this) && this.id.equals(eaVar.id);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAName;
+        return o instanceof EAPPid;
     }
 
     @Override
     public int hashCode() {
-        int hash = EATerm.NAME;
+        int hash = EAPTerm.NAME;
         hash = 31 * hash + this.id.hashCode();
         return hash;
     }
