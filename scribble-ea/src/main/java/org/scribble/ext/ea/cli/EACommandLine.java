@@ -1,7 +1,9 @@
-package org.scribble.ext.ea;
+package org.scribble.ext.ea.cli;
 
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
+import org.scribble.ext.ea.core.process.EAName;
+import org.scribble.ext.ea.core.process.EAVar;
 import org.scribble.util.AntlrSourceException;
 
 // Includes assrt-core functionality (all extra args are currently for assrt-core)
@@ -15,7 +17,12 @@ public class EACommandLine extends CommandLine
 	public static void main(String[] args)
 			throws CommandLineException, AntlrSourceException
 	{
-		new EACommandLine(args).run();
+
+		System.out.println(new EAVar("abc").hashCode());
+		System.out.println(new EAVar("abc").hashCode());
+		System.out.println(new EAName("abc").hashCode());
+
+		//new EACommandLine(args).run();
 	}
 
 	/*@Override
