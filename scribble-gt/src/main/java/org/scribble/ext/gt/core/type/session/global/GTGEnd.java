@@ -1,16 +1,27 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.global.SModelFactory;
+import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GTGEnd implements GTGType {
 
     public static final GTGEnd END = new GTGEnd();
 
-    protected GTGEnd() {
+    protected GTGEnd() { }
+
+    @Override
+    public Optional<GTGType> step(SAction a) {
+        return Optional.empty();
+    }
+
+    @Override
+    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
+        return new LinkedHashSet<>();
     }
 
     /* Aux */

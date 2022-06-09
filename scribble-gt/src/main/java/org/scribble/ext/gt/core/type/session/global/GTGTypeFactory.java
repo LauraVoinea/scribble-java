@@ -17,8 +17,8 @@ public class GTGTypeFactory {
         return new GTGChoice(src, dst, cases);
     }
 
-    public GTGWiggly wiggly(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
-        return new GTGWiggly(src, dst, cases);
+    public GTGWiggly wiggly(Role src, Role dst, Op op, LinkedHashMap<Op, GTGType> cases) {
+        return new GTGWiggly(src, dst, op, cases);
     }
 
     public GTGEnd end() {

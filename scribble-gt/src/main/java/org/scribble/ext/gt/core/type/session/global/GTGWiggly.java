@@ -1,33 +1,94 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.global.SModelFactory;
+import org.scribble.core.model.global.actions.SAction;
+import org.scribble.core.model.global.actions.SRecv;
+import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GTGWiggly implements GTGType {
 
+    private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
+
     // TODO factor out with GTGChoice (and locals)
     public final Role src;
     public final Role dst;
+    public final Op op;
     public final Map<Op, GTGType> cases;
 
-    protected GTGWiggly(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
+        this.op = op;
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public Optional<GTGType> step(SAction a) {
+        if (a.subj.equals(this.dst)) {
+            if (a instanceof SRecv) {
+                SRecv cast = (SRecv) a;
+                if (cast.obj.equals(this.src)
+                        && this.cases.keySet().contains(cast.mid)) {
+                    //return Optional.of(this.cases.get(cast.mid));
+                    LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
+                    return Optional.of(this.cases.get(cast.mid));
+                }
+            }
+            return Optional.empty();
+        } else {
+            Set<Map.Entry<Op, GTGType>> es = this.cases.entrySet();
+            LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
+            boolean done = false;
+            for (Map.Entry<Op, GTGType> e : es) {
+                Op k = e.getKey();
+                GTGType v = e.getValue();
+                if (done) {
+                    cs.put(k, v);
+                } else {
+                    Optional<GTGType> step = e.getValue().step(a);
+                    if (step.isPresent()) {
+                        cs.put(k, step.get());
+                        done = true;
+                    } else {
+                        cs.put(k, v);
+                    }
+                }
+            }
+            return done
+                    ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
+                    : Optional.empty();
+        }
+    }
+
+    @Override
+    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
+        HashSet<Role> tmp = new HashSet<>(blocked);
+        tmp.add(this.dst);
+        LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+            if (!blocked.contains(this.dst)) {
+                // N.B. SRecv subj is this.dst
+                SRecv a = mf.SRecv(this.dst, this.src, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
+                collect.add(a);
+            }
+            collect.addAll(e.getValue().getActs(mf, tmp));
+        }
+        return collect;
     }
 
     /* Aux */
 
     @Override
     public String toString() {
-        return this.src + "~>" + this.dst
+        return this.src + "~>" + this.dst + ":" + this.op
                 + "{" + this.cases.entrySet().stream()
                 .map(e -> e.getKey() + "." + e.getValue())
                 .collect(Collectors.joining(", ")) + "}";

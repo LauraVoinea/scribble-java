@@ -4,10 +4,14 @@ import org.scribble.cli.CLFlag;
 import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
+import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreContext;
+import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.ProtoName;
+import org.scribble.ext.gt.core.type.session.global.GTGEnd;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
@@ -19,8 +23,10 @@ import org.scribble.util.ScribException;
 import org.scribble.util.ScribParserException;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,12 +50,28 @@ public class GTCommandLine extends CommandLine {
 	}
 
 	protected void myRun() {
-		CoreContext c = this.job.getCore().getContext();
+		Core core = this.job.getCore();
+		CoreContext c = core.getContext();
 		GTGTypeTranslator tr = new GTGTypeTranslator();
 		System.out.println("\n-----\n");
-		for (ProtoName<Global> g : c.getParsedFullnames()) {
+		for (ProtoName<Global> p : c.getParsedFullnames()) {
 			//System.out.println(c.getIntermediate(g));
-			System.out.println(g + " = " + tr.translate(c.getIntermediate(g).def));
+			GTGType g = tr.translate(c.getIntermediate(p).def);
+			System.out.println(p + " = " + g);
+			System.out.println();
+			foo(core, "", g);
+		}
+	}
+
+	private void foo(Core core, String indent, GTGType g) {
+		Set<SAction> as = g.getActs(core.config.mf.global);
+		for (SAction a : as) {
+			GTGType g1 = g.step(a).get();
+			System.out.println(indent + "a = " + a);
+			System.out.println(indent + "g = " + g1);
+			if (!g1.equals(GTGEnd.END)) {
+				foo(core, indent + "    ", g1);
+			}
 		}
 	}
 
