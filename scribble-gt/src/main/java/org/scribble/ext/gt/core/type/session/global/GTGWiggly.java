@@ -47,7 +47,7 @@ public class GTGWiggly implements GTGType {
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
                     : Optional.empty();*/
             Optional<LinkedHashMap<Op, GTGType>> nestedCases
-                    = GTGChoice.stepCases(this.cases, a);
+                    = GTGInteraction.stepCases(this.cases, a);
             return nestedCases.map(x -> this.fact.wiggly(this.src, this.dst, this.op, x));
         }
     }

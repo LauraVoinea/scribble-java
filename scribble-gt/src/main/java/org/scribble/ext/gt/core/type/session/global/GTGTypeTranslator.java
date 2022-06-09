@@ -1,6 +1,5 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.SigLit;
@@ -56,7 +55,7 @@ public class GTGTypeTranslator {
         }
     }
 
-    protected GTGChoice translateGMessageTransfer(GMessageTransfer g, GTGType cont) {
+    protected GTGInteraction translateGMessageTransfer(GMessageTransfer g, GTGType cont) {
         if (!(g.msg instanceof SigLit)) {
             throw new RuntimeException("TODO: " + g.msg);
         }
@@ -68,16 +67,16 @@ public class GTGTypeTranslator {
     }
 
     // Pre: role enabling OK (choice subj = first senders)
-    protected GTGChoice translateGChoice(GChoice g) {
+    protected GTGInteraction translateGChoice(GChoice g) {
         List<GTGType> cs = g.blocks.stream().map(x -> translate(x))
                 .collect(Collectors.toUnmodifiableList());  // cs.len > 0
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
         Role dst = null;
         for (GTGType c : cs) {
-            if (!(c instanceof GTGChoice)) {  // !!! (all) end not currently allowed
+            if (!(c instanceof GTGInteraction)) {  // !!! (all) end not currently allowed
                 throw new RuntimeException("TODO: cs");
             }
-            GTGChoice cast = (GTGChoice) c;
+            GTGInteraction cast = (GTGInteraction) c;
             if (dst == null) {
                 dst = cast.dst;
             } else if (!dst.equals(cast.dst)) {

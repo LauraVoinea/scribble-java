@@ -10,7 +10,7 @@ import org.scribble.core.type.session.Payload;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GTGChoice implements GTGType {
+public class GTGInteraction implements GTGType {
 
     private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
 
@@ -18,7 +18,7 @@ public class GTGChoice implements GTGType {
     public final Role dst;
     public final Map<Op, GTGType> cases;  // Pre: Unmodifiable
 
-    protected GTGChoice(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
@@ -113,8 +113,8 @@ public class GTGChoice implements GTGType {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGChoice)) return false;
-        GTGChoice them = (GTGChoice) obj;
+        if (obj == null || !(obj instanceof GTGInteraction)) return false;
+        GTGInteraction them = (GTGInteraction) obj;
         return them.canEquals(this)
                 && this.src.equals(them.src)
                 && this.dst.equals(them.dst)
@@ -123,6 +123,6 @@ public class GTGChoice implements GTGType {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof GTGChoice;
+        return o instanceof GTGInteraction;
     }
 }
