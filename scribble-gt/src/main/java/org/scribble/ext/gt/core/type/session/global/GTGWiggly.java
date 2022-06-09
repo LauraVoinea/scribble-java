@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
@@ -44,27 +43,12 @@ public class GTGWiggly implements GTGType {
             }
             return Optional.empty();
         } else {
-            Set<Map.Entry<Op, GTGType>> es = this.cases.entrySet();
-            LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
-            boolean done = false;
-            for (Map.Entry<Op, GTGType> e : es) {
-                Op k = e.getKey();
-                GTGType v = e.getValue();
-                if (done) {
-                    cs.put(k, v);
-                } else {
-                    Optional<GTGType> step = e.getValue().step(a);
-                    if (step.isPresent()) {
-                        cs.put(k, step.get());
-                        done = true;
-                    } else {
-                        cs.put(k, v);
-                    }
-                }
-            }
-            return done
+            /*return done
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
-                    : Optional.empty();
+                    : Optional.empty();*/
+            Optional<LinkedHashMap<Op, GTGType>> nestedCases
+                    = GTGChoice.stepCases(this.cases, a);
+            return nestedCases.map(x -> this.fact.wiggly(this.src, this.dst, this.op, x));
         }
     }
 

@@ -8,6 +8,7 @@ import org.scribble.core.type.name.Role;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// !!! No "fid"
 public class GTGEnd implements GTGType {
 
     public static final GTGEnd END = new GTGEnd();

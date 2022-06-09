@@ -66,7 +66,7 @@ public class GTCommandLine extends CommandLine {
 	private void foo(Core core, String indent, GTGType g) {
 		Set<SAction> as = g.getActs(core.config.mf.global);
 		for (SAction a : as) {
-			GTGType g1 = g.step(a).get();
+			GTGType g1 = g.step(a).get();  // a in as so step is non-empty
 			System.out.println(indent + "a = " + a);
 			System.out.println(indent + "g = " + g1);
 			if (!g1.equals(GTGEnd.END)) {

@@ -40,28 +40,35 @@ public class GTGChoice implements GTGType {
            }
            return Optional.empty();
         } else {
-            Set<Map.Entry<Op, GTGType>> es = this.cases.entrySet();
-            LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
-            boolean done = false;
-            for (Map.Entry<Op, GTGType> e : es) {
-                Op k = e.getKey();
-                GTGType v = e.getValue();
-                if (done) {
-                    cs.put(k, v);
+            /*return done
+                ? Optional.of(this.fact.choice(this.src, this.dst, cs))
+                : Optional.empty();*/
+            Optional<LinkedHashMap<Op, GTGType>> nestedCases = stepCases(this.cases, a);
+            return nestedCases.map(x -> this.fact.choice(this.src, this.dst, x));
+        }
+    }
+
+    protected static Optional<LinkedHashMap<Op, GTGType>> stepCases(
+            Map<Op, GTGType> cases, SAction a) {
+        Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
+        LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
+        boolean done = false;
+        for (Map.Entry<Op, GTGType> e : es) {
+            Op k = e.getKey();
+            GTGType v = e.getValue();
+            if (done) {
+                cs.put(k, v);
+            } else {
+                Optional<GTGType> step = e.getValue().step(a);
+                if (step.isPresent()) {
+                    cs.put(k, step.get());
+                    done = true;
                 } else {
-                    Optional<GTGType> step = e.getValue().step(a);
-                    if (step.isPresent()) {
-                        cs.put(k, step.get());
-                        done = true;
-                    } else {
-                        cs.put(k, v);
-                    }
+                    cs.put(k, v);
                 }
             }
-            return done
-                ? Optional.of(this.fact.choice(this.src, this.dst, cs))
-                : Optional.empty();
         }
+        return done ? Optional.of(cs) : Optional.empty();
     }
 
     @Override
