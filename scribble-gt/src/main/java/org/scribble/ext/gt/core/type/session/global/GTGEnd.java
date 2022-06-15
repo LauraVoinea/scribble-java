@@ -2,11 +2,9 @@ package org.scribble.ext.gt.core.type.session.global;
 
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 // !!! No "fid"
 public class GTGEnd implements GTGType {
@@ -36,7 +34,7 @@ public class GTGEnd implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.GEND;
+        int hash = GTGType.END_HASH;
         return hash;
     }
 

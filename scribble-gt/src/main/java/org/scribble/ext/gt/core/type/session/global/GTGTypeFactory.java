@@ -4,6 +4,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 public class GTGTypeFactory {
 
@@ -18,6 +19,12 @@ public class GTGTypeFactory {
 
     public GTGWiggly wiggly(Role src, Role dst, Op op, LinkedHashMap<Op, GTGType> cases) {
         return new GTGWiggly(src, dst, op, cases);
+    }
+
+    public GTGMixedChoice mixedChoice(
+            GTGType left, GTGType right, LinkedHashSet<Role> committedLeft,
+            LinkedHashSet<Role> committedRight) {
+        return new GTGMixedChoice(left, right, committedLeft, committedRight);
     }
 
     public GTGEnd end() {

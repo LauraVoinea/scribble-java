@@ -51,6 +51,430 @@ import org.scribble.core.visit.local.SubprotoExtChoiceSubjFixer;
 import org.scribble.util.ScribException;
 
 
+// Duplicated from scrib-assrt
+// A "compiler job" front-end that supports operations comprising visitor passes over the AST and/or local/global models
+public class Core
+{
+	public final CoreConfig config;  // Immutable
+
+	protected final CoreContext context;  // Mutable (Visitor passes replace modules)
+
+	public Core(ModuleName mainFullname, CoreArgs args,
+				//Map<ModuleName, ModuleContext> modcs,
+				Set<GProtocol> imeds, STypeFactory tf)
+	{
+		this.config = newCoreConfig(mainFullname, args, tf);
+		this.context = newCoreContext(//modcs,
+				imeds);  // Single instance per Core and should never be shared
+	}
+
+	// A Scribble extension should override newSTypeVisitorFactory/ModelFactory as appropriate
+	protected STypeVisitorFactory newSTypeVisitorFactory()
+	{
+		return new STypeVisitorFactoryImpl(new GTypeVisitorFactoryImpl(),
+				new LTypeVisitorFactoryImpl());
+	}
+
+	// A Scribble extension should override newSTypeVisitorFactory/ModelFactory as appropriate
+	protected ModelFactory newModelFactory()
+	{
+		return new ModelFactory(EModelFactoryImpl::new,
+				SModelFactoryImpl::new);
+	}
+
+	// A Scribble extension should override newCoreConfig/Context/etc as appropriate
+	protected CoreConfig newCoreConfig(ModuleName mainFullname,
+									   CoreArgs args, STypeFactory tf)
+	{
+		STypeVisitorFactory vf = newSTypeVisitorFactory();
+		ModelFactory mf = newModelFactory();
+		return new CoreConfig(mainFullname, args, tf, vf, mf);
+	}
+
+	// A Scribble extension should override newCoreConfig/Context/etc as appropriate
+	protected CoreContext newCoreContext(//Map<ModuleName, ModuleContext> modcs,
+										 Set<GProtocol> imeds)
+	{
+		return new CoreContext(this, //modcs,
+				imeds);
+	}
+
+	public void runPasses() throws ScribException
+	{
+		// Passes populate JobContext on-demand by each individual getter
+		runSyntaxTransformPasses();
+		runGlobalSyntaxWfPasses();
+		runProjectionPasses();  // CHECKME: can try before validation (i.e., including syntactic WF), to promote greater tool feedback? (cf. CommandLine output "barrier")
+		runProjectionSyntaxWfPasses();
+		runEfsmBuildingPasses();  // Currently, unfair-transform graph building must come after syntactic WF --- TODO fix graph building to prevent crash ?
+		runLocalModelCheckingPasses();
+		runGlobalModelCheckingPasses();
+	}
+
+	// Populates JobContext -- although patten is to do on-demand via (first) getter, so (partially) OK to delay population
+	protected void runSyntaxTransformPasses()  // No ScribException, no errors expected
+	{
+		verbosePrintPass("Inlining subprotocols for all globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol inlined = this.context.getInlined(fullname);
+			verbosePrintPass(
+					"Inlined subprotocols: " + fullname + "\n" + inlined);
+		}
+
+		verbosePrintPass(
+				"Unfolding all recursions once for all inlined globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			// TODO: currently, unfolded not actually stored by Context -- unfoldAllOnce repeated manually when needed, e.g., runSyntaxWfPasses
+			GProtocol unf = this.context.getOnceUnfolded(fullname);  // CHECKME: twice unfolding? instead of "unguarded"-unfolding?
+			verbosePrintPass(
+					"Unfolded all recursions once: " + unf.fullname + "\n" + unf);
+		}
+	}
+
+	protected void runGlobalSyntaxWfPasses() throws ScribException
+	{
+		verbosePrintPass(
+				"Checking for unused role decls on all inlined globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			// CHECKME: relegate to "warning" ? -- some downsteam operations may depend on this though (e.g., graph building?)
+			Set<Role> used = this.context.getInlined(fullname).def
+					.gather(new RoleGatherer<Global, GSeq>()::visit)
+					.collect(Collectors.toSet());
+			Set<Role> unused = this.context.getIntermediate(fullname).roles
+					// imeds have original role decls (inlined's are pruned)
+					.stream().filter(x -> !used.contains(x)).collect(Collectors.toSet());
+			if (!unused.isEmpty())
+			{
+				throw new ScribException(
+						"Unused roles in " + fullname + ": " + unused);
+			}
+		}
+
+		verbosePrintPass("Checking role enabling on all inlined globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol unf = this.context.getOnceUnfolded(fullname);
+			if (unf.isAux())
+			{
+				continue;
+			}
+			unf.checkRoleEnabling(this);
+			//e.g., C->D captured under an A->B choice after unfolding, cf. bad.wfchoice.enabling.twoparty.Test01b;
+			// TODO: get unfolded from Context
+		}
+
+		verbosePrintPass(
+				"Checking consistent external choice subjects on all inlined globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol inlined = this.context.getInlined(fullname);
+			if (inlined.isAux())
+			{
+				continue;
+			}
+			inlined.checkExtChoiceConsistency(this);
+		}
+
+		verbosePrintPass(
+				"Checking connectedness on all inlined globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol unf = this.context.getOnceUnfolded(fullname);
+			if (unf.isAux())
+			{
+				continue;
+			}
+			unf.checkConnectedness(this, !unf.isExplicit());
+			//e.g., rec X { connect A to B; continue X; }
+		}
+	}
+
+	// Due to Projector not being a subprotocol visitor, so "external" subprotocols may not be visible in ModuleContext building for the projections of the current root Module
+	// SubprotocolVisitor it doesn't visit the target Module/ProtocolDecls -- that's why the old Projector maintained its own dependencies and created the projection modules after leaving a Do separately from SubprotocolVisiting
+	// So Projection should not be an "inlining" SubprotocolVisitor, it would need to be more a "DependencyVisitor"
+	protected void runProjectionPasses()  // No ScribException, no errors expected
+	{
+		verbosePrintPass("Projecting all inlined globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol inlined = this.context.getInlined(fullname);
+			for (Role self : inlined.roles)
+			{
+				// pruneRecs already done (see runContextBuildingPasses)
+				// CHECKME: projection and inling commutative?
+				LProjection iproj = this.context.getProjectedInlined(inlined.fullname,
+						self);
+				verbosePrintPass("Projected inlined onto " + self + ": "
+						+ inlined.fullname + "\n" + iproj);
+			}
+		}
+
+		// Pre: inlined already projected -- used for Do projection
+		// N.B. no "fixing" passes done within here -- need breadth-first passes to be sequentialised for subproto visiting (see below)
+		verbosePrintPass("Projecting all intermediate globals...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol imed = this.context.getIntermediate(fullname);
+			for (Role self : imed.roles)
+			{
+				LProjection proj = this.context.getProjection(fullname, self);
+				verbosePrintPass("Projected intermediate onto " + self + ": "
+						+ imed.fullname + "\n" + proj);
+			}
+		}
+
+		verbosePrintPass("Pruning do-args on all projected intermediates...");
+		LRoleDeclAndDoArgPruner v1 = this.config.vf.local.LDoArgPruner(this);   // Reusable
+		List<LProjection> done1 = new LinkedList<>();
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol imed = this.context.getIntermediate(fullname);
+			for (Role self : imed.roles)
+			{
+				LProjection proj = this.context.getProjection(fullname, self);
+				LProjection fixed = (LProjection) proj.pruneRoleDeclsAndDoArgs(v1);  // TODO: refactor as LProjection/LProto meth, cf. GProto
+				done1.add(fixed);  // N.B. replaces existing projection
+				verbosePrintPass(
+						"Pruned do-args on projected intermediate: "
+								+ fixed.fullname + ":\n" + fixed);
+			}
+		}
+		done1.forEach(x -> this.getContext().setProjection(x));
+		// Update after all visited, to prevent visiting an already pruned projdecl from breaking the pruning of a subsequent one (e.g., mutually recursive proto refs)
+
+		verbosePrintPass("Do-pruning all projected intermediates...");
+		LDoPruner v2 = this.config.vf.local.LDoPruner(this);   // Reusable
+		List<LProjection> done2 = new LinkedList<>();
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol imed = this.context.getIntermediate(fullname);
+			for (Role self : imed.roles)
+			{
+				LProjection proj = this.context.getProjection(fullname, self);
+				LProjection fixed = (LProjection) proj.pruneDos(v2);  // TODO: refactor as LProjection/LProto meth, cf. GProto
+				done2.add(fixed);  // N.B. replaces existing projection
+				verbosePrintPass(
+						"Do-pruned projected intermediate: "
+								+ fixed.fullname + ":\n" + fixed);
+			}
+		}
+		done2.forEach(x -> this.getContext().setProjection(x));
+		// Update after all visited, to prevent visiting an already pruned projdecl from breaking the pruning of a subsequent one (e.g., mutually recursive proto refs)
+
+		verbosePrintPass(
+				"Fixing external choice subjects for all projected intermediates...");
+		SubprotoExtChoiceSubjFixer v3 = this.config.vf.local
+				.SubprotoExtChoiceSubjFixer(this);  // Reusable (via top-level visitProtocol)
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol imed = this.context.getIntermediate(fullname);
+			for (Role self : imed.roles)
+			{
+				LProjection proj = this.context.getProjection(fullname, self);
+				LProjection fixed = (LProjection) proj.fixExtChoiceSubjs(v3);
+				this.context.setProjection(fixed);  // N.B. replaces existing projection
+				verbosePrintPass(
+						"Fixed external choice subjects for projected intermediate: "
+								+ fixed.fullname + ":\n" + fixed);
+			}
+		}
+	}
+
+	// Pre: runGlobalSyntaxWfPasses
+	protected void runProjectionSyntaxWfPasses() throws ScribException
+	{
+		verbosePrintPass("Checking reachability on all projected inlineds...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol inlined = this.context.getInlined(fullname);
+			if (inlined.isAux())  // CHECKME: also check for aux? e.g., bad.reach.globals.gdo.Test01b
+			{
+				continue;
+			}
+			for (Role self : inlined.roles)
+			{
+				LProjection iproj = this.context.getProjectedInlined(fullname, self);
+				iproj.checkReachability(this);
+			}
+		}
+	}
+
+	// Pre: runGlobalSyntaxWfPasses -- unfair EFSM building depends on WF (role enabling, e.g., bad.wfchoice.enabling.threeparty.Test02) for building algorithm to work...
+	// ...or patch unfair-transform graph building to not crash?
+	protected void runEfsmBuildingPasses()
+	{
+		verbosePrintPass("Building EFSMs for all projected inlineds...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol inlined = this.context.getInlined(fullname);
+			for (Role self : inlined.roles)
+			{
+				// Seems to be OK even if runSyntaxWfPasses does not succeed (cf. unfair transform)
+				EGraph graph = this.context.getEGraph(fullname, self);
+				verbosePrintPass("Built EFSM: " + inlined.fullname + "@" + self
+						+ "\n" + graph.toDot());
+			}
+		}
+
+		if (!this.config.args.FAIR)
+		{
+			verbosePrintPass(
+					"Building \"unfair\" EFSMs for all projected inlineds...");
+			for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+			{
+				GProtocol inlined = this.context.getInlined(fullname);
+				for (Role self : inlined.roles)
+				{
+					// Pre: runGlobalSyntaxWfPasses -- e.g., bad.wfchoice.enabling.threeparty.Test02
+					EGraph graph = this.context.getUnfairEGraph(inlined.fullname, self);
+					verbosePrintPass("Built \"unfair\" EFSM: " + inlined.fullname
+							+ "@" + self + ":\n" + graph.toDot());
+				}
+			}
+		}
+	}
+
+	protected void runLocalModelCheckingPasses() throws ScribException
+	{
+		verbosePrintPass("Checking non-deterministic messaging action payloads...");
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			GProtocol inlined = this.context.getInlined(fullname);
+			if (inlined.isAux())  // CHECKME: also check for aux? e.g., bad.reach.globals.gdo.Test01b
+			{
+				continue;
+			}
+			for (Role self : inlined.roles)
+			{
+				EState init = this.context.getEGraph(fullname, self).init;
+				init.traverse(new NonDetPayChecker());
+			}
+		}
+	}
+
+	protected void runGlobalModelCheckingPasses() throws ScribException
+	{
+		verbosePrintPass("Building and checking global models from projected inlineds...");  // CHECKME: separate and move model building earlier?
+		// CHECKME: refactor more/whole validation into lang.GProtocol ?
+		for (ProtoName<Global> fullname : this.context.getParsedFullnames())
+		{
+			if (this.context.getIntermediate(fullname).isAux())
+			{
+				continue;
+			}
+			validateByScribble(fullname, true);
+			if (!this.config.args.FAIR)
+			{
+				//verbosePrintPass("Validating by Scribble with \"unfair\" output choices: " + fullname);
+				validateByScribble(fullname, false);  // TODO: only need to check progress, not "full" validation
+			}
+		}
+	}
+
+	protected void validateByScribble(ProtoName<Global> fullname, boolean fair)
+			throws ScribException
+	{
+		SGraph graph = fair
+				? this.context.getSGraph(fullname)
+				: this.context.getUnfairSGraph(fullname);
+		if (this.config.args.VERBOSE)
+		{
+			String dot = graph.init.toDot();
+			String[] lines = dot.split("\\R");
+			verbosePrintPass(
+					//"(" + fullname + ") Built global model...\n" + graph.init.toDot() + "\n(" + fullname + ") ..." + graph.states.size() + " states");
+					"Built " + (!fair ? "\"unfair\" " : "") + "global model ("
+							+ graph.states.size() + " states): " + fullname + "\n"
+							+ ((lines.length > 50)  // CHECKME: factor out constant?
+							? "...[snip]...  (model text over 50 lines, try -[u]model[png])"
+							: dot));
+		}
+
+		verbosePrintPass("Checking " + (!fair ? "\"unfair\" " : "")
+				+ "global model: " + fullname);
+		this.config.mf.global.SModel(graph).validate(this);
+	}
+
+	// Pre: checkWellFormedness
+	// TODO: refactor projection, choice-subj fixing, do-pruning, do-arg fixing, etc. fully to Job (and drop this.projs from here)
+	public Map<ProtoName<Local>, LProjection> getProjections(
+			ProtoName<Global> fullname, Role self) throws ScribException
+	{
+		Map<ProtoName<Local>, LProjection> res = new HashMap<>();
+		//Set<MemberName<?>> nonprotos = new LinkedHashSet<>();
+		LProjection root = this.context.getProjection(fullname, self);
+
+		List<ProtoName<Local>> todo = new LinkedList<>();
+		todo.add(root.fullname);
+		while (!todo.isEmpty())
+		{
+			ProtoName<Local> pfullname = todo.remove(0);
+			LProjection proj = this.context.getProjection(pfullname);
+			res.put(pfullname, proj);
+			proj.def.gather(new ProtoDepsCollector<Local, LSeq>()::visit).distinct()
+					.filter(x -> !res.containsKey(x) && !todo.contains(x))
+					.forEachOrdered(x -> todo.add(x));
+			/*proj.def.gather(new NonProtoDepsGatherer<Local, LSeq>()::visit)
+					.forEachOrdered(x -> nonprotos.add(x));*/
+		}
+
+		/*if (!nonprotos.isEmpty())
+				// CHECKME: best way to handle mixtured of proto and nonproto dependencies?
+				// nonprotos should refer to source global module?  i.e., projection modules should import globals?  maybe consistent with "projects" clause
+		{
+			throw new RuntimeException(
+					"[TODO] Non-proto dependencies: " + nonprotos + "\n\t" + root);
+		}*/
+		return res;
+	}
+
+	public CoreContext getContext()
+	{
+		return this.context;
+	}
+
+	public boolean isVerbose()
+	{
+		return this.config.args.VERBOSE;
+	}
+
+	public void verbosePrintln(String s)
+	{
+		if (isVerbose())
+		{
+			System.out.println(s);
+		}
+	}
+
+	protected void verbosePrintPass(String s)
+	{
+		verbosePrintln("\n[Core] " + s);
+	}
+
+	public void warningPrintln(String s)
+	{
+		System.err.println("[Warning] " + s);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* // Scribble master
 // A "compiler job" front-end that supports operations comprising visitor passes over the AST and/or local/global models
 public class Core
 {
@@ -416,7 +840,7 @@ public class Core
 					.filter(x -> !res.containsKey(x) && !todo.contains(x))
 					.forEachOrdered(x -> todo.add(x));
 			/*proj.def.gather(new NonProtoDepsGatherer<Local, LSeq>()::visit)
-					.forEachOrdered(x -> nonprotos.add(x));*/
+					.forEachOrdered(x -> nonprotos.add(x));* /
 		}
 
 		/*if (!nonprotos.isEmpty())  
@@ -425,7 +849,7 @@ public class Core
 		{
 			throw new RuntimeException(
 					"[TODO] Non-proto dependencies: " + nonprotos + "\n\t" + root);
-		}*/
+		}* /
 		return res;
 	}
 	
@@ -457,6 +881,7 @@ public class Core
 		System.err.println("[Warning] " + s);
 	}
 }
+*/
 
 
 

@@ -104,7 +104,8 @@ public class CBEndpointApiGenerator3
 		Map<String, String> res = new HashMap<>();
 
 		CoreContext jobc2 = this.core.getContext();
-		EState init = (this.core.config.args.get(CoreArgs.MIN_EFSM)
+		//EState init = (this.core.config.args.get(CoreArgs.MIN_EFSM)
+		EState init = (this.core.config.args.MIN_EFSM  // scrib-assrt
 				? jobc2.getMinimisedEGraph(this.proto, this.self)
 				: jobc2.getEGraph(this.proto, this.self)
 				).init;

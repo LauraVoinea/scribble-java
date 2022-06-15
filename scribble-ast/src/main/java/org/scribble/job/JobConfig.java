@@ -25,7 +25,42 @@ import org.scribble.core.type.session.STypeFactory;
 import org.scribble.del.DelFactory;
 import org.scribble.visit.VisitorFactory;
 
+// Duplicated from scrib-assrt
 // The "static" (constant) info for Lang -- cf. LangContext "dynamic" state
+public class JobConfig
+{
+	public final ModuleName main;  // Full name
+
+	public final CoreArgs args;  // CHECKME: JobArgs ?
+
+	public final AstFactory af;
+	public final DelFactory df;
+	public final VisitorFactory vf;
+	public final STypeFactory tf;
+
+	// N.B. MainContext is in a different non-visible (by Maven) package
+	protected JobConfig(ModuleName mainFullname, CoreArgs args,
+						AstFactory af, DelFactory df, VisitorFactory vf, STypeFactory tf)
+	{
+		this.main = mainFullname;
+		this.args = args;
+		this.af = af;
+		this.df = df;
+		this.vf = vf;
+		this.tf = tf;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+/* // Scribble master
 public class JobConfig
 {
 	public final ModuleName main;  // Full name
@@ -49,3 +84,4 @@ public class JobConfig
 		this.tf = tf;
 	}
 }
+ */

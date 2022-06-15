@@ -5,6 +5,7 @@ import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
+import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
@@ -13,6 +14,7 @@ import org.scribble.core.type.name.ProtoName;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator;
+import org.scribble.ext.gt.main.GTMain;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
@@ -23,10 +25,7 @@ import org.scribble.util.ScribException;
 import org.scribble.util.ScribParserException;
 
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +46,45 @@ public class GTCommandLine extends CommandLine {
 		GTCommandLine cl = new GTCommandLine(args);
 		cl.run();
 		cl.myRun();
+	}
+
+	/*// A Scribble extension should override as appropriate
+	protected Main newMain() throws ScribParserException, ScribException
+	{
+		Map<CoreArgs, Boolean> args = Collections.unmodifiableMap(parseCoreArgs());
+		if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG))
+		{
+			String inline = getUniqueFlagArgs(CLFlags.INLINE_MAIN_MOD_FLAG)[0];
+			return new Main(inline, args);
+		}
+		else
+		{
+			List<Path> impaths = hasFlag(CLFlags.IMPORT_PATH_FLAG)
+					? CommandLine.parseImportPaths(
+							getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
+					: Collections.emptyList();
+			ResourceLocator locator = new DirectoryResourceLocator(impaths);
+			Path mainpath = CommandLine
+					.parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
+			return new GTMain(locator, mainpath, args);
+		}
+	}*/
+
+	// Duplicated from AssrtCommandLine
+	// Based on CommandLine.newMainContext
+	@Override
+	protected Main newMain() throws ScribParserException, ScribException
+	{
+		/*if (!hasFlag(AssrtCLFlags.ASSRT_CORE_FLAG))
+		{
+			return super.newMain();
+		}*/
+		//AssrtCoreArgs args = newCoreArgs();
+		CoreArgs args = newCoreArgs();
+		List<Path> impaths = parseImportPaths();
+		ResourceLocator locator = new DirectoryResourceLocator(impaths);
+		Path mainpath = parseMainPath();
+		return new GTMain(locator, mainpath, args);
 	}
 
 	protected void myRun() {

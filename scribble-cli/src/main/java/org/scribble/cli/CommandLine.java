@@ -19,11 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -34,6 +30,7 @@ import org.scribble.codegen.java.JEndpointApiGenerator;
 import org.scribble.codegen.java.callbackapi.CBEndpointApiGenerator3;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
+import org.scribble.core.job.CoreFlags;
 import org.scribble.core.model.endpoint.EGraph;
 import org.scribble.core.model.global.SGraph;
 import org.scribble.core.type.kind.Local;
@@ -82,12 +79,14 @@ public class CommandLine
 		}
 	}
 	
-	private boolean hasFlag(String flag)
+	//private boolean hasFlag(String flag)
+	protected boolean hasFlag(String flag)  // !!! cf. AssrtScribble, factored out parseImportPaths/parseMainPath
 	{
 		return this.args.stream().anyMatch(x -> x.left.equals(flag));
 	}
 
-	private String[] getUniqueFlagArgs(String flag)
+	//private String[] getUniqueFlagArgs(String flag)
+	protected String[] getUniqueFlagArgs(String flag)  // !!! cf. AssrtScribble
 	{
 		return this.args.stream().filter(x -> x.left.equals(flag)).findAny()
 				.get().right;
@@ -104,9 +103,7 @@ public class CommandLine
 		return new CLArgParser(flags, args);
 	}
 
-	// A Scribble extension should override as appropriate
-	protected Main newMain() throws ScribParserException, ScribException
-	{
+	/*protected Main newMain() throws ScribParserException, ScribException
 		Map<CoreArgs, Boolean> args = Collections.unmodifiableMap(parseCoreArgs());
 		if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG))
 		{
@@ -124,9 +121,28 @@ public class CommandLine
 					.parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
 			return new Main(locator, mainpath, args);
 		}
-	}
-	
+	}*/
+
 	// A Scribble extension should override as appropriate
+	protected Main newMain() throws ScribParserException, ScribException
+	{
+		CoreArgs args = newCoreArgs();
+		/*if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG))
+		{
+			String inline = getUniqueFlagArgs(CLFlags.INLINE_MAIN_MOD_FLAG)[0];
+			//return new Main(inline, args);
+			throw new RuntimeException("[TODO] Refactor inline via tmp directory/file creation: " + inline);
+		}
+		else*/  // FIXME: refactor inline via tmp directory/file creation
+		{
+			List<Path> impaths = parseImportPaths();
+			ResourceLocator locator = new DirectoryResourceLocator(impaths);
+			Path mainpath = parseMainPath();
+			return new Main(locator, mainpath, args);
+		}
+	}
+
+	/*// A Scribble extension should override as appropriate
 	protected Map<CoreArgs, Boolean> parseCoreArgs()
 	{
 		Map<CoreArgs, Boolean> args = new HashMap<>();
@@ -141,6 +157,30 @@ public class CommandLine
 				hasFlag(CLFlags.NO_ACCEPT_CORRELATION_CHECK_FLAG));
 		args.put(CoreArgs.NO_VALIDATION, hasFlag(CLFlags.NO_VALIDATION_FLAG));
 		return args;
+	}*/
+
+	protected CoreArgs newCoreArgs()
+	{
+		return new CoreArgs(parseCoreFlags());
+	}
+
+	protected Set<CoreFlags> parseCoreFlags()
+	{
+		Set<CoreFlags> flags = new HashSet<>();
+		Map<String, CoreFlags> tmp = new HashMap<>();
+		tmp.put(CLFlags.VERBOSE_FLAG, CoreFlags.VERBOSE);
+		tmp.put(CLFlags.FAIR_FLAG, CoreFlags.FAIR);
+		// TODO: -spin
+		tmp.put(CLFlags.NO_VALIDATION_FLAG, CoreFlags.NO_VALIDATION);
+		tmp.put(CLFlags.NO_PROGRESS_FLAG, CoreFlags.NO_PROGRESS);
+		tmp.put(CLFlags.LTSCONVERT_MIN_FLAG, CoreFlags.MIN_EFSM);
+		tmp.put(CLFlags.OLD_WF_FLAG, CoreFlags.OLD_WF);
+		tmp.put(CLFlags.NO_LOCAL_CHOICE_SUBJECT_CHECK_FLAG,
+				CoreFlags.NO_LCHOICE_SUBJ_CHECK);
+		tmp.put(CLFlags.NO_ACCEPT_CORRELATION_CHECK_FLAG,
+				CoreFlags.NO_ACC_CORRELATION_CHECK);
+		tmp.keySet().forEach(x -> { if (hasFlag(x)) { flags.add(tmp.get(x)); } } );
+		return flags;
 	}
 
 	// AntlrSourceException super of ScribbleException -- needed for, e.g., AssrtCoreSyntaxException
@@ -485,6 +525,25 @@ public class CommandLine
 			f = path -> { System.out.println(path + ":\n" + classes.get(path)); };
 		}
 		classes.keySet().forEach(f);
+	}
+
+	// Duplicated from scrib-assrt
+	protected Path parseMainPath()
+	{
+		String path = getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0];
+		return Paths.get(path);
+	}
+
+	// Duplicated from scrib-assrt
+	protected List<Path> parseImportPaths()
+	{
+		if (!hasFlag(CLFlags.IMPORT_PATH_FLAG))
+		{
+			return Collections.emptyList();
+		}
+		String impaths = getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0];
+		return Arrays.stream(impaths.split(File.pathSeparator))
+				.map(x -> Paths.get(x)).collect(Collectors.toList());
 	}
 
 	protected static void runDot(String dot, String png)

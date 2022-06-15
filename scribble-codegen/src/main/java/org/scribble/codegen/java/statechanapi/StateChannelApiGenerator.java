@@ -68,7 +68,8 @@ public class StateChannelApiGenerator extends ApiGen
 		this.lpn = InlinedProjector.getFullProjectionName(fullname, self);
 		//this.init = job.getContext().getEndpointGraph(fullname, self).init;
 		CoreContext corec = this.core.getContext();
-		this.init = this.job.config.args.get(CoreArgs.MIN_EFSM)
+		//this.init = this.job.config.args.get(CoreArgs.MIN_EFSM)
+		this.init = this.job.config.args.MIN_EFSM  // scrib-assrt
 				? corec.getMinimisedEGraph(fullname, self).init
 				: corec.getEGraph(fullname, self).init;
 		

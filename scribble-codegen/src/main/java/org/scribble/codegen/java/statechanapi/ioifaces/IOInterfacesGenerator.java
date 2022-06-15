@@ -84,7 +84,8 @@ public class IOInterfacesGenerator extends ApiGen
 		Role self = getSelf();
 		//EndpointState init = this.job.getContext().getEndpointGraph(fullname, self).init;
 		CoreContext corec = this.core.getContext();
-		EState init = this.job.config.args.get(CoreArgs.MIN_EFSM)
+		//EState init = this.job.config.args.get(CoreArgs.MIN_EFSM)
+		EState init = this.job.config.args.MIN_EFSM  // scrib-assrt
 				? corec.getMinimisedEGraph(fullname, self).init
 				: corec.getEGraph(fullname, self).init;
 		//if (IOInterfacesGenerator.skipIOInterfacesGeneration(init))

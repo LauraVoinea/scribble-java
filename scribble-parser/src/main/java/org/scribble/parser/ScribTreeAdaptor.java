@@ -69,6 +69,140 @@ import org.scribble.parser.antlr.ScribbleParser;
 // get/setType don't seem to be really used
 public class ScribTreeAdaptor extends CommonTreeAdaptor
 {
+	public final ScribAntlrTokens tokens;
+	protected final DelFactory df;  // N.B. not af -- here, create nodes "manually" (with del setting) to preserve original tokens
+
+	public ScribTreeAdaptor(ScribAntlrTokens tokens, DelFactory df)
+	{
+		this.tokens = tokens;
+		this.df = df;
+	}
+
+	// Generated parser seems to use nil to create "blank" nodes and then "fill them in"
+	@Override
+	public Object nil()
+	{
+		return new ScribNil();
+	}
+
+	// Create a Tree (ScribNode) from a Token
+	// N.B. not using AstFactory, construction here is pre adding children (and also here directly record parsed Token, not recreate)
+	@Override
+	public ScribNode create(Token t)
+	{
+		int type = t.getType();  // For ID/EXTID, getText is the "value" of the node (not a "type label", as for others)
+		if (type == this.tokens.getType("ID"))  // CHECKME: factor out?
+		{
+			IdNode n = new IdNode(t);
+			n.decorateDel(this.df);
+			return n;
+		}
+		else if (type == this.tokens.getType("EXTID"))
+		{
+			t = new CommonToken(t);
+			String text = t.getText();
+			t.setText(text.substring(1, text.length()-1));  // N.B. dropping the enclosing quotes "..."
+			ExtIdNode n = new ExtIdNode(t);
+			n.decorateDel(this.df);
+			return n;
+		}
+
+		// Switching on ScribbleParser "imaginary" token names -- generated from Scribble.g tokens
+		// Previously, switched on t.getType(), but arbitrary int constant generation breaks extensibility (e.g., super.create(t))
+		// CHECKME: factor out token text names?  Cf. AstFactoryImpl
+		ScribNodeBase n;
+		switch (t.getText())  // Cf. Scribble.g "imaginary" tokens
+		{
+			// Simple names "constructed directly" by parser, e.g., t=ID -> ID<...Node>[$t] -- N.B. DelDecorator pass needed for them (CHECKME: also do those here instead? to deprecate DelDecorator)
+
+			// Compound names
+			case "GPROTO_NAME": n = new GProtoNameNode(t); break;
+			case "MODULE_NAME": n = new ModuleNameNode(t); break;
+			case "DATA_NAME": n = new DataNameNode(t); break;
+			case "SIG_NAME": n = new SigNameNode(t); break;
+
+			// Non-name (i.e., general) AST nodes
+			case "MODULE": n = new Module(t); break;
+			case "MODULEDECL": n = new ModuleDecl(t); break;
+			case "IMPORTMODULE": n = new ImportModule(t); break;
+
+			case "DATADECL": n = new DataDecl(t); break;
+			case "SIGDECL": n = new SigDecl(t); break;
+			case "GPROTODECL": n = new GProtoDecl(t); break;
+
+			// CHECKME: refactor into header?
+			case "PROTOMOD_LIST": n = new ProtoModList(t); break;
+			case "aux": n = new AuxMod(t); break;  // FIXME: KW return by parser directly (cf. other tokens are imaginary)
+			case "explicit": n = new ExplicitMod(t); break;
+
+			case "GPROTOHEADER": n = new GProtoHeader(t); break;
+			case "ROLEDECL_LIST": n = new RoleDeclList(t); break;
+			case "ROLEDECL": n = new RoleDecl(t); break;
+			case "PARAMDECL_LIST":
+				n = new NonRoleParamDeclList(t);
+				break;
+			case "DATAPARAMDECL": n = new DataParamDecl(t); break;
+			case "SIGPARAMDECL": n = new SigParamDecl(t); break;
+
+			case "GPROTODEF": n = new GProtoDef(t); break;
+			case "GPROTOBLOCK": n = new GProtoBlock(t); break;
+			case "GINTERSEQ": n = new GInteractionSeq(t); break;
+
+			case "SIG_LIT": n = new SigLitNode(t); break;
+			case "PAYELEM_LIST": n = new PayElemList(t); break;
+			case "UNARY_PAYELEM": n = new UnaryPayElem<>(t); break;
+			case "GDELEG_PAYELEM": n = new GDelegPayElem(t); break;
+
+			case "GMSGTRANSFER": n = new GMsgTransfer(t); break;
+			case "GCONNECT": n = new GConnect(t); break;
+			case "GDCONN": n = new GDisconnect(t); break;
+			case "GWRAP": n = new GWrap(t); break;
+
+			case "GCONTINUE": n = new GContinue(t); break;
+			case "GDO": n = new GDo(t); break;
+
+			case "ROLEARG_LIST": n = new RoleArgList(t); break;
+			case "ROLEARG": n = new RoleArg(t); break;
+			case "NONROLEARG_LIST": n = new NonRoleArgList(t); break;
+			case "NONROLEARG": n = new NonRoleArg(t); break;
+
+			case "GCHOICE": n = new GChoice(t); break;
+			case "GRECURSION": n = new GRecursion(t); break;
+
+			// Special cases
+			case "EMPTY_OP": n = new OpNode(ScribbleParser.EMPTY_OP, t); break;
+			// From Scribble.g, token (t) text is OpNode.EMPTY_OP_TOKEN_TEXT*/
+
+			default:
+			{
+				throw new RuntimeException("[TODO] Unknown token: " + t);
+			}
+		}
+		n.decorateDel(this.df);
+
+		return n;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+public class ScribTreeAdaptor extends CommonTreeAdaptor
+{
 	protected final DelFactory df;  // N.B. not af -- here, create nodes "manually" (with del setting) to preserve original tokens
 
 	public ScribTreeAdaptor(DelFactory df)
@@ -157,7 +291,7 @@ public class ScribTreeAdaptor extends CommonTreeAdaptor
 			case ScribbleParser.GRECURSION: n = new GRecursion(t); break;
 
 			// Special cases
-			case ScribbleParser.EMPTY_OP: n = new OpNode(t); break;  // From Scribble.g, token (t) text is OpNode.EMPTY_OP_TOKEN_TEXT*/
+			case ScribbleParser.EMPTY_OP: n = new OpNode(t); break;  // From Scribble.g, token (t) text is OpNode.EMPTY_OP_TOKEN_TEXT* /
 
 			default:
 			{
@@ -169,3 +303,4 @@ public class ScribTreeAdaptor extends CommonTreeAdaptor
 		return n;
 	}
 }
+*/

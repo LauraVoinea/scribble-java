@@ -12,9 +12,10 @@ import java.util.Set;
 
 public interface GTGType extends GTSType {
 
-    int GEND = 1663;
-    int GCHOICE = 1667;
-    int GWIGGLY = 1669;
+    int END_HASH = 1663;
+    int CHOICE_HASH = 1667;
+    int WIGGLY_HASH = 1669;
+    int MIXED_CHOICE_HASH = 1693;
 
     // a is deterministic (including "nested" steps)
     Optional<GTGType> step(SAction a);

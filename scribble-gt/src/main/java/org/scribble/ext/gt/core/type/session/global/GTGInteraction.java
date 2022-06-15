@@ -29,7 +29,7 @@ public class GTGInteraction implements GTGType {
     @Override
     public Optional<GTGType> step(SAction a) {
         if (a.subj.equals(this.src)) {
-           if (a instanceof SSend) {
+           if (a.isSend()) {
                SSend cast = (SSend) a;
                if (cast.obj.equals(this.dst)
                        && this.cases.keySet().contains(cast.mid)) {
@@ -103,7 +103,7 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.GCHOICE;
+        int hash = GTGType.CHOICE_HASH;
         hash = 31 * hash + this.src.hashCode();
         hash = 31 * hash + this.dst.hashCode();
         hash = 31 * hash + this.cases.hashCode();

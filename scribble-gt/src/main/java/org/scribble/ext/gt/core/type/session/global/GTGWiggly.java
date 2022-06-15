@@ -32,7 +32,7 @@ public class GTGWiggly implements GTGType {
     @Override
     public Optional<GTGType> step(SAction a) {
         if (a.subj.equals(this.dst)) {
-            if (a instanceof SRecv) {
+            if (a.isReceive()) {
                 SRecv cast = (SRecv) a;
                 if (cast.obj.equals(this.src)
                         && this.cases.keySet().contains(cast.mid)) {
@@ -82,7 +82,7 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.GWIGGLY;
+        int hash = GTGType.WIGGLY_HASH;
         hash = 31 * hash + this.src.hashCode();
         hash = 31 * hash + this.dst.hashCode();
         hash = 31 * hash + this.cases.hashCode();
