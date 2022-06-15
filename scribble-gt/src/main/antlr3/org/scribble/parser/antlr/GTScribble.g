@@ -18,7 +18,7 @@
  * The exceptions are for ID/EXTID, where the text is the ID value, i.e., new CommonToken(ScribbleParser.ID, "...").
  */
 
-grammar Scribble;
+grammar GTScribble;
 
 
 options

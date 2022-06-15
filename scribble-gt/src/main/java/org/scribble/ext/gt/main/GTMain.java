@@ -5,6 +5,7 @@ import org.scribble.ast.Module;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.del.DelFactory;
+import org.scribble.ext.gt.parser.GTScribAntlrWrapper;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.parser.ScribAntlrWrapper;
@@ -35,11 +36,11 @@ public class GTMain extends Main
 		super(locator, mainpath, args);
 	}
 
-	/*@Override
+	@Override
 	protected ScribAntlrWrapper newAntlr(DelFactory df)
 	{
-		return new AssrtScribAntlrWrapper(df);
-	}*/
+		return new GTScribAntlrWrapper(df);
+	}
 	
 	/*@Override
 	protected AstFactory newAstFactory(ScribAntlrWrapper antlr)

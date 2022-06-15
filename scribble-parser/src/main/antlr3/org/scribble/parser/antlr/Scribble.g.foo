@@ -73,93 +73,93 @@ tokens
    * well for most cases.)
    * These tokens are ANTLR "imaginary tokens": they are derived by the ANTLR
    * "rewrite rules" on the actual source tokens.
-   * Imaginary tokens don't need declared "values" (the constants themselves are
-   * only accessed via fields of ScribbleParser).
+   * The specific value of these tokens aren't important (the constants are
+   * accessed via fields of ScribbleParser).
    * As a naming convention, we use a few "_" suffixes: _KW, _NAME, _LIT and
    * _LIST.
    */
 
   // Special cases
-  EMPTY_OP;
+  EMPTY_OP = '__EMPTY_OP';
 
 	// Simple names "constructed directly", e.g., t=ID -> ID<...Node>[$t] 
 
 	// Compound names
-  GPROTO_NAME;  // Parse specifically as GProto, for ScribTreeAdaptor.create
-  LPROTO_NAME;
-  MODULE_NAME;
-  DATA_NAME;   // N.B. distinct from DATAPARAM_NAME
-  SIG_NAME;   // N.B. distinct from SIGPARAM_NAME
+  GPROTO_NAME = 'GPROTO_NAME';  // Parse specifically as GProto, for ScribTreeAdaptor.create
+  LPROTO_NAME = 'LPROTO_NAME';
+  MODULE_NAME = 'MODULE_NAME';
+  DATA_NAME = 'DATA_NAME';   // N.B. distinct from DATAPARAM_NAME
+  SIG_NAME = 'SIG_NAME';   // N.B. distinct from SIGPARAM_NAME
 
 	// Sig literals
-  SIG_LIT;
-  PAYELEM_LIST;
-  UNARY_PAYELEM;
-  GDELEG_PAYELEM;
+  SIG_LIT = 'SIG_LIT';
+  PAYELEM_LIST = 'PAYELEM_LIST';
+  UNARY_PAYELEM = 'UNARY_PAYELEM';
+  GDELEG_PAYELEM = 'GDELEG_PAYELEM';
 
 	// Scribble "language" nodes, i.e., the nodes that are not "session nodes" (see below)
-  MODULE;
-  MODULEDECL;
-  IMPORTMODULE;
+  MODULE = 'MODULE';
+  MODULEDECL = 'MODULEDECL';
+  IMPORTMODULE = 'IMPORTMODULE';
 
-  DATADECL;
-  SIGDECL;
-  GPROTODECL;
-  PROTOMOD_LIST;
+  DATADECL = 'DATADECL';
+  SIGDECL = 'SIGDECL';
+  GPROTODECL = 'GPROTODECL';
+  PROTOMOD_LIST = 'PROTOMOD_LIST';
 
-  GPROTOHEADER;
-  ROLEDECL_LIST;
-  ROLEDECL;
-  PARAMDECL_LIST;
-  DATAPARAMDECL;
-  SIGPARAMDECL;
+  GPROTOHEADER = 'GPROTOHEADER';
+  ROLEDECL_LIST = 'ROLEDECL_LIST';
+  ROLEDECL = 'ROLEDECL';
+  PARAMDECL_LIST = 'PARAMDECL_LIST';
+  DATAPARAMDECL = 'DATAPARAMDECL';
+  SIGPARAMDECL = 'SIGPARAMDECL';
   
-  GPROTODEF;
-  GPROTOBLOCK;
+  GPROTODEF = 'GPROTODEF';
+  GPROTOBLOCK = 'GPROTOBLOCK';
   
  	// Scribble "session nodes" -- cf. org.scribble.core.type.session vs. org.scribble.core.lang
-  GINTERSEQ;
+  GINTERSEQ = 'GINTERSEQ';
 
-  GMSGTRANSFER;
-  GCONNECT;
-  GDCONN;  // TODO: rename GDISCONN
-  GWRAP;
+  GMSGTRANSFER = 'GMSGTRANSFER';
+  GCONNECT = 'GCONNECT';
+  GDCONN = 'GDCONN';  // TODO: rename GDISCONN
+  GWRAP = 'GWRAP';
 
-  GCONTINUE;
-  GDO;
+  GCONTINUE = 'GCONTINUE';
+  GDO = 'GDO';
 
-  ROLEARG_LIST;  // Cf. ROLEDECL
-  ROLEARG;
-  NONROLEARG_LIST;  // Cf. ...PARAMDECL
-  NONROLEARG;
+  ROLEARG_LIST = 'ROLEARG_LIST';  // Cf. ROLEDECL
+  ROLEARG = 'ROLEARG';
+  NONROLEARG_LIST = 'NONROLEARG_LIST';  // Cf. ...PARAMDECL
+  NONROLEARG = 'NONROLEARG';
 
-  GCHOICE;
-  GRECURSION;
+  GCHOICE = 'GCHOICE';
+  GRECURSION = 'GRECURSION';
 
   // Locals: currently not directly parsed, but needed for, e.g., projection
-  LPROTODECL;
+  LPROTODECL = 'LPROTODECL';
 
-  LPROTOHEADER;
-  LSELFROLEDECL;
+  LPROTOHEADER = 'LPROTOHEADER';
+  LSELFROLEDECL = 'LSELFROLEDECL';
   
-  LPROTODEF;
-  LPROTOBLOCK;
+  LPROTODEF = 'LPROTODEF';
+  LPROTOBLOCK = 'LPROTOBLOCK';
   
-  LINTERSEQ;
+  LINTERSEQ = 'LINTERSEQ';
 
-  LSEND;
-  LRECV;
-  LACC;
-  LREQ;
-  LDCONN;
-  LCLIENTWRAP;
-  LSERVERWRAP;
+  LSEND = 'LSEND';
+  LRECV = 'LRECV';
+  LACC = 'LACC';
+  LREQ = 'LREQ';
+  LDCONN = 'LDCONN';
+  LCLIENTWRAP = 'LCLIENTWRAP';
+  LSERVERWRAP = 'LSERVERWRAP';
 
-  LCONTINUE;
-  LDO;
+  LCONTINUE = 'LCONTINUE';
+  LDO = 'LDO';
 
-  LCHOICE;
-  LRECURSION;
+  LCHOICE = 'LCHOICE';
+  LRECURSION = 'LRECURSION';
 }
 
 
@@ -189,14 +189,14 @@ tokens
   import org.scribble.ast.NonRoleArg;
   import org.scribble.ast.ScribNodeBase;
   import org.scribble.ast.UnaryPayElem;
-  import org.scribble.ast.name.qualified.DataNameNode;
   import org.scribble.ast.name.simple.AmbigNameNode;
-  import org.scribble.ast.name.simple.DataParamNode;
   import org.scribble.ast.name.simple.IdNode;
   import org.scribble.ast.name.simple.OpNode;
   import org.scribble.ast.name.simple.RecVarNode;
   import org.scribble.ast.name.simple.RoleNode;
   import org.scribble.ast.name.simple.SigParamNode;
+  import org.scribble.ast.name.simple.DataParamNode;
+  import org.scribble.ast.name.qualified.DataNameNode;
 }
 
 
@@ -239,7 +239,6 @@ WHITESPACE:
 		$channel = HIDDEN;
 	}
 ;
-
 
 /**
  * Section 2.2 Comments
@@ -322,17 +321,17 @@ sigparamname: t=ID -> ID<SigParamNode>[$t] ;
  * Section 3.2.1 Package, Module and Module Member Names
  */
 // May be compound or simple
-gprotoname: t=ID ('.' ID)* -> ^(GPROTO_NAME ID+) ;
-modulename: t=ID ('.' ID)* -> ^(MODULE_NAME ID+) ;
+gprotoname: t=ID ('.' ID)* -> ^(GPROTO_NAME[$t] ID+) ;
+modulename: t=ID ('.' ID)* -> ^(MODULE_NAME[$t] ID+) ;
 
 // Compound only (cf., e.g., gprotoname; cf. simpledataname)
-qualifieddataname: t=ID '.' ID ('.' ID)* -> ^(DATA_NAME ID+) ;
+qualifieddataname: t=ID '.' ID ('.' ID)* -> ^(DATA_NAME[$t] ID+) ;
 
 // Cf. primitive names, above
-simpledataname: t=ID -> ^(DATA_NAME ID) ;
-simplegprotoname: t=ID -> ^(GPROTO_NAME ID) ;
-simplemodulename: t=ID -> ^(MODULE_NAME ID) ;
-simplesigname: t=ID -> ^(SIG_NAME ID) ;
+simpledataname: t=ID -> ^(DATA_NAME[$t] ID) ;
+simplegprotoname: t=ID -> ^(GPROTO_NAME[$t] ID) ;
+simplemodulename: t=ID -> ^(MODULE_NAME[$t] ID) ;
+simplesigname: t=ID -> ^(SIG_NAME[$t] ID) ;
 
 
 /**
@@ -344,7 +343,7 @@ simplesigname: t=ID -> ^(SIG_NAME ID) ;
 module:
 	t=MODULE_KW modulename ';' importmodule* nonprotodecl* protodecl* EOF
 ->
-	^(MODULE ^(MODULEDECL modulename) importmodule* nonprotodecl*
+	^(MODULE[$t] ^(MODULEDECL[$t] modulename) importmodule* nonprotodecl*
 	protodecl*)
 ;
 // moduledecl: MODULE_KW<ModuleDecl>^ modulename ';'  
@@ -355,9 +354,9 @@ module:
  * Section 3.3 Import Declarations
  */
 importmodule:
-	IMPORT_KW modulename (AS_KW alias=simplemodulename)? ';'
+	t=IMPORT_KW modulename (AS_KW alias=simplemodulename)? ';'
 ->
-	^(IMPORTMODULE modulename $alias?)
+	^(IMPORTMODULE[$t] modulename $alias?)
 ;
 
 
@@ -369,26 +368,26 @@ nonprotodecl:
 
 datadecl:
 	// Deprecate TYPE_KW ?
-	TYPE_KW '<' schema=ID '>' extName=EXTID FROM_KW
+	t=TYPE_KW '<' schema=ID '>' extName=EXTID FROM_KW
 	extSource=EXTID AS_KW alias=simpledataname ';'
 ->
 	// alias first to be uniform with other NameDeclNode (getRawNameNodeChild)
-	^(DATADECL $alias $schema $extName $extSource)
+	^(DATADECL[$t] $alias $schema $extName $extSource)
 |
 	// CHECKME: duplicated above, because t=(TYPE_KW | DATA_KW) *sometimes* causes null token NPEs... 
-	DATA_KW '<' schema=ID '>' extName=EXTID FROM_KW
+	t=DATA_KW '<' schema=ID '>' extName=EXTID FROM_KW
 	extSource=EXTID AS_KW alias=simpledataname ';'
 ->
 	// alias first to be uniform with other NameDeclNode (getRawNameNodeChild)
-	^(DATADECL $alias $schema $extName $extSource)
+	^(DATADECL[$t] $alias $schema $extName $extSource)
 ;
 
 sigdecl:
-	SIG_KW '<' schema=ID '>' extName=EXTID FROM_KW extSource=EXTID AS_KW
+	t=SIG_KW '<' schema=ID '>' extName=EXTID FROM_KW extSource=EXTID AS_KW
 	alias=simplesigname ';'
 ->
 	// alias first to be uniform with other NameDeclNode (getRawNameNodeChild)
-	^(SIGDECL $alias $schema $extName $extSource)
+	^(SIGDECL[$t] $alias $schema $extName $extSource)
 ;
 
 
@@ -406,7 +405,6 @@ payelems:
 	payelem (',' payelem)* -> ^(PAYELEM_LIST payelem+)
 ;
 	
-// {parsePayloadElem($qualifiedname.tree)}  // Use ".text" instead of ".tree" for token String 
 payelem:
 	// Payload element must be a data kind, cannot be a sig name
 	// Qualified name must be a data type name
@@ -417,14 +415,16 @@ payelem:
 |
 	qualifieddataname -> ^(UNARY_PAYELEM qualifieddataname)	
 ;
+//	{ parsePayloadElem($qualifiedname.tree) }  // Use ".text" instead of ".tree" for token String 
 	
+
+
 
 /**
  * Section 3.6 Protocol Declarations
  */
 protodecl:
-	gprotodecl
-;
+	gprotodecl ;
 
 
 /**
@@ -438,45 +438,42 @@ gprotodecl:
   
 // "aux" must come before "explicit"
 protomods:
-                     -> ^(PROTOMOD_LIST)
-| AUX_KW             -> ^(PROTOMOD_LIST AUX_KW)
-| AUX_KW EXPLICIT_KW -> ^(PROTOMOD_LIST AUX_KW EXPLICIT_KW)
-| EXPLICIT_KW        -> ^(PROTOMOD_LIST EXPLICIT_KW)
+                       -> ^(PROTOMOD_LIST)
+| t=AUX_KW             -> ^(PROTOMOD_LIST[$t] AUX_KW)
+| t=AUX_KW EXPLICIT_KW -> ^(PROTOMOD_LIST[$t] AUX_KW EXPLICIT_KW)
+| t=EXPLICIT_KW        -> ^(PROTOMOD_LIST[$t] EXPLICIT_KW)
 ;
 
-// N.B. intermed translation uses full proto name
 gprotoheader:
-	GLOBAL_KW PROTOCOL_KW simplegprotoname paramdecls roledecls
+	t=GLOBAL_KW PROTOCOL_KW simplegprotoname paramdecls roledecls
 ->
-	^(GPROTOHEADER simplegprotoname paramdecls roledecls)
+	^(GPROTOHEADER[$t] simplegprotoname paramdecls roledecls)
 ;
+// N.B. intermed translation uses full proto name
 
 roledecls: 
-	'(' roledecl (',' roledecl)* ')' -> ^(ROLEDECL_LIST roledecl+)
-;
+	t='(' roledecl (',' roledecl)* ')' -> ^(ROLEDECL_LIST[$t] roledecl+) ;
 
 roledecl:
-	ROLE_KW rolename -> ^(ROLEDECL rolename)
-;
+	t=ROLE_KW rolename -> ^(ROLEDECL[$t] rolename) ;
 
 paramdecls:
 	-> ^(PARAMDECL_LIST)
 |
-	'<' (paramdecl (',' paramdecl)*)? '>' -> ^(PARAMDECL_LIST paramdecl*)
+	t='<' (paramdecl (',' paramdecl)*)? '>' -> ^(PARAMDECL_LIST[$t] paramdecl*)
 ;
 
 paramdecl: dataparamdecl | sigparamdecl ;
 
 dataparamdecl: 
-	TYPE_KW dataparamname -> ^(DATAPARAMDECL dataparamname)
+	t=TYPE_KW dataparamname -> ^(DATAPARAMDECL[$t] dataparamname)
 |
-	DATA_KW dataparamname -> ^(DATAPARAMDECL dataparamname)
+	t=DATA_KW dataparamname -> ^(DATAPARAMDECL[$t] dataparamname)
 			// TODO: refactor -- cf. datadecl
 ;
 
 sigparamdecl:  
-	SIG_KW sigparamname -> ^(SIGPARAMDECL sigparamname)
-;
+	t=SIG_KW sigparamname -> ^(SIGPARAMDECL[$t] sigparamname) ;
 
 
 /**
@@ -487,29 +484,28 @@ gprotodef:
 
 
 /**
- * Section 3.7.3 Global Interaction Blocks and Sequences
+ * Section 3.7.3 Global Interaction Sequences and Blocks
  */
 gprotoblock:
-	'{' gseq '}' -> ^(GPROTOBLOCK gseq)
+	t='{' gseq '}' -> ^(GPROTOBLOCK[$t] gseq)
 ;
 
 gseq:
 	ginteraction* -> ^(GINTERSEQ ginteraction*)
 ;
 
-
 ginteraction:
 	// Simple session node: directed interaction
-	gconnect | gmsgtransfer
-|
+  gconnect | gmsgtransfer
+
 	// Simple session node: basic interaction
-	gwrap | gdisconnect 
-|
-	// Simple session node: other
-	gcontinue | gdo 
-|
+	| gwrap | gdisconnect 
+
+	// Simple session node (other)
+	| gcontinue | gdo 
+
 	// Compound session node
-	gchoice | grecursion
+	| gchoice | grecursion
 ; 
 
 
@@ -520,11 +516,11 @@ message:
 	siglit | ambigname  // ambigname = sig name or sig param name
 ;  
 
-// TODO: qualified (sig)names -- although qualified signame subsumes param name case
+// TODO: qualified (messagesig) names -- although qualified signame subsumes parametername case
 gmsgtransfer:
 	message FROM_KW rolename TO_KW rolename (',' rolename )* ';'
 ->
-	^(GMSGTRANSFER message rolename rolename+)
+	^(GMSGTRANSFER message rolename+)
 ;
 // TODO: multisend
 
@@ -533,22 +529,22 @@ gconnect:
 ->
 	^(GCONNECT message rolename rolename)
 |
-	CONNECT_KW rolename TO_KW rolename ';'
+	t=CONNECT_KW rolename TO_KW rolename ';'
 ->
-	^(GCONNECT ^(SIG_LIT ^(EMPTY_OP) ^(PAYELEM_LIST)) rolename rolename)
+	^(GCONNECT[$t] ^(SIG_LIT ^(EMPTY_OP) ^(PAYELEM_LIST)) rolename rolename)
       // CHECKME: deprecate? i.e., require "()" as for message transfers?  i.e., simply delete this rule?
 ;
 
 gdisconnect:
-	DISCONNECT_KW rolename AND_KW rolename ';'
+	t=DISCONNECT_KW rolename AND_KW rolename ';'
 ->
-	^(GDCONN rolename rolename)
+	^(GDCONN[$t] rolename rolename)
 ;
 
 gwrap:
-	WRAP_KW rolename TO_KW rolename ';'
+	t=WRAP_KW rolename TO_KW rolename ';'
 ->
-	^(GWRAP rolename rolename)
+	^(GWRAP[$t] rolename rolename)
 ;
 
 
@@ -556,9 +552,9 @@ gwrap:
  * Section 3.7.5 Global Choice
  */
 gchoice:
-	CHOICE_KW AT_KW rolename gprotoblock (OR_KW gprotoblock)*
+	t=CHOICE_KW AT_KW rolename gprotoblock (OR_KW gprotoblock)*
 ->
-	^(GCHOICE rolename gprotoblock+)
+	^(GCHOICE[$t] rolename gprotoblock+)
 ;
 
 
@@ -566,15 +562,15 @@ gchoice:
  * Section 3.7.6 Global Recursion
  */
 grecursion:
-	REC_KW recvarname gprotoblock
+	t=REC_KW recvarname gprotoblock
 ->
-	^(GRECURSION recvarname gprotoblock)
+	^(GRECURSION[$t] recvarname gprotoblock)
 ;
 
 gcontinue:
-	CONTINUE_KW recvarname ';'
+	t=CONTINUE_KW recvarname ';'
 ->
-	^(GCONTINUE recvarname)
+	^(GCONTINUE[$t] recvarname)
 ;
 
 
@@ -588,7 +584,7 @@ gdo:
 ;
 
 roleargs:
-	'(' rolearg (',' rolearg)* ')' -> ^(ROLEARG_LIST rolearg+)
+	t='(' rolearg (',' rolearg)* ')' -> ^(ROLEARG_LIST[$t] rolearg+)
 ;
 
 rolearg:
@@ -597,11 +593,10 @@ rolearg:
 nonroleargs:
 	-> ^(NONROLEARG_LIST)
 |
-	'<' (nonrolearg (',' nonrolearg)*)? '>' -> ^(NONROLEARG_LIST nonrolearg*)
+	t='<' (nonrolearg (',' nonrolearg)*)? '>' -> ^(NONROLEARG_LIST[$t] nonrolearg*)
 ;
 
 // Grammatically same as message, but qualifiedname case may also be a payload type
-// {parseNonRoleArg($qualifiedname.tree)}  // Like payelem, simple names need disambiguation
 nonrolearg:
 	siglit -> ^(NONROLEARG siglit)
 |
@@ -609,6 +604,7 @@ nonrolearg:
 |
 	qualifieddataname -> ^(NONROLEARG qualifieddataname)  // FIXME: sig name -- need an ambig qualified name
 ;
+//	{ parseNonRoleArg($qualifiedname.tree) }  // Like payelem, simple names need disambiguation
 
 
 
