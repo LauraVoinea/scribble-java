@@ -8,14 +8,27 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+//
+// fundamental essence of MPST handlers?  here: actors vs. processes?
+//      handler per session per actor, cf. ED-process handler for all sessions
+//      => `become` -- how about progress? -- what is aim of `become`?
+// alternative: multi-session actor handlers?
+//
+
+//HERE
+//- if-else
+//- configs and config exec
+//- newAP/spawn/register
+
 public class EAPHandlers implements EAPVal {
 
     @NotNull public final Role role;
-    @NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;
+    //@NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;  // !!! var is part of value, not key
+    @NotNull public final Map<Op, Pair<EAPVar, EAPExpr>> Hs;
 
     protected EAPHandlers(
             @NotNull Role role,
-            @NotNull LinkedHashMap<Pair<Op, EAPVar>, EAPExpr> Hbar) {
+            @NotNull LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hbar) {
         this.role = role;
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -26,23 +39,24 @@ public class EAPHandlers implements EAPVal {
 
     @Override
     public EAPHandlers subs(@NotNull Map<EAPVar, EAPVal> m) {
-        LinkedHashMap<Pair<Op, EAPVar>, EAPExpr> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Pair<Op, EAPVar>, EAPExpr> e : this.Hs.entrySet()) {
+        LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, Pair<EAPVar, EAPExpr>> e : this.Hs.entrySet()) {
             Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
-            Pair<Op, EAPVar> k = e.getKey();
-            m1.remove(k.right);
-            Hs.put(e.getKey(), e.getValue().subs(m1));
+            Op k = e.getKey();
+            Pair<EAPVar, EAPExpr> v = e.getValue();
+            m1.remove(v.left);
+            Hs.put(k, new Pair<EAPVar, EAPExpr>(v.left, v.right.subs(m1)));
         }
         return EAPFactory.factory.handlers(this.role, Hs);
     }
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> bound = this.Hs.keySet().stream().map(x -> x.right)
-                .collect(Collectors.toSet());
-        Set<EAPVar> res = this.Hs.values().stream()
-                .flatMap(x -> x.getFreeVars().stream()).collect(Collectors.toSet());
-        res.removeAll(bound);
+        Set<EAPVar> res = this.Hs.values().stream().flatMap(x -> {
+            Set<EAPVar> fvs = x.right.getFreeVars();
+            fvs.remove(x.left);
+            return fvs.stream();
+        }).collect(Collectors.toSet());
         return res;
     }
 
@@ -55,8 +69,8 @@ public class EAPHandlers implements EAPVal {
                 + " }";
     }
 
-    private static String handlerToString(Pair<Op, EAPVar> k, EAPExpr e) {
-        return k.left + "(" + k.right + ") |-> " + e;
+    private static String handlerToString(Op k, Pair<EAPVar, EAPExpr> e) {
+        return k + "(" + e.left + ") |-> " + e.right;
     }
 
     /* equals/canEquals, hashCode */

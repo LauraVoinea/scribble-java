@@ -2,9 +2,16 @@ package org.scribble.ext.ea.cli;
 
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
-import org.scribble.ext.ea.core.process.EAPPid;
-import org.scribble.ext.ea.core.process.EAPVar;
+import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.config.*;
+import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.AntlrSourceException;
+import org.scribble.util.Pair;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 // Includes assrt-core functionality (all extra args are currently for assrt-core)
 public class EACommandLine extends CommandLine
@@ -17,10 +24,55 @@ public class EACommandLine extends CommandLine
 	public static void main(String[] args)
 			throws CommandLineException, AntlrSourceException
 	{
+		/*%%   p (+) { l1(A) -> p & { ... }, l2(B) -> p (+) { l3(C) -> End } }
+%%   let () <=
+%%       if rand () then
+%%           p ! l1(V);
+%%           suspend h1 -- p (+) { l3(C) -> End }
+%%       else
+%%           p ! l2(W) -- p (+) { l3(C) -> End }
+%%   in
+%%   -- p (+) { l3(C) -> End }
+%%   print("still alive")*/
 
-		System.out.println(new EAPVar("abc").hashCode());
-		System.out.println(new EAPVar("abc").hashCode());
-		System.out.println(new EAPPid("abc").hashCode());
+		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+		EAPFactory f = EAPFactory.factory;
+
+		Role A = new Role("A");
+		Role B = new Role("B");
+		Op l1 = new Op("l1");
+		EAPUnit unit = f.unit();
+		EAPSid s = rf.sid("s");
+		EAPPid p1 = rf.pid("p1");
+		EAPPid p2 = rf.pid("p2");
+
+		EAPSend sendAB = f.send(B, l1, unit);
+		EAPActiveThread tA = rf.activeThread(sendAB, s, A);
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+		EAPConfig cA = rf.config(p1, tA, sigmaA);
+
+		LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs = new LinkedHashMap<>();
+		EAPVar x = f.var("x");
+		EAPReturn ret = f.returnn(unit);
+		Hs.put(l1, new EAPPair<EAPVar, EAPExpr>(x, ret));
+		EAPHandlers hB = f.handlers(B, Hs);
+		EAPIdle idle = rf.idle();
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+		sigmaB.put(new EAPPair<>(s, B), hB);
+		EAPConfig cB = rf.config(p2, idle, sigmaB);
+
+		System.out.println(cA);
+		System.out.println();
+		System.out.println(cB);
+
+		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+		cs.put(p1, cA);
+		cs.put(p2, cB);
+		EAPSystem sys = rf.system(cs);
+
+		sys = sys.reduce(p1);
+
+		System.out.println(sys);
 
 		//new EACommandLine(args).run();
 	}

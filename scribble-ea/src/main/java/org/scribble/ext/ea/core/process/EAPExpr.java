@@ -1,5 +1,7 @@
 package org.scribble.ext.ea.core.process;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -7,10 +9,14 @@ import java.util.Set;
 public interface EAPExpr extends EAPTerm {
 
     boolean canBeta();
-    EAPExpr beta();
+    EAPExpr beta();  // !!! CHECKME deterministic
 
-    EAPExpr subs(Map<EAPVar, EAPVal> m);
+    EAPExpr subs(@NotNull Map<EAPVar, EAPVal> m);
+    EAPExpr recon(@NotNull EAPExpr old, @NotNull EAPExpr neww);
 
     Set<EAPVar> getFreeVars();
+    boolean isGround();
+
+    EAPExpr getFoo();  // deterministic
 }
 

@@ -17,25 +17,21 @@ public class EAPFactory {
 
     public EAPHandlers handlers(
             @NotNull Role role,
-            @NotNull LinkedHashMap<Pair<Op, EAPVar>, EAPExpr> Hs) {
+            @NotNull LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs) {
         return new EAPHandlers(role, Hs);
     }
 
     //public EAPLet let(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-        public EAPLet let(@NotNull EAPVar var, @NotNull EAPVal init, @NotNull EAPExpr body) {
+        public EAPLet let(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
         return new EAPLet(var, init, body);
-    }
-
-    public EAPPid pid(@NotNull String id) {
-        return new EAPPid(id);
     }
 
     public EAPReturn returnn(@NotNull EAPVal val) {
         return new EAPReturn(val);
     }
 
-    public EAPSend send(@NotNull EAPVal val) {
-        return new EAPSend(val);
+    public EAPSend send(@NotNull Role dst, @NotNull Op op, @NotNull EAPVal val) {
+        return new EAPSend(dst, op, val);
     }
 
     public EAPSuspend suspend(@NotNull EAPVal val) {

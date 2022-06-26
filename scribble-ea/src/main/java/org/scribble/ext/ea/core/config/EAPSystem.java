@@ -1,0 +1,109 @@
+package org.scribble.ext.ea.core.config;
+
+import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class EAPSystem {
+
+    protected LinkedHashMap<EAPPid, EAPConfig> configs;
+
+    public EAPSystem(LinkedHashMap<EAPPid, EAPConfig> configs) {
+        this.configs = configs.entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new));
+    }
+
+    public Set<Pair<EAPPid, EAPExpr>> getReady() {
+        // Includes sends, but not matching receives
+        Set<Pair<EAPPid, EAPExpr>> collect = this.configs.entrySet().stream().filter(x -> x.getValue().isActive())
+                .map(x -> new EAPPair<>(x.getKey(), ((EAPActiveThread) x.getValue().T).expr.getFoo()))
+                .filter(x -> !(x.right instanceof EAPSend) || !this.configs.get(((EAPSend) x.right).dst).isActive())  // dst is idle...
+                .collect(Collectors.toSet());
+        /*Set<Pair<Role, EAPExpr>> res = new HashSet<>();
+        for (Pair<Role, EAPExpr> p : collect) {
+            if (p.right instanceof EAPSend) {
+                EAPSend cast = (EAPSend) p.right;
+                if (!this.configs.get(cast.dst).isActive()) {  // Idle...
+                    res.add(p);
+                }
+            } else {
+                res.add(p);
+            }
+        }*/
+        return collect;
+    }
+
+    public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
+        EAPConfig c = this.configs.get(p);
+        if (!c.isActive()) {
+            throw new RuntimeException("Stuck: " + p + " " + c);
+        }
+        EAPActiveThread t = (EAPActiveThread) c.T;
+        if (!t.expr.isGround()) {
+            throw new RuntimeException("Stuck: " + p + " " + c);
+        }
+        EAPExpr e = t.expr.getFoo();
+        if (!(e instanceof EAPSuspend || e instanceof EAPReturn || e instanceof EAPSend)) {
+            throw new RuntimeException("TODO: " + e);
+        }
+
+        EAPSystem res = new EAPSystem(this.configs);
+
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
+        if (e instanceof EAPSuspend) {
+            EAPSuspend cast = (EAPSuspend) e;
+            sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
+        } else if (e instanceof EAPSend || e instanceof EAPReturn) {
+            // skip
+        } else {
+            throw new RuntimeException("TODO: " + e);
+        }
+
+        EAPThreadState t1;
+        if (e instanceof EAPSend) {
+            t1 = EAPRuntimeFactory.factory.activeThread(
+                    t.expr.recon(e, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
+            EAPSend cast = (EAPSend) e;
+
+            Optional<Map.Entry<EAPPid, EAPConfig>> fst =
+                    this.configs.entrySet().stream().filter(x ->
+                            x.getValue().sigma.keySet().stream().anyMatch(y ->
+                                    y.left.equals(t.sid) && y.right.equals(cast.dst))
+                    ).findFirst();
+            if (fst.isEmpty()) {
+                throw new RuntimeException("FIXME");  // EAPExpr.getFoo broken
+            }
+            Map.Entry<EAPPid, EAPConfig> get = fst.get();
+            EAPPid p2 = get.getKey();
+            EAPConfig c2 = get.getValue();
+            Map<Pair<EAPSid, Role>, EAPHandlers> sigma2 = c2.sigma;
+            Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
+            Pair<EAPVar, EAPExpr> vh =
+                    sigma2.get(k2).Hs.get(cast.op);
+            EAPExpr e2 = vh.right.subs(Map.of(vh.left, cast.val));
+            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
+                    new LinkedHashMap<>(c2.sigma);
+            newsigma2.remove(k2);
+            EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, t.role);
+            res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+        } else if (e instanceof EAPSuspend || e instanceof  EAPReturn) {
+            t1 = EAPIdle.IDLE;
+        } else {
+            throw new RuntimeException("TODO: " + e);
+        }
+
+        EAPConfig c1 = EAPRuntimeFactory.factory.config(c.pid, t1, sigma1);
+        res.configs.put(p, c1);
+        return res;
+    }
+
+    @Override
+    public String toString() {
+        return this.configs.toString();
+    }
+}

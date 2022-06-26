@@ -33,8 +33,23 @@ public class EAPSuspend implements EAPExpr {
     }
 
     @Override
+    public EAPSuspend recon(@NotNull EAPExpr old, EAPExpr neww) {
+        return this;
+    }
+
+    @Override
     public Set<EAPVar> getFreeVars() {
         return this.val.getFreeVars();
+    }
+
+    @Override
+    public boolean isGround() {
+        return this.val.isGround();
+    }
+
+    @Override
+    public EAPExpr getFoo() {
+        return this;
     }
 
     @Override

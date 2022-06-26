@@ -1,6 +1,9 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.process.EAPTerm;
+import org.scribble.ext.ea.core.process.EAPVal;
+import org.scribble.ext.ea.core.process.EAPVar;
 
 import java.util.Collections;
 import java.util.Map;
@@ -49,7 +52,7 @@ public class EAPPid implements EAPVal {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.NAME;
+        int hash = EAPRuntimeTerm.PROCESS_ID;
         hash = 31 * hash + this.id.hashCode();
         return hash;
     }

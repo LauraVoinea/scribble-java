@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Set;
 
+// !!! encodable using suspend? apart from "GC" flavour
 public class EAPReturn implements EAPExpr {
 
     @NotNull
@@ -33,8 +34,23 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
+    public EAPReturn recon(@NotNull EAPExpr old, EAPExpr neww) {
+        return this;
+    }
+
+    @Override
     public Set<EAPVar> getFreeVars() {
         return this.val.getFreeVars();
+    }
+
+    @Override
+    public boolean isGround() {
+        return this.val.isGround();
+    }
+
+    @Override
+    public EAPExpr getFoo() {
+        return this;
     }
 
     @Override
