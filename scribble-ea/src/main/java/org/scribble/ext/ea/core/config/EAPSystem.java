@@ -89,7 +89,7 @@ public class EAPSystem {
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
                     new LinkedHashMap<>(c2.sigma);
             newsigma2.remove(k2);
-            EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, t.role);
+            EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
             res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
         } else if (foo instanceof EAPSuspend || foo instanceof EAPReturn) {
             if (t.expr.equals(foo)) {  // top level

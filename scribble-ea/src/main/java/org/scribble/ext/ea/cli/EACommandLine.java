@@ -38,8 +38,8 @@ public class EACommandLine extends CommandLine
 		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
 		EAPFactory f = EAPFactory.factory;
 
-		//ex1(rf, f);
-		ex2(rf, f);
+		ex1(rf, f);
+		//ex2(rf, f);
 
 		//new EACommandLine(args).run();
 	}
@@ -66,12 +66,13 @@ public class EACommandLine extends CommandLine
 
 		LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs = new LinkedHashMap<>();
 		EAPIdle idle = rf.idle();
-		Hs.put(l2, new EAPPair<EAPVar, EAPExpr>(x, f.returnn(f.unit())));
+		EAPReturn ret = f.returnn(f.unit());
+		Hs.put(l2, new EAPPair<EAPVar, EAPExpr>(x, ret));
 		EAPHandlers hB2 = f.handlers(B, Hs);
 
 		Hs = new LinkedHashMap<>();
-		EAPReturn ret = f.returnn(hB2);  // XXX register
-		Hs.put(l1, new EAPPair<EAPVar, EAPExpr>(x, ret));
+		EAPSuspend sus = f.suspend(hB2);  // XXX suspend
+		Hs.put(l1, new EAPPair<EAPVar, EAPExpr>(x, sus));
 		EAPHandlers hB1 = f.handlers(B, Hs);
 
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
@@ -98,6 +99,17 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		System.out.println(sys);
 
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+
+		sys = sys.reduce(p2);
+		System.out.println();
+		System.out.println(sys);
 	}
 
 	private static void ex1(EAPRuntimeFactory rf, EAPFactory f) {
