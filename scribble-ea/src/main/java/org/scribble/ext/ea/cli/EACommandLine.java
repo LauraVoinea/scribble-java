@@ -65,12 +65,17 @@ public class EACommandLine extends CommandLine
 		EAPConfig cA = rf.config(p1, tA, sigmaA);
 
 		LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs = new LinkedHashMap<>();
-		EAPReturn ret = f.returnn(unit);
-		Hs.put(l1, new EAPPair<EAPVar, EAPExpr>(x, ret));
-		EAPHandlers hB = f.handlers(B, Hs);
 		EAPIdle idle = rf.idle();
+		Hs.put(l2, new EAPPair<EAPVar, EAPExpr>(x, f.returnn(f.unit())));
+		EAPHandlers hB2 = f.handlers(B, Hs);
+
+		Hs = new LinkedHashMap<>();
+		EAPReturn ret = f.returnn(hB2);  // XXX register
+		Hs.put(l1, new EAPPair<EAPVar, EAPExpr>(x, ret));
+		EAPHandlers hB1 = f.handlers(B, Hs);
+
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		sigmaB.put(new EAPPair<>(s, B), hB);
+		sigmaB.put(new EAPPair<>(s, B), hB1);
 		EAPConfig cB = rf.config(p2, idle, sigmaB);
 
 		System.out.println(cA);
@@ -86,6 +91,10 @@ public class EACommandLine extends CommandLine
 		System.out.println(sys);
 
 		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+
+		sys = sys.reduce(p2);
 		System.out.println();
 		System.out.println(sys);
 
