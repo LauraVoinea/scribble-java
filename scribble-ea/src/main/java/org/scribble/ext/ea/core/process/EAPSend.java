@@ -21,12 +21,13 @@ public class EAPSend implements EAPExpr {
 
     @Override
     public boolean canBeta() {
-        return false;
+        return true;
     }
 
     @Override
     public EAPExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
+        //throw new RuntimeException("Stuck: " + this);
+        return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
 
     /* Aux */
@@ -59,7 +60,7 @@ public class EAPSend implements EAPExpr {
 
     @Override
     public String toString() {
-        return "send " + this.val;
+        return "send " + this.dst + "!" + this.op + "(" + this.val + ")";
     }
 
     /* equals/canEquals, hashCode */

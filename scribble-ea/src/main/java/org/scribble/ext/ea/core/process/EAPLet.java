@@ -22,7 +22,7 @@ public class EAPLet implements EAPExpr {
 
     @Override
     public boolean canBeta() {
-        return this.init.isGround();
+        return this.init.canBeta() || (this.init instanceof EAPReturn && this.init.isGround());  // FIXME: refact Return.canBeta
     }
 
     @Override
@@ -30,7 +30,11 @@ public class EAPLet implements EAPExpr {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
-        return this.body.subs(Map.of(this.var, (EAPVal) this.init));
+        if (this.init.canBeta()) {
+            return EAPFactory.factory.let(this.var, this.init.beta(), this.body);
+        } else {  // this.init instanceof EAPReturn && this.init.isGround()
+            return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
+        }
     }
 
     /* Aux */

@@ -12,7 +12,7 @@ public interface EAPExpr extends EAPTerm {
     EAPExpr beta();  // !!! CHECKME deterministic
 
     EAPExpr subs(@NotNull Map<EAPVar, EAPVal> m);
-    EAPExpr recon(@NotNull EAPExpr old, @NotNull EAPExpr neww);
+    EAPExpr recon(@NotNull EAPExpr old, @NotNull EAPExpr neww);  // A subs for Expr (cf. Val)
 
     Set<EAPVar> getFreeVars();
     boolean isGround();

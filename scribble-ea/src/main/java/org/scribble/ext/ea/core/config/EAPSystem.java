@@ -47,28 +47,28 @@ public class EAPSystem {
         if (!t.expr.isGround()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
-        EAPExpr e = t.expr.getFoo();
-        if (!(e instanceof EAPSuspend || e instanceof EAPReturn || e instanceof EAPSend)) {
-            throw new RuntimeException("TODO: " + e);
+        EAPExpr foo = t.expr.getFoo();
+        if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn || foo instanceof EAPSend)) {
+            throw new RuntimeException("TODO: " + foo);
         }
 
         EAPSystem res = new EAPSystem(this.configs);
 
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
-        if (e instanceof EAPSuspend) {
-            EAPSuspend cast = (EAPSuspend) e;
+        if (foo instanceof EAPSuspend) {
+            EAPSuspend cast = (EAPSuspend) foo;
             sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
-        } else if (e instanceof EAPSend || e instanceof EAPReturn) {
+        } else if (foo instanceof EAPSend || foo instanceof EAPReturn) {
             // skip
         } else {
-            throw new RuntimeException("TODO: " + e);
+            throw new RuntimeException("TODO: " + foo);
         }
 
         EAPThreadState t1;
-        if (e instanceof EAPSend) {
-            t1 = EAPRuntimeFactory.factory.activeThread(
-                    t.expr.recon(e, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            EAPSend cast = (EAPSend) e;
+        if (foo instanceof EAPSend) {
+            //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
+            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+            EAPSend cast = (EAPSend) foo;
 
             Optional<Map.Entry<EAPPid, EAPConfig>> fst =
                     this.configs.entrySet().stream().filter(x ->
@@ -91,10 +91,14 @@ public class EAPSystem {
             newsigma2.remove(k2);
             EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, t.role);
             res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
-        } else if (e instanceof EAPSuspend || e instanceof  EAPReturn) {
-            t1 = EAPIdle.IDLE;
+        } else if (foo instanceof EAPSuspend || foo instanceof EAPReturn) {
+            if (t.expr.equals(foo)) {  // top level
+                t1 = EAPIdle.IDLE;
+            } else {
+                t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+            }
         } else {
-            throw new RuntimeException("TODO: " + e);
+            throw new RuntimeException("TODO: " + foo);
         }
 
         EAPConfig c1 = EAPRuntimeFactory.factory.config(c.pid, t1, sigma1);

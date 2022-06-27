@@ -38,6 +38,60 @@ public class EACommandLine extends CommandLine
 		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
 		EAPFactory f = EAPFactory.factory;
 
+		//ex1(rf, f);
+		ex2(rf, f);
+
+		//new EACommandLine(args).run();
+	}
+
+	private static void ex2(EAPRuntimeFactory rf, EAPFactory f) {
+		Role A = new Role("A");
+		Role B = new Role("B");
+		Op l1 = new Op("l1");
+		Op l2 = new Op("l2");
+		EAPUnit unit = f.unit();
+		EAPSid s = rf.sid("s");
+		EAPPid p1 = rf.pid("p1");
+		EAPPid p2 = rf.pid("p2");
+		EAPVar x = f.var("x");
+
+		EAPSend sendAB1 = f.send(B, l1, unit);
+		EAPSend sendAB2 = f.send(B, l2, unit);
+
+		EAPLet let = f.let(x, sendAB1, sendAB2);
+
+		EAPActiveThread tA = rf.activeThread(let, s, A);
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+		EAPConfig cA = rf.config(p1, tA, sigmaA);
+
+		LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs = new LinkedHashMap<>();
+		EAPReturn ret = f.returnn(unit);
+		Hs.put(l1, new EAPPair<EAPVar, EAPExpr>(x, ret));
+		EAPHandlers hB = f.handlers(B, Hs);
+		EAPIdle idle = rf.idle();
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+		sigmaB.put(new EAPPair<>(s, B), hB);
+		EAPConfig cB = rf.config(p2, idle, sigmaB);
+
+		System.out.println(cA);
+		System.out.println(cB);
+
+		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+		cs.put(p1, cA);
+		cs.put(p2, cB);
+		EAPSystem sys = rf.system(cs);
+
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+
+	}
+
+	private static void ex1(EAPRuntimeFactory rf, EAPFactory f) {
 		Role A = new Role("A");
 		Role B = new Role("B");
 		Op l1 = new Op("l1");
@@ -62,7 +116,6 @@ public class EACommandLine extends CommandLine
 		EAPConfig cB = rf.config(p2, idle, sigmaB);
 
 		System.out.println(cA);
-		System.out.println();
 		System.out.println(cB);
 
 		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
@@ -71,11 +124,46 @@ public class EACommandLine extends CommandLine
 		EAPSystem sys = rf.system(cs);
 
 		sys = sys.reduce(p1);
-
+		System.out.println();
 		System.out.println(sys);
 
-		//new EACommandLine(args).run();
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+
+		sys = sys.reduce(p2);
+		System.out.println();
+		System.out.println(sys);
+
+		/*sys = sys.reduce(p2);
+		System.out.println();
+		System.out.println(sys);*/
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/*@Override
 	protected AssrtCLFlags newCLFlags()
