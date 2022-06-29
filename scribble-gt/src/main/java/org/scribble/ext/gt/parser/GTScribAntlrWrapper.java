@@ -36,8 +36,7 @@ public class GTScribAntlrWrapper extends ScribAntlrWrapper
 	}
 
 	@Override
-	protected org.scribble.ext.gt.parser.GTScribTreeAdaptor newAdaptor(
-			ScribAntlrTokens tokens, DelFactory df)
+	protected GTScribTreeAdaptor newAdaptor(ScribAntlrTokens tokens, DelFactory df)
 	{
 		return new GTScribTreeAdaptor(tokens, df);
 	}

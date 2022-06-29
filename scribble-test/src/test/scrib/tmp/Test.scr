@@ -143,11 +143,19 @@ global protocol Proto1(role A, role B, role C)
 {
 	1(T) from A to B;
 	2(T) from A to C;
+
 	/*choice at A {
 	    2(T) from A to B;
 	} or {
 	    3(T) from A to B;
 	}*/
+
+    // !!! BNF p->q{...} L|>R q->p{...}  -- vs. G L|>R G'
+    mixed {
+	    3(T) from A to B;
+    } (A) or (B) {
+	    4(T) from B to A;
+    }
 }
 //*/
 

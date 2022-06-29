@@ -5,6 +5,7 @@ import org.scribble.ast.Module;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.del.DelFactory;
+import org.scribble.ext.gt.del.GTDelFactoryImpl;
 import org.scribble.ext.gt.parser.GTScribAntlrWrapper;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.ResourceLocator;
@@ -46,15 +47,15 @@ public class GTMain extends Main
 	protected AstFactory newAstFactory(ScribAntlrWrapper antlr)
 	{
 		return new AssrtAstFactoryImpl(antlr.tokens, antlr.df);
-	}
+	}*/
 	
 	@Override
 	protected DelFactory newDelFactory()
 	{
-		return new AssrtDelFactoryImpl();
+		return new GTDelFactoryImpl();
 	}
 
-	@Override
+	/*@Override
 	public AssrtJob newJob(Map<ModuleName, Module> parsed, CoreArgs args,
 			ModuleName mainFullname, AstFactory af, DelFactory df)
 			throws ScribException

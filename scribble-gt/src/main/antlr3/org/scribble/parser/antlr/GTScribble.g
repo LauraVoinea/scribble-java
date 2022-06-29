@@ -2,7 +2,7 @@
  * N.B. in Eclipse do Package Explorer, right click -> Open With -> Java Editor at least once for .g file association and syntax highlighting to work properly
  * 
  *  > scribble-java
- * $ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-parser/target/generated-sources/antlr3 scribble-parser/src/main/antlr3/org/scribble/parser/antlr/Scribble.g
+ * $ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-gt/target/generated-sources/antlr3 scribble-gt/src/main/antlr3/org/scribble/parser/antlr/GTScribble.g
  * 
  * Cygwin/Windows
  * > scribble-java
@@ -64,7 +64,10 @@ tokens
   REC_KW = 'rec';
   CONTINUE_KW = 'continue';
   DO_KW = 'do';
-  
+
+  // GT
+  MIXED_KW = 'mixed';
+
 
   /* Scribble AST token types (corresponding to the Scribble BNF).  
    * These token types are used by ScribTreeAdaptor to create the output nodes
@@ -160,6 +163,12 @@ tokens
 
   LCHOICE;
   LRECURSION;
+
+  // GT
+
+  GT_GMIXED;
+  //GT_LMIXED;
+  ////GT_ROLE_LIST;  // cf. ROLEARG_LIST
 }
 
 
@@ -510,6 +519,10 @@ ginteraction:
 |
 	// Compound session node
 	gchoice | grecursion
+
+|
+    // GT
+    gmixed
 ; 
 
 
@@ -611,87 +624,20 @@ nonrolearg:
 ;
 
 
+// GT
+
+/*// cf. roleargs
+rolenamelist:
+    -> ^(ROLE_LIST)
+|
+    rolename (',' rolename)* -> ^(ROLE_LIST rolename+)
+;*/
 
 
+gmixed:
+	MIXED_KW gprotoblock roleargs OR_KW roleargs gprotoblock
+->
+	^(GT_GMIXED gprotoblock roleargs roleargs gprotoblock)
+;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-@parser::members
-{
-  // qn is an IdNode "holder" for a "qualifiedname" COMPOUND_NAME -- see ScribTreeAdaptor
-  // CHECKME: do the returns of these "bypass" ScribTreeAdaptor?  specifically AmbigNode
-	//	{ parsePayloadElem($qualifiedname.tree) }  // Use ".text" instead of ".tree" for token String 
-  public static CommonTree parsePayloadElem(CommonTree qn) throws RecognitionException
-  {
-    if (qn.getChildCount() > 1)  // qn has IdNode children, elements of the qualifiedname
-    {
-			// Cf. AstFactoryImpl, token creation
-      DataNameNode dt = new DataNameNode(new CommonToken(DATA_NAME, "DATA_NAME"));
-      ((List<?>) qn.getChildren()).forEach(x -> 
-          dt.addChild(new IdNode(new CommonToken(ID, ((CommonTree) x).getText()))));
-      UnaryPayElem pe = 
-          new UnaryPayElem(new CommonToken(UNARY_PAYELEM, "UNARYPAYLOADELEM"));
-      pe.addChild(dt);
-      return pe;
-    }
-    else //if (qn.getChildCount() == 1)
-    {
-      // Similar to NonRoleArg: cannot syntactically distinguish right now between a simple data name and a param name
-			// Cf. AstFactoryImpl, token creation
-      String text = qn.getChild(0).getText();
-      AmbigNameNode an = 
-          new AmbigNameNode(AMBIG_NAME, new CommonToken(ID, text));
-      UnaryPayElem e = new UnaryPayElem(
-          new CommonToken(UNARY_PAYELEM, "UNARYPAYLOADELEM"));
-      e.addChild(an);
-      return e;
-    }
-  }
-
-  // qn is an IdNode "holder" for a "qualifiedname" COMPOUND_NAME -- see ScribTreeAdaptor
-  // Only for "qualifiedName" (DataNameNode or AmbigNameNode), not sig literals
-	// Use by: { parseNonRoleArg($qualifiedname.tree) }
-  public static CommonTree parseNonRoleArg(CommonTree qn) throws RecognitionException
-  {
-    if (qn.getChildCount() > 1)  // qn has IdNode children, elements of the qualifiedname
-    {
-			// Cf. AstFactoryImpl, token creation
-      DataNameNode dt =
-      		new DataNameNode(new CommonToken(DATA_NAME, "DATA_NAME"));  // FIXME: could be a sig name arg...
-      ((List<?>) qn.getChildren()).forEach(x -> 
-          dt.addChild(new IdNode(new CommonToken(ID, ((CommonTree) x).getText()))));
-      NonRoleArg a = 
-          new NonRoleArg(new CommonToken(ARG, "ARG"));
-      a.addChild(dt);
-      return a;
-    }
-    else //if (qn.getChildCount() == 1)
-    {
-			// Cf. AstFactoryImpl, token creation
-      String text = qn.getChild(0).getText();
-      AmbigNameNode an = 
-          new AmbigNameNode(AMBIG_NAME, new CommonToken(ID, text));
-      NonRoleArg a = new NonRoleArg(new CommonToken(ARG, "ARG"));
-      a.addChild(an);
-      return a;
-    }
-  }
-}
-//*/
