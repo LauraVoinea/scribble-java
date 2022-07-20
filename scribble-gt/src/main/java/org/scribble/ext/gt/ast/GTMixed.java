@@ -60,9 +60,6 @@ public abstract class GTMixed<K extends ProtoKind>
 		return (RoleArgList) getChild(RIGHT_ROLEARGS_CHILD_INDEX);
 	}
 
-	// Override in concrete sub for cast
-	public abstract List<? extends ProtoBlock<K>> getBlockChildren();
-	
 	// "add", not "set"
 	public void addScribChildren(ProtoBlock<K> left, RoleArgList leftCommitted,
 								 RoleArgList rightCommitted, ProtoBlock<K> right)

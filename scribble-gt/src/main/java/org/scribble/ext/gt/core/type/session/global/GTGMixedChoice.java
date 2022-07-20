@@ -34,13 +34,13 @@ public class GTGMixedChoice implements GTGType {
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
     public Optional<GTGType> step(SAction a) {
-        Optional<GTGType> opt = this.left.step(a);
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
+        Optional<GTGType> opt = this.left.step(a);
         if (opt.isPresent()) {
             GTGType get = opt.get();
             if (a.isReceive()) {
-                cl.add(a.subj);
+                cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
             } else if (!a.isSend()) {
                 throw new RuntimeException("TODO: " + a);
             }
@@ -55,7 +55,7 @@ public class GTGMixedChoice implements GTGType {
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
-            return Optional.of(this.fact.mixedChoice(get, this.right, cl, cr));
+            return Optional.of(this.fact.mixedChoice(this.left, get, cl, cr));
         }
     }
 

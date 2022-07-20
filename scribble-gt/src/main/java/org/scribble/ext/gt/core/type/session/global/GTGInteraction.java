@@ -1,15 +1,25 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
+import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.global.GSeq;
+import org.scribble.core.visit.STypeAgg;
+import org.scribble.core.visit.STypeAggNoThrow;
+import org.scribble.util.ScribException;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+// !!! FIXME naming "interaction" vs. "choice" (in other places)
 public class GTGInteraction implements GTGType {
 
     private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;

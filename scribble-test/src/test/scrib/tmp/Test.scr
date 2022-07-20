@@ -133,6 +133,8 @@ module tmp.Test;
 
 
 
+//... HERE:
+//- check why B gets committed -- investigate l* -- projection, locals
 
 
 data <java> "..." from "..." as T;
@@ -141,8 +143,8 @@ data <java> "..." from "..." as T;
 //*
 global protocol Proto1(role A, role B, role C)
 {
-	1(T) from A to B;
-	2(T) from A to C;
+	//1(T) from A to B;
+	//2(T) from A to C;
 
 	/*choice at A {
 	    2(T) from A to B;
@@ -151,9 +153,10 @@ global protocol Proto1(role A, role B, role C)
 	}*/
 
     // !!! BNF p->q{...} L|>R q->p{...}  -- vs. G L|>R G'
+
     mixed {
 	    3(T) from A to B;
-    } (A) or (B) {
+    } () or () {
 	    4(T) from B to A;
     }
 }

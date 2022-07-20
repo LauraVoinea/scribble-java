@@ -45,7 +45,7 @@ public abstract class DoArgListDel extends ScribDelBase
 		ScribNode parent = child.getParent();
 		DoArgList<?> dal = (DoArgList<?>) visited;
 		List<?> args = dal.getArgChildren();
-		/*ProtoDecl<?> pd = getTargetProtocolDecl((Do<?>) parent, disamb);  !!! XXX shouldn't couple to parent -- move logic to parent
+		/*ProtoDecl<?> pd = getTargetProtocolDecl((Do<?>) parent, disamb);  !!! GT YYY shouldn't couple to parent -- move logic to parent
 		if (args.size() != getDeclList(pd).getDeclChildren().size())
 		{
 			throw new ScribException(child.getSource(),

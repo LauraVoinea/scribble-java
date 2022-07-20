@@ -52,15 +52,7 @@ public class GTGMixed extends GTMixed<Global> implements GCompoundSessionNode
 	{
 		super(node);
 	}
-	
-	@Override
-	public List<GProtoBlock> getBlockChildren()
-	{
-		List<? extends ScribNode> cs = getChildren();
-		return cs.subList(Choice.BLOCK_CHILDREN_START_INDEX, cs.size()).stream()
-				.map(x -> (GProtoBlock) x).collect(Collectors.toList());
-	}
-	
+
 	@Override
 	public GTGMixed dupNode()
 	{

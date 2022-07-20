@@ -633,11 +633,16 @@ rolenamelist:
     rolename (',' rolename)* -> ^(ROLE_LIST rolename+)
 ;*/
 
+gtroleargs:
+    '(' ')' -> ^(ROLEARG_LIST)
+|
+	'(' rolearg (',' rolearg)* ')' -> ^(ROLEARG_LIST rolearg+)
+;
 
 gmixed:
-	MIXED_KW gprotoblock roleargs OR_KW roleargs gprotoblock
+	MIXED_KW gprotoblock gtroleargs OR_KW gtroleargs gprotoblock
 ->
-	^(GT_GMIXED gprotoblock roleargs roleargs gprotoblock)
+	^(GT_GMIXED gprotoblock gtroleargs gtroleargs gprotoblock)
 ;
 
 

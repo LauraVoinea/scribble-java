@@ -42,6 +42,7 @@ public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel
 			blocks.add((GSeq) b.visitWithNoThrows(t));
 		}
 		return t.tf.global.GChoice(source, subj, blocks);*/
-		throw new RuntimeException("TODO");
+		//throw new RuntimeException("TODO");
+		return null;  // !!! XXX FIXME: cf. GInteractionSeqDel
 	}
 }

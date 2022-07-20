@@ -1,5 +1,9 @@
 package org.scribble.ext.gt.cli;
 
+import org.scribble.ast.Module;
+import org.scribble.ast.global.GInteractionSeq;
+import org.scribble.ast.global.GProtoDecl;
+import org.scribble.ast.global.GProtoDef;
 import org.scribble.cli.CLFlag;
 import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
@@ -10,10 +14,12 @@ import org.scribble.core.job.CoreContext;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator;
+import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator2;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
@@ -70,6 +76,8 @@ public class GTCommandLine extends CommandLine {
 		}
 	}*/
 
+	protected GTMain main;
+
 	// Duplicated from AssrtCommandLine
 	// Based on CommandLine.newMainContext
 	@Override
@@ -84,31 +92,69 @@ public class GTCommandLine extends CommandLine {
 		List<Path> impaths = parseImportPaths();
 		ResourceLocator locator = new DirectoryResourceLocator(impaths);
 		Path mainpath = parseMainPath();
-		return new GTMain(locator, mainpath, args);
+		this.main = new GTMain(locator, mainpath, args);
+		return main;
 	}
 
 	protected void myRun() {
 		Core core = this.job.getCore();
 		CoreContext c = core.getContext();
 		GTGTypeTranslator tr = new GTGTypeTranslator();
+
+		Map<ModuleName, Module> parsed = this.main.getParsedModules();
 		System.out.println("\n-----\n");
+		System.out.println(parsed.keySet());
+
+		for (ModuleName n : parsed.keySet()) {
+			Module m = parsed.get(n);
+			for (GProtoDecl g : m.getGProtoDeclChildren()) {
+				System.out.println(g);
+				GProtoDef defChild = g.getDefChild();
+				GInteractionSeq interactSeqChild = defChild.getBlockChild().getInteractSeqChild();
+
+				GTGType translate = new GTGTypeTranslator2().translate(interactSeqChild);
+				foo(core, "", translate, 0);
+			}
+		}
+
+		/*System.out.println("\n-----\n");
 		for (ProtoName<Global> p : c.getParsedFullnames()) {
 			//System.out.println(c.getIntermediate(g));
 			GTGType g = tr.translate(c.getIntermediate(p).def);
 			System.out.println(p + " = " + g);
 			System.out.println();
 			foo(core, "", g);
-		}
+		}*/
 	}
 
-	private void foo(Core core, String indent, GTGType g) {
+	private void foo(Core core, String indent, GTGType g, int count) {
+		if (count > 20) {
+			return;
+		}
 		Set<SAction> as = g.getActs(core.config.mf.global);
+		/*System.out.println(as);
+		SAction a = as.iterator().next();
+		GTGType g1 = g.step(a).get();  // a in as so step is non-empty
+		System.out.println("aaa: " + a + " ,, " + g1);
+		System.out.println(indent + "a = " + a);
+		System.out.println(indent + "g = " + g1);
+
+		System.out.println("---");
+
+		as = g1.getActs(core.config.mf.global);
+		System.out.println(as);
+		a = as.iterator().next();
+		g1 = g1.step(a).get();  // a in as so step is non-empty
+		System.out.println("aaa: " + a + " ,, " + g1);
+		System.out.println(indent + "a = " + a);
+		System.out.println(indent + "g = " + g1);*/
+
 		for (SAction a : as) {
 			GTGType g1 = g.step(a).get();  // a in as so step is non-empty
 			System.out.println(indent + "a = " + a);
 			System.out.println(indent + "g = " + g1);
 			if (!g1.equals(GTGEnd.END)) {
-				foo(core, indent + "    ", g1);
+				foo(core, indent + "    ", g1, count++);
 			}
 		}
 	}

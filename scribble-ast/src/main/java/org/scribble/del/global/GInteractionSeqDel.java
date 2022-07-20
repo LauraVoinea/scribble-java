@@ -36,7 +36,11 @@ public class GInteractionSeqDel extends InteractionSeqDel implements GDel
 		List<GType> elems = new LinkedList<>();
 		for (GSessionNode c : source.getInteractionChildren())
 		{
-			elems.add((GType) c.visitWith(t));  // throws ScribbleException
+			//elems.add((GType) c.visitWith(t));  // throws ScribbleException
+			GType g = (GType) c.visitWith(t);
+			if (g != null) {  // !!! GT YYY FIXME
+				elems.add(g);
+			}
 		}
 		return t.tf.global.GSeq(source, elems);
 	}
