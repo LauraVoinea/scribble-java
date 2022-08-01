@@ -3,6 +3,8 @@ package org.scribble.ext.ea.core.process;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -17,13 +19,14 @@ public class EAPFactory {
 
     public EAPHandlers handlers(
             @NotNull Role role,
-            @NotNull LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs) {
+            @NotNull LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs) {
         return new EAPHandlers(role, Hs);
     }
 
     //public EAPLet let(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-        public EAPLet let(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-        return new EAPLet(var, init, body);
+        public EAPLet let(@NotNull EAPVar var, @NotNull EAValType varType,
+                          @NotNull EAPExpr init, @NotNull EAPExpr body) {
+        return new EAPLet(var, varType, init, body);
     }
 
     public EAPReturn returnn(@NotNull EAPVal val) {

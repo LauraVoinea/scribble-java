@@ -1,6 +1,15 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.value.EAHandlersType;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +22,21 @@ public class EAPReturn implements EAPExpr {
 
     public EAPReturn(EAPVal val) {
         this.val = val;
+    }
+
+    @Override
+    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+        EALEndType end = EATypeFactory.factory.local.end();
+        if (!pre.equals(end)) {
+            throw new RuntimeException("Expected end type: " + pre);
+        }
+        EAValType t = this.val.type(gamma);
+        return new EAPPair<>(t, end);
+    }
+
+    @Override
+    public EALEndType infer(Gamma gamma) {
+        return EALEndType.END;  // !!! (potential) placeholder
     }
 
     @Override

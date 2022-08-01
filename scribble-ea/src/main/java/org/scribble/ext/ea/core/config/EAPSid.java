@@ -4,18 +4,26 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.process.EAPTerm;
 import org.scribble.ext.ea.core.process.EAPVal;
 import org.scribble.ext.ea.core.process.EAPVar;
+import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-// "Runtime names"
-public class EAPSid implements EAPVal {
+// s, s', ...
+public class EAPSid implements EAPVal, EARuntimeName {
 
     @NotNull public final String id;
 
     protected EAPSid(@NotNull String id) {
         this.id = id;
+    }
+
+    @Override
+    public EAValType type(Gamma gamma) {
+        throw new RuntimeException("CHECKME: N/A ?");  // !!!
     }
 
     /* Aux */

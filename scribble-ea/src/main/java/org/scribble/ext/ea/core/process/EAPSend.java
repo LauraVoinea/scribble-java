@@ -3,7 +3,17 @@ package org.scribble.ext.ea.core.process;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
+import org.scribble.ext.ea.core.type.session.local.EALOutType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,6 +27,31 @@ public class EAPSend implements EAPExpr {
         this.dst = dst;
         this.op = op;
         this.val = val;
+    }
+
+    @Override
+    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+        if (!(pre instanceof EALOutType)) {
+            throw new RuntimeException("Expected out type: " + pre + ", " + this);
+        }
+        EALOutType cast = (EALOutType) pre;
+        if (!cast.peer.equals(this.dst)) {
+            throw new RuntimeException("Incompatible peer: " + pre + ", " + this);
+        }
+        EAValType valType = this.val.type(gamma);
+        Pair<EAValType, EALType> p = cast.cases.get(this.op);
+        if (!valType.equals(p.left)) {
+            throw new RuntimeException("Incompatible value type: " + valType + ", " + p.left);
+        }
+        return new EAPPair<>(EATypeFactory.factory.val.unit(), p.right);
+    }
+
+    @Override
+    public EALOutType infer(Gamma gamma) {
+        EAValType t = this.val.type(gamma);
+        LinkedHashMap<Op, Pair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        cases.put(this.op, new EAPPair<>(t, EALEndType.END));  // !!! (potential) placeholder END
+        return EALTypeFactory.factory.out(this.dst, cases);
     }
 
     @Override

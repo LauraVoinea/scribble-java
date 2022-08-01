@@ -2,12 +2,17 @@ package org.scribble.ext.ea.core.config;
 
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+// cf. T-Session and (nested) T-Par (missing)
 public class EAPSystem {
 
     protected LinkedHashMap<EAPPid, EAPConfig> configs;
@@ -18,6 +23,15 @@ public class EAPSystem {
                         (x, y) -> x, LinkedHashMap::new));
     }
 
+    public void type(Gamma gamma, Delta delta) {
+        // !!! TODO split delta -- cf. T-Par
+        // !!! TODO safety
+        for (EAPConfig c : this.configs.values()) {
+            c.type(gamma, delta);
+        }
+    }
+
+    @Deprecated  // For now
     public Set<Pair<EAPPid, EAPExpr>> getReady() {
         // Includes sends, but not matching receives
         Set<Pair<EAPPid, EAPExpr>> collect = this.configs.entrySet().stream().filter(x -> x.getValue().isActive())
@@ -83,7 +97,7 @@ public class EAPSystem {
             EAPConfig c2 = get.getValue();
             Map<Pair<EAPSid, Role>, EAPHandlers> sigma2 = c2.sigma;
             Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
-            Pair<EAPVar, EAPExpr> vh =
+            EATriple<EAPVar, EAValType, EAPExpr> vh =
                     sigma2.get(k2).Hs.get(cast.op);
             EAPExpr e2 = vh.right.subs(Map.of(vh.left, cast.val));
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =

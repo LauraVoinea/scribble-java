@@ -3,6 +3,16 @@ package org.scribble.ext.ea.core.process;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
+import org.scribble.ext.ea.core.type.value.EAUnitType;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
+import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -24,28 +34,51 @@ public class EAPHandlers implements EAPVal {
 
     @NotNull public final Role role;
     //@NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;  // !!! var is part of value, not key
-    @NotNull public final Map<Op, Pair<EAPVar, EAPExpr>> Hs;
+    @NotNull public final Map<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs;  // !!! added type annot
 
     protected EAPHandlers(
             @NotNull Role role,
-            @NotNull LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hbar) {
+            @NotNull LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hbar) {
         this.role = role;
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    @Override
+    public EAValType type(Gamma gamma) {
+        LinkedHashMap<Op, Pair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : Hs.entrySet()) {
+           Op k = e.getKey();
+           EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
+           LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+           tmp.put(v.left, v.mid);
+           Gamma gamma1 = new Gamma(tmp);
+
+           EALType inferred = v.right.infer(gamma1);
+
+           Pair<EAValType, EALType> res = v.right.type(gamma1, inferred);
+           if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
+               throw new RuntimeException("Type error: " + gamma1 + " | "
+                       + inferred + " |>" + v.right + ":" + res.left + " <|" + res.right);
+           }
+           cases.put(k, new EAPPair<EAValType, EALType>(v.mid, inferred));
+       }
+        EALInType in = EALTypeFactory.factory.in(this.role, cases);
+        return EAValTypeFactory.factory.handlers(in);
+    }
+
     /* Aux */
 
     @Override
     public EAPHandlers subs(@NotNull Map<EAPVar, EAPVal> m) {
-        LinkedHashMap<Op, Pair<EAPVar, EAPExpr>> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, Pair<EAPVar, EAPExpr>> e : this.Hs.entrySet()) {
+        LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : this.Hs.entrySet()) {
             Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
             Op k = e.getKey();
-            Pair<EAPVar, EAPExpr> v = e.getValue();
+            EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
             m1.remove(v.left);
-            Hs.put(k, new Pair<EAPVar, EAPExpr>(v.left, v.right.subs(m1)));
+            Hs.put(k, new EATriple<EAPVar, EAValType, EAPExpr>(v.left, v.mid, v.right.subs(m1)));
         }
         return EAPFactory.factory.handlers(this.role, Hs);
     }
@@ -69,8 +102,8 @@ public class EAPHandlers implements EAPVal {
                 + " }";
     }
 
-    private static String handlerToString(Op k, Pair<EAPVar, EAPExpr> e) {
-        return k + "(" + e.left + ") |-> " + e.right;
+    private static String handlerToString(Op k, EATriple<EAPVar, EAValType, EAPExpr> e) {
+        return k + "(" + e.left + ":" + e.mid + ") |-> " + e.right;
     }
 
     /* equals/canEquals, hashCode */

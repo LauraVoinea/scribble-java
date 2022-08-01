@@ -3,6 +3,8 @@ package org.scribble.ext.ea.core.config;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.process.EAPTerm;
 import org.scribble.ext.ea.core.process.EAPUnit;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.Delta;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -18,6 +20,14 @@ public class EAPIdle implements EAPThreadState {
     @Override
     public boolean isIdle() {
         return true;
+    }
+
+    // [TT-Idle]
+    @Override
+    public void type(Gamma gamma, Delta delta) {
+        if (!delta.map.isEmpty()) {
+            throw new RuntimeException("Invalid Delta: " + delta);
+        }
     }
 
     /* aux */

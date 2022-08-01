@@ -1,6 +1,10 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.value.EAUnitType;
+import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Collections;
 import java.util.Map;
@@ -11,6 +15,11 @@ public class EAPUnit implements EAPVal {
     public static final EAPUnit UNIT = new EAPUnit();
 
     public EAPUnit() {
+    }
+
+    @Override
+    public EAUnitType type(Gamma gamma) {
+        return EATypeFactory.factory.val.unit();
     }
 
     /* Aux */

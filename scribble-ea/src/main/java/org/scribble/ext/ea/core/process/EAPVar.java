@@ -1,13 +1,15 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
-public class EAPVar implements EAPVal {
+// x, y, ...
+public class EAPVar implements EAPVal, EAName {
 
     public final String id;
 
@@ -16,6 +18,14 @@ public class EAPVar implements EAPVal {
     }
 
     /* Aux */
+
+    @Override
+    public EAValType type(Gamma gamma) {
+        if (!gamma.map.containsKey(this)) {
+            throw new RuntimeException("Unknown var: " + this + ", " + gamma);
+        }
+        return gamma.map.get(this);
+    }
 
     @Override
     public EAPVal subs(@NotNull Map<EAPVar, EAPVal> m) {

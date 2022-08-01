@@ -1,17 +1,49 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.core.type.name.Op;
+import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.*;
+import org.scribble.ext.ea.core.type.value.EAHandlersType;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class EAPSuspend implements EAPExpr {
 
     @NotNull
-    public final EAPVal val;  // value, not expr
+    public final EAPVal val;  // value, not expr -- a Handler(S?) type
 
     public EAPSuspend(EAPVal val) {
         this.val = val;
+    }
+
+    @Override
+    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+
+        if (!(pre instanceof EALInType)) {
+            throw new RuntimeException("Expected in type: " + pre + ", " + this);
+        }
+        EAValType t = this.val.type(gamma);
+        if (!(t instanceof EAHandlersType)) {
+            throw new RuntimeException("Expected out type: " + pre + ", " + this);
+        }
+        EAHandlersType cast = (EAHandlersType) t;
+        if (!(cast.S.equals(pre))) {
+            throw new RuntimeException("Incompatible in type: " + pre + ", " + cast);
+        }
+        EATypeFactory tf = EATypeFactory.factory;
+        return new EAPPair<>(tf.val.unit(), tf.local.end());  // !!! S'
+    }
+
+    @Override
+    public EALInType infer(Gamma gamma) {
+        return (EALInType) ((EAPHandlers) this.val).type(gamma);
     }
 
     @Override

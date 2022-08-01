@@ -1,23 +1,55 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.util.Pair;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class EAPLet implements EAPExpr {
 
     @NotNull public final EAPVar var;
+    @NotNull public final EAValType varType;  // !!! added type annot
     //@NotNull public final EAPExpr init;  // !!! value?  not expr
     @NotNull public final EAPExpr init;
     @NotNull public final EAPExpr body;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-    public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
+    public EAPLet(@NotNull EAPVar var, @NotNull EAValType varType,
+                  @NotNull EAPExpr init, @NotNull EAPExpr body) {
         this.var = var;
+        this.varType = varType;
         this.init = init;
         this.body = body;
+    }
+
+    @Override
+    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+        Pair<EAValType, EALType> p1 = this.init.type(gamma, pre);
+        if (!this.varType.equals(p1.left)) {
+            throw new RuntimeException("Bad type annotation: "
+                    + this.varType + ", " + p1.left);
+        }
+        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+        tmp.put(this.var, p1.left);
+        Gamma gamma1 = new Gamma(tmp);
+        return this.body.type(gamma1, p1.right);
+    }
+
+    @Override
+    public EALType infer(Gamma gamma) {
+        EALType i = this.init.infer(gamma);
+        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+        tmp.put(this.var, this.varType);
+        Gamma gamma1 = new Gamma(tmp);
+        EALType b = this.body.infer(gamma1);
+        return i.concat(b);
     }
 
     @Override
@@ -31,7 +63,7 @@ public class EAPLet implements EAPExpr {
             throw new RuntimeException("Stuck: " + this);
         }
         if (this.init.canBeta()) {
-            return EAPFactory.factory.let(this.var, this.init.beta(), this.body);
+            return EAPFactory.factory.let(this.var, this.varType, this.init.beta(), this.body);
         } else {  // this.init instanceof EAPReturn && this.init.isGround()
             return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
         }
@@ -46,13 +78,13 @@ public class EAPLet implements EAPExpr {
         Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
         m1.remove(this.var);
         EAPExpr body1 = body.subs(m1);
-        return EAPFactory.factory.let(this.var, init1, body1);
+        return EAPFactory.factory.let(this.var, this.varType, init1, body1);
     }
 
     @Override
     public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
         EAPExpr init1 = this.init.recon(old, neww);
-        return EAPFactory.factory.let(this.var, init1, this.body);  // !!! CHECKME: body unchanged
+        return EAPFactory.factory.let(this.var, this.varType, init1, this.body);  // !!! CHECKME: body unchanged
     }
 
     @Override
@@ -75,7 +107,8 @@ public class EAPLet implements EAPExpr {
 
     @Override
     public String toString() {
-        return "let " + this.var + " <= " + this.init + " in " + this.body;
+        return "let " + this.var + ":" + this.varType
+                + " <= " + this.init + " in " + this.body;
     }
 
     /* equals/canEquals, hashCode */
@@ -84,11 +117,12 @@ public class EAPLet implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPLet eaVar = (EAPLet) o;
-        return eaVar.canEquals(this)
-                && this.var.equals(eaVar.var)
-                && this.init.equals(eaVar.init)
-                && this.body.equals(eaVar.body);
+        EAPLet them = (EAPLet) o;
+        return them.canEquals(this)
+                && this.var.equals(them.var)
+                && this.varType.equals(them.varType)
+                && this.init.equals(them.init)
+                && this.body.equals(them.body);
     }
 
     @Override
@@ -100,6 +134,7 @@ public class EAPLet implements EAPExpr {
     public int hashCode() {
         int hash = EAPTerm.LET;
         hash = 31 * hash + this.var.hashCode();
+        hash = 31 * hash + this.varType.hashCode();
         hash = 31 * hash + this.init.hashCode();
         hash = 31 * hash + this.body.hashCode();
         return hash;
