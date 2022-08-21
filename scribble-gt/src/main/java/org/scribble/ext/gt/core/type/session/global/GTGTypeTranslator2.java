@@ -109,8 +109,9 @@ public class GTGTypeTranslator2 {
     protected GTGMixedChoice translateGMixed(GTGMixed g) {
         GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
+        Role obs = g.getObserverChild().toName();
         LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
         LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());
-        return this.fact.mixedChoice(left, right, committedLeft, committedRight);
+        return this.fact.mixedChoice(left, right, obs, committedLeft, committedRight);
     }
 }

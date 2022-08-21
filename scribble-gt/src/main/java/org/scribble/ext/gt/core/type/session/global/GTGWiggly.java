@@ -6,9 +6,12 @@ import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GTGWiggly implements GTGType {
 
@@ -17,7 +20,7 @@ public class GTGWiggly implements GTGType {
     // TODO factor out with GTGChoice (and locals)
     public final Role src;
     public final Role dst;
-    public final Op op;
+    public final Op op;  // Pre: this.cases.containsKey(this.op)
     public final Map<Op, GTGType> cases;
 
     protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, GTGType> cases) {
@@ -27,6 +30,60 @@ public class GTGWiggly implements GTGType {
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public Optional<? extends GTLType> project(Role r) {
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        if (this.src.equals(r)) {
+            LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            /*for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+                Optional<? extends GTLType> p = e.getValue().project(r);
+                if (p.isEmpty()) {
+                    return Optional.empty();
+                }
+                cases.put(e.getKey(), p.get());
+            }
+            return Optional.of(lf.select(this.dst, cases));*/  // !!!
+            Optional<? extends GTLType> p = this.cases.get(this.op).project(r);
+            if (p.isEmpty()) {
+                return Optional.empty();
+            }
+            cases.put(this.op, p.get());
+            return Optional.of(lf.select(this.dst, cases));  // !!! CHECKME
+        } else if (this.dst.equals(r)) {
+            LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+                Optional<? extends GTLType> p = e.getValue().project(r);
+                if (p.isEmpty()) {
+                    return Optional.empty();
+                }
+                cases.put(e.getKey(), p.get());
+            }
+            return Optional.of(lf.branch(this.src, cases));
+        } else {
+            Stream<Optional<? extends GTLType>> str =
+                    this.cases.values().stream().map(x -> x.project(r));
+            Optional<? extends GTLType> fst = str.findFirst().get();  // Non-empty
+            return str.skip(1).reduce(fst, GTGInteraction::merge);
+        }
+    }
+
+    @Override
+    public boolean isSinglePointed() {
+        /*Set<Op> labs1 = new HashSet<>(labs);
+        labs1.addAll(this.cases.keySet());
+        if (labs1.size() != labs.size() + this.cases.keySet().size()) {
+            return false;
+        }
+        return this.cases.values().stream().allMatch(x -> x.isStaticWF(labs1));*/
+        throw new RuntimeException("N/A");
+    }
+
+    @Override
+    public boolean isGood() {
+        return this.cases.values().stream().allMatch(GTGType::isGood)
+                && this.cases.keySet().contains(this.op);  // !!!
     }
 
     @Override
@@ -66,6 +123,14 @@ public class GTGWiggly implements GTGType {
             collect.addAll(e.getValue().getActs(mf, tmp));
         }
         return collect;
+    }
+
+    @Override
+    public Set<Op> getOps() {
+        Set<Op> ops = new HashSet<>(this.cases.keySet());
+        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
+        ops.add(this.op);  // Not assuming single-pointedness
+        return ops;
     }
 
     /* Aux */

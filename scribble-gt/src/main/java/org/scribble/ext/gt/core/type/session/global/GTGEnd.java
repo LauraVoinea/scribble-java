@@ -4,11 +4,14 @@ import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.SType;
 import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
+import org.scribble.ext.gt.core.type.session.local.GTLEnd;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.ScribException;
 
 import java.util.*;
@@ -23,6 +26,21 @@ public class GTGEnd implements GTGType {
     protected GTGEnd() { }
 
     @Override
+    public Optional<GTLEnd> project(Role r) {
+        return Optional.of(GTLTypeFactory.FACTORY.end());
+    }
+
+    @Override
+    public boolean isSinglePointed() {
+        return true;
+    }
+
+    @Override
+    public boolean isGood() {
+        return true;
+    }
+
+    @Override
     public Optional<GTGType> step(SAction a) {
         return Optional.empty();
     }
@@ -30,6 +48,11 @@ public class GTGEnd implements GTGType {
     @Override
     public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
         return new LinkedHashSet<>();
+    }
+
+    @Override
+    public Set<Op> getOps() {
+        return Collections.emptySet();
     }
 
     /* Aux */

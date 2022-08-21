@@ -109,11 +109,16 @@ public class GTCommandLine extends CommandLine {
 			Module m = parsed.get(n);
 			for (GProtoDecl g : m.getGProtoDeclChildren()) {
 				System.out.println(g);
+
 				GProtoDef defChild = g.getDefChild();
 				GInteractionSeq interactSeqChild = defChild.getBlockChild().getInteractSeqChild();
-
 				GTGType translate = new GTGTypeTranslator2().translate(interactSeqChild);
-				foo(core, "", translate, 0);
+
+				if (!translate.isSinglePointed()) {
+					System.err.println("Not single pointed: " + translate);
+				} else {
+					foo(core, "", translate, 0);
+				}
 			}
 		}
 
@@ -128,7 +133,11 @@ public class GTCommandLine extends CommandLine {
 	}
 
 	private void foo(Core core, String indent, GTGType g, int count) {
+		if (!g.isGood()) {
+			System.err.println("Not good: " + g);
+		}
 		if (count > 20) {
+			System.err.println("Pruned.");
 			return;
 		}
 		Set<SAction> as = g.getActs(core.config.mf.global);

@@ -1,21 +1,16 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
-import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.core.type.session.SType;
-import org.scribble.core.type.session.global.GSeq;
-import org.scribble.core.visit.STypeAgg;
-import org.scribble.core.visit.STypeAggNoThrow;
-import org.scribble.util.ScribException;
+import org.scribble.ext.gt.core.type.session.local.GTLEnd;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,7 +21,7 @@ public class GTGInteraction implements GTGType {
 
     public final Role src;
     public final Role dst;
-    public final Map<Op, GTGType> cases;  // Pre: Unmodifiable
+    public final Map<Op, GTGType> cases;  // Pre: Unmodifiable, non-empty
 
     protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
@@ -34,6 +29,61 @@ public class GTGInteraction implements GTGType {
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                         Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                                 (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public Optional<? extends GTLType> project(Role r) {
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        if (this.src.equals(r)) {
+            LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+                Optional<? extends GTLType> p = e.getValue().project(r);
+                if (p.isEmpty()) {
+                    return Optional.empty();
+                }
+                cases.put(e.getKey(), p.get());
+            }
+            return Optional.of(lf.select(this.dst, cases));
+        } else if (this.dst.equals(r)) {
+            LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+                Optional<? extends GTLType> p = e.getValue().project(r);
+                if (p.isEmpty()) {
+                    return Optional.empty();
+                }
+                cases.put(e.getKey(), p.get());
+            }
+            return Optional.of(lf.branch(this.src, cases));
+        } else {
+            Stream<Optional<? extends GTLType>> str =
+                    this.cases.values().stream().map(x -> x.project(r));
+            Optional<? extends GTLType> fst = str.findFirst().get();  // Non-empty
+            return str.skip(1).reduce(fst, GTGInteraction::merge);
+        }
+    }
+
+    protected static Optional<? extends GTLType> merge(
+            Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
+        if (left.isEmpty() || right.isEmpty()) {
+            return Optional.empty();
+        }
+        GTLType l = left.get();
+        GTLType r = right.get();
+        if (l.equals(r)) {  // !!! TODO
+            return left;
+        } else {
+            throw new RuntimeException("TODO");
+        }
+    }
+
+    @Override
+    public boolean isSinglePointed() {
+        return this.cases.values().stream().allMatch(GTGType::isSinglePointed);
+    }
+
+    @Override
+    public boolean isGood() {
+        return this.cases.values().stream().allMatch(GTGType::isGood);
     }
 
     @Override
@@ -97,6 +147,13 @@ public class GTGInteraction implements GTGType {
             collect.addAll(e.getValue().getActs(mf, tmp));
         }
         return collect;
+    }
+
+    @Override
+    public Set<Op> getOps() {
+        Set<Op> ops = new HashSet<>(this.cases.keySet());
+        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
+        return ops;
     }
 
     /* Aux */

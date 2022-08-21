@@ -134,7 +134,12 @@ module tmp.Test;
 
 
 //... HERE:
-//- check why B gets committed -- investigate l* -- projection, locals
+// - do projection -- test preservation of good, well-nested -- test well-nested invariant
+// - check vs. Latex
+// - check why B gets committed -- investigate l* -- projection, locals
+
+
+// A->B .... |> B->A
 
 
 data <java> "..." from "..." as T;
@@ -156,8 +161,10 @@ global protocol Proto1(role A, role B, role C)
 
     mixed {
 	    3(T) from A to B;
-    } () or () {
+	    //5() from B to C;
+    } () or B () {
 	    4(T) from B to A;
+	    //6() from B to C;
     }
 }
 //*/

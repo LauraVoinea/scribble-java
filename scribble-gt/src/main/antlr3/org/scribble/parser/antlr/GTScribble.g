@@ -4,7 +4,7 @@
  *  > scribble-java
  * $ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-gt/target/generated-sources/antlr3 scribble-gt/src/main/antlr3/org/scribble/parser/antlr/GTScribble.g
  * 
- * Cygwin/Windows
+ * Windows/Cygwin
  * > scribble-java
  * $ java -cp scribble-parser/lib/antlr-3.5.2-complete.jar org.antlr.Tool -o scribble-parser/target/generated-sources/antlr3/org/scribble/parser/antlr scribble-parser/src/main/antlr3/org/scribble/parser/antlr/Scribble.g
  * $ mv scribble-parser/target/generated-sources/antlr3/org/scribble/parser/antlr/Scribble.tokens scribble-parser/target/generated-sources/antlr3/
@@ -640,9 +640,9 @@ gtroleargs:
 ;
 
 gmixed:
-	MIXED_KW gprotoblock gtroleargs OR_KW gtroleargs gprotoblock
+	MIXED_KW gprotoblock gtroleargs OR_KW rolename gtroleargs gprotoblock
 ->
-	^(GT_GMIXED gprotoblock gtroleargs gtroleargs gprotoblock)
+	^(GT_GMIXED gprotoblock gtroleargs rolename gtroleargs gprotoblock)
 ;
 
 
