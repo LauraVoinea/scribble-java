@@ -59,6 +59,7 @@ public class EAPConfig implements EAPRuntimeTerm {
         typeSigma(gamma, delta2);
     }
 
+    // !!! TODO make sigma explicit (cf. TH-Handler)
     protected void typeSigma(Gamma gamma, Delta delta) {
         if (delta.map.size() != this.sigma.size()) {
             throw new RuntimeException("Invalid delta: " + delta + " |- " + this.sigma);
@@ -66,6 +67,9 @@ public class EAPConfig implements EAPRuntimeTerm {
 
         for (Map.Entry<Pair<EAPSid, Role>, EAPHandlers> e : this.sigma.entrySet()) {
             Pair<EAPSid, Role> k = e.getKey();
+            if (!delta.map.containsKey(k)) {
+                throw new RuntimeException("Unknown endpoint: " + k + " : " + delta.map);
+            }
             EALType T = delta.map.get(k);
             if (!(T instanceof EALInType)) {
                 throw new RuntimeException("Invalid handler type: " + e + " : " + T);

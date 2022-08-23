@@ -9,6 +9,8 @@ import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EAType;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALOutType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -24,7 +26,7 @@ import java.util.Map;
 
 
 // HERE
-//- TEST config typing with handrolled deltas
+//- TEST config typing with handrolled Deltas -- as opposed to T-Session introducing each endpoint to Delta -- also because env splitting is not algorithmic
 //- finish testing infer for subset, but then do initiation and top-down register type annot
 //- types for subset, initiation+types, if-then-else
 
@@ -86,11 +88,16 @@ public class EACommandLine extends CommandLine
 		cases.put(l1, new Pair<>(tf.val.unit(), out2));
 		EALOutType out1 = tf.local.out(B, cases);
 
-		System.out.println("Typing: " + out1 + " ,, " + let.type(new Gamma(), out1));
+		System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
 
 		EAPActiveThread tA = rf.activeThread(let, s, A);
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
 		EAPConfig cA = rf.config(p1, tA, sigmaA);
+
+		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+		env.put(new EAPPair<>(s, A), out1);
+		System.out.println("Typing cA: " + cA + " ,, " + env);
+		cA.type(new Gamma(), new Delta(env));
 
 		// ----
 
@@ -107,14 +114,32 @@ public class EACommandLine extends CommandLine
 		Hs.put(l1, new EATriple<>(x, tf.val.unit(), sus));
 		EAPHandlers hB1 = f.handlers(B, Hs);
 
+		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
+		map.put(x, tf.val.unit());
+		Gamma gamma = new Gamma(map);
+		System.out.println("Typing hB: " + hB1.type(gamma));
+
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		sigmaB.put(new EAPPair<>(s, B), hB1);
+		sigmaB.put(new EAPPair<>(s, B), hB1);  // !!! TODO make sigma concrete, e.g., for typing
 		EAPConfig cB = rf.config(p2, idle, sigmaB);
+
+		cases = new LinkedHashMap<>();
+		cases.put(l2, new Pair<>(tf.val.unit(), tf.local.end()));
+		EALInType in2 = tf.local.in(B, cases);
+		cases = new LinkedHashMap<>();
+		cases.put(l1, new Pair<>(tf.val.unit(), in2));
+		EALInType in1 = tf.local.in(B, cases);
+
+		env = new LinkedHashMap<>();
+		env.put(new EAPPair<>(s, B), in1);
+		System.out.println("Typing cB: " + cB + " ,, " + env);
+		cB.type(new Gamma(), new Delta(env));
 
 		// ----
 
-		System.out.println(cA);
-		System.out.println(cB);
+		System.out.println("\n---");
+		System.out.println("cA = " + cA);
+		System.out.println("cB = " + cB);
 
 		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
 		cs.put(p1, cA);

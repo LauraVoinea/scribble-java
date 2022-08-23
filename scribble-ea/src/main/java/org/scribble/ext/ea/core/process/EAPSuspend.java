@@ -43,7 +43,7 @@ public class EAPSuspend implements EAPExpr {
 
     @Override
     public EALInType infer(Gamma gamma) {
-        return (EALInType) ((EAPHandlers) this.val).type(gamma);
+        return (EALInType) ((EAHandlersType) ((EAPHandlers) this.val).type(gamma)).S;
     }
 
     @Override

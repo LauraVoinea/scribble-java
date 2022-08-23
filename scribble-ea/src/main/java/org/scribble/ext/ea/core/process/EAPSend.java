@@ -38,6 +38,9 @@ public class EAPSend implements EAPExpr {
         if (!cast.peer.equals(this.dst)) {
             throw new RuntimeException("Incompatible peer: " + pre + ", " + this);
         }
+        if (!cast.cases.containsKey(this.op)) {
+            throw new RuntimeException("Invalid op: " + pre + ", " + this);
+        }
         EAValType valType = this.val.type(gamma);
         Pair<EAValType, EALType> p = cast.cases.get(this.op);
         if (!valType.equals(p.left)) {
