@@ -45,7 +45,10 @@ public class EAPConfig implements EAPRuntimeTerm {
         LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>();
         if (this.T instanceof EAPActiveThread) { // !!! CHECKME
             EAPActiveThread at = (EAPActiveThread)  this.T;
-            Pair<EAPSid, Role> k = new Pair<>(at.sid, at.role);
+            Pair<EAPSid, Role> k = new EAPPair<>(at.sid, at.role);
+            if (!delta.map.containsKey(k)) {
+                throw new RuntimeException("Unknown endpoint: " + k + " ,, " + delta.map);
+            }
             tmp.put(k, delta.map.get(k));
         }
         Delta delta1 = new Delta(tmp);

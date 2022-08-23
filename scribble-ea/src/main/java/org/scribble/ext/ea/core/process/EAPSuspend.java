@@ -25,7 +25,6 @@ public class EAPSuspend implements EAPExpr {
 
     @Override
     public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
-
         if (!(pre instanceof EALInType)) {
             throw new RuntimeException("Expected in type: " + pre + ", " + this);
         }

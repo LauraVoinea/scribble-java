@@ -23,6 +23,10 @@ public class EAPSystem {
                         (x, y) -> x, LinkedHashMap::new));
     }
 
+    public Map<EAPPid, EAPConfig> getConfigs() {
+        return Collections.unmodifiableMap(this.configs);
+    }
+
     public void type(Gamma gamma, Delta delta) {
         // !!! TODO split delta -- cf. T-Par
         // !!! TODO safety
