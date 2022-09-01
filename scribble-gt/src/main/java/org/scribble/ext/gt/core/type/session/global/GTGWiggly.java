@@ -88,8 +88,8 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public Optional<GTGType> step(SAction a) {
-        if (a.subj.equals(this.dst)) {
-            if (a.isReceive()) {
+        if (this.dst.equals(a.subj)) {
+            if (a.isReceive()) {  // [Rcv]
                 SRecv cast = (SRecv) a;
                 if (cast.obj.equals(this.src)
                         && this.cases.keySet().contains(cast.mid)) {
@@ -99,12 +99,12 @@ public class GTGWiggly implements GTGType {
                 }
             }
             return Optional.empty();
-        } else {
+        } else {  // [Cont2]
             /*return done
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
                     : Optional.empty();*/
             Optional<LinkedHashMap<Op, GTGType>> nestedCases
-                    = GTGInteraction.stepCases(this.cases, a);
+                    = GTGInteraction.stepNested(this.cases, a);  // !!! XXX I\k
             return nestedCases.map(x -> this.fact.wiggly(this.src, this.dst, this.op, x));
         }
     }

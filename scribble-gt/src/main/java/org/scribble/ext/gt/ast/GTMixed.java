@@ -34,8 +34,9 @@ public abstract class GTMixed<K extends ProtoKind>
 	public static final int LEFT_BLOCK_CHILD_INDEX = 0;
 	public static final int LEFT_ROLEARGS_CHILD_INDEX = 1;
 	public static final int OBSERVER_CHILD_INDEX = 2;
-	public static final int RIGHT_ROLEARGS_CHILD_INDEX = 3;
-	public static final int RIGHT_BLOCK_CHILD_INDEX = 4;
+	public static final int TIMEOUT_CHILD_INDEX = 3;
+	public static final int RIGHT_ROLEARGS_CHILD_INDEX = 4;
+	public static final int RIGHT_BLOCK_CHILD_INDEX = 5;
 
 	// ScribTreeAdaptor#create constructor
 	public GTMixed(Token t)
@@ -56,6 +57,10 @@ public abstract class GTMixed<K extends ProtoKind>
 		return (RoleNode) getChild(OBSERVER_CHILD_INDEX);
 	}
 
+	public RoleNode getTimeoutChild() {
+		return (RoleNode) getChild(TIMEOUT_CHILD_INDEX);
+	}
+
 	public RoleArgList getLeftRoleListChild()  // cf. ast.Do
 	{
 		return (RoleArgList) getChild(LEFT_ROLEARGS_CHILD_INDEX);
@@ -68,13 +73,15 @@ public abstract class GTMixed<K extends ProtoKind>
 
 	// "add", not "set"
 	public void addScribChildren(
-			ProtoBlock<K> left, RoleArgList leftCommitted, RoleNode obs,
-			RoleArgList rightCommitted, ProtoBlock<K> right)
+			ProtoBlock<K> left, RoleArgList leftCommitted,
+			RoleNode obs, RoleNode tim, RoleArgList rightCommitted,
+			ProtoBlock<K> right)
 	{
 		// Cf. above getters and Scribble.g children order
 		addChild(left);
 		addChild(leftCommitted);
 		addChild(obs);
+		addChild(tim);
 		addChild(rightCommitted);
 		addChild(right);
 	}
@@ -83,11 +90,12 @@ public abstract class GTMixed<K extends ProtoKind>
 	public abstract GTMixed<K> dupNode();
 	
 	public GTMixed<K> reconstruct(
-			ProtoBlock<K> left, RoleArgList leftCommitted, RoleNode obs,
+			ProtoBlock<K> left, RoleArgList leftCommitted,
+			RoleNode obs, RoleNode tim,
 			RoleArgList rightCommitted, ProtoBlock<K> right)
 	{
 		GTMixed<K> dup = dupNode();
-		dup.addScribChildren(left, leftCommitted, obs, rightCommitted, right);
+		dup.addScribChildren(left, leftCommitted, obs, tim, rightCommitted, right);
 		dup.setDel(del());  // No copy
 		return dup;
 	}
@@ -101,18 +109,21 @@ public abstract class GTMixed<K extends ProtoKind>
 				(RoleArgList) visitChild(getLeftRoleListChild(), nv);
 		RoleNode obs =
 				(RoleNode) visitChild(getObserverChild(), nv);
+		RoleNode tim =
+				(RoleNode) visitChild(getTimeoutChild(), nv);
 		RoleArgList rightCommitted =
 				(RoleArgList) visitChild(getRightRoleListChild(), nv);
 		ProtoBlock<K> right =
 				visitChildWithClassEqualityCheck(this, getRightBlockChild(), nv);
-		return reconstruct(left, leftCommitted, obs, rightCommitted, right);
+		return reconstruct(left, leftCommitted, obs, tim, rightCommitted, right);
 	}
 	
 	@Override
 	public String toString()
 	{
 		return "mixed " + getLeftBlockChild() + " " + getLeftRoleListChild()
-				+ " " + Constants.OR_KW + " " + getObserverChild() + " "
+				+ " " + Constants.OR_KW + " "
+				+ getTimeoutChild()  + "->" + getObserverChild() + " "
 				+ getRightRoleListChild() + " " + getRightBlockChild();
 	}
 }

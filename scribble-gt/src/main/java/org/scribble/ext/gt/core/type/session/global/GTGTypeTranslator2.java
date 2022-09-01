@@ -110,8 +110,9 @@ public class GTGTypeTranslator2 {
         GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
         Role obs = g.getObserverChild().toName();
+        Role tim = g.getTimeoutChild().toName();
         LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
         LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());
-        return this.fact.mixedChoice(left, right, obs, committedLeft, committedRight);
+        return this.fact.mixedChoice(left, right, obs, tim, committedLeft, committedRight);
     }
 }

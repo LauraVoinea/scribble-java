@@ -5,6 +5,7 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,16 +18,18 @@ public class GTGMixedChoice implements GTGType {
 
     public final GTGType left;
     public final GTGType right;
-    public final Role o;  // TODO: rename  -- observer?  "original monitor?"
+    public final Role p;  // TODO: rename  -- observer?  "original monitor?"
+    public final Role q;  // q->p ... |> p->q
     public final Set<Role> committedLeft;
     public final Set<Role> committedRight;
 
     protected GTGMixedChoice(
-            GTGType left, GTGType right, Role o,
+            GTGType left, GTGType right, Role o, Role t,
             LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
         this.left = left;
         this.right = right;
-        this.o = o;
+        this.p = o;
+        this.q = t;
         this.committedLeft = Collections.unmodifiableSet(
                 new LinkedHashSet<>(committedLeft));
         this.committedRight = Collections.unmodifiableSet(
@@ -35,16 +38,32 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Optional<? extends GTLType> project(Role r) {
+
+        // XXX TODO when r \in L or R
+
         if (!this.committedRight.contains(r) &&
-                (!this.committedLeft.contains(r) || this.o.equals(r))) {
+                (this.committedLeft.contains(r) || this.p.equals(r))) {  // ???
             return this.left.project(r);
         } else if (!this.committedLeft.contains(r) && this.committedRight.contains(r)) {
             return this.right.project(r);
-        } else if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {  // !!! XXX overlaps with above
-            throw new RuntimeException("TODO: ");  // p,q ??
-        } else {
-            return Optional.empty();  // !!! CHECKME: or error
+        } else if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
+            //throw new RuntimeException("TODO: ");  // p,q ??
+            GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+            Optional<? extends GTLType> optl = this.left.project(r);
+            Optional<? extends GTLType> optr = this.right.project(r);
+            if (optl.isEmpty() || optr.isEmpty()) {
+                return Optional.empty();
+            }
+            GTLType getl = optl.get();
+            GTLType getr = optr.get();
+            if (!r.equals(this.p) && !r.equals(this.q)) {
+                if (!getl.equals(getr)) {  // !!! TODO merge -- !!! maybe don't need merge here to start
+                    return Optional.empty();
+                }
+            }
+            return Optional.of(lf.mixedChoice(getl, getr));
         }
+        return Optional.empty();  // !!! CHECKME: or error
     }
 
     @Override
@@ -62,7 +81,8 @@ public class GTGMixedChoice implements GTGType {
         }
         GTGInteraction left = (GTGInteraction) this.left;
         GTGInteraction right = (GTGInteraction) this.right;
-        return left.src.equals(right.dst) && left.dst.equals(right.src)
+        return left.src.equals(right.dst) && right.dst.equals(this.q)
+                && left.dst.equals(right.src) && right.src.equals(this.p)
                 && this.left.isSinglePointed() && this.right.isSinglePointed();
     }
 
@@ -79,26 +99,58 @@ public class GTGMixedChoice implements GTGType {
     public Optional<GTGType> step(SAction a) {
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-        Optional<GTGType> opt = this.left.step(a);
-        if (opt.isPresent()) {
-            GTGType get = opt.get();
+        Optional<GTGType> optl = this.left.step(a);
+        Optional<GTGType> optr = this.right.step(a);
+        if (optl.isPresent() && optr.isPresent()) {
+            // [RTAct]
+            // !!! CHECKME: check something re. this.p/q and a ?
+            return Optional.of(
+                    this.fact.mixedChoice(optl.get(), optr.get(), this.p, this.q, cl, cr));
+        }
+        else if (optl.isPresent()) {
+            GTGType get = optl.get();
             if (a.isReceive()) {
-                cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
-            } else if (!a.isSend()) {
-                throw new RuntimeException("TODO: " + a);
+                if (this.right.step(a).isPresent() || this.committedRight.contains(a.subj)) {
+                    return Optional.empty();
+                }
+                if (this.committedLeft.contains(a.obj) || a.obj.equals(this.p)) {  // XXX this.p => q ?
+                    // [LRcv1]
+                    cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
+                } else {
+                    // [LRcv2]
+                }
+                return Optional.of(
+                        this.fact.mixedChoice(get, this.right, this.p, this.q, cl, cr));
+            } else if (a.isSend()) {  // [LSnd]
+                if (this.committedRight.contains(a.subj) || this.right.step(a).isPresent()) {
+                    return Optional.empty();
+                }
+                return Optional.of(
+                        this.fact.mixedChoice(get, this.right, this.p, this.q, cl, cr));
             }
-            return Optional.of(this.fact.mixedChoice(get, this.right, this.o, cl, cr));
+            throw new RuntimeException("TODO: " + a);
         } else {
-            GTGType get = this.right.step(a).get();  // Pre: a in getActs, so non-empty
+            GTGType get = optr.get();  // Pre: a in getActs, so non-empty
             if (a.isSend()) {
+                // [RSnd]
+                if (this.left.step(a).isPresent()  // ???
+                        || this.committedLeft.contains(a.subj)) {
+                    return Optional.empty();
+                }
                 cr.add(a.subj);
+                return Optional.of(
+                        this.fact.mixedChoice(this.left, get, this.p, this.q, cl, cr));
             } else if (a.isReceive()) {
-                cl.remove(a.subj);
+                // [RRcv]
+                if (this.left.step(a).isPresent()) {
+                    return Optional.empty();
+                }
+                //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
-            } else {
-                throw new RuntimeException("TODO: " + a);
+                return Optional.of(
+                        this.fact.mixedChoice(this.left, get, this.p, this.q, cl, cr));
             }
-            return Optional.of(this.fact.mixedChoice(this.left, get, this.o, cl, cr));
+            throw new RuntimeException("TODO: " + a);
         }
     }
 
@@ -125,8 +177,8 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public String toString() {
-        return this.left + " " + this.committedLeft + " |>" + this.o + " "
-                + this.committedRight + " " + this.right;
+        return this.left + " " + this.committedLeft + " |>" + this.p + "->"
+                + this.q + " " + this.committedRight + " " + this.right;
     }
 
     /* hashCode, equals, canEquals */
@@ -136,7 +188,8 @@ public class GTGMixedChoice implements GTGType {
         int hash = GTGType.MIXED_CHOICE_HASH;
         hash = 31 * hash + this.left.hashCode();
         hash = 31 * hash + this.right.hashCode();
-        hash = 31 * hash + this.o.hashCode();
+        hash = 31 * hash + this.p.hashCode();
+        hash = 31 * hash + this.q.hashCode();
         hash = 31 * hash + this.committedLeft.hashCode();
         hash = 31 * hash + this.committedRight.hashCode();
         return hash;
@@ -150,7 +203,8 @@ public class GTGMixedChoice implements GTGType {
         return them.canEquals(this)
                 && this.left.equals(them.left)
                 && this.right.equals(them.right)
-                && this.o.equals(them.o)
+                && this.p.equals(them.p)
+                && this.q.equals(them.q)
                 && this.committedLeft.equals(them.committedLeft)
                 && this.committedRight.equals(them.committedRight);
     }

@@ -134,8 +134,10 @@ module tmp.Test;
 
 
 //... HERE:
+// - recursion
+// -  check projection in paper (wiggly projection, multichoice) -- paper is WIP
 // - do projection -- test preservation of good, well-nested -- test well-nested invariant
-// - check vs. Latex
+// - check vs. Latex -- global semantics
 // - check why B gets committed -- investigate l* -- projection, locals
 
 
@@ -162,7 +164,8 @@ global protocol Proto1(role A, role B, role C)
     mixed {
 	    3(T) from A to B;
 	    //5() from B to C;
-    } () or B () {
+    //} () or A->B () {
+    } () or B->A () {
 	    4(T) from B to A;
 	    //6() from B to C;
     }

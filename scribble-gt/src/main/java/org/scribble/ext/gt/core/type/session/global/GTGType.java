@@ -24,7 +24,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     Optional<? extends GTLType> project(Role r);
 
-    boolean isSinglePointed();  // !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
+    boolean isSinglePointed();  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
     boolean isGood();  // !!! includes wiggly op annot check
 
     // a is deterministic (including "nested" steps)

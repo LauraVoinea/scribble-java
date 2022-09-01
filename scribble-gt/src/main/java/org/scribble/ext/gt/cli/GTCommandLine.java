@@ -16,6 +16,7 @@ import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.ProtoName;
+import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator;
@@ -113,6 +114,14 @@ public class GTCommandLine extends CommandLine {
 				GProtoDef defChild = g.getDefChild();
 				GInteractionSeq interactSeqChild = defChild.getBlockChild().getInteractSeqChild();
 				GTGType translate = new GTGTypeTranslator2().translate(interactSeqChild);
+
+				System.out.println("---");
+
+				for (Role r : g.getRoles()) {
+					System.out.println("project onto " + r + ": " + translate.project(r));
+				}
+
+				System.out.println("---");
 
 				if (!translate.isSinglePointed()) {
 					System.err.println("Not single pointed: " + translate);

@@ -11,6 +11,7 @@ import org.scribble.core.type.session.global.GType;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class GTGTypeTranslator {
 
     private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
