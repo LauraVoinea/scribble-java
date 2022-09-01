@@ -38,11 +38,8 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Optional<? extends GTLType> project(Role r) {
-
-        // XXX TODO when r \in L or R
-
         if (!this.committedRight.contains(r) &&
-                (this.committedLeft.contains(r) || this.p.equals(r))) {  // ???
+                (this.committedLeft.contains(r) || this.p.equals(r))) {  // XXX p.equals(r) ???
             return this.left.project(r);
         } else if (!this.committedLeft.contains(r) && this.committedRight.contains(r)) {
             return this.right.project(r);
