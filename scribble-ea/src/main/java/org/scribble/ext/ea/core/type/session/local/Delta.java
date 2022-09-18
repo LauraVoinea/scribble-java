@@ -16,6 +16,10 @@ public class Delta {
 
     @NotNull public final Map<Pair<EAPSid, Role>, EALType> map;
 
+    public Delta() {
+        this(new LinkedHashMap<>());
+    }
+
     public Delta(@NotNull LinkedHashMap<Pair<EAPSid, Role>, EALType> map) {
         this.map = Collections.unmodifiableMap(map.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,

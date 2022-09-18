@@ -4,6 +4,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.ext.ea.util.EATriple;
@@ -13,7 +14,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 // cf. T-Session and (nested) T-Par (missing)
+// CHECKME: equiv to normal form with all \nu s at top?  sufficiently general?
 public class EAPSystem {
+
+    //protected
 
     protected LinkedHashMap<EAPPid, EAPConfig> configs;
 
@@ -23,15 +27,19 @@ public class EAPSystem {
                         (x, y) -> x, LinkedHashMap::new));
     }
 
-    public Map<EAPPid, EAPConfig> getConfigs() {
-        return Collections.unmodifiableMap(this.configs);
-    }
-
-    public void type(Gamma gamma, Delta delta) {
-        // !!! TODO split delta -- cf. T-Par
-        // !!! TODO safety
+    // !!! TODO safety
+    public void type(Gamma gamma, Delta delta, Delta delta1) {
         for (EAPConfig c : this.configs.values()) {
-            c.type(gamma, delta);
+            LinkedHashSet<Pair<EAPSid, Role>> eps = c.getEndpoints();
+            LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);
+            for (Pair<EAPSid, Role> p : eps) {
+                if (!delta1.map.containsKey(p)) {
+                    throw new RuntimeException("Unknown endpoint: " + p);
+                }
+                // !!! TODO: Delta disjoint union op
+                tmp.put(p, delta1.map.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
+            }
+            c.type(gamma, new Delta(tmp));
         }
     }
 
@@ -122,6 +130,10 @@ public class EAPSystem {
         EAPConfig c1 = EAPRuntimeFactory.factory.config(c.pid, t1, sigma1);
         res.configs.put(p, c1);
         return res;
+    }
+
+    public Map<EAPPid, EAPConfig> getConfigs() {
+        return Collections.unmodifiableMap(this.configs);
     }
 
     @Override

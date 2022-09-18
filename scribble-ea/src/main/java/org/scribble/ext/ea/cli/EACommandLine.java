@@ -26,6 +26,9 @@ import java.util.Map;
 
 
 // HERE
+//- Need G/L annotations on restr in op sem with updating -- currently EAPSystem.type takes Delta as "manual" arg (add types as EAPSystem fields)
+//- Consider async
+//- add type method to System, split delta by configs key (endpoints)
 //- TEST config typing with handrolled Deltas -- as opposed to T-Session introducing each endpoint to Delta -- also because env splitting is not algorithmic
 //- finish testing infer for subset, but then do initiation and top-down register type annot
 //- types for subset, initiation+types, if-then-else
@@ -147,15 +150,22 @@ public class EACommandLine extends CommandLine
 
 		EAPSystem sys = rf.system(cs);
 		System.out.println(sys);
-		Map<EAPPid, EAPConfig> cfgs = sys.getConfigs();
+		/*Map<EAPPid, EAPConfig> cfgs = sys.getConfigs();
 		//System.out.println("Typing p1/A: " + cfgs.get(p1));
 		//cfgs.get(p1).type(new Gamma(), new Delta(env));  // TODO env for p1/A
 		System.out.println("Typing p2/B: " + cfgs.get(p2));
-		cfgs.get(p2).type(new Gamma(), new Delta(env));
+		cfgs.get(p2).type(new Gamma(), new Delta(env));*/
+		env.put(new EAPPair<>(s, A), out1);
+		System.out.println(env);
+		sys.type(new Gamma(), new Delta(), new Delta(env));
 
-		sys = sys.reduce(p1);
 		System.out.println();
+		sys = sys.reduce(p1);
 		System.out.println(sys);
+		env.put(new EAPPair<>(s, A), out2);
+		env.put(new EAPPair<>(s, B), in2);
+		System.out.println(env);
+		sys.type(new Gamma(), new Delta(), new Delta(env));
 
 		sys = sys.reduce(p1);
 		System.out.println();

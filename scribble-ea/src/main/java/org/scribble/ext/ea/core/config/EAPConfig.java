@@ -36,6 +36,16 @@ public class EAPConfig implements EAPRuntimeTerm {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    public LinkedHashSet<Pair<EAPSid, Role>> getEndpoints() {
+        LinkedHashSet<Pair<EAPSid, Role>> res = new LinkedHashSet<>();
+        if (!this.T.isIdle()) {
+            EAPActiveThread t = (EAPActiveThread) this.T;
+            res.add(new EAPPair<>(t.sid, t.role));
+        }
+        res.addAll(this.sigma.keySet());
+        return res;
+    }
+
     public boolean isActive() {
         return !this.T.isIdle();
     }
@@ -81,13 +91,15 @@ public class EAPConfig implements EAPRuntimeTerm {
             if (!cast.peer.equals(k.right)) {
                 throw new RuntimeException("Invalid handler type peer: " + e + " : " + T);
             }
-            EAPHandlers h = this.sigma.get(k);
+            //EAPHandlers h = this.sigma.get(k);
+            EAPHandlers h = e.getValue();
             if (!h.role.equals(k.right)) {
                 throw new RuntimeException("Invalid handler peer: " + e + " : " + T);
             }
             if (!cast.cases.keySet().equals(h.Hs.keySet())) {
                 throw new RuntimeException("Bad handler set: " + cast.cases + " |> " + h.Hs);
             }
+            // !!! TH-Handler typing the nested handler expr (uses Delta) -- cf. typing handler value TV-Handler (uses "infer")
             for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> x : h.Hs.entrySet()) {
                 Op op = x.getKey();
                 EATriple<EAPVar, EAValType, EAPExpr> rhs = x.getValue();
