@@ -1,5 +1,6 @@
 package org.scribble.ext.ea.core.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
@@ -19,9 +20,9 @@ public class EAPSystem {
 
     //protected
 
-    protected LinkedHashMap<EAPPid, EAPConfig> configs;
+    @NotNull public final LinkedHashMap<EAPPid, EAPConfig> configs;
 
-    public EAPSystem(LinkedHashMap<EAPPid, EAPConfig> configs) {
+    public EAPSystem(@NotNull LinkedHashMap<EAPPid, EAPConfig> configs) {
         this.configs = configs.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new));
@@ -78,7 +79,8 @@ public class EAPSystem {
             throw new RuntimeException("TODO: " + foo);
         }
 
-        EAPSystem res = new EAPSystem(this.configs);
+        //EAPSystem res = new EAPSystem(this.configs);
+        LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(this.configs);
 
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
         if (foo instanceof EAPSuspend) {
@@ -116,7 +118,8 @@ public class EAPSystem {
                     new LinkedHashMap<>(c2.sigma);
             newsigma2.remove(k2);
             EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
-            res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+            //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+            configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
         } else if (foo instanceof EAPSuspend || foo instanceof EAPReturn) {
             if (t.expr.equals(foo)) {  // top level
                 t1 = EAPIdle.IDLE;
@@ -128,8 +131,9 @@ public class EAPSystem {
         }
 
         EAPConfig c1 = EAPRuntimeFactory.factory.config(c.pid, t1, sigma1);
-        res.configs.put(p, c1);
-        return res;
+        //res.configs.put(p, c1);
+        configs.put(p, c1);
+        return new EAPSystem(configs);
     }
 
     public Map<EAPPid, EAPConfig> getConfigs() {
