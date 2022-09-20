@@ -52,7 +52,7 @@ public class EAPSend implements EAPExpr {
     @Override
     public EALOutType infer(Gamma gamma) {
         EAValType t = this.val.type(gamma);
-        LinkedHashMap<Op, Pair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         cases.put(this.op, new EAPPair<>(t, EALEndType.END));  // !!! (potential) placeholder END
         return EALTypeFactory.factory.out(this.dst, cases);
     }

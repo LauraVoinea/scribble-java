@@ -2,7 +2,9 @@ package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -37,7 +39,9 @@ public class EAPRuntimeFactory {
         return new EAPActiveThread(expr, sid, role);
     }
 
-    public EAPSystem system(LinkedHashMap<EAPPid, EAPConfig> cs) {
-        return new EAPSystem(cs);
+    public EAPSystem system(@NotNull LTypeFactory lf,
+                            @NotNull Delta annots,
+                            @NotNull LinkedHashMap<EAPPid, EAPConfig> cs) {
+        return new EAPSystem(lf, annots, cs);
     }
 }

@@ -1,6 +1,11 @@
 package org.scribble.ext.ea.core.type.session.local;
 
+import org.intellij.lang.annotations.JdkConstants;
+import org.scribble.core.type.name.Op;
+import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.value.EAValType;
+
+import java.util.Optional;
 
 public class EALEndType implements EALType {
 
@@ -12,6 +17,11 @@ public class EALEndType implements EALType {
     @Override
     public EALType concat(EALType t) {
         return t;
+    }
+
+    @Override
+    public Optional<EALType> step(LType a) {
+        return Optional.empty();
     }
 
     /* Aux */

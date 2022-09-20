@@ -4,6 +4,8 @@ import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.local.LTypeFactory;
+import org.scribble.core.type.session.local.LTypeFactoryImpl;
 import org.scribble.ext.ea.core.config.*;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EAType;
@@ -26,6 +28,10 @@ import java.util.Map;
 
 
 // HERE
+//- key point: only relevant handlers available at any one time -- cf. prev EDP works
+
+//- recursion
+//- rename pairs->endpoints, triples->"handlers"
 //- Need G/L annotations on restr in op sem with updating -- currently EAPSystem.type takes Delta as "manual" arg (add types as EAPSystem fields)
 //- Consider async
 //- add type method to System, split delta by configs key (endpoints)
@@ -57,17 +63,22 @@ public class EACommandLine extends CommandLine
 %%   -- p (+) { l3(C) -> End }
 %%   print("still alive")*/
 
+		//CommandLine.main(args);  // No main module
+
 		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
 		EAPFactory f = EAPFactory.factory;
 		EATypeFactory tf = EATypeFactory.factory;
 
+		LTypeFactoryImpl lf = new LTypeFactoryImpl();
+
 		//ex1(rf, f);
-		ex2(rf, f, tf);
+		ex2(lf, rf, f, tf);
 
 		//new EACommandLine(args).run();
 	}
 
-	private static void ex2(EAPRuntimeFactory rf, EAPFactory f, EATypeFactory tf) {
+	private static void ex2(
+			LTypeFactory lf,EAPRuntimeFactory rf, EAPFactory f, EATypeFactory tf) {
 		Role A = new Role("A");
 		Role B = new Role("B");
 		Op l1 = new Op("l1");
@@ -84,11 +95,11 @@ public class EACommandLine extends CommandLine
 
 		EAPLet let = f.let(x, tf.val.unit(), sendAB1, sendAB2);
 
-		LinkedHashMap<Op, Pair<EAValType, EALType>> cases = new LinkedHashMap<>();
-		cases.put(l2, new Pair<>(tf.val.unit(), tf.local.end()));
+		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out2 = tf.local.out(B, cases);
 		cases = new LinkedHashMap<>();
-		cases.put(l1, new Pair<>(tf.val.unit(), out2));
+		cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
 		EALOutType out1 = tf.local.out(B, cases);
 
 		System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
@@ -127,10 +138,10 @@ public class EACommandLine extends CommandLine
 		EAPConfig cB = rf.config(p2, idle, sigmaB);
 
 		cases = new LinkedHashMap<>();
-		cases.put(l2, new Pair<>(tf.val.unit(), tf.local.end()));
+		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALInType in2 = tf.local.in(B, cases);
 		cases = new LinkedHashMap<>();
-		cases.put(l1, new Pair<>(tf.val.unit(), in2));
+		cases.put(l1, new EAPPair<>(tf.val.unit(), in2));
 		EALInType in1 = tf.local.in(B, cases);
 
 		env = new LinkedHashMap<>();
@@ -148,16 +159,19 @@ public class EACommandLine extends CommandLine
 		cs.put(p1, cA);
 		cs.put(p2, cB);
 
-		EAPSystem sys = rf.system(cs);
+		env.put(new EAPPair<>(s, A), out1);
+		System.out.println(env);
+		EAPSystem sys = rf.system(lf, new Delta(env), cs);
 		System.out.println(sys);
 		/*Map<EAPPid, EAPConfig> cfgs = sys.getConfigs();
 		//System.out.println("Typing p1/A: " + cfgs.get(p1));
 		//cfgs.get(p1).type(new Gamma(), new Delta(env));  // TODO env for p1/A
 		System.out.println("Typing p2/B: " + cfgs.get(p2));
 		cfgs.get(p2).type(new Gamma(), new Delta(env));*/
-		env.put(new EAPPair<>(s, A), out1);
-		System.out.println(env);
-		sys.type(new Gamma(), new Delta(), new Delta(env));
+		//env.put(new EAPPair<>(s, A), out1);
+		//System.out.println(env);
+		////sys.type(new Gamma(), new Delta(), new Delta(env));
+		sys.type(new Gamma(), new Delta());
 
 		System.out.println();
 		sys = sys.reduce(p1);
@@ -165,27 +179,33 @@ public class EACommandLine extends CommandLine
 		env.put(new EAPPair<>(s, A), out2);
 		env.put(new EAPPair<>(s, B), in2);
 		System.out.println(env);
-		sys.type(new Gamma(), new Delta(), new Delta(env));
+		//sys.type(new Gamma(), new Delta(), new Delta(env));
+		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p1);
 		System.out.println();
 		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p2);
 		System.out.println();
 		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p1);
 		System.out.println();
 		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p1);
 		System.out.println();
 		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p2);
 		System.out.println();
 		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
 	}
 
 	/*

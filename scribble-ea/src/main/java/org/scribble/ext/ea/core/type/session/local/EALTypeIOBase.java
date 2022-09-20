@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -14,10 +15,10 @@ import java.util.stream.Collectors;
 public abstract class EALTypeIOBase implements EALType {
 
     @NotNull public final Role peer;
-    @NotNull public final Map<Op, Pair<EAValType, EALType>> cases;
+    @NotNull public final Map<Op, EAPPair<EAValType, EALType>> cases;
 
     protected EALTypeIOBase(@NotNull Role peer,
-                         @NotNull LinkedHashMap<Op, Pair<EAValType, EALType>> cases) {
+                         @NotNull LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases) {
         this.peer = peer;
         if (cases.isEmpty()) {
             throw new RuntimeException("Invalid empty cases");

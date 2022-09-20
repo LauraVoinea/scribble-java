@@ -1,25 +1,41 @@
 package org.scribble.ext.ea.core.type.session.local;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.core.type.kind.MsgIdKind;
+import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.local.LRecv;
+import org.scribble.core.type.session.local.LSend;
+import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class EALInType extends EALTypeIOBase {
 
     protected EALInType(@NotNull Role peer,
-                     @NotNull LinkedHashMap<Op, Pair<EAValType, EALType>> cases) {
+                     @NotNull LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases) {
         super(peer, cases);
     }
 
     @Override
     public EALInType concat(EALType t) {
         throw new RuntimeException("Concat not defined for receive");
+    }
+
+    @Override
+    public Optional<EALType> step(LType a) {
+        if (!(a instanceof LRecv)) {
+            return Optional.empty();
+        }
+        LRecv cast = (LRecv) a;
+        MsgId<? extends MsgIdKind> id = cast.msg.getId();
+        return EALOutType.stepId(this.cases, id);
     }
 
     @Override

@@ -47,7 +47,7 @@ public class EAPHandlers implements EAPVal {
 
     @Override
     public EAValType type(Gamma gamma) {
-        LinkedHashMap<Op, Pair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : Hs.entrySet()) {
            Op k = e.getKey();
            EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
