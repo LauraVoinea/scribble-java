@@ -165,7 +165,7 @@ global protocol Proto1(role A, role B, role C)
 	    3(T) from A to B;
 	    //5() from B to C;
     //} () or A->B () {
-    } () or B->A () {
+    } () or A->B () {
 	    4(T) from B to A;
 	    //6() from B to C;
     }

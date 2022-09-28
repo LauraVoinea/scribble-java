@@ -1,13 +1,10 @@
 package org.scribble.ext.gt.core.type.session.global;
 
 import org.scribble.ast.MsgNode;
-import org.scribble.ast.RoleArgList;
 import org.scribble.ast.SigLitNode;
 import org.scribble.ast.global.*;
-import org.scribble.ast.name.simple.RoleNode;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.SigLit;
 import org.scribble.ext.gt.ast.GTMixed;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 
@@ -109,10 +106,10 @@ public class GTGTypeTranslator2 {
     protected GTGMixedChoice translateGMixed(GTGMixed g) {
         GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
-        Role obs = g.getObserverChild().toName();
-        Role tim = g.getTimeoutChild().toName();
+        Role sec = g.getSecondaryChild().toName();
+        Role pri = g.getPrimaryChild().toName();
         LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
         LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());
-        return this.fact.mixedChoice(left, right, obs, tim, committedLeft, committedRight);
+        return this.fact.mixedChoice(left, right, sec, pri, committedLeft, committedRight);
     }
 }

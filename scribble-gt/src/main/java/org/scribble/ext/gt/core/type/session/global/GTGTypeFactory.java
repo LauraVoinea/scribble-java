@@ -22,9 +22,9 @@ public class GTGTypeFactory {
     }
 
     public GTGMixedChoice mixedChoice(
-            GTGType left, GTGType right, Role o, Role t,
+            GTGType left, GTGType right, Role sec, Role pri,
             LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
-        return new GTGMixedChoice(left, right, o, t, committedLeft, committedRight);
+        return new GTGMixedChoice(left, right, sec, pri, committedLeft, committedRight);
     }
 
     public GTGEnd end() {
