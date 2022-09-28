@@ -100,7 +100,6 @@ public class GTCommandLine extends CommandLine {
 	protected void myRun() {
 		Core core = this.job.getCore();
 		CoreContext c = core.getContext();
-		GTGTypeTranslator tr = new GTGTypeTranslator();
 
 		Map<ModuleName, Module> parsed = this.main.getParsedModules();
 		System.out.println("\n-----\n");

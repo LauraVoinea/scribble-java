@@ -110,7 +110,7 @@ public class GTGMixedChoice implements GTGType {
                 if (this.right.step(a).isPresent() || this.committedRight.contains(a.subj)) {
                     return Optional.empty();
                 }
-                if (this.committedLeft.contains(a.obj) || a.obj.equals(this.p)) {  // XXX this.p => q ?
+                if (this.committedLeft.contains(a.obj) || a.obj.equals(this.q)) {  // XXX this.p => q ?
                     // [LRcv1]
                     cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
                 } else {
