@@ -27,6 +27,10 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     boolean isSinglePointed();  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
     boolean isGood();  // !!! includes wiggly op annot check
 
+    boolean isCoherent();  // TODO rename
+    //boolean isLemma2();
+    //boolean isLemma3();
+
     // a is deterministic (including "nested" steps)
     Optional<GTGType> step(SAction a);
 

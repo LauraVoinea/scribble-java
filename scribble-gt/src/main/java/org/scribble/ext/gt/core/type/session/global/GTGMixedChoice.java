@@ -89,6 +89,12 @@ public class GTGMixedChoice implements GTGType {
                 && this.left.isGood() && this.right.isGood();
     }
 
+    @Override
+    public boolean isCoherent() {
+        return (this.committedLeft.isEmpty() || this.committedRight.isEmpty())
+            && this.left.isCoherent() && this.right.isCoherent();
+    }
+
     // Pre: a in getActs
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?

@@ -88,6 +88,11 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
+    public boolean isCoherent() {
+        return this.cases.values().stream().allMatch(x -> x.isCoherent());
+    }
+
+    @Override
     public Optional<GTGType> step(SAction a) {
         if (this.src.equals(a.subj)) {
            if (a.isSend()) {  // [Snd]

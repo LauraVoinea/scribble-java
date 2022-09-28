@@ -143,6 +143,11 @@ public class GTCommandLine extends CommandLine {
 	private void foo(Core core, String indent, GTGType g, int count) {
 		if (!g.isGood()) {
 			System.err.println("Not good: " + g);
+			System.exit(0);
+		}
+		if (!g.isCoherent()) {
+			System.err.println("Not coherent: " + g);
+			System.exit(0);
 		}
 		if (count > 20) {
 			System.err.println("Pruned.");

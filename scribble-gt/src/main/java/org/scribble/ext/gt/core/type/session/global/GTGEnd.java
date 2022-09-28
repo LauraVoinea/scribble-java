@@ -41,6 +41,11 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
+    public boolean isCoherent() {
+        return true;
+    }
+
+    @Override
     public Optional<GTGType> step(SAction a) {
         return Optional.empty();
     }
