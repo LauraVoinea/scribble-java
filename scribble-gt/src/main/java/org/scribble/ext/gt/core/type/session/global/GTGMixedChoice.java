@@ -105,12 +105,12 @@ public class GTGMixedChoice implements GTGType {
                     this.fact.mixedChoice(optl.get(), optr.get(), this.sec, this.pri, cl, cr));
         }
         else if (optl.isPresent()) {
+            if (optr.isPresent() || this.committedRight.contains(a.subj)) {  // First cond is redundant
+                return Optional.empty();
+            }
             GTGType get = optl.get();
             if (a.isReceive()) {
-                if (this.right.step(a).isPresent() || this.committedRight.contains(a.subj)) {
-                    return Optional.empty();
-                }
-                if (this.committedLeft.contains(a.obj) || a.obj.equals(this.sec)) {  // XXX this.p => q ?
+                if (this.committedLeft.contains(a.obj) || a.subj.equals(this.pri)) {  // XXX this.p => q ?
                     // [LRcv1]
                     cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
                 } else {
@@ -119,19 +119,16 @@ public class GTGMixedChoice implements GTGType {
                 return Optional.of(
                         this.fact.mixedChoice(get, this.right, this.sec, this.pri, cl, cr));
             } else if (a.isSend()) {  // [LSnd]
-                if (this.committedRight.contains(a.subj) || this.right.step(a).isPresent()) {
-                    return Optional.empty();
-                }
                 return Optional.of(
                         this.fact.mixedChoice(get, this.right, this.sec, this.pri, cl, cr));
+            } else {
+                throw new RuntimeException("TODO: " + a);
             }
-            throw new RuntimeException("TODO: " + a);
         } else {
             GTGType get = optr.get();  // Pre: a in getActs, so non-empty
             if (a.isSend()) {
                 // [RSnd]
-                if (this.left.step(a).isPresent()  // ???
-                        || this.committedLeft.contains(a.subj)) {
+                if (optl.isPresent() || this.committedLeft.contains(a.subj)) {  // First cond is redundant
                     return Optional.empty();
                 }
                 cr.add(a.subj);
@@ -139,15 +136,16 @@ public class GTGMixedChoice implements GTGType {
                         this.fact.mixedChoice(this.left, get, this.sec, this.pri, cl, cr));
             } else if (a.isReceive()) {
                 // [RRcv]
-                if (this.left.step(a).isPresent()) {
+                if (optl.isPresent()) {  // Redundant in this code
                     return Optional.empty();
                 }
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
                 return Optional.of(
                         this.fact.mixedChoice(this.left, get, this.sec, this.pri, cl, cr));
+            } else {
+                throw new RuntimeException("TODO: " + a);
             }
-            throw new RuntimeException("TODO: " + a);
         }
     }
 
