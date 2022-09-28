@@ -115,7 +115,7 @@ public class GTGInteraction implements GTGType {
         return Optional.empty();
     }
 
-    protected static Optional<LinkedHashMap<Op, GTGType>> stepNested(
+    protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
             Map<Op, GTGType> cases, SAction a) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
@@ -128,6 +128,7 @@ public class GTGInteraction implements GTGType {
             }
             cs.put(op, step.get());
         }
+        return Optional.of(cs);
         /*boolean done = false;
         for (Map.Entry<Op, GTGType> e : es) {
             Op k = e.getKey();
@@ -145,7 +146,7 @@ public class GTGInteraction implements GTGType {
             }
         }
         return done ? Optional.of(cs) : Optional.empty();*/
-        throw new RuntimeException("Shouldn't get here");  // cases non-empty
+        //throw new RuntimeException("Shouldn't get here: " + cases + " ,, " + a);  // cases non-empty
     }
 
     @Override

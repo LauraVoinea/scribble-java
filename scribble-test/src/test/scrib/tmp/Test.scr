@@ -164,6 +164,17 @@ global protocol Proto1(role A, role B, role C)
     mixed {
 	    3(T) from A to B;
 	    //5() from B to C;
+        /*choice at A {
+            5(T) from A to B;
+        } or {
+            6(T) from A to B;
+        }*/
+	    mixed {
+	        5(T) from A to B;
+	    } () or A->B () {
+	        //6(T) from A to B;
+	        6(T) from B to A;
+	    }
     //} () or A->B () {
     } () or A->B () {
 	    4(T) from B to A;

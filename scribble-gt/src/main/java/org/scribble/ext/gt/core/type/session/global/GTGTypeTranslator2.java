@@ -24,8 +24,10 @@ public class GTGTypeTranslator2 {
             return translateGMessageTransfer((GMsgTransfer) g, fact.end());
         } else if (g instanceof GChoice) {
             return translateGChoice((GChoice) g);
+        } else if (g instanceof GProtoBlock) {  // XXX CHECKME why needed?
+            return translateGSeq(((GProtoBlock) g).getInteractSeqChild());
         } else {
-            throw new RuntimeException("TODO: " + g);
+            throw new RuntimeException("TODO: " + g.getClass() + "\n" + g);
         }
     }
 

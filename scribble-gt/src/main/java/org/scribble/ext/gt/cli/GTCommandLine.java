@@ -172,6 +172,7 @@ public class GTCommandLine extends CommandLine {
 		System.out.println(indent + "g = " + g1);*/
 
 		for (SAction a : as) {
+			//System.out.println("bbb: " + g + " ,, " + a);
 			GTGType g1 = g.step(a).get();  // a in as so step is non-empty
 			System.out.println(indent + "a = " + a);
 			System.out.println(indent + "g = " + g1);

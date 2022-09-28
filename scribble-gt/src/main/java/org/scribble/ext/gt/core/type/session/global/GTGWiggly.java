@@ -109,9 +109,29 @@ public class GTGWiggly implements GTGType {
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
                     : Optional.empty();*/
             Optional<LinkedHashMap<Op, GTGType>> nestedCases
-                    = GTGInteraction.stepNested(this.cases, a);  // !!! XXX I\k
+                    = stepNested(this.cases, a);  // !!! XXX I\k
             return nestedCases.map(x -> this.fact.wiggly(this.src, this.dst, this.op, x));
         }
+    }
+
+    protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
+            Map<Op, GTGType> cases, SAction a) {
+        Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
+        LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
+        for (Map.Entry<Op, GTGType> e : es) {
+            Op op = e.getKey();
+            GTGType c = e.getValue();
+            if (op.equals(this.op)) {
+                Optional<GTGType> step = c.step(a);
+                if (step.isEmpty()) {
+                    return Optional.empty();
+                }
+                cs.put(op, step.get());
+            } else {
+                cs.put(op, c);
+            }
+        }
+        return Optional.of(cs);
     }
 
     @Override

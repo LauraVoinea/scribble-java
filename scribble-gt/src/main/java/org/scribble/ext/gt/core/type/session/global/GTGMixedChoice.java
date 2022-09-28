@@ -7,6 +7,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 
+import javax.print.attribute.standard.MediaSize;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -130,8 +131,8 @@ public class GTGMixedChoice implements GTGType {
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
-        } else {
-            GTGType get = optr.get();  // Pre: a in getActs, so non-empty
+        } else if (optr.isPresent()) {
+            GTGType get = optr.get();  // May be empty for nested mixed choices in the "stuck" side
             if (a.isSend()) {
                 // [RSnd]
                 if (optl.isPresent() || this.committedLeft.contains(a.subj)) {  // First cond is redundant
@@ -152,11 +153,13 @@ public class GTGMixedChoice implements GTGType {
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
+        } else {
+            return Optional.empty();
         }
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
+    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {  // XXX outer still OK to reduce if inner is fully ended?
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
         LinkedHashSet<SAction> aLeft = this.left.getActs(mf, bLeft);
@@ -178,8 +181,8 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public String toString() {
-        return this.left + " " + this.committedLeft + " |>" + this.sec + "->"
-                + this.pri + " " + this.committedRight + " " + this.right;
+        return "(" + this.left + " " + this.committedLeft + " |>" + this.sec + "->"
+                + this.pri + " " + this.committedRight + " " + this.right + ")";
     }
 
     /* hashCode, equals, canEquals */
