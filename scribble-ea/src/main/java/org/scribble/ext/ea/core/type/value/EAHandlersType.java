@@ -16,7 +16,7 @@ public class EAHandlersType implements EAValType {
 
     @Override
     public String toString() {
-        return "Handler(" + this.S + "):";
+        return "Handler(" + this.S + ")";
     }
 
     /* equals/canEquals, hashCode */

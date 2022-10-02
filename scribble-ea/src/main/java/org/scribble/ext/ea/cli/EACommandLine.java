@@ -61,35 +61,119 @@ public class EACommandLine extends CommandLine
 
 		//CommandLine.main(args);  // No main module
 
-		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
-		EAPFactory f = EAPFactory.factory;
-		EATypeFactory tf = EATypeFactory.factory;
-
 		LTypeFactoryImpl lf = new LTypeFactoryImpl();
 
-		ex1(lf, rf, f, tf);
-		//ex2(lf, rf, f, tf);
+		EAPFactory pf = EAPFactory.factory;
+		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+		EATypeFactory tf = EATypeFactory.factory;
+
+		//ex1(lf, pf, rf, tf);
+		ex2(lf, pf, rf, tf);
 
 		//new EACommandLine(args).run();
 	}
 
+	private static void ex3(
+			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+		Role A = new Role("A");
+		Role B = new Role("B");
+		Op l1 = new Op("l1");
+		EAPUnit unit = pf.unit();
+		EAPSid s = rf.sid("s");
+		EAPPid p1 = rf.pid("p1");
+		EAPPid p2 = rf.pid("p2");
+
+		// A: B!l1(unit)
+		EAPSend sendAB = pf.send(B, l1, unit);
+		EAPActiveThread tA = rf.activeThread(sendAB, s, A);
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+		EAPConfig cA = rf.config(p1, tA, sigmaA);
+
+		// idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
+		LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
+		EAPVar x = pf.var("x");
+		EAPReturn ret = pf.returnn(unit);
+		Hs.put(l1, new EATriple<>(x, tf.val.unit(), ret));
+		EAPHandlers hB = pf.handlers(B, Hs);
+		EAPIdle idle = rf.idle();
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+		sigmaB.put(new EAPPair<>(s, B), hB);
+		EAPConfig cB = rf.config(p2, idle, sigmaB);
+
+		System.out.println(cA);
+		System.out.println(cB);
+
+		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
+		EALOutType out1 = tf.local.out(B, cases);
+
+		System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(), out1));
+
+		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+		env.put(new EAPPair<>(s, A), out1);
+		System.out.println("Typing cA: " + cA + " ,, " + env);
+		cA.type(new Gamma(), new Delta(env));
+
+		cases = new LinkedHashMap<>();
+		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
+		EALInType in1 = tf.local.in(B, cases);
+
+		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
+		map.put(x, tf.val.unit());
+		Gamma gamma = new Gamma(map);
+		System.out.println("Typing hB: " + hB.type(gamma));
+
+		env = new LinkedHashMap<>();
+		env.put(new EAPPair<>(s, B), in1);
+		System.out.println("Typing cB: " + cB + " ,, " + env);
+		cB.type(new Gamma(), new Delta(env));
+
+		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+		cs.put(p1, cA);
+		cs.put(p2, cB);
+		//EAPSystem sys = rf.system(cs);
+		env.put(new EAPPair<>(s, A), out1);
+		EAPSystem sys = rf.system(lf, new Delta(env), cs);
+		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
+
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
+
+		sys = sys.reduce(p1);
+		System.out.println();
+		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
+
+		sys = sys.reduce(p2);
+		System.out.println();
+		System.out.println(sys);
+		sys.type(new Gamma(), new Delta());
+
+		/*sys = sys.reduce(p2);
+		System.out.println();
+		System.out.println(sys);*/
+	}
+
 	private static void ex2(
-			LTypeFactory lf,EAPRuntimeFactory rf, EAPFactory f, EATypeFactory tf) {
+			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
 		Role A = new Role("A");
 		Role B = new Role("B");
 		Op l1 = new Op("l1");
 		Op l2 = new Op("l2");
-		EAPUnit unit = f.unit();
+		EAPUnit unit = pf.unit();
 		EAPSid s = rf.sid("s");
 		EAPPid p1 = rf.pid("p1");
 		EAPPid p2 = rf.pid("p2");
-		EAPVar x = f.var("x");
+		EAPVar x = pf.var("x");
 
 		// let x = B!l1() in B!l2()
-		EAPSend sendAB1 = f.send(B, l1, unit);
-		EAPSend sendAB2 = f.send(B, l2, unit);
+		EAPSend sendAB1 = pf.send(B, l1, unit);
+		EAPSend sendAB2 = pf.send(B, l2, unit);
 
-		EAPLet let = f.let(x, tf.val.unit(), sendAB1, sendAB2);
+		EAPLet let = pf.let(x, tf.val.unit(), sendAB1, sendAB2);
 
 		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
@@ -114,15 +198,15 @@ public class EACommandLine extends CommandLine
 		// idle, s[B] |-> handler B { l1(x) -> suspend(l2(x) -> return () ) }
 		LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
 		EAPIdle idle = rf.idle();
-		EAPReturn ret = f.returnn(f.unit());
+		EAPReturn ret = pf.returnn(pf.unit());
 		Hs.put(l2, new EATriple<>(x, tf.val.unit(), ret));
-		EAPHandlers hB2 = f.handlers(B, Hs);
+		EAPHandlers hB2 = pf.handlers(B, Hs);
 
 		Hs = new LinkedHashMap<>();
-		EAPSuspend sus = f.suspend(hB2);  // XXX suspend
+		EAPSuspend sus = pf.suspend(hB2);  // XXX suspend
 		// l1 -> (x, continuation)
 		Hs.put(l1, new EATriple<>(x, tf.val.unit(), sus));
-		EAPHandlers hB1 = f.handlers(B, Hs);
+		EAPHandlers hB1 = pf.handlers(B, Hs);
 
 		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
 		map.put(x, tf.val.unit());
@@ -205,27 +289,27 @@ public class EACommandLine extends CommandLine
 	}
 
 	private static void ex1(
-			LTypeFactory lf,EAPRuntimeFactory rf, EAPFactory f, EATypeFactory tf) {
+			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
 		Role A = new Role("A");
 		Role B = new Role("B");
 		Op l1 = new Op("l1");
-		EAPUnit unit = f.unit();
+		EAPUnit unit = pf.unit();
 		EAPSid s = rf.sid("s");
 		EAPPid p1 = rf.pid("p1");
 		EAPPid p2 = rf.pid("p2");
 
 		// A: B!l1(unit)
-		EAPSend sendAB = f.send(B, l1, unit);
+		EAPSend sendAB = pf.send(B, l1, unit);
 		EAPActiveThread tA = rf.activeThread(sendAB, s, A);
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
 		EAPConfig cA = rf.config(p1, tA, sigmaA);
 
 		// idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
 		LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
-		EAPVar x = f.var("x");
-		EAPReturn ret = f.returnn(unit);
+		EAPVar x = pf.var("x");
+		EAPReturn ret = pf.returnn(unit);
 		Hs.put(l1, new EATriple<>(x, tf.val.unit(), ret));
-		EAPHandlers hB = f.handlers(B, Hs);
+		EAPHandlers hB = pf.handlers(B, Hs);
 		EAPIdle idle = rf.idle();
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
 		sigmaB.put(new EAPPair<>(s, B), hB);
