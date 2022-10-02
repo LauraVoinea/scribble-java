@@ -62,7 +62,7 @@ public class EAPHandlers implements EAPVal {
                throw new RuntimeException("Type error: " + gamma1 + " | "
                        + inferred + " |>" + v.right + ":" + res.left + " <|" + res.right);
            }
-           cases.put(k, new EAPPair<EAValType, EALType>(v.mid, inferred));
+           cases.put(k, new EAPPair<>(v.mid, inferred));
        }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
         return EAValTypeFactory.factory.handlers(in);

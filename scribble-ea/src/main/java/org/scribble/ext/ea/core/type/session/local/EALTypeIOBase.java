@@ -2,6 +2,7 @@ package org.scribble.ext.ea.core.type.session.local;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
@@ -26,6 +27,19 @@ public abstract class EALTypeIOBase implements EALType {
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    public LinkedHashMap<Op, EAPPair<EAValType, EALType>> unfoldCases(
+            RecVar rvar, EALType t) {
+         return this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    x -> {
+                        EAPPair<EAValType, EALType> v = x.getValue();
+                        return new EAPPair(v.left, v.right.unfold(rvar, t));
+                    },
+                    (x, y) -> x, LinkedHashMap::new
+                ));
     }
 
     /* Aux */
@@ -65,8 +79,9 @@ public abstract class EALTypeIOBase implements EALType {
 
     @Override
     public int hashCode() {
-        int hash = EALType.IO;
-        hash = 31 * hash;
+        int hash = EALType.IO_HASH;
+        hash = 31 * hash + this.peer.hashCode();
+        hash = 31 * hash + this.cases.hashCode();
         return hash;
     }
 }

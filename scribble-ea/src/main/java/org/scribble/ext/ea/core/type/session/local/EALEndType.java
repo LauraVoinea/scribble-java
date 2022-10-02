@@ -1,9 +1,7 @@
 package org.scribble.ext.ea.core.type.session.local;
 
-import org.intellij.lang.annotations.JdkConstants;
-import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.local.LType;
-import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Optional;
 
@@ -17,6 +15,11 @@ public class EALEndType implements EALType {
     @Override
     public EALType concat(EALType t) {
         return t;
+    }
+
+    @Override
+    public EALType unfold(RecVar rvar, EALType t) {
+        return this;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class EALEndType implements EALType {
 
     @Override
     public int hashCode() {
-        int hash = EALType.END;
+        int hash = EALType.END_HASH;
         hash = 31 * hash;
         return hash;
     }

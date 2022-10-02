@@ -4,16 +4,14 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.kind.MsgIdKind;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LRecv;
-import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class EALInType extends EALTypeIOBase {
@@ -26,6 +24,11 @@ public class EALInType extends EALTypeIOBase {
     @Override
     public EALInType concat(EALType t) {
         throw new RuntimeException("Concat not defined for receive");
+    }
+
+    @Override
+    public EALType unfold(RecVar rvar, EALType t) {
+        return new EALInType(this.peer, unfoldCases(rvar, t));
     }
 
     @Override
@@ -60,7 +63,7 @@ public class EALInType extends EALTypeIOBase {
 
     @Override
     public int hashCode() {
-        int hash = EALType.IN;
+        int hash = EALType.IN_HASH;
         hash = 31 * hash + super.hashCode();
         return hash;
     }

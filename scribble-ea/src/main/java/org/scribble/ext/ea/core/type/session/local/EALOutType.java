@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.kind.MsgIdKind;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LType;
@@ -14,7 +15,6 @@ import org.scribble.util.Pair;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public class EALOutType extends EALTypeIOBase {
 
@@ -33,6 +33,11 @@ public class EALOutType extends EALTypeIOBase {
         Pair<EAValType, EALType> v = e.getValue();
         cases1.put(e.getKey(), new EAPPair<>(v.left, v.right.concat(t)));
         return EALTypeFactory.factory.out(this.peer, cases1);
+    }
+
+    @Override
+    public EALType unfold(RecVar rvar, EALType t) {
+        return new EALOutType(this.peer, unfoldCases(rvar, t));
     }
 
     @Override
@@ -80,7 +85,7 @@ public class EALOutType extends EALTypeIOBase {
 
     @Override
     public int hashCode() {
-        int hash = EALType.OUT;
+        int hash = EALType.OUT_HASH;
         hash = 31 * hash + super.hashCode();
         return hash;
     }
