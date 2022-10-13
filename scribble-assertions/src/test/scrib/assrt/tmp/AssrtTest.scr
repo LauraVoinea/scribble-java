@@ -11,6 +11,13 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
+global protocol MyProto(role A, role B, role C) {
+    1(x: int) from A to B;  @'x=0'
+    2() from B to C;
+}
+
+
+/*
 //global protocol MyProto(role A, role B, role C) {
 global protocol MyProto(role A, role B) {
     //Foo(x: int) from A to C;  @'x>0'
@@ -25,12 +32,27 @@ global protocol MyProto(role A, role B) {
 
     /*1(x: int) from A to B;
     2(y: int) from B to C;  @'x=y'
-    3(z: int) from C to B;  @'z=x'*/
+    3(z: int) from C to B;  @'z=x'* /
 
     /*1(x: int) from A to B;  @'x>0'
-    do MyProto(A, B);*/
+    do MyProto(A, B);* /
 }
+//*/
 
+/*
+global protocol MyProto(role A, role B) {
+    1(x0: int) from A to B;
+    do Aux(A, B);  @'B[x0]'
+    }
+aux global protocol Aux(role A, role B) @'B[x: int = 0]' {
+    choice at B {
+        2() from B to A;  @'x>0'
+        do Aux(A, B);  @'B[x]'
+    } or {
+        3() from B to A;  @'x<=0'
+    }
+}
+//*/
 
 /*
 global protocol MyProto(role A, role B) {

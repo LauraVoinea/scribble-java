@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
+import org.scribble.core.lang.ProtoMod;
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.lang.local.LProjection;
 import org.scribble.core.model.ModelFactory;
@@ -110,18 +111,24 @@ public class AssrtCore extends Core
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
 
-		//tempRunSyncSat();  // HERE
+		tempRunSyncSat();  // HERE
 	}
 
 	private void tempRunSyncSat() throws ScribException {
 		System.out.println("\n--------------------\n");
+		AssrtCoreContext c = (AssrtCoreContext) this.context;
+		Map<ProtoName<Global>, GProtocol> inlined = c.getInlined();
+		for (Map.Entry<ProtoName<Global>, GProtocol> e : inlined.entrySet()) {
+			AssrtGProtocol g = (AssrtGProtocol) e.getValue();
+			if (!g.mods.contains(ProtoMod.AUX)) {
+				tempRunSyncSat(g);
+			}
+		}
+	}
+
+	private void tempRunSyncSat(AssrtGProtocol g) throws ScribException {
 		AssrtSModelFactory sf = (AssrtSModelFactory) this.config.mf.global;
 		AssrtGTypeFactory gf = (AssrtGTypeFactory) this.config.tf.global;
-		Map<ProtoName<Global>, GProtocol> inlined = ((AssrtCoreContext) this.context).getInlined();
-		if (inlined.size() != 1) {  // FIXME do for all root protos
-			throw new RuntimeException("TODO: " + inlined);
-		}
-		AssrtGProtocol g = (AssrtGProtocol) inlined.values().iterator().next();
 
 		// Cf. SState -- needs SConfig which is coupled to EFSMs and queues (i.e., async)
 		Map<AssrtGConfig, Map<AssrtSSend, AssrtGConfig>> graph = new HashMap<>();
