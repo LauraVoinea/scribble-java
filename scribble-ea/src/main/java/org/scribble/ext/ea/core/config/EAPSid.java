@@ -1,9 +1,7 @@
 package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.process.EAPTerm;
-import org.scribble.ext.ea.core.process.EAPVal;
-import org.scribble.ext.ea.core.process.EAPVar;
+import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -32,6 +30,9 @@ public class EAPSid implements EAPVal, EARuntimeName {
     public EAPSid subs(@NotNull Map<EAPVar, EAPVal> m) {
         return this;
     }
+
+    @Override
+    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
 
     @Override
     public Set<EAPVar> getFreeVars() {

@@ -14,8 +14,11 @@ public interface EALType extends EAType {
     int OUT_HASH = 11047;
     int REC_HASH = 11057;
     int END_HASH = 11059;
+    int RECVAR_HASH = 11069;
 
     EALType concat(EALType t);
+
+    //EALType unfold();  // XXX "unfold all" needs map for all recvars encountered
     EALType unfold(RecVar rvar, EALType t);
 
     Optional<EALType> step(LType a);

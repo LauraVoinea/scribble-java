@@ -35,6 +35,9 @@ public class EAPUnit implements EAPVal {
     }
 
     @Override
+    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+
+    @Override
     public String toString() {
         return "()";
     }

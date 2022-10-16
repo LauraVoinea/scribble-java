@@ -2,6 +2,7 @@ package org.scribble.ext.ea.core.type.session.local;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
@@ -27,7 +28,15 @@ public class EALTypeFactory {
     }
 
     public EALOutType out(@NotNull Role peer,
-                @NotNull LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases) {
+                        @NotNull LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases) {
         return new EALOutType(peer, cases);
+    }
+
+    public EALRecType rec(@NotNull RecVar var, @NotNull EALType body) {
+        return new EALRecType(var, body);
+    }
+
+    public EALRecVarType recvar(@NotNull RecVar var) {
+        return new EALRecVarType(var);
     }
 }

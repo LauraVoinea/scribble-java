@@ -53,9 +53,11 @@ public class EAPHandlers implements EAPVal {
            EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
            LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
            tmp.put(v.left, v.mid);
-           Gamma gamma1 = new Gamma(tmp);
+           Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
 
            EALType inferred = v.right.infer(gamma1);
+
+           System.out.println("111: " + v.right + " ,, " + inferred);
 
            Pair<EAValType, EALType> res = v.right.type(gamma1, inferred);
            if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
@@ -78,7 +80,20 @@ public class EAPHandlers implements EAPVal {
             Op k = e.getKey();
             EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
             m1.remove(v.left);
-            Hs.put(k, new EATriple<EAPVar, EAValType, EAPExpr>(v.left, v.mid, v.right.subs(m1)));
+            Hs.put(k, new EATriple<>(v.left, v.mid, v.right.subs(m1)));
+        }
+        return EAPFactory.factory.handlers(this.role, Hs);
+    }
+
+    @Override
+    public EAPVal fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+        LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : this.Hs.entrySet()) {
+            Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
+            Op k = e.getKey();
+            EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
+            m1.remove(v.left);
+            Hs.put(k, new EATriple<>(v.left, v.mid, v.right.fsubs(m1)));
         }
         return EAPFactory.factory.handlers(this.role, Hs);
     }

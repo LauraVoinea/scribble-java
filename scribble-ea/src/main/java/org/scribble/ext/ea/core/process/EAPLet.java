@@ -15,7 +15,7 @@ import java.util.Set;
 public class EAPLet implements EAPExpr {
 
     @NotNull public final EAPVar var;
-    @NotNull public final EAValType varType;  // !!! added type annot
+    @NotNull public final EAValType varType;  // vars x have ValTypes A -- !!! added type annot
     //@NotNull public final EAPExpr init;  // !!! value?  not expr
     @NotNull public final EAPExpr init;
     @NotNull public final EAPExpr body;
@@ -38,7 +38,7 @@ public class EAPLet implements EAPExpr {
         }
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, p1.left);
-        Gamma gamma1 = new Gamma(tmp);
+        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
         return this.body.type(gamma1, p1.right);
     }
 
@@ -47,7 +47,7 @@ public class EAPLet implements EAPExpr {
         EALType i = this.init.infer(gamma);
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
-        Gamma gamma1 = new Gamma(tmp);
+        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
         EALType b = this.body.infer(gamma1);
         return i.concat(b);
     }
@@ -73,11 +73,17 @@ public class EAPLet implements EAPExpr {
 
     @Override
     public EAPLet subs(@NotNull Map<EAPVar, EAPVal> m) {
-        //EAPExpr init1 = this.init.subs(m);
         EAPExpr init1 = this.init.subs(m);
         Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
         m1.remove(this.var);
         EAPExpr body1 = body.subs(m1);
+        return EAPFactory.factory.let(this.var, this.varType, init1, body1);
+    }
+
+    @Override
+    public EAPLet fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+        EAPExpr init1 = this.init.fsubs(m);
+        EAPExpr body1 = body.fsubs(m);
         return EAPFactory.factory.let(this.var, this.varType, init1, body1);
     }
 

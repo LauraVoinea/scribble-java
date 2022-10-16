@@ -59,6 +59,12 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
+    public EAPReturn fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+        EAPVal val1 = this.val.fsubs(m);
+        return EAPFactory.factory.returnn(val1);
+    }
+
+    @Override
     public EAPReturn recon(@NotNull EAPExpr old, EAPExpr neww) {
         return this;
     }

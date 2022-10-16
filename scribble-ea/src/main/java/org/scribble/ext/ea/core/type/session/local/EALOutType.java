@@ -35,6 +35,11 @@ public class EALOutType extends EALTypeIOBase {
         return EALTypeFactory.factory.out(this.peer, cases1);
     }
 
+    /*@Override
+    public EALOutType unfold() {
+        return this;
+    }*/
+
     @Override
     public EALType unfold(RecVar rvar, EALType t) {
         return new EALOutType(this.peer, unfoldCases(rvar, t));

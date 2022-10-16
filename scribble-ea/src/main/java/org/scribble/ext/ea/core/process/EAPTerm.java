@@ -10,6 +10,8 @@ import java.util.Map;
 // !!! "terms" vs. "term typing"
 public interface EAPTerm {
 
+    int FUNC_NAME = 1609;  // TODO move
+
     int VAR = 3779;
     //int PROCESS_ID = 3793;
     int UNIT = 3797;
@@ -18,10 +20,12 @@ public interface EAPTerm {
     int SEND = 3823;
     int HANDLERS = 3833;
     int SUSPEND = 3847;
+    int REC = 3851;
+    int APP = 3853;
 
-    int IDLE = 3851;
-    int ACTIVE_THREAD = 3853;
-    int CONFIG = 3863;
+    int IDLE = 4481;
+    int ACTIVE_THREAD = 4483;
+    int CONFIG = 4493;
 
     boolean canEquals(Object o);
 }

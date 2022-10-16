@@ -1,30 +1,32 @@
 package org.scribble.ext.ea.core.type.session.local;
 
+import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.local.LType;
 
 import java.util.Optional;
 
-public class EALEndType implements EALType {
+public class EALRecVarType implements EALType {
 
-    public static final EALEndType END = new EALEndType();
+    @NotNull public final RecVar var;
 
-    protected EALEndType() {
+    protected EALRecVarType(@NotNull RecVar var) {
+        this.var = var;
     }
 
     @Override
     public EALType concat(EALType t) {
-        return t;  // !!! CHECKME shouldn't get here?
+        throw new RuntimeException("Concat only defined for unary send");
     }
 
     /*@Override
-    public EALEndType unfold() {
+    public EALRecVarType unfold() {
         return this;
     }*/
 
     @Override
     public EALType unfold(RecVar rvar, EALType t) {
-        return this;
+        return rvar.equals(this.var) ? t : this;
     }
 
     @Override
@@ -36,7 +38,7 @@ public class EALEndType implements EALType {
 
     @Override
     public String toString() {
-        return "end";
+        return this.var.toString();
     }
 
     /* equals/canEquals, hashCode */
@@ -45,19 +47,19 @@ public class EALEndType implements EALType {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EALEndType them = (EALEndType) o;
-        return them.canEquals(this);
+        EALRecVarType them = (EALRecVarType) o;
+        return them.canEquals(this) && this.var.equals(them.var);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EALEndType;
+        return o instanceof EALRecVarType;
     }
 
     @Override
     public int hashCode() {
-        int hash = EALType.END_HASH;
-        hash = 31 * hash;
+        int hash = EALType.RECVAR_HASH;
+        hash = 31 * hash + this.var.hashCode();
         return hash;
     }
 }

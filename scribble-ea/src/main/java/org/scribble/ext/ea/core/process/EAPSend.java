@@ -92,6 +92,12 @@ public class EAPSend implements EAPExpr {
     }
 
     @Override
+    public EAPSend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+        EAPVal val1 = this.val.fsubs(m);
+        return EAPFactory.factory.send(this.dst, this.op, val1);
+    }
+
+    @Override
     public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
         return this.equals(old) ? neww : this;
     }

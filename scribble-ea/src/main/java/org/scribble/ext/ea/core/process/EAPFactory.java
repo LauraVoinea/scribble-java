@@ -1,8 +1,10 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.core.type.name.Id;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
@@ -17,16 +19,39 @@ public class EAPFactory {
 
     }
 
+    /* Values */
+
     public EAPHandlers handlers(
             @NotNull Role role,
             @NotNull LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs) {
         return new EAPHandlers(role, Hs);
     }
 
+    public EAPRec rec(@NotNull EAPFuncName f, @NotNull EAPVar var,
+            @NotNull EAValType varType, @NotNull EAPExpr body,
+            @NotNull EALType S, @NotNull EALType T, @NotNull EAValType B) {
+        return new EAPRec(f, var, varType, body, S, T, B);
+    }
+
+    public EAPUnit unit() {
+        return EAPUnit.UNIT;
+    }
+
+    public EAPVar var(@NotNull String id) {
+        return new EAPVar(id);
+    }
+
+
+    /* Computations */
+
     //public EAPLet let(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-        public EAPLet let(@NotNull EAPVar var, @NotNull EAValType varType,
-                          @NotNull EAPExpr init, @NotNull EAPExpr body) {
+    public EAPLet let(@NotNull EAPVar var, @NotNull EAValType varType,
+                      @NotNull EAPExpr init, @NotNull EAPExpr body) {
         return new EAPLet(var, varType, init, body);
+    }
+
+    public EAPApp app(@NotNull EAPVal left, @NotNull EAPVal right) {
+        return new EAPApp(left, right);
     }
 
     public EAPReturn returnn(@NotNull EAPVal val) {
@@ -39,13 +64,5 @@ public class EAPFactory {
 
     public EAPSuspend suspend(@NotNull EAPVal val) {
         return new EAPSuspend(val);
-    }
-
-    public EAPUnit unit() {
-        return EAPUnit.UNIT;
-    }
-
-    public EAPVar var(@NotNull String id) {
-        return new EAPVar(id);
     }
 }

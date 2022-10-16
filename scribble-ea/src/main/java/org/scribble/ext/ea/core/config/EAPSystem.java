@@ -90,23 +90,14 @@ public class EAPSystem {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
         EAPExpr foo = t.expr.getFoo();
-        if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn || foo instanceof EAPSend)) {
+        if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn
+                || foo instanceof EAPSend || foo instanceof EAPApp)) {
             throw new RuntimeException("TODO: " + foo);
         }
 
         //EAPSystem res = new EAPSystem(this.configs);
         LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(this.configs);
         LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
-
-        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
-        if (foo instanceof EAPSuspend) {
-            EAPSuspend cast = (EAPSuspend) foo;
-            sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
-        } else if (foo instanceof EAPSend || foo instanceof EAPReturn) {
-            // skip
-        } else {
-            throw new RuntimeException("TODO: " + foo);
-        }
 
         EAPThreadState t1;
         if (foo instanceof EAPSend) {
@@ -162,6 +153,18 @@ public class EAPSystem {
             } else {
                 t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
             }
+        } else if (foo instanceof EAPApp){
+            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+        } else {
+            throw new RuntimeException("TODO: " + foo);
+        }
+
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
+        if (foo instanceof EAPSuspend) {
+            EAPSuspend cast = (EAPSuspend) foo;
+            sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
+        } else if (foo instanceof EAPSend || foo instanceof EAPReturn || foo instanceof EAPApp) {
+            // skip
         } else {
             throw new RuntimeException("TODO: " + foo);
         }

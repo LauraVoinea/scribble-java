@@ -21,9 +21,10 @@ public class EALRecType implements EALType {
         throw new RuntimeException("Concat not defined for recursion");
     }
 
+    /*@Override
     public EALType unfold() {
         return unfold(this.var, this.body);
-    }
+    }*/
 
     @Override
     public EALType unfold(RecVar rvar, EALType t) {
@@ -34,7 +35,8 @@ public class EALRecType implements EALType {
 
     @Override
     public Optional<EALType> step(LType a) {
-        return unfold().step(a);
+        //return unfold().step(a);
+        throw new RuntimeException("Shouldn't get here (manual unfolded type annots)");
     }
 
     /* Aux */

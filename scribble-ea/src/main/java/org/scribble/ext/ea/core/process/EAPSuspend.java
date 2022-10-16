@@ -37,7 +37,7 @@ public class EAPSuspend implements EAPExpr {
             throw new RuntimeException("Incompatible in type: " + pre + ", " + cast);
         }
         EATypeFactory tf = EATypeFactory.factory;
-        return new EAPPair<>(tf.val.unit(), tf.local.end());  // !!! S'
+        return new EAPPair<>(tf.val.unit(), tf.local.end());  // !!! unit vs A. !!! end vs. S'
     }
 
     @Override
@@ -60,6 +60,12 @@ public class EAPSuspend implements EAPExpr {
     @Override
     public EAPSuspend subs(@NotNull Map<EAPVar, EAPVal> m) {
         EAPVal val1 = this.val.subs(m);
+        return EAPFactory.factory.suspend(val1);
+    }
+
+    @Override
+    public EAPSuspend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+        EAPVal val1 = this.val.fsubs(m);
         return EAPFactory.factory.suspend(val1);
     }
 

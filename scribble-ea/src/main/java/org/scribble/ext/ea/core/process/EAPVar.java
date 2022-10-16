@@ -33,6 +33,9 @@ public class EAPVar implements EAPVal, EAName {
     }
 
     @Override
+    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+
+    @Override
     public Set<EAPVar> getFreeVars() {
         return Set.of(this);
     }

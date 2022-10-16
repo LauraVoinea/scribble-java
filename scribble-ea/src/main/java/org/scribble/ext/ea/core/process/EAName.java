@@ -4,7 +4,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 
-public interface EAName {
+public interface EAName {  // A term (has `type`)
 
     default EAValType type(Gamma gamma) {
         EAValType res = gamma.map.get(this);
@@ -13,4 +13,6 @@ public interface EAName {
         }
         return res;
     }
+
+    boolean canEquals(Object o);
 }

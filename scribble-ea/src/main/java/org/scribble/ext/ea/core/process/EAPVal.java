@@ -13,6 +13,7 @@ public interface EAPVal extends EAPTerm {
     EAValType type(Gamma gamma);
 
     EAPVal subs(Map<EAPVar, EAPVal> m);
+    EAPVal fsubs(Map<EAPFuncName, EAPRec> m);
 
     Set<EAPVar> getFreeVars();
 

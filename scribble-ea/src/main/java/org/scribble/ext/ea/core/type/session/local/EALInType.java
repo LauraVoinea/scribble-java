@@ -26,6 +26,11 @@ public class EALInType extends EALTypeIOBase {
         throw new RuntimeException("Concat not defined for receive");
     }
 
+    /*@Override
+    public EALInType unfold() {
+        return this;
+    }*/
+
     @Override
     public EALType unfold(RecVar rvar, EALType t) {
         return new EALInType(this.peer, unfoldCases(rvar, t));
