@@ -1,12 +1,12 @@
 package org.scribble.ext.assrt.core.type.session.local;
 
-import java.util.LinkedHashMap;
-
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.session.AssrtChoice;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+
+import java.util.LinkedHashMap;
 
 public class AssrtLChoice extends AssrtChoice<Local, AssrtLType>
 		implements AssrtLType
@@ -20,7 +20,7 @@ public class AssrtLChoice extends AssrtChoice<Local, AssrtLType>
 		super(source, peer, kind, cases);
 		this.peer = peer;
 	}
-	
+
 	@Override
 	public AssrtLActionKind getKind()
 	{

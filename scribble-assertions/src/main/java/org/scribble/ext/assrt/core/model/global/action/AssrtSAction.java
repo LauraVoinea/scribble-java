@@ -7,7 +7,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 
 // The _additional_ stuff an SSend/Recv needs to be an AssrtSSend/AssrtSRecv
-public interface AssrtSAction
+public interface AssrtSAction  // TODO: should be extends SAction ?
 {
 	AssrtBFormula getAssertion();
 

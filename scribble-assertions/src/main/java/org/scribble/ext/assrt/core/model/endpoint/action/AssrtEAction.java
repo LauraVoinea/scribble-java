@@ -7,7 +7,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 
-public interface AssrtEAction
+public interface AssrtEAction  // TODO: should be extends EAction ?
 {
 
 	AssrtBFormula getAssertion();

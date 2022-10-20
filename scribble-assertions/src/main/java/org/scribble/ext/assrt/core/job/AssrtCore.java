@@ -111,7 +111,7 @@ public class AssrtCore extends Core
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
 
-		tempRunSyncSat();  // HERE
+		//tempRunSyncSat();  // XXX HERE global model building
 	}
 
 	private void tempRunSyncSat() throws ScribException {

@@ -1,13 +1,13 @@
 package org.scribble.ext.assrt.core.type.session;
 
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.session.SType;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface AssrtSType<K extends ProtoKind, B extends AssrtSType<K, B>>
 		extends SType<K, NoSeq<K>>

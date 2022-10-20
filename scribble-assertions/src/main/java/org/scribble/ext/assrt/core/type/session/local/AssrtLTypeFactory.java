@@ -27,6 +27,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLTransfer;
 
 // CHECKME: override pattern not ideal, but maybe OK due to the "language shift" -- also no Impl suffix
 public class AssrtLTypeFactory extends LTypeFactoryImpl
@@ -57,6 +58,9 @@ public class AssrtLTypeFactory extends LTypeFactoryImpl
 	{
 		return AssrtLEnd.END;
 	}
+
+
+	/* Deprecated */
 
 	@Override
 	public LAcc LAcc(CommonTree source, Role src, Msg msg)

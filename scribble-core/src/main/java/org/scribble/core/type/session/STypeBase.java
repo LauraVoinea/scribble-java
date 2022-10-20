@@ -49,7 +49,7 @@ public abstract class STypeBase<K extends ProtoKind, B extends Seq<K, B>>
 	public int hashCode()
 	{
 		int hash = 1871;
-		hash = 31 * hash + super.hashCode();
+		//hash = 31 * hash + super.hashCode();  // XXX
 		return hash;
 	}
 

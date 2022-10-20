@@ -6,9 +6,9 @@ import org.scribble.ext.assrt.core.type.session.AssrtActionKind;
 public enum AssrtLActionKind implements AssrtActionKind<Local>
 {
 	SEND,
-	RECV,
-	REQ,
-	ACC;
+	RECV;
+	//REQ,
+	//ACC;
 	
 	@Override
 	public String toString()
@@ -17,8 +17,8 @@ public enum AssrtLActionKind implements AssrtActionKind<Local>
 		{
 			case SEND: return "!";
 			case RECV: return "?";
-			case REQ:  return "!!";
-			case ACC:  return "??";
+			//case REQ:  return "!!";
+			//case ACC:  return "??";
 			default:   throw new RuntimeException("Won't get here: " + this);
 		}
 	}
