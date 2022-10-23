@@ -87,6 +87,7 @@ public class EACommandLine extends CommandLine
 		EAPVar x = pf.var("x");
 		EAPVar y = pf.var("y");
 		EAPVar z = pf.var("z");
+		EAPVar zz = pf.var("zz");
 		EAPFuncName f = new EAPFuncName("f");
 		RecVar X = new RecVar("X");
 
@@ -107,16 +108,20 @@ public class EACommandLine extends CommandLine
 		cases.put(l1, new EAPPair<>(tf.val.unit(), inu));
 		EALOutType unfoldX = tf.local.out(B, cases);
 
-		// let x = return rec f(_). [ let y = B!l1() in suspend handler B { l2(_) |-> f() } ]
+		// let x = return rec f(_). [ let y = B!l1() in suspend handler B { l2(_) |-> let zz = f() in suspend zz } ]
 		// in x()
 		EAPSend sendAB1 = pf.send(B, l1, pf.unit());
 		LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
 		EAPApp appx = pf.app(f, pf.unit());
-		Hs.put(l2, new EATriple<>(z, tf.val.unit(), appx));
+
+		EAPSuspend sus2 = pf.suspend(zz);
+		EAPLet let2 = pf.let(zz, ...handlerintype..., appx, sus2);  // HERE fix "infer" for suspend h
+
+		Hs.put(l2, new EATriple<>(z, tf.val.unit(), let2));
 		EAPHandlers hA = pf.handlers(B, Hs);
 		EAPSuspend sushA = pf.suspend(hA);
 		EAPLet lety = pf.let(y, tf.val.unit(), sendAB1, sushA);
-		EAValType typeB = tf.val.unit();  // ???
+		EAValType typeB = ...handlerintype...;  // cf. T-SuspendSync, (A, S') can be anything -- needs to match type of zz for the rec
 		EAPRec recf = pf.rec(f, z, tf.val.unit(), lety, unfoldX, recX, typeB);
 		EAPReturn retf = pf.returnn(recf);
 		EAPLet letx = pf.let(x, tf.val.unit(), retf, appx);

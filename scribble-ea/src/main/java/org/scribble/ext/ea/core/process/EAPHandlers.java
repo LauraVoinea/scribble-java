@@ -58,10 +58,12 @@ public class EAPHandlers implements EAPVal {
            EALType inferred = v.right.infer(gamma1);
 
            System.out.println("111: " + v.right + " ,, " + inferred);
+           
+           // HERE: typing recursion vs. [TV-Handler]
 
            Pair<EAValType, EALType> res = v.right.type(gamma1, inferred);
            if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
-               throw new RuntimeException("Type error: " + gamma1 + " | "
+               throw new RuntimeException("Type error: " + gamma1 + " |- "
                        + inferred + " |>" + v.right + ":" + res.left + " <|" + res.right);
            }
            cases.put(k, new EAPPair<>(v.mid, inferred));
