@@ -156,13 +156,13 @@ public class EACommandLine extends CommandLine
 		EAPApp apphA = pf.app(h, pf.unit());
 		EAPLet lethhA = pf.let(hh, h2, apphA, sushhA);
 		EAPLet wA = pf.let(w1, tf.val.unit(), sendAB1, lethhA);
-		System.out.println(lethhA);
+		System.out.println(wA);
 
 		// let h = return rec f(_). ... in [ let _ ... ]
 		EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-		EAPLet lethA = pf.let(h, ftA, retfA, lethhA);
+		EAPLet lethA = pf.let(h, ftA, retfA, wA);
 		System.out.println(lethA);
-		lethA.type(new Gamma(), recXA);
+		lethA.type(new Gamma(), out1u);
 
 		// config < A, idle, c[A] |->
 
