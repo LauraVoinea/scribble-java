@@ -8,10 +8,7 @@ import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EAPApp implements EAPExpr {
 
@@ -112,7 +109,8 @@ public class EAPApp implements EAPExpr {
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = this.left.getFreeVars();
+        Set<EAPVar> res = new HashSet<>();
+        res.addAll(this.left.getFreeVars());
         res.addAll(this.right.getFreeVars());
         return res;
     }

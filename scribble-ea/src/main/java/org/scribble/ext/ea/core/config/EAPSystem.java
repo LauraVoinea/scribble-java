@@ -111,7 +111,7 @@ public class EAPSystem {
                                     y.left.equals(t.sid) && y.right.equals(cast.dst))
                     ).findFirst();
             if (fst.isEmpty()) {
-                throw new RuntimeException("FIXME");  // EAPExpr.getFoo broken
+                throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo broken -- receive may not be ready yet (e.g., handler not installed yet)
             }
             Map.Entry<EAPPid, EAPConfig> get = fst.get();
             EAPPid p2 = get.getKey();

@@ -267,7 +267,6 @@ public class EACommandLine extends CommandLine
 
 		// ----
 
-		/*
 		System.out.println("\n---");
 		System.out.println("cA = " + cA);
 		System.out.println("cB = " + cB);
@@ -276,7 +275,8 @@ public class EACommandLine extends CommandLine
 		cs.put(p1, cA);
 		cs.put(p2, cB);
 
-		env.put(new EAPPair<>(s, A), out1);
+		env.put(new EAPPair<>(s, A), out1u);
+		env.put(new EAPPair<>(s, B), recXB);
 		System.out.println(env);
 		EAPSystem sys = rf.system(lf, new Delta(env), cs);
 		System.out.println(sys);
@@ -284,7 +284,7 @@ public class EACommandLine extends CommandLine
 		//System.out.println("Typing p1/A: " + cfgs.get(p1));
 		//cfgs.get(p1).type(new Gamma(), new Delta(env));  // TODO env for p1/A
 		System.out.println("Typing p2/B: " + cfgs.get(p2));
-		cfgs.get(p2).type(new Gamma(), new Delta(env));* /
+		cfgs.get(p2).type(new Gamma(), new Delta(env));*/
 		//env.put(new EAPPair<>(s, A), out1);
 		//System.out.println(env);
 		////sys.type(new Gamma(), new Delta(), new Delta(env));
@@ -293,13 +293,13 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		sys = sys.reduce(p1);
 		System.out.println(sys);
-		env.put(new EAPPair<>(s, A), out2);
-		env.put(new EAPPair<>(s, B), in2);
+		env.put(new EAPPair<>(s, A), out1u);
+		env.put(new EAPPair<>(s, B), recXB);
 		System.out.println(env);
 		//sys.type(new Gamma(), new Delta(), new Delta(env));
 		sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p1);
+		sys = sys.reduce(p1);  // HERE fix getFoo re. input side
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
@@ -323,7 +323,7 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
-		*/
+		//*/
 	}
 
 	/*private static void ex4i(
@@ -665,6 +665,7 @@ public class EACommandLine extends CommandLine
 		cs.put(p2, cB);
 
 		env.put(new EAPPair<>(s, A), out1);
+		env.put(new EAPPair<>(s, B), in1);
 		System.out.println(env);
 		EAPSystem sys = rf.system(lf, new Delta(env), cs);
 		System.out.println(sys);
