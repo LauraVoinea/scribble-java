@@ -20,6 +20,7 @@ import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 
 
@@ -164,22 +165,21 @@ public class EACommandLine extends CommandLine
 		System.out.println(lethA);
 		lethA.type(new Gamma(), out1u);
 
-		// config < A, idle, c[A] |->
+		//---------------
+		// config < A, idle, c[A] |-> let h = ... in ... >
+		System.out.println();
 
-		/*System.out.println("Typing letx: " + letx + " ,, " + letx.type(new Gamma(), unfoldX));
-
-		EAPActiveThread tA = rf.activeThread(let, s, A);
+		EAPActiveThread tA = rf.activeThread(lethA, s, A);
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
 		EAPConfig cA = rf.config(p1, tA, sigmaA);
 
 		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, A), out1);
+		//env.put(new EAPPair<>(s, A), recXA);
+		env.put(new EAPPair<>(s, A), out1u);
 		System.out.println("Typing cA: " + cA + " ,, " + env);
 		cA.type(new Gamma(), new Delta(env));
-		*/
 
 		// ----
-
 		System.out.println();
 
 		// mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }
@@ -242,30 +242,28 @@ public class EACommandLine extends CommandLine
 		System.out.println(leth);
 		leth.type(new Gamma(), recXB);
 
-		/*// config < B, idle, c[B] |-> let x = ... in x() } >
+		//--------------
+		// config < B, idle, c[B] |-> let h = ... in ... } >
+		System.out.println();
 
-		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
+		/*LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
 		map.put(x, tf.val.unit());
-		Gamma gamma = new Gamma(map);
-		System.out.println("Typing hB: " + hB1.type(gamma));
+		Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+		System.out.println("Typing hB: " + hsB1.type(gamma));
 
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		sigmaB.put(new EAPPair<>(s, B), hB1);  // !!! TODO make sigma concrete, e.g., for typing
-		EAPConfig cB = rf.config(p2, idle, sigmaB);
+		sigmaB.put(new EAPPair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
+		EAPConfig cB = rf.config(p2, rf.idle(), sigmaB);*/
 
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALInType in2 = tf.local.in(B, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), in2));
-		EALInType in1 = tf.local.in(B, cases);
+		EAPActiveThread tB = rf.activeThread(leth, s, B);
+		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+		EAPConfig cB = rf.config(p1, tB, sigmaB);
 
 		env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, B), in1);
+		env.put(new EAPPair<>(s, B), recXB);
 		System.out.println("Typing cB: " + cB + " ,, " + env);
 		cB.type(new Gamma(), new Delta(env));
 		//*/
-
 
 		// ----
 
