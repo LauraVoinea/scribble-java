@@ -21,9 +21,13 @@ public class EAPFactory {
 
     /* Values */
 
+    public EAPHandler handler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
+                              @NotNull EAPExpr expr, @NotNull EALType pre) {
+        return new EAPHandler(op, var, varType, expr, pre);
+    }
+
     public EAPHandlers handlers(
-            @NotNull Role role,
-            @NotNull LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs) {
+            @NotNull Role role, @NotNull LinkedHashMap<Op, EAPHandler> Hs) {
         return new EAPHandlers(role, Hs);
     }
 

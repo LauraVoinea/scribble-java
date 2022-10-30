@@ -5,6 +5,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.util.Pair;
 
 import java.util.HashMap;
@@ -113,7 +114,8 @@ public class EAPLet implements EAPExpr {
 
     @Override
     public String toString() {
-        return "let " + this.var + ":" + this.varType
+        return "let " + this.var + " "
+                + ConsoleColors.BLACK_UNDERLINED + ":" + this.varType + ConsoleColors.RESET
                 + " <= " + this.init + " in " + this.body;
     }
 

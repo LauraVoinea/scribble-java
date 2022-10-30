@@ -46,7 +46,9 @@ public class EAPSuspend implements EAPExpr {
         if (this.val instanceof EAPHandlers) {
             ht = (EAHandlersType) this.val.type(gamma);
         } else if (this.val instanceof EAPVal) {
+
             System.out.println("111: " + this.val + " ,, " + this.val.getClass());
+
             ht = (EAHandlersType) gamma.map.get(this.val);
         } else {
             throw new RuntimeException("Shouldn't get here: " + gamma);

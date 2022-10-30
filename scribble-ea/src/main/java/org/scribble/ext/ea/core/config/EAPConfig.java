@@ -88,27 +88,24 @@ public class EAPConfig implements EAPRuntimeTerm {
                 throw new RuntimeException("Invalid handler type: " + e + " : " + T);
             }
             EALInType cast = (EALInType) T;
-            if (!cast.peer.equals(k.right)) {
-                throw new RuntimeException("Invalid handler type peer: " + e + " : " + T);
-            }
             //EAPHandlers h = this.sigma.get(k);
             EAPHandlers h = e.getValue();
-            if (!h.role.equals(k.right)) {
-                throw new RuntimeException("Invalid handler peer: " + e + " : " + T);
+            if (!cast.peer.equals(h.role)) {
+                throw new RuntimeException("Invalid handler type peer: " + e + " : " + T);
             }
             if (!cast.cases.keySet().equals(h.Hs.keySet())) {
                 throw new RuntimeException("Bad handler set: " + cast.cases + " |> " + h.Hs);
             }
             // !!! TH-Handler typing the nested handler expr (uses Delta) -- cf. typing handler value TV-Handler (uses "infer")
-            for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> x : h.Hs.entrySet()) {
+            for (Map.Entry<Op, EAPHandler> x : h.Hs.entrySet()) {
                 Op op = x.getKey();
-                EATriple<EAPVar, EAValType, EAPExpr> rhs = x.getValue();
+                EAPHandler rhs = x.getValue();
                 LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
-                tmp.put(rhs.left, rhs.mid);
+                tmp.put(rhs.var, rhs.varType);
                 Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
-                Pair<EAValType, EALType> res = rhs.right.type(gamma1, cast.cases.get(op).right);
+                Pair<EAValType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
                 if (!res.equals(new EAPPair<>(EAUnitType.UNIT, EALEndType.END))) {
-                    throw new RuntimeException("Badly typed: " + rhs.right + " |> " + res);
+                    throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);
                 }
             }
         }

@@ -12,6 +12,8 @@ public interface EAPTerm {
 
     int FUNC_NAME = 1609;  // TODO move
 
+    int HANDLER = 1613;
+
     int VAR = 3779;
     //int PROCESS_ID = 3793;
     int UNIT = 3797;

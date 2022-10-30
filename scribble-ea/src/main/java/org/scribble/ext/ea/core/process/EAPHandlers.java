@@ -4,16 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
-import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.ext.ea.util.EATriple;
-import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,20 +21,15 @@ import java.util.stream.Collectors;
 // alternative: multi-session actor handlers?
 //
 
-//HERE
-//- if-else
-//- configs and config exec
-//- newAP/spawn/register
 
 public class EAPHandlers implements EAPVal {
 
     @NotNull public final Role role;
     //@NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;  // !!! var is part of value, not key
-    @NotNull public final Map<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs;  // !!! added type annot
+    @NotNull public final Map<Op, EAPHandler> Hs;  // Invariant: Op equals EAPHandler.op
 
     protected EAPHandlers(
-            @NotNull Role role,
-            @NotNull LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hbar) {
+            @NotNull Role role, @NotNull LinkedHashMap<Op, EAPHandler> Hbar) {
         this.role = role;
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -48,25 +39,11 @@ public class EAPHandlers implements EAPVal {
     @Override
     public EAValType type(Gamma gamma) {
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
-        for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : Hs.entrySet()) {
+        for (Map.Entry<Op, EAPHandler> e : Hs.entrySet()) {
            Op k = e.getKey();
-           EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
-           LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
-           tmp.put(v.left, v.mid);
-           Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
-
-           EALType inferred = v.right.infer(gamma1);
-
-           System.out.println("111: " + v.right + " ,, " + inferred);
-           
-           // HERE: typing recursion vs. [TV-Handler]
-
-           Pair<EAValType, EALType> res = v.right.type(gamma1, inferred);
-           if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
-               throw new RuntimeException("Type error: " + gamma1 + " |- "
-                       + inferred + " |>" + v.right + ":" + res.left + " <|" + res.right);
-           }
-           cases.put(k, new EAPPair<>(v.mid, inferred));
+           EAPHandler v = e.getValue();
+           v.type(gamma);
+           cases.put(k, new EAPPair<>(v.varType, v.pre));
        }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
         return EAValTypeFactory.factory.handlers(in);
@@ -76,37 +53,31 @@ public class EAPHandlers implements EAPVal {
 
     @Override
     public EAPHandlers subs(@NotNull Map<EAPVar, EAPVal> m) {
-        LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : this.Hs.entrySet()) {
+        LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
             Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
             Op k = e.getKey();
-            EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
-            m1.remove(v.left);
-            Hs.put(k, new EATriple<>(v.left, v.mid, v.right.subs(m1)));
+            Hs.put(k, e.getValue().subs(m));
         }
         return EAPFactory.factory.handlers(this.role, Hs);
     }
 
     @Override
     public EAPVal fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        LinkedHashMap<Op, EATriple<EAPVar, EAValType, EAPExpr>> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, EATriple<EAPVar, EAValType, EAPExpr>> e : this.Hs.entrySet()) {
+        LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
             Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
             Op k = e.getKey();
-            EATriple<EAPVar, EAValType, EAPExpr> v = e.getValue();
-            m1.remove(v.left);
-            Hs.put(k, new EATriple<>(v.left, v.mid, v.right.fsubs(m1)));
+            Hs.put(k, e.getValue().fsubs(m));
         }
         return EAPFactory.factory.handlers(this.role, Hs);
     }
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = this.Hs.values().stream().flatMap(x -> {
-            Set<EAPVar> fvs = x.right.getFreeVars();
-            fvs.remove(x.left);
-            return fvs.stream();
-        }).collect(Collectors.toSet());
+        Set<EAPVar> res = this.Hs.values().stream()
+                .flatMap(x -> x.getFreeVars().stream())
+                .collect(Collectors.toSet());
         return res;
     }
 
@@ -114,13 +85,9 @@ public class EAPHandlers implements EAPVal {
     public String toString() {
         return "handler " + this.role + " { "
                 + this.Hs.entrySet().stream()
-                .map(x -> handlerToString(x.getKey(), x.getValue()))
+                .map(x -> x.getValue().toString())
                 .collect(Collectors.joining(", "))
                 + " }";
-    }
-
-    private static String handlerToString(Op k, EATriple<EAPVar, EAValType, EAPExpr> e) {
-        return k + "(" + e.left + ":" + e.mid + ") |-> " + e.right;
     }
 
     /* equals/canEquals, hashCode */

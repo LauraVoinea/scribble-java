@@ -23,7 +23,8 @@ public class EALInType extends EALTypeIOBase {
 
     @Override
     public EALInType concat(EALType t) {
-        throw new RuntimeException("Concat not defined for receive");
+        throw new RuntimeException("Concat not defined for receive: " + this
+                + " + " + t);
     }
 
     /*@Override

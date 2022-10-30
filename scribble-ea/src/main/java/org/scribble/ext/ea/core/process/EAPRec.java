@@ -8,6 +8,7 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
+import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
@@ -92,9 +93,13 @@ public class EAPRec implements EAPVal {
 
     @Override
     public String toString() {
-        return "rec " + this.f + " " + this.S + " " + this.T + " ("
-                + this.var + ":" + this.varType + ") " + this.B
-                + "." + this.body;
+        return "rec " + this.f + " "
+                + ConsoleColors.toAnnotString(this.S + " -> " + this.T)
+                + " (" + this.var + " "
+                + ConsoleColors.toAnnotString(":" + this.varType)
+                + ") "
+                + ConsoleColors.toAnnotString(this.B.toString())
+                + " . " + this.body;
     }
 
     /* equals/canEquals, hashCode */
