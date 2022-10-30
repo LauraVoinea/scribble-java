@@ -3,6 +3,7 @@ package org.scribble.ext.ea.core.type.session.local;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.local.LType;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class EALEndType implements EALType {
@@ -15,6 +16,16 @@ public class EALEndType implements EALType {
     @Override
     public EALType concat(EALType t) {
         return t;  // !!! CHECKME shouldn't get here?
+    }
+
+    @Override
+    public EALType subs(Map<RecVar, EALRecType> map) {
+        return this;
+    }
+
+    @Override
+    public EALType unfoldAllOnce() {
+        return this;
     }
 
     /*@Override

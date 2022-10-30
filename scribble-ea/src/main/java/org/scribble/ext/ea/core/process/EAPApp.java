@@ -2,8 +2,7 @@ package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.session.local.EALEndType;
-import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
@@ -25,6 +24,21 @@ public class EAPApp implements EAPExpr {
         this.right = right;
     }
 
+    // !!! FIXME relocate below two
+
+    // S^?
+    public static boolean isInType(EALType t) {
+        return t instanceof EALInType || t.unfoldAllOnce() instanceof EALInType;
+    }
+
+    // found is expr, required is usually pre
+    public static void subtype(EALType found, EALType required) {
+        if (!found.equals(required) && !found.unfoldAllOnce().equals(required.unfoldAllOnce())) {
+            throw new RuntimeException("Incompatible pre type:\n"
+                    + "\tfound=" + found + ", required=" + required);
+        }
+    }
+
     @Override
     public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
         EAValType ltype = this.left.type(gamma);
@@ -33,10 +47,11 @@ public class EAPApp implements EAPExpr {
                     + this.left + " : " + ltype + "\n" + gamma);
         }
         EAFuncType ftype = (EAFuncType) ltype;
-        if (!ftype.S.equals(pre)) {
+        /*if (!ftype.S.equals(pre)) {
             throw new RuntimeException("Incompatible pre type:\n"
                     + "\tfound=" + ftype.S + ", required=" + pre);
-        }
+        }*/
+        subtype(ftype.S, pre);
         EAValType rtype = this.right.type(gamma);
         if (!rtype.equals(ftype.A)) {
             throw new RuntimeException("Incompatible arg type:\n"

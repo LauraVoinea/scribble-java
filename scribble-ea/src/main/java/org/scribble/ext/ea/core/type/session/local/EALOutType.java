@@ -35,6 +35,17 @@ public class EALOutType extends EALTypeIOBase {
         return EALTypeFactory.factory.out(this.peer, cases1);
     }
 
+    @Override
+    public EALType subs(Map<RecVar, EALRecType> map) {
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases1 = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAPPair<EAValType, EALType>> e : this.cases.entrySet()) {
+            Op k = e.getKey();
+            EAPPair<EAValType, EALType> v = e.getValue();
+            cases1.put(k, new EAPPair<>(v.left, v.right.subs(map)));
+        }
+        return EALTypeFactory.factory.out(this.peer, cases1);
+    }
+
     /*@Override
     public EALOutType unfold() {
         return this;

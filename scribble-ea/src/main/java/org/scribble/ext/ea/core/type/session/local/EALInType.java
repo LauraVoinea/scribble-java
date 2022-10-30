@@ -12,6 +12,7 @@ import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class EALInType extends EALTypeIOBase {
@@ -26,6 +27,18 @@ public class EALInType extends EALTypeIOBase {
         throw new RuntimeException("Concat not defined for receive: " + this
                 + " + " + t);
     }
+
+    @Override
+    public EALType subs(Map<RecVar, EALRecType> map) {
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases1 = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAPPair<EAValType, EALType>> e : this.cases.entrySet()) {
+            Op k = e.getKey();
+            EAPPair<EAValType, EALType> v = e.getValue();
+            cases1.put(k, new EAPPair<>(v.left, v.right.subs(map)));
+        }
+        return EALTypeFactory.factory.in(this.peer, cases1);
+    }
+
 
     /*@Override
     public EALInType unfold() {

@@ -5,6 +5,7 @@ import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.EAType;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface EALType extends EAType {
@@ -18,7 +19,11 @@ public interface EALType extends EAType {
 
     EALType concat(EALType t);
 
-    //EALType unfold();  // XXX "unfold all" needs map for all recvars encountered
+    EALType subs(Map<RecVar, EALRecType> map);
+
+    EALType unfoldAllOnce();
+
+    @Deprecated
     EALType unfold(RecVar rvar, EALType t);
 
     Optional<EALType> step(LType a);

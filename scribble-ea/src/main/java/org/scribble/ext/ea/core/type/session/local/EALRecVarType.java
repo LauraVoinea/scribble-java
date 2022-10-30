@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.local.LType;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class EALRecVarType implements EALType {
@@ -17,6 +18,16 @@ public class EALRecVarType implements EALType {
     @Override
     public EALType concat(EALType t) {
         throw new RuntimeException("Concat only defined for unary send");
+    }
+
+    @Override
+    public EALType subs(Map<RecVar, EALRecType> map) {
+        return map.containsKey(this.var) ? map.get(this.var) : this;
+    }
+
+    @Override
+    public EALType unfoldAllOnce() {
+        return this;
     }
 
     /*@Override

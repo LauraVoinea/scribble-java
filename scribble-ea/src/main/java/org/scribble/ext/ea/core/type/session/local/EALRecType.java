@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.local.LType;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class EALRecType implements EALType {
@@ -19,6 +20,23 @@ public class EALRecType implements EALType {
     @Override
     public EALType concat(EALType t) {
         throw new RuntimeException("Concat not defined for recursion");
+    }
+
+    @Override
+    public EALType subs(Map<RecVar, EALRecType> map) {
+        return map.containsKey(this.var)
+                ? this  // !!! FIXME doesn't support shadowing
+                : new EALRecType(this.var, this.body.subs(map));
+    }
+
+    @Override
+    public EALType unfoldAllOnce() {
+        EALType rt = this;
+        while (rt instanceof EALRecType) {
+            EALRecType cast = (EALRecType) rt;
+            rt = this.body.subs(Map.of(cast.var, cast));
+        }
+        return rt;
     }
 
     /*@Override

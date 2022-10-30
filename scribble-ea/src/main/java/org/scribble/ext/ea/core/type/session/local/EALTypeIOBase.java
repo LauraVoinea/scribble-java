@@ -29,6 +29,12 @@ public abstract class EALTypeIOBase implements EALType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    @Override
+    public EALType unfoldAllOnce() {
+        return this;
+    }
+
+    @Deprecated
     public LinkedHashMap<Op, EAPPair<EAValType, EALType>> unfoldCases(
             RecVar rvar, EALType t) {
          return this.cases.entrySet().stream()

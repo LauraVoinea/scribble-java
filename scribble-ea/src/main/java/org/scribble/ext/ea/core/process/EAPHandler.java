@@ -42,12 +42,8 @@ public class EAPHandler {
        tmp.put(this.var, this.varType);
        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
 
-       //EALType inferred = this.expr.infer(gamma1);
-        EALType inferred = this.pre;
-
-        System.out.println("111: " + this.expr + " ,, " + inferred);
-
-       // HERE: typing recursion vs. [TV-Handler] ?
+       //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i
+       EALType inferred = this.pre;
 
        Pair<EAValType, EALType> res = this.expr.type(gamma1, inferred);
        if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
