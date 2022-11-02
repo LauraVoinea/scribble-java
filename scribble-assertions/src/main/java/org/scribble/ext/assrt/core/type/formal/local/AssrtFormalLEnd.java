@@ -38,6 +38,11 @@ public class AssrtFormalLEnd implements AssrtFormalLocal
 		return Optional.empty();
 	}
 
+	@Override
+	public String toString() {
+		return "end";
+	}
+
 	/* Aux */
 
 	@Override

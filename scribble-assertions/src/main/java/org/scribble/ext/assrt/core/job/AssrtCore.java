@@ -28,11 +28,7 @@ import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.global.SGraph;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.DataName;
-import org.scribble.core.type.name.GProtoName;
-import org.scribble.core.type.name.ModuleName;
-import org.scribble.core.type.name.ProtoName;
-import org.scribble.core.type.name.Role;
+import org.scribble.core.type.name.*;
 import org.scribble.core.type.session.STypeFactory;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
@@ -44,6 +40,11 @@ import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
+import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGlobal;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -52,6 +53,8 @@ import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
 import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
 import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
+import org.scribble.ext.assrt.core.visit.gather.AssrtRecVarGatherer;
+import org.scribble.ext.assrt.core.visit.gather.AssrtRoleGatherer;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.Z3Wrapper;
@@ -118,14 +121,38 @@ public class AssrtCore extends Core
 
 	private void foo() {
 		System.out.println("\n--------------------\n");
+		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
 		AssrtFormalGTranslator tr = new AssrtFormalGTranslator();
 		AssrtCoreContext c = (AssrtCoreContext) this.context;
 		Map<ProtoName<Global>, GProtocol> inlined = c.getInlined();
 		for (Map.Entry<ProtoName<Global>, GProtocol> e : inlined.entrySet()) {
 			AssrtGProtocol g = (AssrtGProtocol) e.getValue();
 			if (!g.mods.contains(ProtoMod.AUX)) {
-				System.out.println("aaa: " + tr.translate(g.type));
+				AssrtFormalGlobal g1 = tr.translate(g.type);
+				System.out.println("aaa: " + g.fullname + " ,, " + g1);
+				Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());
+				for (Role r : rs) {
+					AssrtFormalLocal p = g1.project(lf, r);
+					System.out.println("\nbbb: " + r + " ,, " + p);
+
+					AssrtLambda lam = new AssrtLambda();
+					stepper(lam, p);
+				}
 			}
+		}
+	}
+
+	private void stepper(AssrtLambda lam, AssrtFormalLocal t) {
+		System.out.println("ccc: " + lam + " ,, " + t);
+		Set<AssrtLAction> steppable = t.getSteppable(lam);
+		for (AssrtLAction a : steppable) {
+			System.out.println("ddd: " + lam + " ,, " + t + " ,, " + a);
+			Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = t.step(lam, a);
+			if (!step.isPresent()) {
+				throw new RuntimeException("FIXME ");
+			}
+			Pair<AssrtLambda, AssrtFormalLocal> res = step.get();
+			stepper(res.left, res.right);
 		}
 	}
 

@@ -18,24 +18,20 @@ public class AssrtFormalLSelect extends AssrtFormalLChoice {
 
 	// Pre: cases.size() > 1
 	protected AssrtFormalLSelect(Role peer, LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
-		super(peer, AssrtLActionKind.RECV, cases);
+		super(peer, AssrtLActionKind.SEND, cases);
 	}
 
 	@Override
 	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
-		return getStepAux(this.cases, lambda);
-	}
-
-	protected static Set<AssrtLAction> getStepAux(Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases, AssrtLambda lambda) {
 		LinkedHashSet<AssrtLAction> res = new LinkedHashSet<>();
-		for (Pair<AssrtMsg, AssrtFormalLocal> x : cases.values()) {
+		for (Pair<AssrtMsg, AssrtFormalLocal> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
 			if (pay.size() != 1) {
 				throw new RuntimeException("Shouldn't get here: " + pay);
 			}
 			AssrtAnnotDataName d = pay.get(0);
 			if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {
-				res.add(new AssrtLEpsilon(x.left));
+				res.add(new AssrtLSend(this.peer, x.left));
 			}
 		}
 		return res;

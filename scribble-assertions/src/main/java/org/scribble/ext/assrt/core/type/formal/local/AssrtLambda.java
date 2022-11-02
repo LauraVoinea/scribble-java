@@ -3,6 +3,7 @@ import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.util.Pair;
 
 import javax.swing.text.html.Option;
@@ -11,9 +12,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AssrtLambda {
     public final Map<AssrtVar, Pair<Multiplicity, DataName>> map;
+
+    public AssrtLambda() {
+        this(new LinkedHashMap<>());
+    }
 
     public AssrtLambda(LinkedHashMap<AssrtVar, Pair<Multiplicity, DataName>> map) {
         this.map = Collections.unmodifiableMap(new LinkedHashMap<>(map));
@@ -65,7 +71,7 @@ public class AssrtLambda {
             if (!this.map.containsKey(v)) {
                 LinkedHashMap<AssrtVar, Pair<Multiplicity, DataName>> tmp =
                         new LinkedHashMap<>(this.map);
-                tmp.put(v, new Pair<>(Multiplicity.HAT, t));
+                tmp.put(v, new Pair<>(Multiplicity.OMEGA, t));
                 return Optional.of(new AssrtLambda(tmp));
             } else {
                 Pair<Multiplicity, DataName> tmp = this.map.get(v);
@@ -88,7 +94,11 @@ public class AssrtLambda {
 
     @Override
     public String toString() {
-        return this.map.toString();
+        return "{" +
+                this.map.entrySet().stream()
+                        .map(x -> x.getKey() + "=" + AssrtUtil.pairToString(x.getValue()))
+                        .collect(Collectors.joining(", ")) +
+                "}";
     }
 
     @Override

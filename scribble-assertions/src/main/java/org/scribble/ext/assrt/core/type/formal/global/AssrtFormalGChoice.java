@@ -3,6 +3,9 @@ package org.scribble.ext.assrt.core.type.formal.global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLChoice;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
 import org.scribble.util.Pair;
@@ -25,6 +28,27 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 		this.sender = sender;
 		this.receiver = receiver;
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
+	}
+
+	@Override
+	public AssrtFormalLChoice project(AssrtFormalLFactory lf, Role r) {
+		LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases =
+				this.cases.entrySet().stream().collect(Collectors.toMap(
+					x -> x.getKey(),
+					x -> {
+						Pair<AssrtMsg, AssrtFormalGlobal> v = x.getValue();
+						return new Pair<>(v.left, v.right.project(lf, r));
+					},
+					(x, y) -> null,
+					LinkedHashMap::new
+			));
+		if (this.sender.equals(r)) {
+			return lf.select(this.receiver, cases);
+		} else if (this.receiver.equals(r)) {
+			return lf.branch(this.sender, cases);
+		} else {
+			throw new RuntimeException("TODO " + this + " @ " + r);
+		}
 	}
 
 	/*@Override
@@ -109,11 +133,18 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 	// Duplicated from AssrtFormalLChoice
 	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalGlobal>> cases) {
 		String m = cases.values().stream()
-				.map(e -> e.left + "." + e.right)
+				.map(e -> msgToString(e.left) + "." + e.right)
 				.collect(Collectors.joining(", "));
 		m = cases.size() > 1
 				? "{ " + m + " }"
 				: ": " + m;
 		return m;
+	}
+
+	protected static String msgToString(AssrtMsg m) {
+		return m.op + "(" +
+				m.pay.stream().map(x -> x.var + ":" + x.data)
+						.collect(Collectors.joining(", ")) +
+				"){" + m.ass + "}";
 	}
 }

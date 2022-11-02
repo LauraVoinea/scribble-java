@@ -1,8 +1,7 @@
 package org.scribble.ext.assrt.core.type.formal.global;
 
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
-import org.scribble.ext.assrt.core.type.formal.local.Rho;
+import org.scribble.core.type.name.Role;
+import org.scribble.ext.assrt.core.type.formal.local.*;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
@@ -19,6 +18,11 @@ public class AssrtFormalGEnd implements AssrtFormalGlobal
 	private AssrtFormalGEnd()
 	{
 		
+	}
+
+	@Override
+	public AssrtFormalLEnd project(AssrtFormalLFactory lf, Role r) {
+		return lf.end();
 	}
 
 	/*

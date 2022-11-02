@@ -5,16 +5,14 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLReceive;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLSend;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class AssrtFormalLBranch extends AssrtFormalLChoice {
 
@@ -25,7 +23,18 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 
 	@Override
 	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
-		return AssrtFormalLSelect.getStepAux(this.cases, lambda);
+		LinkedHashSet<AssrtLAction> res = new LinkedHashSet<>();
+		for (Pair<AssrtMsg, AssrtFormalLocal> x : this.cases.values()) {
+			List<AssrtAnnotDataName> pay = x.left.pay;
+			if (pay.size() != 1) {
+				throw new RuntimeException("Shouldn't get here: " + pay);
+			}
+			AssrtAnnotDataName d = pay.get(0);
+			if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {
+				res.add(new AssrtLReceive(this.peer, x.left));
+			}
+		}
+		return res;
 	}
 
 	@Override

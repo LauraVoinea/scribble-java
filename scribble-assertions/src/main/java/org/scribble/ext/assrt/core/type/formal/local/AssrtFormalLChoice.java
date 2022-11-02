@@ -110,11 +110,18 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 
 	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
 		String s = cases.values().stream()
-				.map(e -> e.left + "." + e.right)
+				.map(e -> msgToString(e.left) + "." + e.right)
 				.collect(Collectors.joining(", "));
 		s = (cases.size() > 1)
 				? "{ " + s + " }"
 				: ":" + s;
 		return s;
+	}
+
+	protected static String msgToString(AssrtMsg m) {
+		return m.op + "(" +
+				m.pay.stream().map(x -> x.var + ":" + x.data)
+						.collect(Collectors.joining(", ")) +
+				"){" + m.ass + "}";
 	}
 }
