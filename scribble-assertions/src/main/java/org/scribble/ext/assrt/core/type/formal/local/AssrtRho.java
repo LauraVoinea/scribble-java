@@ -2,22 +2,32 @@ package org.scribble.ext.assrt.core.type.formal.local;
 
 import org.scribble.ext.assrt.core.type.session.local.AssrtLRecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
+import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class Rho {
+public class AssrtRho {
     public final Map<AssrtLRecVar, Pair<AssrtLambda, AssrtLType>> map;
 
-    public Rho(LinkedHashMap<AssrtLRecVar, Pair<AssrtLambda, AssrtLType>> map) {
+    public AssrtRho() {
+       this(new LinkedHashMap<>());
+    }
+
+    public AssrtRho(LinkedHashMap<AssrtLRecVar, Pair<AssrtLambda, AssrtLType>> map) {
         this.map = Collections.unmodifiableMap(new LinkedHashMap<>(map));
     }
 
     @Override
     public String toString() {
-        return this.map.toString();
+        return "{" +
+                this.map.entrySet().stream()
+                        .map(x -> x.getKey() + "=" + AssrtUtil.pairToString(x.getValue()))
+                        .collect(Collectors.joining(", ")) +
+                "}";
     }
 
     @Override
@@ -25,10 +35,10 @@ public class Rho {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Rho)) {
+        if (!(obj instanceof AssrtRho)) {
             return false;
         }
-        return this.map.equals(((Rho) obj).map);
+        return this.map.equals(((AssrtRho) obj).map);
     }
 
     @Override

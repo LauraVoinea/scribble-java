@@ -29,12 +29,12 @@ public class AssrtFormalLEnd implements AssrtFormalLocal
 	}
 
 	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda) {
+	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, Rho>> dstep(AssrtLambda lambda, Rho rho, AssrtLAction a) {
+	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
 		return Optional.empty();
 	}
 

@@ -4,7 +4,6 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLEpsilon;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLSend;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
@@ -61,16 +60,19 @@ public class AssrtFormalLSelect extends AssrtFormalLChoice {
 	}
 
 	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda) {
+	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return getSteppable(lambda);
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, Rho>> dstep(
-			AssrtLambda lambda, Rho rho, AssrtLAction a) {
-
-		throw new RuntimeException("TODO");
-
+	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
+			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
+		Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = step(lambda, a);
+		if (!step.isPresent()) {
+			throw new RuntimeException("XXX: " + this + " ,, " + lambda + " ,, " + a);
+		}
+		Pair<AssrtLambda, AssrtFormalLocal> res = step.get();
+		return Optional.of(new Triple<>(res.left, res.right, rho));
 	}
 
 	@Override

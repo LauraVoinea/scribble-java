@@ -61,7 +61,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda) {
+	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
 		LinkedHashSet<AssrtLAction> res = new LinkedHashSet();
 		for (AssrtLAction a : getSteppable(lambda)) {
 
@@ -77,8 +77,8 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, Rho>> dstep(
-			AssrtLambda lambda, Rho rho, AssrtLAction a) {
+	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
+			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
 		throw new RuntimeException("Shouldn't get in here: " + this);
 	}
 

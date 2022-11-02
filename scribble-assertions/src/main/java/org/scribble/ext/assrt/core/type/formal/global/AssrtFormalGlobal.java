@@ -4,14 +4,6 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
-import org.scribble.ext.assrt.core.type.formal.local.Rho;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.util.Triple;
-import org.scribble.util.Pair;
-
-import java.util.Optional;
-import java.util.Set;
 
 
 public interface AssrtFormalGlobal extends AssrtFormalType

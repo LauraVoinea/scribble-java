@@ -14,6 +14,11 @@ public class Triple<T1, T2, T3> {
     }
 
     @Override
+    public String toString() {
+        return "(" + this.left + ", " + this.middle + ", " + this.right + ")";
+    }
+
+    @Override
     public int hashCode() {
         int hash = 10391;
         hash = 31 * hash + this.left.hashCode();

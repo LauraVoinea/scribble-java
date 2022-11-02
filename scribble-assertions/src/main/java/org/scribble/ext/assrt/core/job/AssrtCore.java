@@ -18,7 +18,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.scribble.core.job.Core;
-import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
 import org.scribble.core.lang.ProtoMod;
 import org.scribble.core.lang.global.GProtocol;
@@ -29,7 +28,6 @@ import org.scribble.core.model.global.SGraph;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.*;
-import org.scribble.core.type.session.STypeFactory;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
@@ -44,19 +42,19 @@ import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGlobal;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtRho;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
-import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
 import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
 import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
-import org.scribble.ext.assrt.core.visit.gather.AssrtRecVarGatherer;
 import org.scribble.ext.assrt.core.visit.gather.AssrtRoleGatherer;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
+import org.scribble.ext.assrt.util.Triple;
 import org.scribble.ext.assrt.util.Z3Wrapper;
 import org.scribble.util.Pair;
 import org.scribble.util.ScribException;
@@ -136,7 +134,9 @@ public class AssrtCore extends Core
 					System.out.println("\nbbb: " + r + " ,, " + p);
 
 					AssrtLambda lam = new AssrtLambda();
-					stepper(lam, p);
+					AssrtRho rho = new AssrtRho();
+					//stepper(lam, p);
+					dstepper(lam, rho, p);
 				}
 			}
 		}
@@ -153,6 +153,20 @@ public class AssrtCore extends Core
 			}
 			Pair<AssrtLambda, AssrtFormalLocal> res = step.get();
 			stepper(res.left, res.right);
+		}
+	}
+
+	private void dstepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLocal t) {
+		System.out.println("ccc1: " + lam + " ,, " + t);
+		Set<AssrtLAction> dsteppable = t.getDerivSteppable(lam, rho);
+		for (AssrtLAction a : dsteppable) {
+			System.out.println("ddd1: " + lam + " ,, " + t + " ,, " + a);
+			Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> step = t.dstep(lam, rho, a);
+			if (!step.isPresent()) {
+				throw new RuntimeException("FIXME ");
+			}
+			Triple<AssrtLambda, AssrtFormalLocal, AssrtRho> res = step.get();
+			dstepper(res.left, res.right, res.middle);
 		}
 	}
 

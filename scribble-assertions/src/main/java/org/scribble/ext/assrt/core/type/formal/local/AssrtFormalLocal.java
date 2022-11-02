@@ -27,7 +27,7 @@ public interface AssrtFormalLocal extends AssrtFormalType
     Set<AssrtLAction> getSteppable(AssrtLambda lambda);
     Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(AssrtLambda lambda, AssrtLAction a);
 
-    Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda);
-    Optional<Triple<AssrtLambda, AssrtFormalLocal, Rho>> dstep(AssrtLambda lambda, Rho rho, AssrtLAction a);
+    Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho);
+    Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(AssrtLambda lambda, AssrtRho rho, AssrtLAction a);
 
 }
