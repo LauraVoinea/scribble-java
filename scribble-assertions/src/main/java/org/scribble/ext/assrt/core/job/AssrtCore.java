@@ -43,6 +43,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
+import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -112,6 +113,20 @@ public class AssrtCore extends Core
 		runGlobalModelCheckingPasses();
 
 		//tempRunSyncSat();  // XXX HERE global model building
+		foo();
+	}
+
+	private void foo() {
+		System.out.println("\n--------------------\n");
+		AssrtFormalGTranslator tr = new AssrtFormalGTranslator();
+		AssrtCoreContext c = (AssrtCoreContext) this.context;
+		Map<ProtoName<Global>, GProtocol> inlined = c.getInlined();
+		for (Map.Entry<ProtoName<Global>, GProtocol> e : inlined.entrySet()) {
+			AssrtGProtocol g = (AssrtGProtocol) e.getValue();
+			if (!g.mods.contains(ProtoMod.AUX)) {
+				System.out.println("aaa: " + tr.translate(g.type));
+			}
+		}
 	}
 
 	private void tempRunSyncSat() throws ScribException {

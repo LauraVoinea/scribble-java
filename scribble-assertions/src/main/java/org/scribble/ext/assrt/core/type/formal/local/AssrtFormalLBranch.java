@@ -5,7 +5,6 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLReceive;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLTransfer;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
@@ -16,18 +15,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public abstract class AssrtLFormalBranch extends AssrtLFormalChoice {
+public class AssrtFormalLBranch extends AssrtFormalLChoice {
 
 	// Pre: cases.size() > 1
-	protected AssrtLFormalBranch(Role peer, AssrtLActionKind kind,
-                                 LinkedHashMap<Op, Pair<AssrtMsg, AssrtLFormal>> cases) {
-		super(peer, kind, cases);
+	protected AssrtFormalLBranch(Role peer, LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
+		super(peer, AssrtLActionKind.RECV, cases);
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtLFormal>> step(
+	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
+		return AssrtFormalLSelect.getStepAux(this.cases, lambda);
+	}
+
+	@Override
+	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(
 			AssrtLambda lambda, AssrtLAction a) {
 		if (!(a instanceof AssrtLReceive)) {
 			return Optional.empty();
@@ -50,14 +52,12 @@ public abstract class AssrtLFormalBranch extends AssrtLFormalChoice {
 	}
 
 	@Override
-	public Set<AssrtLAction> getSteppable() {
-		return this.cases.values().stream()
-				.map(x -> new AssrtLReceive(this.peer, x.left))
-				.collect(Collectors.toSet());
+	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda) {
+		return getSteppable(lambda);
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtLFormal, Rho>> dstep(
+	public Optional<Triple<AssrtLambda, AssrtFormalLocal, Rho>> dstep(
 			AssrtLambda lambda, Rho rho, AssrtLAction a) {
 
 		throw new RuntimeException("TODO");
@@ -79,17 +79,17 @@ public abstract class AssrtLFormalBranch extends AssrtLFormalChoice {
 		{
 			return true;
 		}
-		if (!(obj instanceof AssrtLFormalBranch))
+		if (!(obj instanceof AssrtFormalLBranch))
 		{
 			return false;
 		}
-		AssrtLFormalBranch them = (AssrtLFormalBranch) obj;
+		AssrtFormalLBranch them = (AssrtFormalLBranch) obj;
 		return super.equals(obj);  // Checks canEquals
 	}
 	
 	@Override
 	public boolean canEquals(Object o)
 	{
-		return o instanceof AssrtLFormalBranch;
+		return o instanceof AssrtFormalLBranch;
 	}
 }

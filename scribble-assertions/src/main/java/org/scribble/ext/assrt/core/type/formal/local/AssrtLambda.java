@@ -19,6 +19,35 @@ public class AssrtLambda {
         this.map = Collections.unmodifiableMap(new LinkedHashMap<>(map));
     }
 
+    // TODO refactor
+    public boolean canAdd(AssrtVar v, Multiplicity theta, DataName t) {
+        if (theta == Multiplicity.ZERO || theta == Multiplicity.HAT) {
+            if (!this.map.containsKey(v)) {
+                return true;
+            } else {
+                Pair<Multiplicity, DataName> tmp = this.map.get(v);
+                return tmp.equals(new Pair<>(theta, t));
+            }
+        } else if (theta == Multiplicity.OMEGA) {
+            if (!this.map.containsKey(v)) {
+                return true;
+            } else {
+                Pair<Multiplicity, DataName> tmp = this.map.get(v);
+                if (tmp.equals(new Pair<>(Multiplicity.OMEGA, t))) {
+                    return true;
+                } else {
+                    if (tmp.equals(new Pair<>(Multiplicity.HAT, t))) { // N.B. HAT
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+    }
+
     public Optional<AssrtLambda> add(AssrtVar v, Multiplicity theta, DataName t) {
         if (theta == Multiplicity.ZERO || theta == Multiplicity.HAT) {
             if (!this.map.containsKey(v)) {

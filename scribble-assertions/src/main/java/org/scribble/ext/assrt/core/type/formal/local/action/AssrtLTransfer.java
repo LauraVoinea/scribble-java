@@ -1,8 +1,7 @@
 package org.scribble.ext.assrt.core.type.formal.local.action;
 
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtLFormal;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtLFormalChoice;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 
 // ...but more like a global action? (cf. formal LTS)
@@ -29,7 +28,7 @@ public class AssrtLTransfer implements AssrtLAction
 	@Override
 	public int hashCode()
 	{
-		int hash = AssrtLFormal.TRANSFER_HASH;
+		int hash = AssrtFormalLocal.TRANSFER_HASH;
 		hash = 31 * hash + this.sender.hashCode();
 		hash = 31 * hash + this.receiver.hashCode();
 		hash = 31 * hash + this.msg.hashCode();

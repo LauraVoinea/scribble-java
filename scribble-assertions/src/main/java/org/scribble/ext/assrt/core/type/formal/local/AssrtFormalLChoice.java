@@ -3,28 +3,25 @@ package org.scribble.ext.assrt.core.type.formal.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
-import org.scribble.ext.assrt.core.type.formal.Multiplicity;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLTransfer;
-import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
-import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AssrtLFormalChoice extends AssrtFormalTypeBase
-		implements AssrtLFormal {
+public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
+		implements AssrtFormalLocal {
 
 	public final Role peer;
 	public final AssrtLActionKind kind;
-	public final Map<Op, Pair<AssrtMsg, AssrtLFormal>> cases;  // Invariant: op.equals(assrtMsg)
+	public final Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases;  // Invariant: op.equals(assrtMsg)
 
 	// Pre: cases.size() > 1
-	protected AssrtLFormalChoice(Role peer, AssrtLActionKind kind,
-								 LinkedHashMap<Op, Pair<AssrtMsg, AssrtLFormal>> cases) {
+	protected AssrtFormalLChoice(Role peer, AssrtLActionKind kind,
+								 LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
 		this.peer = peer;
 		this.kind = kind;
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
@@ -71,8 +68,10 @@ public abstract class AssrtLFormalChoice extends AssrtFormalTypeBase
 	@Override
 	public String toString() {
 		return this.peer.toString() + this.kind +
-				AssrtLFormalChoice.casesToString(this.cases);
+				AssrtFormalLChoice.casesToString(this.cases);
 	}
+
+	/* */
 	
 	@Override
 	public int hashCode()
@@ -92,11 +91,11 @@ public abstract class AssrtLFormalChoice extends AssrtFormalTypeBase
 		{
 			return true;
 		}
-		if (!(obj instanceof AssrtLFormalChoice))
+		if (!(obj instanceof AssrtFormalLChoice))
 		{
 			return false;
 		}
-		AssrtLFormalChoice them = (AssrtLFormalChoice) obj;
+		AssrtFormalLChoice them = (AssrtFormalLChoice) obj;
 		return super.equals(obj)  // Checks canEquals
 			&& this.peer.equals(them.peer)
 			&& this.kind.equals(them.kind)
@@ -106,10 +105,10 @@ public abstract class AssrtLFormalChoice extends AssrtFormalTypeBase
 	@Override
 	public boolean canEquals(Object o)
 	{
-		return o instanceof AssrtLFormalChoice;
+		return o instanceof AssrtFormalLChoice;
 	}
 
-	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtLFormal>> cases) {
+	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
 		String s = cases.values().stream()
 				.map(e -> e.left + "." + e.right)
 				.collect(Collectors.joining(", "));

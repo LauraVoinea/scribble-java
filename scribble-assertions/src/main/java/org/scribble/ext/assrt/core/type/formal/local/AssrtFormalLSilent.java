@@ -1,34 +1,45 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
 import org.scribble.core.type.name.Op;
-import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLEpsilon;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLReceive;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLTransfer;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class AssrtLSilentChoice extends AssrtFormalTypeBase
-		implements AssrtLFormal {
+public class AssrtFormalLSilent extends AssrtFormalTypeBase
+		implements AssrtFormalLocal {
 
-	public final Map<Op, Pair<AssrtMsg, AssrtLFormal>> cases;
+	public final Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases;
 
 	// Pre: cases.size() > 1
-	protected AssrtLSilentChoice(LinkedHashMap<Op, Pair<AssrtMsg, AssrtLFormal>> cases) {
+	protected AssrtFormalLSilent(LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtLFormal>> step(
+	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
+		LinkedHashSet<AssrtLAction> res = new LinkedHashSet<>();
+		for (Pair<AssrtMsg, AssrtFormalLocal> x : this.cases.values()) {
+			List<AssrtAnnotDataName> pay = x.left.pay;
+			if (pay.size() != 1) {
+				throw new RuntimeException("Shouldn't get here: " + pay);
+			}
+			AssrtAnnotDataName d = pay.get(0);
+			if (lambda.canAdd(d.var, Multiplicity.ZERO, d.data)) {
+				res.add(new AssrtLEpsilon(x.left));
+			}
+		}
+		return res;
+	}
+
+	@Override
+	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(
 			AssrtLambda lambda, AssrtLAction a) {
 		if (!(a instanceof AssrtLEpsilon)) {
 			return Optional.empty();
@@ -50,21 +61,30 @@ public class AssrtLSilentChoice extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtLAction> getSteppable() {
-		return this.cases.values().stream()
-				.map(x -> new AssrtLEpsilon(x.left))
-				.collect(Collectors.toSet());
+	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda) {
+		LinkedHashSet<AssrtLAction> res = new LinkedHashSet();
+		for (AssrtLAction a : getSteppable(lambda)) {
+
+			// XXX HERE HERE do translation of locals to formals and test branch/select steps and derived steps, then do silents
+
+			if (a instanceof AssrtLEpsilon) {  // Should all be here
+				throw new RuntimeException("TODO " + a);
+			} else {
+				throw new RuntimeException("Shouldn't get here " + a);
+			}
+		}
+		return res;
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtLFormal, Rho>> dstep(
+	public Optional<Triple<AssrtLambda, AssrtFormalLocal, Rho>> dstep(
 			AssrtLambda lambda, Rho rho, AssrtLAction a) {
 		throw new RuntimeException("Shouldn't get in here: " + this);
 	}
 
 	@Override
 	public String toString() {
-		return AssrtLFormalChoice.casesToString(this.cases);
+		return AssrtFormalLChoice.casesToString(this.cases);
 	}
 	
 	@Override
@@ -83,11 +103,11 @@ public class AssrtLSilentChoice extends AssrtFormalTypeBase
 		{
 			return true;
 		}
-		if (!(obj instanceof AssrtLSilentChoice))
+		if (!(obj instanceof AssrtFormalLSilent))
 		{
 			return false;
 		}
-		AssrtLSilentChoice them = (AssrtLSilentChoice) obj;
+		AssrtFormalLSilent them = (AssrtFormalLSilent) obj;
 		return super.equals(obj)  // Checks canEquals
 			&& this.cases.equals(them.cases);
 	}
@@ -95,6 +115,6 @@ public class AssrtLSilentChoice extends AssrtFormalTypeBase
 	@Override
 	public boolean canEquals(Object o)
 	{
-		return o instanceof AssrtLSilentChoice;
+		return o instanceof AssrtFormalLSilent;
 	}
 }
