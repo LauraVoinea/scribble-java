@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.Set;
 public interface EAPExpr extends EAPTerm {
 
     EALType infer(Gamma gamma);
-    Pair<EAValType, EALType> type(Gamma gamma, EALType pre);
+    EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre);
 
     boolean canBeta();
     EAPExpr beta();  // !!! CHECKME deterministic

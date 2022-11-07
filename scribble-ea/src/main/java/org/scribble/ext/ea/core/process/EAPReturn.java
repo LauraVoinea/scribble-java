@@ -25,7 +25,7 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
-    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
         EALEndType end = EATypeFactory.factory.local.end();
         /*if (!pre.equals(end)) {  // !!! return is value/term typing wrapper, not (session) control flow
             throw new RuntimeException("Expected end type: " + pre);

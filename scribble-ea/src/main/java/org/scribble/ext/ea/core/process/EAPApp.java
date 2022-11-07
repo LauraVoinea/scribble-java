@@ -37,7 +37,7 @@ public class EAPApp implements EAPExpr {
     }
 
     @Override
-    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
         EAValType ltype = this.left.type(gamma);
         if (!(ltype instanceof EAFuncType)) {
             throw new RuntimeException("Expected function type, not: "

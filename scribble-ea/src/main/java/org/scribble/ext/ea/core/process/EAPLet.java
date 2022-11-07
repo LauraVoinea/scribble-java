@@ -5,6 +5,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.ConsoleColors;
+import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.HashMap;
@@ -30,8 +31,8 @@ public class EAPLet implements EAPExpr {
     }
 
     @Override
-    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
-        Pair<EAValType, EALType> p1 = this.init.type(gamma, pre);
+    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+        EAPPair<EAValType, EALType> p1 = this.init.type(gamma, pre);
         if (!this.varType.equals(p1.left)) {
             throw new RuntimeException("Bad type annotation: "
                     + this.varType + ", " + p1.left);

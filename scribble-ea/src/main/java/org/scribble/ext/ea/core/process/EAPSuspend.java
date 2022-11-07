@@ -25,7 +25,7 @@ public class EAPSuspend implements EAPExpr {
     }
 
     @Override
-    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
         if (!EAPApp.isInType(pre)) {  // Could be a rec type
             throw new RuntimeException("Expected in type, not: " + pre);

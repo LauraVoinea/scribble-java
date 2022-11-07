@@ -184,9 +184,11 @@ public class EACommandLine extends CommandLine
 		// ----
 		System.out.println();
 
-		// mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }  // HERE add exit case
+		// !!! no branch/select subtyping
+		// mu X . p&{ l1(unit) . p+{ l2(unit) . X, l3(unit).end ) } }
 		cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
+		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out2 = tf.local.out(A, cases);
 		cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
@@ -195,11 +197,13 @@ public class EACommandLine extends CommandLine
 
 		cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
+		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out2mu = tf.local.out(A, cases);
 
-		// p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }] } }
+		// p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X, l3(unit).end ) } }], l3(unit).end } }
 		cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
+		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out2u = tf.local.out(A, cases);
 		cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), out2u));
@@ -223,7 +227,17 @@ public class EACommandLine extends CommandLine
 		EAPSend sendBA2 = pf.send(A, l2, pf.unit());
 		EAPLet lety = pf.let(y, tf.val.unit(), sendBA2, letz);
 		LinkedHashMap<Op, EAPHandler> HsB = new LinkedHashMap<>();
-		EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety, out2mu);
+
+		// !!! TODO if-else
+		// return rec f(_). return handler A { l1(_) |-> let y = A!l3() in return () }
+		EAPSend sendBA3 = pf.send(A, l3, pf.unit());
+		EAPReturn retendB = pf.returnn(pf.unit());
+		EAPLet lety3 = pf.let(y, tf.val.unit(), sendBA3, retendB);
+
+		// !!!
+		//EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety, out2mu);
+		EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety3, out2mu);
+
 		HsB.put(l1, hB1);
 		EAPHandlers hsB1 = pf.handlers(A, HsB);
 		EAPReturn rethB1 = pf.returnn(hsB1);
@@ -240,7 +254,9 @@ public class EACommandLine extends CommandLine
 
 		// let h = return rec f(_). ... in let hh ...
 		EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
+
 		EAPLet leth = pf.let(h, ft, retfB, lethh);
+
 		System.out.println(leth);
 		leth.type(new Gamma(), recXB);
 
@@ -363,6 +379,8 @@ public class EACommandLine extends CommandLine
 			System.out.println();
 			System.out.println(sys);
 			sys.type(new Gamma(), new Delta());
+
+			// !!! l3 stops here
 
 			sys = sys.reduce(p2);
 			System.out.println();

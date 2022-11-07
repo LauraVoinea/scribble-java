@@ -50,9 +50,10 @@ public class EAPRec implements EAPVal {
         EAFuncType ftype = EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
         ftmp.put(this.f, ftype);
         Gamma gamma1 = new Gamma(tmp, ftmp);
-        Pair<EAValType, EALType> res = this.body.type(gamma1, this.S);
-        if (!res.equals(new EAPPair<>(this.B, this.S))) {
-            throw new RuntimeException("Typing error: " + this);
+        EAPPair<EAValType, EALType> res = this.body.type(gamma1, this.S);
+        EAPPair<EAValType, EALType> target = new EAPPair<>(this.B, this.S);
+        if (!res.equals(target)) {
+            throw new RuntimeException("Typing error:\n\t" + res + "\n\t" + target);
         }
         return ftype;
     }

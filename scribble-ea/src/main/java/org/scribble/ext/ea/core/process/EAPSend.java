@@ -30,7 +30,7 @@ public class EAPSend implements EAPExpr {
     }
 
     @Override
-    public Pair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
         if (!(pre instanceof EALOutType)) {
             throw new RuntimeException("Expected out type: " + pre + ", " + this);
         }
