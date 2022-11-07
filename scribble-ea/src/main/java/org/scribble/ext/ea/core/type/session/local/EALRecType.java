@@ -53,8 +53,8 @@ public class EALRecType implements EALType {
 
     @Override
     public Optional<EALType> step(LType a) {
-        //return unfold().step(a);
-        throw new RuntimeException("Shouldn't get here (manual unfolded type annots)");
+        //throw new RuntimeException("Shouldn't get here (manual unfolded type annots): " + this + "\n\t" + a);
+        return unfoldAllOnce().step(a);  // cf. EAPConfig delta.map.get(k).unfoldAllOnce();  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
     }
 
     /* Aux */

@@ -276,6 +276,7 @@ public class EACommandLine extends CommandLine
 		cs.put(p2, cB);
 
 		env.put(new EAPPair<>(s, A), out1u);
+		//env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
 		env.put(new EAPPair<>(s, B), recXB);
 		System.out.println(env);
 		EAPSystem sys = rf.system(lf, new Delta(env), cs);
@@ -299,7 +300,7 @@ public class EACommandLine extends CommandLine
 		//sys.type(new Gamma(), new Delta(), new Delta(env));
 		sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p1);  // HERE fix getFoo re. input side
+		sys = sys.reduce(p2);
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
@@ -309,12 +310,7 @@ public class EACommandLine extends CommandLine
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p1);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
-
-		sys = sys.reduce(p1);
+		sys = sys.reduce(p2);
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
@@ -323,7 +319,60 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
-		//*/
+
+		for (int i = 0; i < 10; i ++) {
+
+			sys = sys.reduce(p1);  // p1 send B1!l1
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p1);
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p1);
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p1);
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p1);  // p1 now idle and installed l2 handler
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p2);  // p2 send A!l2
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p2);
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p2);
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p2);
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+
+			sys = sys.reduce(p2);  // p2 now idle with installed l1 handler
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+			//*/
+		}
 	}
 
 	/*private static void ex4i(

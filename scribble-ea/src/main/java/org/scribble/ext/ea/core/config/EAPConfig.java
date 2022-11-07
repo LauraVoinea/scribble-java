@@ -83,9 +83,9 @@ public class EAPConfig implements EAPRuntimeTerm {
             if (!delta.map.containsKey(k)) {
                 throw new RuntimeException("Unknown endpoint: " + k + " : " + delta.map);
             }
-            EALType T = delta.map.get(k);
+            EALType T = delta.map.get(k).unfoldAllOnce();  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
             if (!(T instanceof EALInType)) {
-                throw new RuntimeException("Invalid handler type: " + e + " : " + T);
+                throw new RuntimeException("Invalid handler type: " + e + " :\n\t" + T);
             }
             EALInType cast = (EALInType) T;
             //EAPHandlers h = this.sigma.get(k);

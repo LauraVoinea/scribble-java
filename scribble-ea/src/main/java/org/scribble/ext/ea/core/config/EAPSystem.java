@@ -58,7 +58,7 @@ public class EAPSystem {
         }
     }
 
-    @Deprecated  // For now
+    /*@Deprecated  // For now
     public Set<Pair<EAPPid, EAPExpr>> getReady() {
         // Includes sends, but not matching receives
         Set<Pair<EAPPid, EAPExpr>> collect = this.configs.entrySet().stream().filter(x -> x.getValue().isActive())
@@ -75,9 +75,9 @@ public class EAPSystem {
             } else {
                 res.add(p);
             }
-        }*/
+        }* /
         return collect;
-    }
+    }*/
 
     // Pre: p \in getReady ?
     public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
@@ -99,6 +99,8 @@ public class EAPSystem {
         LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(this.configs);
         LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
 
+        System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
+
         EAPThreadState t1;
         if (foo instanceof EAPSend) {
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
@@ -111,7 +113,8 @@ public class EAPSystem {
                                     y.left.equals(t.sid) && y.right.equals(cast.dst))
                     ).findFirst();
             if (fst.isEmpty()) {
-                throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo broken -- receive may not be ready yet (e.g., handler not installed yet)
+                throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo gets "potenitally reducible parts", such as sends -- but receive may not be ready yet (e.g., handler not installed yet)
+                // Currently PRE: `p` must have reducible step (i.e., send must have matching receive ready)
             }
             Map.Entry<EAPPid, EAPConfig> get = fst.get();
             EAPPid p2 = get.getKey();
@@ -184,6 +187,7 @@ public class EAPSystem {
     @Override
     public String toString() {
         return "[annots =" + this.annots.map + "\n configs="
-                + this.configs.toString() + "]";
+                + this.configs.entrySet().stream().map(x -> x.toString()).collect(Collectors.joining("\n"))
+                + "]";
     }
 }
