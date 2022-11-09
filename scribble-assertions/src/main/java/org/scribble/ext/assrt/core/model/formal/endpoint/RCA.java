@@ -13,8 +13,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RCA {
+
+    // All mutable for now -- could call this builder
     public final Set<RCAState> S;
-    public final Map<RCAState, Pair<AssrtLAction, RCAState>> delta;
+    public final Map<RCAState, Map<AssrtLAction, RCAState>> delta;
     public final Map<RCAState, AssrtLambda> sigma;
 
     public RCA() {
@@ -26,7 +28,7 @@ public class RCA {
     @Override
     public String toString() {
         return "(S=" + this.S + "; delta=" + "[" +
-                this.delta.entrySet().stream().map(x -> x.getKey() + "->" + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(", ")) + "]" +
+                this.delta.entrySet().stream().map(x -> x.getKey() + "->" + x.getValue()).collect(Collectors.joining(", ")) + "]" +
                 "; sigma=" + this.sigma + ")";
     }
 

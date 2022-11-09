@@ -154,7 +154,12 @@ public class AssrtCore extends Core
 					RCA rca = new RCA();
 					rca(graph, new Pair<>(lam, p), null, null, RCAState.fresh(), rca);
 
-					System.out.println("eee: " + rca);
+					System.out.println("eee: ");
+					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> ee : graph.entrySet()) {
+						System.out.print(AssrtUtil.pairToString(ee.getKey()) + " -> ");
+						System.out.println(ee.getValue().entrySet().stream().map(x -> x.getKey() + "=" + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(", ")));
+					}
+					System.out.println("fff: " + rca);
 				}
 			}
 		}
@@ -208,17 +213,22 @@ public class AssrtCore extends Core
 		if (res.S.contains(s2)) {
 			return;
 		}
-		RCAState fresh = RCAState.fresh();
 		Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> as = graph.get(n);
 		for (Map.Entry<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> e : as.entrySet()) {
 
+			RCAState fresh = RCAState.fresh();
 			Pair<AssrtLambda, AssrtFormalLocal> succ = e.getValue();
 			rca(graph, succ, s2, e.getKey(), fresh, res);
 
 		}
 		res.S.add(s2);
 		if (s1 != null) {
-			res.delta.put(s1, new Pair<>(a, s2));
+			Map<AssrtLAction, RCAState> tmp = res.delta.get(s1);
+			if (tmp == null) {
+				tmp = new HashMap<>();
+				res.delta.put(s1, tmp);
+			}
+			tmp.put(a, s2);
 		}
 		res.sigma.put(s2, n.left);
 	}
