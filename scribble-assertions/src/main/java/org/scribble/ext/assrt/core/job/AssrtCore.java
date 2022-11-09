@@ -33,6 +33,8 @@ import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtEModelFactoryImpl;
+import org.scribble.ext.assrt.core.model.formal.endpoint.RCA;
+import org.scribble.ext.assrt.core.model.formal.endpoint.RCAState;
 import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
@@ -54,6 +56,7 @@ import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
 import org.scribble.ext.assrt.core.visit.gather.AssrtRoleGatherer;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
+import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.ext.assrt.util.Z3Wrapper;
 import org.scribble.util.Pair;
@@ -136,7 +139,22 @@ public class AssrtCore extends Core
 					AssrtLambda lam = new AssrtLambda();
 					AssrtRho rho = new AssrtRho();
 					//stepper(lam, p);
-					dstepper(lam, rho, p);
+
+					Map<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> graph = new LinkedHashMap<>();
+
+					dstepper(lam, rho, p, graph);  //HERE make finite graph and do RCA translation
+
+					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> f : graph.entrySet()) {
+						Pair<AssrtLambda, AssrtFormalLocal> k = f.getKey();
+						Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> v = f.getValue();
+						System.out.println(AssrtUtil.pairToString(k) + " ,, " +
+								v.entrySet().stream().map(x -> x.getKey() + " -> " + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(" ,, ")));
+					}
+
+					RCA rca = new RCA();
+					rca(graph, new Pair<>(lam, p), null, null, RCAState.fresh(), rca);
+
+					System.out.println("eee: " + rca);
 				}
 			}
 		}
@@ -156,9 +174,19 @@ public class AssrtCore extends Core
 		}
 	}
 
-	private void dstepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLocal t) {
+	private void dstepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLocal t,
+			  //Map<Pair<Pair<AssrtLambda, AssrtFormalLocal>, AssrtLAction>, Pair<AssrtLambda, AssrtFormalLocal>> graph) {
+				Map<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> graph) {
 		System.out.println("ccc1: " + lam + " ,, " + t);
 		Set<AssrtLAction> dsteppable = t.getDerivSteppable(lam, rho);
+
+		Pair<AssrtLambda, AssrtFormalLocal> k = new Pair<>(lam, t);
+		Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> as = graph.get(k);
+		if (as == null) {
+			as = new HashMap<>();
+			graph.put(k, as);
+		}
+
 		for (AssrtLAction a : dsteppable) {
 			System.out.println("ddd1: " + lam + " ,, " + t + " ,, " + a);
 			Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> step = t.dstep(lam, rho, a);
@@ -166,8 +194,33 @@ public class AssrtCore extends Core
 				throw new RuntimeException("FIXME ");
 			}
 			Triple<AssrtLambda, AssrtFormalLocal, AssrtRho> res = step.get();
-			dstepper(res.left, res.right, res.middle);
+
+			as.put(a, new Pair<>(res.left, res.middle));
+
+			dstepper(res.left, res.right, res.middle, graph);
 		}
+	}
+
+	// Pre: s1 != null => res.S.contains(s1) -- and n corresponds to s2
+	private void rca(Map<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> graph,
+					Pair<AssrtLambda, AssrtFormalLocal> n,
+					RCAState s1, AssrtLAction a, RCAState s2, RCA res) {
+		if (res.S.contains(s2)) {
+			return;
+		}
+		RCAState fresh = RCAState.fresh();
+		Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> as = graph.get(n);
+		for (Map.Entry<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> e : as.entrySet()) {
+
+			Pair<AssrtLambda, AssrtFormalLocal> succ = e.getValue();
+			rca(graph, succ, s2, e.getKey(), fresh, res);
+
+		}
+		res.S.add(s2);
+		if (s1 != null) {
+			res.delta.put(s1, new Pair<>(a, s2));
+		}
+		res.sigma.put(fresh, n.left);
 	}
 
 	private void tempRunSyncSat() throws ScribException {
