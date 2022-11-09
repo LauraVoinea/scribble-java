@@ -11,6 +11,9 @@ import org.scribble.core.type.session.Arg;
 import org.scribble.core.type.session.Msg;
 import org.scribble.core.type.session.local.*;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGFactory;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLEpsilon;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLReceive;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLSend;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLTransfer;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
@@ -43,8 +46,34 @@ public class AssrtFormalLFactory
 		return new AssrtFormalLSelect(receiver, cases);
 	}
 
+	public AssrtFormalLSilent silent(LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
+		return new AssrtFormalLSilent(cases);
+	}
+
 	public AssrtFormalLEnd end() {
 		return AssrtFormalLEnd.END;
+	}
+
+	/* Actions */
+
+	public AssrtLSend send(Role receiver, AssrtMsg m) {
+		return new AssrtLSend(receiver, m);
+	}
+
+	public AssrtLSend send(Role receiver, AssrtMsg m, List<AssrtMsg> consumed) {
+		return new AssrtLSend(receiver, m, consumed);
+	}
+
+	public AssrtLReceive receive(Role sender, AssrtMsg m) {
+		return new AssrtLReceive(sender, m);
+	}
+
+	public AssrtLReceive receive(Role sender, AssrtMsg m, List<AssrtMsg> consumed) {
+		return new AssrtLReceive(sender, m, consumed);
+	}
+
+	public AssrtLEpsilon epsilon(AssrtMsg m) {
+		return new AssrtLEpsilon(m);
 	}
 
 }

@@ -11,11 +11,20 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
-//global protocol MyProto(role A, role B, role C) {
-global protocol MyProto(role A, role B) {
+//*
+global protocol MyProto(role A, role B, role C) {
     1(x: int) from A to B;  @'x=0'
-    2(y: int) from B to A;  @'y=x'
+    2(y: int) from B to C;  @'y=x'
+    3(z: int) from C to A;  @'z=y'
 }
+//*/
+
+/*
+global protocol MyProto(role A, role B) {
+    1(x: int) from a to b;  @'x=0'
+    2(y: int) from b to a;  @'y=x'
+}
+//*/
 
 
 /*

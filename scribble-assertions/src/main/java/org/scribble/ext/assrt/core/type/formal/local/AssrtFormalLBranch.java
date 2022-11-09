@@ -43,6 +43,9 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 			return Optional.empty();
 		}
 		AssrtLReceive cast = (AssrtLReceive) a;
+		if (!cast.consumed.isEmpty()) {
+			throw new RuntimeException("Shouldn't get here: " + this + " ,, " + a);
+		}
 		if (!cast.sender.equals(this.peer)
 				|| !this.cases.containsKey(cast.msg.op)) {
 			return Optional.empty();

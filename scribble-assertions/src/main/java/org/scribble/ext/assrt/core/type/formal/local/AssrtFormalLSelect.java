@@ -43,6 +43,9 @@ public class AssrtFormalLSelect extends AssrtFormalLChoice {
 			return Optional.empty();
 		}
 		AssrtLSend cast = (AssrtLSend) a;
+		if (!cast.consumed.isEmpty()) {
+			throw new RuntimeException("Shouldn't get here: " + this + " ,, " + a);
+		}
 		if (!cast.receiver.equals(this.peer)
 				|| !this.cases.containsKey(cast.msg.op)) {
 			return Optional.empty();

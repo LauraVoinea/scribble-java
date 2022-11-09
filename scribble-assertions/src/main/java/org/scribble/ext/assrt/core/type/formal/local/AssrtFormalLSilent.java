@@ -4,13 +4,16 @@ import org.scribble.core.type.name.Op;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLComm;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLEpsilon;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		implements AssrtFormalLocal {
@@ -60,18 +63,24 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		return Optional.of(new Pair<>(add.get(), this.cases.get(cast.msg.op).right));
 	}
 
+	// Pre: no infinite epsilon-only cycles
 	@Override
 	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
 		LinkedHashSet<AssrtLAction> res = new LinkedHashSet();
 		for (AssrtLAction a : getSteppable(lambda)) {
+			AssrtLEpsilon cast = (AssrtLEpsilon) a;
+			Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = step(lambda, cast);
+			if (!step.isPresent()) {
+				throw new RuntimeException("Shouldn't get here " + cast);
+			}
+			Pair<AssrtLambda, AssrtFormalLocal> p = step.get();
+
+			Set<AssrtLAction> ds = p.right.getDerivSteppable(p.left, rho);
+
+			res.addAll(ds.stream().map(x -> ((AssrtLComm) x).prepend(cast.msg)).collect(Collectors.toList()));
 
 			// XXX HERE HERE do translation of locals to formals and test branch/select steps and derived steps, then do silents
 
-			if (a instanceof AssrtLEpsilon) {  // Should all be here
-				throw new RuntimeException("TODO " + a);
-			} else {
-				throw new RuntimeException("Shouldn't get here " + a);
-			}
 		}
 		return res;
 	}
@@ -79,7 +88,19 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
 			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
-		throw new RuntimeException("Shouldn't get in here: " + this);
+		AssrtFormalLocal t = this;
+		AssrtLComm cast = (AssrtLComm) a;
+		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
+		for (AssrtMsg m : cast.consumed) {
+			Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = t.step(lambda, lf.epsilon(m));
+			if (!step.isPresent()) {
+				throw new RuntimeException("Shouldn't get here: " + lambda + " ,, " + t + " ,, " + m);
+			}
+			Pair<AssrtLambda, AssrtFormalLocal> get = step.get();  // No recursion -- rho unchanged
+			lambda = get.left;
+			t = get.right;
+		}
+		return t.dstep(lambda, rho, ((AssrtLComm) a).drop());  // Could be recvar, so dstep (for rho)
 	}
 
 	@Override

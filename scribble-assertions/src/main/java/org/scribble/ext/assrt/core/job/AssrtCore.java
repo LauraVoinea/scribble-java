@@ -220,7 +220,7 @@ public class AssrtCore extends Core
 		if (s1 != null) {
 			res.delta.put(s1, new Pair<>(a, s2));
 		}
-		res.sigma.put(fresh, n.left);
+		res.sigma.put(s2, n.left);
 	}
 
 	private void tempRunSyncSat() throws ScribException {

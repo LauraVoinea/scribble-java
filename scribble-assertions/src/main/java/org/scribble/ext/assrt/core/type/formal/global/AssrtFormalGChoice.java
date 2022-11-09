@@ -31,7 +31,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public AssrtFormalLChoice project(AssrtFormalLFactory lf, Role r) {
+	public AssrtFormalLocal project(AssrtFormalLFactory lf, Role r) {
 		LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases =
 				this.cases.entrySet().stream().collect(Collectors.toMap(
 					x -> x.getKey(),
@@ -47,7 +47,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 		} else if (this.receiver.equals(r)) {
 			return lf.branch(this.sender, cases);
 		} else {
-			throw new RuntimeException("TODO " + this + " @ " + r);
+			return lf.silent(cases);
 		}
 	}
 

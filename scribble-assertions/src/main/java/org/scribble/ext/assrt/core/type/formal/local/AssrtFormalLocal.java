@@ -21,12 +21,14 @@ public interface AssrtFormalLocal extends AssrtFormalType
     public final int TRANSFER_HASH = 10987;
 
     public final int EPSILON_HASH = 10993;
+    public final int COMM_HASH = 11047;
     public final int SEND_HASH = 11003;
     public final int RECEIVE_HASH = 11027;
 
     Set<AssrtLAction> getSteppable(AssrtLambda lambda);
     Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(AssrtLambda lambda, AssrtLAction a);
 
+    // Below AssrtLActions are concrete, i.e., not silent
     Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho);
     Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(AssrtLambda lambda, AssrtRho rho, AssrtLAction a);
 
