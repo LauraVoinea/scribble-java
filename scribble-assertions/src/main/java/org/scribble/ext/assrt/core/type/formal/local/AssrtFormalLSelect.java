@@ -63,22 +63,6 @@ public class AssrtFormalLSelect extends AssrtFormalLChoice {
 	}
 
 	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getSteppable(lambda);
-	}
-
-	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
-			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
-		Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = step(lambda, a);
-		if (!step.isPresent()) {
-			throw new RuntimeException("XXX: " + this + " ,, " + lambda + " ,, " + a);
-		}
-		Pair<AssrtLambda, AssrtFormalLocal> res = step.get();
-		return Optional.of(new Triple<>(res.left, res.right, rho));
-	}
-
-	@Override
 	public int hashCode()
 	{
 		int hash = SEND_HASH;

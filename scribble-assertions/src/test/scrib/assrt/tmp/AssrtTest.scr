@@ -11,6 +11,11 @@ type <fstar> "int" from "..." as int;
 type <fstar> "string" from "..." as String;
 
 
+
+// HERE
+// - derived LTS should fully replace base LTS recursion rules -- then do silent squashing on top
+
+
 global protocol MyProto(role A, role B, role C) {
     1(x: int) from A to B;  @'x=0'
     choice at B {

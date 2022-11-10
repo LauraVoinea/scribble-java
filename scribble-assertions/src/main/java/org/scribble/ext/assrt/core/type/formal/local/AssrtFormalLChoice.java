@@ -3,13 +3,13 @@ package org.scribble.ext.assrt.core.type.formal.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
+import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
@@ -25,6 +25,32 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 		this.peer = peer;
 		this.kind = kind;
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
+	}
+
+	@Override
+	public Set<AssrtLAction> getInterSteppable(AssrtLambda lambda) {
+		return getSteppable(lambda);
+	}
+
+	@Override
+	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep(AssrtLambda lambda, AssrtLAction a) {
+		return step(lambda, a);
+	}
+
+	@Override
+	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getInterSteppable(lambda);
+	}
+
+	@Override
+	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
+			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
+		Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep = istep(lambda, a);
+		if (!istep.isPresent()) {
+			throw new RuntimeException("XXX: " + this + " ,, " + lambda + " ,, " + a);
+		}
+		Pair<AssrtLambda, AssrtFormalLocal> res = istep.get();
+		return Optional.of(new Triple<>(res.left, res.right, rho));
 	}
 
 	/*@Override

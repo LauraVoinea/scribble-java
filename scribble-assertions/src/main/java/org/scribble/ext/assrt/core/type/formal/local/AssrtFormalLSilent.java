@@ -63,17 +63,27 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		return Optional.of(new Pair<>(add.get(), this.cases.get(cast.msg.op).right));
 	}
 
+	@Override
+	public Set<AssrtLAction> getInterSteppable(AssrtLambda lambda) {
+		return getSteppable(lambda);
+	}
+
+	@Override
+	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep(AssrtLambda lambda, AssrtLAction a) {
+		return step(lambda, a);
+	}
+
 	// Pre: no infinite epsilon-only cycles
 	@Override
 	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
 		LinkedHashSet<AssrtLAction> res = new LinkedHashSet();
 		for (AssrtLAction a : getSteppable(lambda)) {
 			AssrtLEpsilon cast = (AssrtLEpsilon) a;
-			Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = step(lambda, cast);
-			if (!step.isPresent()) {
+			Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep = istep(lambda, cast);
+			if (!istep.isPresent()) {
 				throw new RuntimeException("Shouldn't get here " + cast);
 			}
-			Pair<AssrtLambda, AssrtFormalLocal> p = step.get();
+			Pair<AssrtLambda, AssrtFormalLocal> p = istep.get();
 
 			Set<AssrtLAction> ds = p.right.getDerivSteppable(p.left, rho);
 
@@ -92,11 +102,11 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		AssrtLComm cast = (AssrtLComm) a;
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
 		for (AssrtMsg m : cast.consumed) {
-			Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = t.step(lambda, lf.epsilon(m));
-			if (!step.isPresent()) {
+			Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep = t.istep(lambda, lf.epsilon(m));
+			if (!istep.isPresent()) {
 				throw new RuntimeException("Shouldn't get here: " + lambda + " ,, " + t + " ,, " + m);
 			}
-			Pair<AssrtLambda, AssrtFormalLocal> get = step.get();  // No recursion -- rho unchanged
+			Pair<AssrtLambda, AssrtFormalLocal> get = istep.get();  // No recursion -- rho unchanged
 			lambda = get.left;
 			t = get.right;
 		}

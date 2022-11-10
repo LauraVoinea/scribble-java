@@ -29,13 +29,24 @@ public class AssrtFormalLEnd implements AssrtFormalLocal
 	}
 
 	@Override
+	public Set<AssrtLAction> getInterSteppable(AssrtLambda lambda) {
+		return getSteppable(lambda);
+	}
+
+	@Override
+	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep(AssrtLambda lambda, AssrtLAction a) {
+		return step(lambda, a);
+	}
+
+	@Override
 	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return Collections.emptySet();
+		return getInterSteppable(lambda);
 	}
 
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
-		return Optional.empty();
+		Pair<AssrtLambda, AssrtFormalLocal> istep = istep(lambda, a).get();
+		return Optional.of(new Triple<>(istep.left, istep.right, rho));
 	}
 
 	@Override
