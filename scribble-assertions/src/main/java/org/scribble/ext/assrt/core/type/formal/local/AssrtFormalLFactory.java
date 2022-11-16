@@ -3,9 +3,11 @@ package org.scribble.ext.assrt.core.type.formal.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.*;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.util.Pair;
@@ -43,7 +45,7 @@ public class AssrtFormalLFactory
 		return AssrtFormalLEnd.END;
 	}
 
-	/* Actions */
+	/* Actions -- hardcoded to single refinement vars */
 
 	public AssrtFormalLSend send(Role receiver, AssrtMsg m) {
 		return send(receiver, m, Collections.emptyList());
@@ -61,14 +63,15 @@ public class AssrtFormalLFactory
 		return new AssrtFormalLReceive(sender, m, consumed);
 	}
 
-	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar,
-									 AssrtAFormula init, AssrtBFormula assertion) {
-		return unfold(recvar, svar, init, assertion, Collections.emptyList());
+	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
+				 AssrtAnnotDataName data, AssrtAFormula init, AssrtBFormula assertion) {
+		return unfold(recvar, svar, multip, data, init, assertion, Collections.emptyList());
 	}
 
-	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, AssrtAFormula init,
+	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
+									 AssrtAnnotDataName data, AssrtAFormula init,
 									 AssrtBFormula assertion, List<AssrtMsg> consumed) {
-		return new AssrtFormalLUnfold(recvar, svar, init, assertion, consumed);
+		return new AssrtFormalLUnfold(recvar, svar, multip, data, init, assertion, consumed);
 	}
 
 	public AssrtFormalLEpsilon epsilon(AssrtMsg m) {

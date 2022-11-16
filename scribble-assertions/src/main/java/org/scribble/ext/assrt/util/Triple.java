@@ -1,7 +1,5 @@
 package org.scribble.ext.assrt.util;
 
-import org.scribble.util.Pair;
-
 public class Triple<T1, T2, T3> {
     public final T1 left;
     public final T2 middle;
