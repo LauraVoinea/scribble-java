@@ -28,14 +28,14 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getSteppable(lambda);
+	public Set<AssrtFormalLAction> getIntermedSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getFormalSteppable(lambda);
 	}
 
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
 			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
-		Optional<Pair<AssrtLambda, AssrtFormalLType>> step = step(lambda, a);
+		Optional<Pair<AssrtLambda, AssrtFormalLType>> step = fstep(lambda, a);
 		if (!step.isPresent()) {
 			return Optional.empty();
 		}
@@ -44,12 +44,12 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getInterSteppable(lambda, rho);
+	public Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getIntermedSteppable(lambda, rho);
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);
 	}

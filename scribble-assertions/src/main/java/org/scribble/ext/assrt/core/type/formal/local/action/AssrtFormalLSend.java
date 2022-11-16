@@ -5,7 +5,6 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,8 +19,8 @@ public class AssrtFormalLSend extends AssrtFormalLComm
 	}
 
 	@Override
-	public AssrtFormalLSend prepend(AssrtMsg m) {
-		List<AssrtMsg> ms = new LinkedList<>(this.consumed);
+	public AssrtFormalLSend prependSilent(AssrtMsg m) {
+		List<AssrtMsg> ms = new LinkedList<>(this.silent);
 		ms.add(0, m);
 		return AssrtFormalLFactory.factory.send(this.receiver, this.msg, ms);
 	}

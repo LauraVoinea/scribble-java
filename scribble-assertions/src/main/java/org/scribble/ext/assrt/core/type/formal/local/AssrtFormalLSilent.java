@@ -25,7 +25,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getFormalSteppable(AssrtLambda lambda) {
 		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet<>();
 		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
@@ -41,7 +41,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLType>> step(
+	public Optional<Pair<AssrtLambda, AssrtFormalLType>> fstep(
 			AssrtLambda lambda, AssrtFormalLAction a) {
 		if (!(a instanceof AssrtFormalLEpsilon)) {
 			return Optional.empty();
@@ -63,14 +63,14 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getSteppable(lambda);
+	public Set<AssrtFormalLAction> getIntermedSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getFormalSteppable(lambda);
 	}
 
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
 			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
-		Optional<Pair<AssrtLambda, AssrtFormalLType>> step = step(lambda, a);
+		Optional<Pair<AssrtLambda, AssrtFormalLType>> step = fstep(lambda, a);
 		if (!step.isPresent()) {
 			return Optional.empty();
 		}
@@ -78,11 +78,11 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		return Optional.of(new Triple<>(res.left, res.right, rho));
 	}
 
-	// Pre: no infinite epsilon-only cycles
+	// Pre: no infinite epsilon-only cycles -- CHECKME filtered by projection?
 	@Override
-	public Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
+	public Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho) {
 		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet();
-		for (AssrtFormalLAction a : getSteppable(lambda)) {
+		for (AssrtFormalLAction a : getFormalSteppable(lambda)) {
 			AssrtFormalLEpsilon cast = (AssrtFormalLEpsilon) a;
 			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
 					istep(lambda, cast, rho);
@@ -90,19 +90,19 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 				throw new RuntimeException("Shouldn't get here " + cast);
 			}
 			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> p = istep.get();
-			Set<AssrtFormalLAction> ds = p.middle.getDerivSteppable(p.left, p.right);
-			res.addAll(ds.stream().map(x -> ((AssrtFormalLComm) x).prepend(cast.msg)).collect(Collectors.toList()));
+			Set<AssrtFormalLAction> ds = p.middle.getExplicitSteppable(p.left, p.right);
+			res.addAll(ds.stream().map(x -> ((AssrtFormalLComm) x).prependSilent(cast.msg)).collect(Collectors.toList()));
 		}
 		return res;
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		AssrtFormalLType t = this;
 		AssrtFormalLComm cast = (AssrtFormalLComm) a;
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
-		for (AssrtMsg m : cast.consumed) {
+		for (AssrtMsg m : cast.silent) {
 			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
 					t.istep(lambda, lf.epsilon(m), rho);
 			if (!istep.isPresent()) {
@@ -113,7 +113,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 			t = get.middle;
 			rho = get.right;
 		}
-		return t.dstep(lambda, rho, ((AssrtFormalLComm) a).drop());  // Could be recvar, so dstep (for rho)
+		return t.estep(lambda, rho, ((AssrtFormalLComm) a).drop());  // Could be recvar, so dstep (for rho)
 	}
 
 	@Override

@@ -167,10 +167,10 @@ public class AssrtCore extends Core
 
 	private void stepper(AssrtLambda lam, AssrtFormalLType t) {
 		System.out.println("ccc: " + lam + " ,, " + t);
-		Set<AssrtFormalLAction> steppable = t.getSteppable(lam);
+		Set<AssrtFormalLAction> steppable = t.getFormalSteppable(lam);
 		for (AssrtFormalLAction a : steppable) {
 			System.out.println("ddd: " + lam + " ,, " + t + " ,, " + a);
-			Optional<Pair<AssrtLambda, AssrtFormalLType>> step = t.step(lam, a);
+			Optional<Pair<AssrtLambda, AssrtFormalLType>> step = t.fstep(lam, a);
 			if (!step.isPresent()) {
 				throw new RuntimeException("FIXME ");
 			}
@@ -183,7 +183,7 @@ public class AssrtCore extends Core
 			  //Map<Pair<Pair<AssrtLambda, AssrtFormalLocal>, AssrtLAction>, Pair<AssrtLambda, AssrtFormalLocal>> graph) {
 				Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph) {
 		System.out.println("ccc1: " + lam + " ,, " + t);
-		Set<AssrtFormalLAction> dsteppable = t.getDerivSteppable(lam, rho);
+		Set<AssrtFormalLAction> dsteppable = t.getExplicitSteppable(lam, rho);
 
 		Pair<AssrtLambda, AssrtFormalLType> k = new Pair<>(lam, t);
 		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = graph.get(k);
@@ -194,7 +194,7 @@ public class AssrtCore extends Core
 
 		for (AssrtFormalLAction a : dsteppable) {
 			System.out.println("ddd1: " + lam + " ,, " + t + " ,, " + a);
-			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> step = t.dstep(lam, rho, a);
+			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> step = t.estep(lam, rho, a);
 			if (!step.isPresent()) {
 				throw new RuntimeException("FIXME ");
 			}

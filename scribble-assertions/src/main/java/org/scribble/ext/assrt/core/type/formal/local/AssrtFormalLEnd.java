@@ -19,34 +19,34 @@ public class AssrtFormalLEnd implements AssrtFormalLType
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getFormalSteppable(AssrtLambda lambda) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLType>> step(AssrtLambda lambda, AssrtFormalLAction a) {
+	public Optional<Pair<AssrtLambda, AssrtFormalLType>> fstep(AssrtLambda lambda, AssrtFormalLAction a) {
 		return Optional.empty();
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getSteppable(lambda);
+	public Set<AssrtFormalLAction> getIntermedSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getFormalSteppable(lambda);
 	}
 
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
 			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
-		Pair<AssrtLambda, AssrtFormalLType> step = step(lambda, a).get();
+		Pair<AssrtLambda, AssrtFormalLType> step = fstep(lambda, a).get();
 		return Optional.of(new Triple<>(step.left, step.right, rho));
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getInterSteppable(lambda, rho);
+	public Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getIntermedSteppable(lambda, rho);
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);
 	}

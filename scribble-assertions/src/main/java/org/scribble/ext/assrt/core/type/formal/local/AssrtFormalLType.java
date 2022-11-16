@@ -29,14 +29,16 @@ public interface AssrtFormalLType extends AssrtFormalType
     public final int UNFOLD_HASH = 11057;
     public final int CONTINUE_HASH = 11059;
 
-    Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda);
-    Optional<Pair<AssrtLambda, AssrtFormalLType>> step(AssrtLambda lambda, AssrtFormalLAction a);
+    // Formal defs
+    Set<AssrtFormalLAction> getFormalSteppable(AssrtLambda lambda);
+    Optional<Pair<AssrtLambda, AssrtFormalLType>> fstep(AssrtLambda lambda, AssrtFormalLAction a);
 
-    Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho);
+    // With explicit, finite "recursion actions" instead of unbounded implicit unfolding
+    Set<AssrtFormalLAction> getIntermedSteppable(AssrtLambda lambda, AssrtRho rho);
     Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho);
 
-    // Below AssrtLActions are concrete, i.e., not silent
-    Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho);
-    Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a);
+    // With epsilons squashed (called "intermed LTS" in draft) -- all below AssrtLActions are concrete, i.e., not silent
+    Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho);
+    Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a);
 
 }

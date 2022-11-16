@@ -20,7 +20,7 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 	}
 
 	@Override
-	public Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getFormalSteppable(AssrtLambda lambda) {
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
 		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet<>();
 		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
@@ -37,13 +37,13 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLType>> step(
+	public Optional<Pair<AssrtLambda, AssrtFormalLType>> fstep(
 			AssrtLambda lambda, AssrtFormalLAction a) {
 		if (!(a instanceof AssrtFormalLReceive)) {
 			return Optional.empty();
 		}
 		AssrtFormalLReceive cast = (AssrtFormalLReceive) a;
-		if (!cast.consumed.isEmpty()) {
+		if (!cast.silent.isEmpty()) {
 			throw new RuntimeException("Shouldn't get here: " + this + " ,, " + a);
 		}
 		if (!cast.sender.equals(this.peer)

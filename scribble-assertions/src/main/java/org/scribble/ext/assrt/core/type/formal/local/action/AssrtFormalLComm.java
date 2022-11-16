@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public abstract class AssrtFormalLComm implements AssrtFormalLAction
 {
-	public final List<AssrtMsg> consumed;  // TODO: factor out a "derived action" interface
+	public final List<AssrtMsg> silent;  // phantoms, TODO: factor out a "derived action" interface
 
 	public final Role peer;
 	public final AssrtMsg msg;
@@ -20,20 +20,20 @@ public abstract class AssrtFormalLComm implements AssrtFormalLAction
 		this(peer, msg, Collections.emptyList());
 	}
 
-	public AssrtFormalLComm(Role peer, AssrtMsg msg, List<AssrtMsg> consumed)
+	public AssrtFormalLComm(Role peer, AssrtMsg msg, List<AssrtMsg> silent)
 	{
 		this.peer = peer;
 		this.msg = msg;
-		this.consumed = consumed.stream().collect(Collectors.toList());
+		this.silent = silent.stream().collect(Collectors.toList());
 	}
 
-	public abstract AssrtFormalLComm prepend(AssrtMsg m);
+	public abstract AssrtFormalLComm prependSilent(AssrtMsg m);
 	public abstract AssrtFormalLComm drop();
 
 	@Override
 	public String toString()
 	{
-		return (this.consumed.isEmpty() ? "" : this.consumed) +
+		return (this.silent.isEmpty() ? "" : this.silent) +
 				" " + this.peer + getCommSymbol() + this.msg;
 	}
 
@@ -43,7 +43,7 @@ public abstract class AssrtFormalLComm implements AssrtFormalLAction
 	public int hashCode()
 	{
 		int hash = AssrtFormalLType.COMM_HASH;
-		hash = 31 * hash + this.consumed.hashCode();
+		hash = 31 * hash + this.silent.hashCode();
 		hash = 31 * hash + this.peer.hashCode();
 		hash = 31 * hash + this.msg.hashCode();
 		return hash;
@@ -62,7 +62,7 @@ public abstract class AssrtFormalLComm implements AssrtFormalLAction
 		}
 		AssrtFormalLComm them = (AssrtFormalLComm) o;
 		return //them.canEquals(this) &&
-			this.consumed.equals(them.consumed) &&
+			this.silent.equals(them.silent) &&
 			this.peer.equals(them.peer) && this.msg.equals(them.msg);
 	}
 
