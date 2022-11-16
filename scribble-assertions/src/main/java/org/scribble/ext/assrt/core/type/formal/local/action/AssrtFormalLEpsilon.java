@@ -1,14 +1,14 @@
 package org.scribble.ext.assrt.core.type.formal.local.action;
 
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 
 // ...but more like a global action? (cf. formal LTS)
-public class AssrtLEpsilon implements AssrtLAction
+public class AssrtFormalLEpsilon implements AssrtFormalLAction
 {
 	public final AssrtMsg msg;
 
-	public AssrtLEpsilon(AssrtMsg msg)
+	public AssrtFormalLEpsilon(AssrtMsg msg)
 	{
 		this.msg = msg;
 	}
@@ -22,7 +22,7 @@ public class AssrtLEpsilon implements AssrtLAction
 	@Override
 	public int hashCode()
 	{
-		int hash = AssrtFormalLocal.EPSILON_HASH;
+		int hash = AssrtFormalLType.EPSILON_HASH;
 		hash = 31 * hash + this.msg.hashCode();
 		return hash;
 	}
@@ -34,11 +34,11 @@ public class AssrtLEpsilon implements AssrtLAction
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtLEpsilon))
+		if (!(o instanceof AssrtFormalLEpsilon))
 		{
 			return false;
 		}
-		AssrtLEpsilon them = (AssrtLEpsilon) o;
+		AssrtFormalLEpsilon them = (AssrtFormalLEpsilon) o;
 		return //them.canEquals(this) &&
 			this.msg.equals(them.msg);
 	}

@@ -1,6 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 
-public class AssrtFormalLEnd implements AssrtFormalLocal
+public class AssrtFormalLEnd implements AssrtFormalLType
 {
 	public static final AssrtFormalLEnd END = new AssrtFormalLEnd();
 
@@ -19,34 +19,36 @@ public class AssrtFormalLEnd implements AssrtFormalLocal
 	}
 
 	@Override
-	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(AssrtLambda lambda, AssrtLAction a) {
+	public Optional<Pair<AssrtLambda, AssrtFormalLType>> step(AssrtLambda lambda, AssrtFormalLAction a) {
 		return Optional.empty();
 	}
 
 	@Override
-	public Set<AssrtLAction> getInterSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return getSteppable(lambda);
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep(AssrtLambda lambda, AssrtLAction a) {
-		return step(lambda, a);
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
+			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
+		Pair<AssrtLambda, AssrtFormalLType> step = step(lambda, a).get();
+		return Optional.of(new Triple<>(step.left, step.right, rho));
 	}
 
 	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getInterSteppable(lambda);
+	public Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getInterSteppable(lambda, rho);
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
-		Pair<AssrtLambda, AssrtFormalLocal> istep = istep(lambda, a).get();
-		return Optional.of(new Triple<>(istep.left, istep.right, rho));
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(
+			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
+		return istep(lambda, a, rho);
 	}
 
 	@Override
@@ -71,7 +73,7 @@ public class AssrtFormalLEnd implements AssrtFormalLocal
 
 	@Override
 	public int hashCode() {
-		int hash = AssrtFormalLocal.END_HASH;
+		int hash = AssrtFormalLType.END_HASH;
 		hash =  31 * hash;
 		return hash;
 	}

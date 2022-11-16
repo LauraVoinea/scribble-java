@@ -40,12 +40,12 @@ import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
-import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGlobal;
+import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtRho;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -129,24 +129,24 @@ public class AssrtCore extends Core
 		for (Map.Entry<ProtoName<Global>, GProtocol> e : inlined.entrySet()) {
 			AssrtGProtocol g = (AssrtGProtocol) e.getValue();
 			if (!g.mods.contains(ProtoMod.AUX)) {
-				AssrtFormalGlobal g1 = tr.translate(g.type);
+				AssrtFormalGType g1 = tr.translate(g.type);
 				System.out.println("aaa: " + g.fullname + " ,, " + g1);
 				Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());
 				for (Role r : rs) {
-					AssrtFormalLocal p = g1.project(lf, r);
+					AssrtFormalLType p = g1.project(lf, r);
 					System.out.println("\nbbb: " + r + " ,, " + p);
 
 					AssrtLambda lam = new AssrtLambda();
 					AssrtRho rho = new AssrtRho();
 					//stepper(lam, p);
 
-					Map<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> graph = new LinkedHashMap<>();
+					Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = new LinkedHashMap<>();
 
 					dstepper(lam, rho, p, graph);  //HERE make finite graph and do RCA translation
 
-					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> f : graph.entrySet()) {
-						Pair<AssrtLambda, AssrtFormalLocal> k = f.getKey();
-						Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> v = f.getValue();
+					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> f : graph.entrySet()) {
+						Pair<AssrtLambda, AssrtFormalLType> k = f.getKey();
+						Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> v = f.getValue();
 						System.out.println(AssrtUtil.pairToString(k) + " ,, " +
 								v.entrySet().stream().map(x -> x.getKey() + " -> " + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(" ,, ")));
 					}
@@ -155,7 +155,7 @@ public class AssrtCore extends Core
 					rca(graph, new Pair<>(lam, p), null, null, RCAState.fresh(), rca);
 
 					System.out.println("eee: ");
-					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> ee : graph.entrySet()) {
+					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> ee : graph.entrySet()) {
 						System.out.print(AssrtUtil.pairToString(ee.getKey()) + " -> ");
 						System.out.println(ee.getValue().entrySet().stream().map(x -> x.getKey() + "=" + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(", ")));
 					}
@@ -165,40 +165,40 @@ public class AssrtCore extends Core
 		}
 	}
 
-	private void stepper(AssrtLambda lam, AssrtFormalLocal t) {
+	private void stepper(AssrtLambda lam, AssrtFormalLType t) {
 		System.out.println("ccc: " + lam + " ,, " + t);
-		Set<AssrtLAction> steppable = t.getSteppable(lam);
-		for (AssrtLAction a : steppable) {
+		Set<AssrtFormalLAction> steppable = t.getSteppable(lam);
+		for (AssrtFormalLAction a : steppable) {
 			System.out.println("ddd: " + lam + " ,, " + t + " ,, " + a);
-			Optional<Pair<AssrtLambda, AssrtFormalLocal>> step = t.step(lam, a);
+			Optional<Pair<AssrtLambda, AssrtFormalLType>> step = t.step(lam, a);
 			if (!step.isPresent()) {
 				throw new RuntimeException("FIXME ");
 			}
-			Pair<AssrtLambda, AssrtFormalLocal> res = step.get();
+			Pair<AssrtLambda, AssrtFormalLType> res = step.get();
 			stepper(res.left, res.right);
 		}
 	}
 
-	private void dstepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLocal t,
+	private void dstepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLType t,
 			  //Map<Pair<Pair<AssrtLambda, AssrtFormalLocal>, AssrtLAction>, Pair<AssrtLambda, AssrtFormalLocal>> graph) {
-				Map<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> graph) {
+				Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph) {
 		System.out.println("ccc1: " + lam + " ,, " + t);
-		Set<AssrtLAction> dsteppable = t.getDerivSteppable(lam, rho);
+		Set<AssrtFormalLAction> dsteppable = t.getDerivSteppable(lam, rho);
 
-		Pair<AssrtLambda, AssrtFormalLocal> k = new Pair<>(lam, t);
-		Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> as = graph.get(k);
+		Pair<AssrtLambda, AssrtFormalLType> k = new Pair<>(lam, t);
+		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = graph.get(k);
 		if (as == null) {
 			as = new HashMap<>();
 			graph.put(k, as);
 		}
 
-		for (AssrtLAction a : dsteppable) {
+		for (AssrtFormalLAction a : dsteppable) {
 			System.out.println("ddd1: " + lam + " ,, " + t + " ,, " + a);
-			Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> step = t.dstep(lam, rho, a);
+			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> step = t.dstep(lam, rho, a);
 			if (!step.isPresent()) {
 				throw new RuntimeException("FIXME ");
 			}
-			Triple<AssrtLambda, AssrtFormalLocal, AssrtRho> res = step.get();
+			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> res = step.get();
 
 			as.put(a, new Pair<>(res.left, res.middle));
 
@@ -207,23 +207,23 @@ public class AssrtCore extends Core
 	}
 
 	// Pre: s1 != null => res.S.contains(s1) -- and n corresponds to s2
-	private void rca(Map<Pair<AssrtLambda, AssrtFormalLocal>, Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>>> graph,
-					Pair<AssrtLambda, AssrtFormalLocal> n,
-					RCAState s1, AssrtLAction a, RCAState s2, RCA res) {
+	private void rca(Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph,
+					 Pair<AssrtLambda, AssrtFormalLType> n,
+					 RCAState s1, AssrtFormalLAction a, RCAState s2, RCA res) {
 		if (res.S.contains(s2)) {
 			return;
 		}
-		Map<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> as = graph.get(n);
-		for (Map.Entry<AssrtLAction, Pair<AssrtLambda, AssrtFormalLocal>> e : as.entrySet()) {
+		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = graph.get(n);
+		for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> e : as.entrySet()) {
 
 			RCAState fresh = RCAState.fresh();
-			Pair<AssrtLambda, AssrtFormalLocal> succ = e.getValue();
+			Pair<AssrtLambda, AssrtFormalLType> succ = e.getValue();
 			rca(graph, succ, s2, e.getKey(), fresh, res);
 
 		}
 		res.S.add(s2);
 		if (s1 != null) {
-			Map<AssrtLAction, RCAState> tmp = res.delta.get(s1);
+			Map<AssrtFormalLAction, RCAState> tmp = res.delta.get(s1);
 			if (tmp == null) {
 				tmp = new HashMap<>();
 				res.delta.put(s1, tmp);

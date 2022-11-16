@@ -1,6 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
-import org.scribble.ext.assrt.core.type.session.local.AssrtLRecVar;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
 import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.util.Pair;
@@ -11,13 +11,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AssrtRho {
-    public final Map<AssrtLRecVar, Pair<AssrtLambda, AssrtLType>> map;
+
+    // RecVar is the token value, AssrtLRecVar is the type
+    public final Map<RecVar, Pair<AssrtLambda, AssrtLType>> map;
 
     public AssrtRho() {
        this(new LinkedHashMap<>());
     }
 
-    public AssrtRho(LinkedHashMap<AssrtLRecVar, Pair<AssrtLambda, AssrtLType>> map) {
+    public AssrtRho(LinkedHashMap<RecVar, Pair<AssrtLambda, AssrtLType>> map) {
         this.map = Collections.unmodifiableMap(new LinkedHashMap<>(map));
     }
 

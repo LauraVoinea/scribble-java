@@ -2,39 +2,33 @@ package org.scribble.ext.assrt.core.type.formal.local.action;
 
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 // ...but more like a global action? (cf. formal LTS)
-public class AssrtLReceive extends AssrtLComm
+public class AssrtFormalLReceive extends AssrtFormalLComm
 {
 	public final Role sender;
 
-	public AssrtLReceive(Role sender, AssrtMsg msg)
-	{
-		this(sender, msg, Collections.emptyList());
-	}
-
-	public AssrtLReceive(Role sender, AssrtMsg msg, List<AssrtMsg> consumed)
+	public AssrtFormalLReceive(Role sender, AssrtMsg msg, List<AssrtMsg> consumed)
 	{
 		super(sender, msg, consumed);
 		this.sender = sender;
 	}
 
 	@Override
-	public AssrtLReceive prepend(AssrtMsg m) {
+	public AssrtFormalLReceive prepend(AssrtMsg m) {
 		List<AssrtMsg> ms = new LinkedList<>(this.consumed);
 		ms.add(0, m);
 		return AssrtFormalLFactory.factory.receive(this.sender, this.msg, ms);
 	}
 
 	@Override
-	public AssrtLReceive drop() {
+	public AssrtFormalLReceive drop() {
 		return AssrtFormalLFactory.factory.receive(this.sender, this.msg);
 	}
 
@@ -46,7 +40,7 @@ public class AssrtLReceive extends AssrtLComm
 	@Override
 	public int hashCode()
 	{
-		int hash = AssrtFormalLocal.RECEIVE_HASH;
+		int hash = AssrtFormalLType.RECEIVE_HASH;
 		hash = 31 * hash + super.hashCode();  // Includes sender
 		return hash;
 	}
@@ -58,7 +52,7 @@ public class AssrtLReceive extends AssrtLComm
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtLSend))
+		if (!(o instanceof AssrtFormalLSend))
 		{
 			return false;
 		}

@@ -3,12 +3,11 @@ package org.scribble.ext.assrt.core.type.formal.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLReceive;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLReceive;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
-import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -16,33 +15,34 @@ import java.util.*;
 public class AssrtFormalLBranch extends AssrtFormalLChoice {
 
 	// Pre: cases.size() > 1
-	protected AssrtFormalLBranch(Role peer, LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
+	protected AssrtFormalLBranch(Role peer, LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {
 		super(peer, AssrtLActionKind.RECV, cases);
 	}
 
 	@Override
-	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
-		LinkedHashSet<AssrtLAction> res = new LinkedHashSet<>();
-		for (Pair<AssrtMsg, AssrtFormalLocal> x : this.cases.values()) {
+	public Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda) {
+		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
+		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet<>();
+		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
 			if (pay.size() != 1) {
 				throw new RuntimeException("Shouldn't get here: " + pay);
 			}
 			AssrtAnnotDataName d = pay.get(0);
 			if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {
-				res.add(new AssrtLReceive(this.peer, x.left));
+				res.add(lf.receive(this.peer, x.left));
 			}
 		}
 		return res;
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(
-			AssrtLambda lambda, AssrtLAction a) {
-		if (!(a instanceof AssrtLReceive)) {
+	public Optional<Pair<AssrtLambda, AssrtFormalLType>> step(
+			AssrtLambda lambda, AssrtFormalLAction a) {
+		if (!(a instanceof AssrtFormalLReceive)) {
 			return Optional.empty();
 		}
-		AssrtLReceive cast = (AssrtLReceive) a;
+		AssrtFormalLReceive cast = (AssrtFormalLReceive) a;
 		if (!cast.consumed.isEmpty()) {
 			throw new RuntimeException("Shouldn't get here: " + this + " ,, " + a);
 		}

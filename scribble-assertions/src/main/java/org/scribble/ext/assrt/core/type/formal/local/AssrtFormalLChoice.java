@@ -3,7 +3,7 @@ package org.scribble.ext.assrt.core.type.formal.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
 import org.scribble.ext.assrt.util.Triple;
@@ -13,44 +13,45 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
-		implements AssrtFormalLocal {
+		implements AssrtFormalLType {
 
 	public final Role peer;
 	public final AssrtLActionKind kind;
-	public final Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases;  // Invariant: op.equals(assrtMsg)
+	public final Map<Op, Pair<AssrtMsg, AssrtFormalLType>> cases;  // Invariant: op.equals(assrtMsg)
 
 	// Pre: cases.size() > 1
 	protected AssrtFormalLChoice(Role peer, AssrtLActionKind kind,
-								 LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
+								 LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {
 		this.peer = peer;
 		this.kind = kind;
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
 	}
 
 	@Override
-	public Set<AssrtLAction> getInterSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return getSteppable(lambda);
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep(AssrtLambda lambda, AssrtLAction a) {
-		return step(lambda, a);
-	}
-
-	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		return getInterSteppable(lambda);
-	}
-
-	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
-			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
-		Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep = istep(lambda, a);
-		if (!istep.isPresent()) {
-			throw new RuntimeException("XXX: " + this + " ,, " + lambda + " ,, " + a);
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
+			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
+		Optional<Pair<AssrtLambda, AssrtFormalLType>> step = step(lambda, a);
+		if (!step.isPresent()) {
+			return Optional.empty();
 		}
-		Pair<AssrtLambda, AssrtFormalLocal> res = istep.get();
+		Pair<AssrtLambda, AssrtFormalLType> res = step.get();
 		return Optional.of(new Triple<>(res.left, res.right, rho));
+	}
+
+	@Override
+	public Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
+		return getInterSteppable(lambda, rho);
+	}
+
+	@Override
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(
+			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
+		return istep(lambda, a, rho);
 	}
 
 	/*@Override
@@ -134,7 +135,7 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 		return o instanceof AssrtFormalLChoice;
 	}
 
-	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
+	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {
 		String s = cases.values().stream()
 				.map(e -> msgToString(e.left) + "." + e.right)
 				.collect(Collectors.joining(", "));

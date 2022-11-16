@@ -1,10 +1,7 @@
 package org.scribble.ext.assrt.core.model.formal.endpoint;
 
-import org.scribble.ext.assrt.core.model.endpoint.AssrtEState;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.util.AssrtUtil;
-import org.scribble.util.Pair;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,7 +13,7 @@ public class RCA {
 
     // All mutable for now -- could call this builder
     public final Set<RCAState> S;
-    public final Map<RCAState, Map<AssrtLAction, RCAState>> delta;
+    public final Map<RCAState, Map<AssrtFormalLAction, RCAState>> delta;
     public final Map<RCAState, AssrtLambda> sigma;
 
     public RCA() {

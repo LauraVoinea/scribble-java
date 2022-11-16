@@ -3,12 +3,11 @@ package org.scribble.ext.assrt.core.type.formal.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLComm;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLEpsilon;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLComm;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEpsilon;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLType;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -16,38 +15,38 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssrtFormalLSilent extends AssrtFormalTypeBase
-		implements AssrtFormalLocal {
+		implements AssrtFormalLType {
 
-	public final Map<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases;
+	public final Map<Op, Pair<AssrtMsg, AssrtFormalLType>> cases;
 
 	// Pre: cases.size() > 1
-	protected AssrtFormalLSilent(LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases) {
+	protected AssrtFormalLSilent(LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
 	}
 
 	@Override
-	public Set<AssrtLAction> getSteppable(AssrtLambda lambda) {
-		LinkedHashSet<AssrtLAction> res = new LinkedHashSet<>();
-		for (Pair<AssrtMsg, AssrtFormalLocal> x : this.cases.values()) {
+	public Set<AssrtFormalLAction> getSteppable(AssrtLambda lambda) {
+		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet<>();
+		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
 			if (pay.size() != 1) {
 				throw new RuntimeException("Shouldn't get here: " + pay);
 			}
 			AssrtAnnotDataName d = pay.get(0);
 			if (lambda.canAdd(d.var, Multiplicity.ZERO, d.data)) {
-				res.add(new AssrtLEpsilon(x.left));
+				res.add(new AssrtFormalLEpsilon(x.left));
 			}
 		}
 		return res;
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> step(
-			AssrtLambda lambda, AssrtLAction a) {
-		if (!(a instanceof AssrtLEpsilon)) {
+	public Optional<Pair<AssrtLambda, AssrtFormalLType>> step(
+			AssrtLambda lambda, AssrtFormalLAction a) {
+		if (!(a instanceof AssrtFormalLEpsilon)) {
 			return Optional.empty();
 		}
-		AssrtLEpsilon cast = (AssrtLEpsilon) a;
+		AssrtFormalLEpsilon cast = (AssrtFormalLEpsilon) a;
 		if (!this.cases.containsKey(cast.msg.op)) {
 			return Optional.empty();
 		}
@@ -64,53 +63,57 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<AssrtLAction> getInterSteppable(AssrtLambda lambda) {
+	public Set<AssrtFormalLAction> getInterSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return getSteppable(lambda);
 	}
 
 	@Override
-	public Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep(AssrtLambda lambda, AssrtLAction a) {
-		return step(lambda, a);
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
+			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
+		Optional<Pair<AssrtLambda, AssrtFormalLType>> step = step(lambda, a);
+		if (!step.isPresent()) {
+			return Optional.empty();
+		}
+		Pair<AssrtLambda, AssrtFormalLType> res = step.get();
+		return Optional.of(new Triple<>(res.left, res.right, rho));
 	}
 
 	// Pre: no infinite epsilon-only cycles
 	@Override
-	public Set<AssrtLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
-		LinkedHashSet<AssrtLAction> res = new LinkedHashSet();
-		for (AssrtLAction a : getSteppable(lambda)) {
-			AssrtLEpsilon cast = (AssrtLEpsilon) a;
-			Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep = istep(lambda, cast);
+	public Set<AssrtFormalLAction> getDerivSteppable(AssrtLambda lambda, AssrtRho rho) {
+		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet();
+		for (AssrtFormalLAction a : getSteppable(lambda)) {
+			AssrtFormalLEpsilon cast = (AssrtFormalLEpsilon) a;
+			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
+					istep(lambda, cast, rho);
 			if (!istep.isPresent()) {
 				throw new RuntimeException("Shouldn't get here " + cast);
 			}
-			Pair<AssrtLambda, AssrtFormalLocal> p = istep.get();
-
-			Set<AssrtLAction> ds = p.right.getDerivSteppable(p.left, rho);
-
-			res.addAll(ds.stream().map(x -> ((AssrtLComm) x).prepend(cast.msg)).collect(Collectors.toList()));
-
-			// XXX HERE HERE do translation of locals to formals and test branch/select steps and derived steps, then do silents
-
+			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> p = istep.get();
+			Set<AssrtFormalLAction> ds = p.middle.getDerivSteppable(p.left, p.right);
+			res.addAll(ds.stream().map(x -> ((AssrtFormalLComm) x).prepend(cast.msg)).collect(Collectors.toList()));
 		}
 		return res;
 	}
 
 	@Override
-	public Optional<Triple<AssrtLambda, AssrtFormalLocal, AssrtRho>> dstep(
-			AssrtLambda lambda, AssrtRho rho, AssrtLAction a) {
-		AssrtFormalLocal t = this;
-		AssrtLComm cast = (AssrtLComm) a;
+	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> dstep(
+			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
+		AssrtFormalLType t = this;
+		AssrtFormalLComm cast = (AssrtFormalLComm) a;
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
 		for (AssrtMsg m : cast.consumed) {
-			Optional<Pair<AssrtLambda, AssrtFormalLocal>> istep = t.istep(lambda, lf.epsilon(m));
+			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
+					t.istep(lambda, lf.epsilon(m), rho);
 			if (!istep.isPresent()) {
 				throw new RuntimeException("Shouldn't get here: " + lambda + " ,, " + t + " ,, " + m);
 			}
-			Pair<AssrtLambda, AssrtFormalLocal> get = istep.get();  // No recursion -- rho unchanged
+			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> get = istep.get();  // No recursion -- rho unchanged
 			lambda = get.left;
-			t = get.right;
+			t = get.middle;
+			rho = get.right;
 		}
-		return t.dstep(lambda, rho, ((AssrtLComm) a).drop());  // Could be recvar, so dstep (for rho)
+		return t.dstep(lambda, rho, ((AssrtFormalLComm) a).drop());  // Could be recvar, so dstep (for rho)
 	}
 
 	@Override

@@ -3,11 +3,9 @@ package org.scribble.ext.assrt.core.type.formal.global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLChoice;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLocal;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
-import org.scribble.ext.assrt.core.type.session.local.AssrtLActionKind;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -16,27 +14,27 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AssrtFormalGChoice extends AssrtFormalTypeBase
-		implements AssrtFormalGlobal {
+		implements AssrtFormalGType {
 
 	public final Role sender;
 	public final Role receiver;
-	public final Map<Op, Pair<AssrtMsg, AssrtFormalGlobal>> cases;  // Invariant: op.equals(assrtMsg)
+	public final Map<Op, Pair<AssrtMsg, AssrtFormalGType>> cases;  // Invariant: op.equals(assrtMsg)
 
 	// Pre: cases.size() > 1
 	protected AssrtFormalGChoice(Role sender, Role receiver,
-								 LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGlobal>> cases) {
+								 LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGType>> cases) {
 		this.sender = sender;
 		this.receiver = receiver;
 		this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
 	}
 
 	@Override
-	public AssrtFormalLocal project(AssrtFormalLFactory lf, Role r) {
-		LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLocal>> cases =
+	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r) {
+		LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases =
 				this.cases.entrySet().stream().collect(Collectors.toMap(
 					x -> x.getKey(),
 					x -> {
-						Pair<AssrtMsg, AssrtFormalGlobal> v = x.getValue();
+						Pair<AssrtMsg, AssrtFormalGType> v = x.getValue();
 						return new Pair<>(v.left, v.right.project(lf, r));
 					},
 					(x, y) -> null,
@@ -131,7 +129,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 	}
 
 	// Duplicated from AssrtFormalLChoice
-	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalGlobal>> cases) {
+	protected static String casesToString(Map<Op, Pair<AssrtMsg, AssrtFormalGType>> cases) {
 		String m = cases.values().stream()
 				.map(e -> msgToString(e.left) + "." + e.right)
 				.collect(Collectors.joining(", "));

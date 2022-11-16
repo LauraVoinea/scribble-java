@@ -9,7 +9,6 @@ import org.scribble.ext.assrt.core.type.session.global.AssrtGType;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AssrtFormalGTranslator {
@@ -17,7 +16,7 @@ public class AssrtFormalGTranslator {
     protected final AssrtFormalGFactory gf = AssrtFormalFactory.factory.global;
 
     // Pre: g is "inlined"
-    public AssrtFormalGlobal translate(AssrtGType g) {
+    public AssrtFormalGType translate(AssrtGType g) {
         if (g instanceof AssrtGEnd) {
             return this.gf.end();
         } else if (g instanceof AssrtGChoice) {
@@ -28,7 +27,7 @@ public class AssrtFormalGTranslator {
     }
 
     protected AssrtFormalGChoice translate(AssrtGChoice g) {
-        LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGlobal>> collect =
+        LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGType>> collect =
                 g.cases.entrySet().stream().collect(Collectors.toMap(
                     x -> x.getKey().op,
                     x -> new Pair<>(x.getKey(), translate(x.getValue())),

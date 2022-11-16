@@ -2,16 +2,9 @@ package org.scribble.ext.assrt.core.type.formal.global;
 
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.local.*;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtLAction;
-import org.scribble.ext.assrt.util.Triple;
-import org.scribble.util.Pair;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
 
 
-public class AssrtFormalGEnd implements AssrtFormalGlobal
+public class AssrtFormalGEnd implements AssrtFormalGType
 {
 	public static final AssrtFormalGEnd END = new AssrtFormalGEnd();
 
@@ -69,7 +62,7 @@ public class AssrtFormalGEnd implements AssrtFormalGlobal
 
 	@Override
 	public int hashCode() {
-		int hash = AssrtFormalGlobal.END_HASH;
+		int hash = AssrtFormalGType.END_HASH;
 		hash =  31 * hash;
 		return hash;
 	}

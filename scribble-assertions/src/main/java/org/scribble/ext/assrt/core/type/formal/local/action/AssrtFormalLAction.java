@@ -1,6 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.local.action;
 
-public interface AssrtLAction
+public interface AssrtFormalLAction
 {
 
 	/*AssrtBFormula getAssertion();
