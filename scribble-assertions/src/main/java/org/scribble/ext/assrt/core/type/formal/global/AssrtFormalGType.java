@@ -10,6 +10,8 @@ public interface AssrtFormalGType extends AssrtFormalType
 {
     public final int CHOICE_HASH = 26947;
     public final int END_HASH = 26951;
+    public final int REC_HASH = 26953;
+    public final int RECVAR_HASH = 26959;
 
     AssrtFormalLType project(AssrtFormalLFactory lf, Role r);  // TODO: add \Phi for recursion
 

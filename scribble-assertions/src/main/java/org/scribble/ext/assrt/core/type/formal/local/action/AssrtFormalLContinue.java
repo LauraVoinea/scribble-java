@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AssrtFormalLUnfold implements AssrtFormalLAction
+public class AssrtFormalLContinue implements AssrtFormalLAction
 {
 	public final List<AssrtMsg> silents;  // TODO: factor out a "derived action" interface
 
@@ -21,8 +21,8 @@ public class AssrtFormalLUnfold implements AssrtFormalLAction
 	public final Multiplicity multip;
 	public final AssrtAFormula init; // init expr -- null if silent
 
-	public AssrtFormalLUnfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
-                              AssrtAFormula init, List<AssrtMsg> silents) {
+	public AssrtFormalLContinue(RecVar recvar, AssrtVar svar, Multiplicity multip,
+								AssrtAFormula init, List<AssrtMsg> silents) {
 		this.recvar = recvar;
 		this.svar = svar;
 		this.multip = multip;
@@ -30,14 +30,14 @@ public class AssrtFormalLUnfold implements AssrtFormalLAction
 		this.silents = silents.stream().collect(Collectors.toList());
 	}
 
-	public AssrtFormalLUnfold prepend(AssrtMsg m) {
+	public AssrtFormalLContinue prepend(AssrtMsg m) {
 		List<AssrtMsg> ms = new LinkedList<>(this.silents);
 		ms.add(0, m);
-		return AssrtFormalLFactory.factory.unfold(this.recvar, this.svar, this.multip, this.init, ms);
+		return AssrtFormalLFactory.factory.continu(this.recvar, this.svar, this.multip, this.init, ms);
 	}
 
-	public AssrtFormalLUnfold drop() {
-		return AssrtFormalLFactory.factory.unfold(this.recvar, this.svar, this.multip, this.init);
+	public AssrtFormalLContinue drop() {
+		return AssrtFormalLFactory.factory.continu(this.recvar, this.svar, this.multip, this.init);
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public class AssrtFormalLUnfold implements AssrtFormalLAction
 	@Override
 	public int hashCode()
 	{
-		int hash = AssrtFormalLType.UNFOLD_HASH;
+		int hash = AssrtFormalLType.CONTINUE_HASH;
 		hash = 31 * hash + this.silents.hashCode();
 		hash = 31 * hash + this.recvar.hashCode();
 		hash = 31 * hash + this.svar.hashCode();
@@ -66,11 +66,11 @@ public class AssrtFormalLUnfold implements AssrtFormalLAction
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtFormalLUnfold))
+		if (!(o instanceof AssrtFormalLContinue))
 		{
 			return false;
 		}
-		AssrtFormalLUnfold them = (AssrtFormalLUnfold) o;
+		AssrtFormalLContinue them = (AssrtFormalLContinue) o;
 		return //them.canEquals(this) &&
 			this.silents.equals(them.silents) && this.recvar.equals(them.recvar)
 					&& this.svar.equals(them.svar) && this.multip == them.multip

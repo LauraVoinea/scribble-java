@@ -14,7 +14,7 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AssrtFormalLContinue extends AssrtFormalTypeBase
+public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 		implements AssrtFormalLType
 {
 	public final RecVar recvar;
@@ -23,8 +23,8 @@ public class AssrtFormalLContinue extends AssrtFormalTypeBase
 	public final Map<AssrtVar, Pair<Multiplicity, AssrtAFormula>> statevars;  // var -> (multip, init exprs) -- exprs null for silent rec (multip == Multiplicity.ZERO)
 	public final AssrtBFormula assertion;  // consolidated refinement
 
-	protected AssrtFormalLContinue(RecVar recvar,
-		   LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars, AssrtBFormula ass)
+	protected AssrtFormalLRecVar(RecVar recvar,
+								 LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars, AssrtBFormula ass)
 	{
 		this.recvar = recvar;
 		this.statevars = Collections.unmodifiableMap(new LinkedHashMap<>(svars));
@@ -57,7 +57,7 @@ public class AssrtFormalLContinue extends AssrtFormalTypeBase
 		}
 		Pair<Multiplicity, AssrtAFormula> p = this.statevars.get(svar);
 		HashSet<AssrtFormalLAction> res = new HashSet<>();
-		res.add(lf.unfold(this.recvar, svar, p.left, p.right));
+		res.add(lf.continu(this.recvar, svar, p.left, p.right));
 		return res;
 	}
 
@@ -118,11 +118,11 @@ public class AssrtFormalLContinue extends AssrtFormalTypeBase
 		{
 			return true;
 		}
-		if (!(o instanceof AssrtFormalLContinue))
+		if (!(o instanceof AssrtFormalLRecVar))
 		{
 			return false;
 		}
-		AssrtFormalLContinue them = (AssrtFormalLContinue) o;
+		AssrtFormalLRecVar them = (AssrtFormalLRecVar) o;
 		return super.equals(o)  // Checks canEquals -- implicitly checks kind
 				&& this.recvar.equals(them.recvar)
 				&& this.statevars.equals(them.statevars)
@@ -131,13 +131,13 @@ public class AssrtFormalLContinue extends AssrtFormalTypeBase
 	
 	@Override
 	public boolean canEquals(Object o) {
-		return o instanceof AssrtFormalLContinue;
+		return o instanceof AssrtFormalLRecVar;
 	}
 	
 	@Override
 	public int hashCode()
 	{
-		int hash = AssrtFormalLType.CONTINUE_HASH;
+		int hash = AssrtFormalLType.RECVAR_HASH;
 		hash = 31 * hash + this.recvar.hashCode();
 		hash = 31 * hash + this.statevars.hashCode();
 		hash = 31 * hash + this.assertion.hashCode();

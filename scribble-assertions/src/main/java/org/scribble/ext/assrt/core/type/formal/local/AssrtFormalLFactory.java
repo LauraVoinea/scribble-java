@@ -10,6 +10,7 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -35,6 +36,18 @@ public class AssrtFormalLFactory
 
 	public AssrtFormalLSelect select(Role receiver, LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {
 		return new AssrtFormalLSelect(receiver, cases);
+	}
+
+	public AssrtFormalLRec rec(RecVar recvar, AssrtFormalLType body,
+							   LinkedHashMap<AssrtVar, Triple<Multiplicity, DataName, AssrtAFormula>> svars,
+							   AssrtBFormula ass) {
+		return new AssrtFormalLRec(recvar, body, svars, ass);
+	}
+
+	public AssrtFormalLRecVar recvar(RecVar recvar,
+			 LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars,
+			 AssrtBFormula ass) {
+		return new AssrtFormalLRecVar(recvar, svars, ass);
 	}
 
 	public AssrtFormalLSilent silent(LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {
@@ -74,14 +87,14 @@ public class AssrtFormalLFactory
 		return new AssrtFormalLEnter(recvar, svar, multip, data, init, assertion, silents);
 	}
 
-	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
-									 AssrtAFormula init) {
-		return unfold(recvar, svar, multip, init, Collections.emptyList());
+	public AssrtFormalLContinue continu(RecVar recvar, AssrtVar svar, Multiplicity multip,
+										AssrtAFormula init) {
+		return continu(recvar, svar, multip, init, Collections.emptyList());
 	}
 
-	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
-									 AssrtAFormula init, List<AssrtMsg> silents) {
-		return new AssrtFormalLUnfold(recvar, svar, multip, init, silents);
+	public AssrtFormalLContinue continu(RecVar recvar, AssrtVar svar, Multiplicity multip,
+										AssrtAFormula init, List<AssrtMsg> silents) {
+		return new AssrtFormalLContinue(recvar, svar, multip, init, silents);
 	}
 
 	public AssrtFormalLEpsilon epsilon(AssrtMsg m) {
