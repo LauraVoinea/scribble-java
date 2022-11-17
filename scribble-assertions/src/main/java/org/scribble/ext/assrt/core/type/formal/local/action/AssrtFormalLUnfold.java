@@ -1,0 +1,81 @@
+package org.scribble.ext.assrt.core.type.formal.local.action;
+
+import org.scribble.core.type.name.RecVar;
+import org.scribble.ext.assrt.core.type.formal.Multiplicity;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
+import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
+import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class AssrtFormalLUnfold implements AssrtFormalLAction
+{
+	public final List<AssrtMsg> silents;  // TODO: factor out a "derived action" interface
+
+	public final RecVar recvar;
+	public final AssrtVar svar;
+	public final Multiplicity multip;
+	public final AssrtAFormula init; // init expr -- null if silent
+
+	public AssrtFormalLUnfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
+                              AssrtAFormula init, List<AssrtMsg> silents) {
+		this.recvar = recvar;
+		this.svar = svar;
+		this.multip = multip;
+		this.init = init;
+		this.silents = silents.stream().collect(Collectors.toList());
+	}
+
+	public AssrtFormalLUnfold prepend(AssrtMsg m) {
+		List<AssrtMsg> ms = new LinkedList<>(this.silents);
+		ms.add(0, m);
+		return AssrtFormalLFactory.factory.unfold(this.recvar, this.svar, this.multip, this.init, ms);
+	}
+
+	public AssrtFormalLUnfold drop() {
+		return AssrtFormalLFactory.factory.unfold(this.recvar, this.svar, this.multip, this.init);
+	}
+
+	@Override
+	public String toString() {
+		return (this.silents.isEmpty() ? "" : this.silents) +
+				" " + this.recvar + "<" + this.svar +
+				"^" + this.multip + (this.init == null ? "" : " := " + this.init) + ">";
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = AssrtFormalLType.UNFOLD_HASH;
+		hash = 31 * hash + this.silents.hashCode();
+		hash = 31 * hash + this.recvar.hashCode();
+		hash = 31 * hash + this.svar.hashCode();
+		hash = 31 * hash + this.multip.hashCode();
+		hash = 31 * hash + this.init.hashCode();
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+		{
+			return true;
+		}
+		if (!(o instanceof AssrtFormalLUnfold))
+		{
+			return false;
+		}
+		AssrtFormalLUnfold them = (AssrtFormalLUnfold) o;
+		return //them.canEquals(this) &&
+			this.silents.equals(them.silents) && this.recvar.equals(them.recvar)
+					&& this.svar.equals(them.svar) && this.multip == them.multip
+					&& this.init.equals(them.init);
+	}
+
+	//public abstract boolean canEquals(Object o);
+}
