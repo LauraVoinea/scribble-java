@@ -28,7 +28,7 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r) {
+	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
 		throw new RuntimeException("TODO");
 	}
 
@@ -69,7 +69,7 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 	@Override
 	public int hashCode()
 	{
-		int hash = AssrtFormalLType.RECVAR_HASH;
+		int hash = AssrtFormalGType.RECVAR_HASH;
 		hash = 31 * hash + this.recvar.hashCode();
 		hash = 31 * hash + this.statevars.hashCode();
 		hash = 31 * hash + this.assertion.hashCode();

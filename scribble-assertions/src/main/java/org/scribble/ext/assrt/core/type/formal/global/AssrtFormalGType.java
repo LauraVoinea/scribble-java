@@ -13,7 +13,7 @@ public interface AssrtFormalGType extends AssrtFormalType
     public final int REC_HASH = 26953;
     public final int RECVAR_HASH = 26959;
 
-    AssrtFormalLType project(AssrtFormalLFactory lf, Role r);  // TODO: add \Phi for recursion
+    AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi);
 
     /*
     Set<AssrtLAction> getSteppable(AssrtLambda lambda);

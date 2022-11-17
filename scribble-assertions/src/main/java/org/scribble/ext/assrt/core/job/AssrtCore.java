@@ -41,6 +41,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGType;
+import org.scribble.ext.assrt.core.type.formal.global.AssrtPhi;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
@@ -133,7 +134,7 @@ public class AssrtCore extends Core
 				System.out.println("aaa: " + g.fullname + " ,, " + g1);
 				Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());
 				for (Role r : rs) {
-					AssrtFormalLType p = g1.project(lf, r);
+					AssrtFormalLType p = g1.project(lf, r, new AssrtPhi());
 					System.out.println("\nbbb: " + r + " ,, " + p);
 
 					AssrtLambda lam = new AssrtLambda();

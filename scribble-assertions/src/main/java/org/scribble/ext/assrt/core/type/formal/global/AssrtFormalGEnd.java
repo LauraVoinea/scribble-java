@@ -14,7 +14,7 @@ public class AssrtFormalGEnd implements AssrtFormalGType
 	}
 
 	@Override
-	public AssrtFormalLEnd project(AssrtFormalLFactory lf, Role r) {
+	public AssrtFormalLEnd project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
 		return lf.end();
 	}
 

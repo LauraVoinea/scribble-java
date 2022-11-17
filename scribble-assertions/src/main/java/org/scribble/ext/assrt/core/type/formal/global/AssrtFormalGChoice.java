@@ -29,13 +29,13 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r) {
+	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
 		LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases =
 				this.cases.entrySet().stream().collect(Collectors.toMap(
 					x -> x.getKey(),
 					x -> {
 						Pair<AssrtMsg, AssrtFormalGType> v = x.getValue();
-						return new Pair<>(v.left, v.right.project(lf, r));
+						return new Pair<>(v.left, v.right.project(lf, r, phi));
 					},
 					(x, y) -> null,
 					LinkedHashMap::new

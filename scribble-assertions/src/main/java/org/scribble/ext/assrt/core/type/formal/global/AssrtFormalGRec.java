@@ -7,17 +7,15 @@ import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtRho;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEnter;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.Triple;
-import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // !!! Don't really need to separate silent and non-silent rec and recvar constructors -- and multiple state vars can be done in one step (cf. comm pay vars), the step is the rec(var), not the svars
@@ -40,8 +38,27 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r) {
-		throw new RuntimeException("TODO");
+	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
+		if (this.statevars.size() != 1) {
+			throw new RuntimeException("TODO: " + this);
+		}
+		LinkedHashMap<AssrtVar, Triple<Multiplicity, DataName, AssrtAFormula>> svars = new LinkedHashMap<>();
+		for (Map.Entry<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> e : this.statevars.entrySet()) {
+			AssrtVar k = e.getKey();
+			Triple<Set<Role>, DataName, AssrtAFormula> p = e.getValue();
+
+			//Set<Role> rs = this.body.getRoles();
+			Set<Role> rs = null;
+
+			Multiplicity multip = p.left.contains(r) && rs.contains(r) ? Multiplicity.OMEGA : Multiplicity.ZERO;
+			svars.put(k, new Triple<>(multip, p.middle, p.right));
+		}
+		AssrtVar svar = this.statevars.keySet().iterator().next();
+		Triple<Set<Role>, DataName, AssrtAFormula> p = this.statevars.get(svar);
+		phi.comma(this.recvar, svar, p.left, p.middle, this.assertion);  // init expr not used
+
+		AssrtFormalLType proj = this.body.project(lf, r, phi);
+		return lf.rec(this.recvar, proj, svars, this.assertion);
 	}
 
 	@Override
