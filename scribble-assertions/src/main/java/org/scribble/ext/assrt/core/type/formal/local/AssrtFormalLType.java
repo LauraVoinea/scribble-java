@@ -17,7 +17,7 @@ public interface AssrtFormalLType extends AssrtFormalType
     public final int SILENT_HASH = 14797;
     public final int END_HASH = 14813;
     public final int REC_HASH = 14821;
-    public final int RECVAR_HASH = 14827;
+    public final int CONTINUE_HASH = 14827;
 
     @Deprecated
     public final int TRANSFER_HASH = 10987;
@@ -26,8 +26,8 @@ public interface AssrtFormalLType extends AssrtFormalType
     public final int SEND_HASH = 11003;
     public final int RECEIVE_HASH = 11027;
     public final int COMM_HASH = 11047;
-    public final int UNFOLD_HASH = 11057;
-    public final int CONTINUE_HASH = 11059;
+    public final int ENTER_HASH = 11057;
+    public final int UNFOLD_HASH = 11059;
 
     // Formal defs
     Set<AssrtFormalLAction> getFormalSteppable(AssrtLambda lambda);

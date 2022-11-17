@@ -54,6 +54,7 @@ public class AssrtLambda {
         }
     }
 
+    // Disjoint add
     public Optional<AssrtLambda> add(AssrtVar v, Multiplicity theta, DataName t) {
         if (theta == Multiplicity.ZERO || theta == Multiplicity.HAT) {
             if (!this.map.containsKey(v)) {

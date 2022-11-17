@@ -1,5 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -7,7 +8,6 @@ import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.*;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.util.Pair;
@@ -63,15 +63,25 @@ public class AssrtFormalLFactory
 		return new AssrtFormalLReceive(sender, m, consumed);
 	}
 
-	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
-				 AssrtAnnotDataName data, AssrtAFormula init, AssrtBFormula assertion) {
-		return unfold(recvar, svar, multip, data, init, assertion, Collections.emptyList());
+	public AssrtFormalLEnter enter(RecVar recvar, AssrtVar svar, Multiplicity multip,
+								   DataName data, AssrtAFormula init, AssrtBFormula assertion) {
+		return enter(recvar, svar, multip, data, init, assertion, Collections.emptyList());
+	}
+
+	public AssrtFormalLEnter enter(RecVar recvar, AssrtVar svar, Multiplicity multip,
+								   DataName data, AssrtAFormula init,
+								   AssrtBFormula assertion, List<AssrtMsg> silents) {
+		return new AssrtFormalLEnter(recvar, svar, multip, data, init, assertion, silents);
 	}
 
 	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
-									 AssrtAnnotDataName data, AssrtAFormula init,
-									 AssrtBFormula assertion, List<AssrtMsg> consumed) {
-		return new AssrtFormalLUnfold(recvar, svar, multip, data, init, assertion, consumed);
+									 AssrtAFormula init) {
+		return unfold(recvar, svar, multip, init, Collections.emptyList());
+	}
+
+	public AssrtFormalLUnfold unfold(RecVar recvar, AssrtVar svar, Multiplicity multip,
+									 AssrtAFormula init, List<AssrtMsg> silents) {
+		return new AssrtFormalLUnfold(recvar, svar, multip, init, silents);
 	}
 
 	public AssrtFormalLEpsilon epsilon(AssrtMsg m) {
