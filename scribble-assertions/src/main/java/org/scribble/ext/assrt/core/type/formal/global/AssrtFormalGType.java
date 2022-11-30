@@ -5,6 +5,8 @@ import org.scribble.ext.assrt.core.type.formal.AssrtFormalType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 
+import java.util.Set;
+
 
 public interface AssrtFormalGType extends AssrtFormalType
 {
@@ -14,6 +16,8 @@ public interface AssrtFormalGType extends AssrtFormalType
     public final int RECVAR_HASH = 26959;
 
     AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi);
+
+    Set<Role> getRoles();
 
     /*
     Set<AssrtLAction> getSteppable(AssrtLambda lambda);

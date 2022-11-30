@@ -45,9 +45,8 @@ public class AssrtFormalLFactory
 	}
 
 	public AssrtFormalLRecVar recvar(RecVar recvar,
-			 LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars,
-			 AssrtBFormula ass) {
-		return new AssrtFormalLRecVar(recvar, svars, ass);
+			 LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars) {
+		return new AssrtFormalLRecVar(recvar, svars);
 	}
 
 	public AssrtFormalLSilent silent(LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases) {

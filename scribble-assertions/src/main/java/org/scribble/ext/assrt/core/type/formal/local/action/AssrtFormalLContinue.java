@@ -10,6 +10,7 @@ import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class AssrtFormalLContinue implements AssrtFormalLAction
@@ -55,7 +56,7 @@ public class AssrtFormalLContinue implements AssrtFormalLAction
 		hash = 31 * hash + this.recvar.hashCode();
 		hash = 31 * hash + this.svar.hashCode();
 		hash = 31 * hash + this.multip.hashCode();
-		hash = 31 * hash + this.init.hashCode();
+		hash = 31 * hash + Objects.hashCode(this.init);
 		return hash;
 	}
 
@@ -74,7 +75,7 @@ public class AssrtFormalLContinue implements AssrtFormalLAction
 		return //them.canEquals(this) &&
 			this.silents.equals(them.silents) && this.recvar.equals(them.recvar)
 					&& this.svar.equals(them.svar) && this.multip == them.multip
-					&& this.init.equals(them.init);
+					&& Objects.equals(this.init, them.init);
 	}
 
 	//public abstract boolean canEquals(Object o);

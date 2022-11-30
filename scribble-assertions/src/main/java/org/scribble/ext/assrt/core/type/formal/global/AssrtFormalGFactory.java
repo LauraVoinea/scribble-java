@@ -34,10 +34,8 @@ public class AssrtFormalGFactory
 		return new AssrtFormalGRec(recvar, body, svars, ass);
 	}
 
-	public AssrtFormalGRecVar recvar(RecVar recvar,
-									 LinkedHashMap<AssrtVar, AssrtAFormula> svars,
-									 AssrtBFormula ass) {
-		return new AssrtFormalGRecVar(recvar, svars, ass);
+	public AssrtFormalGRecVar recvar(RecVar recvar, LinkedHashMap<AssrtVar, AssrtAFormula> svars) {
+		return new AssrtFormalGRecVar(recvar, svars);
 	}
 
 	public AssrtFormalGEnd end() {

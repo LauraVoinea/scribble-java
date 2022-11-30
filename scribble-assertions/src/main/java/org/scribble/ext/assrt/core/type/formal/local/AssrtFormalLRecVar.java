@@ -4,6 +4,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLContinue;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEnter;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
@@ -21,14 +22,12 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 
 	// Multip because combining silent and non-silent cases
 	public final Map<AssrtVar, Pair<Multiplicity, AssrtAFormula>> statevars;  // var -> (multip, init exprs) -- exprs null for silent rec (multip == Multiplicity.ZERO)
-	public final AssrtBFormula assertion;  // consolidated refinement
 
 	protected AssrtFormalLRecVar(RecVar recvar,
-								 LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars, AssrtBFormula ass)
+								 LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars)
 	{
 		this.recvar = recvar;
 		this.statevars = Collections.unmodifiableMap(new LinkedHashMap<>(svars));
-		this.assertion = ass;
 	}
 
 	@Override
@@ -64,20 +63,20 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(
 			AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho) {
-		if (!(a instanceof AssrtFormalLEnter)) {
-			throw new RuntimeException("Shouldn't get here: " + a);
+		if (!(a instanceof AssrtFormalLContinue)) {
+			throw new RuntimeException("Shouldn't get here: " + a.getClass() + "\n\t" + a);
 		}
 		if (!rho.map.containsKey(this.recvar)) {  // ??? should be same for lambda (also in branch/select?)
 			return Optional.empty();
 		}
-		AssrtFormalLEnter cast = (AssrtFormalLEnter) a;
+		AssrtFormalLContinue cast = (AssrtFormalLContinue) a;
 		if (this.statevars.size() != 1) {
 			throw new RuntimeException("TODO " + this);
 		}
 		AssrtVar svar = this.statevars.keySet().iterator().next();
-		if (lambda.map.containsKey(svar)) {
+		/*if (!lambda.map.containsKey(svar)) {  // Redundant?
 			return Optional.empty();
-		}
+		}*/
 		Pair<Multiplicity, AssrtAFormula> p = this.statevars.get(svar);
 		if (!this.recvar.equals(cast.recvar) || !svar.equals(cast.svar)
 				|| p.left != cast.multip || !Objects.equals(p.right, cast.init)) {
@@ -125,8 +124,7 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 		AssrtFormalLRecVar them = (AssrtFormalLRecVar) o;
 		return super.equals(o)  // Checks canEquals -- implicitly checks kind
 				&& this.recvar.equals(them.recvar)
-				&& this.statevars.equals(them.statevars)
-				&& this.assertion.equals(them.assertion);
+				&& this.statevars.equals(them.statevars);
 	}
 	
 	@Override
@@ -140,7 +138,6 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 		int hash = AssrtFormalLType.RECVAR_HASH;
 		hash = 31 * hash + this.recvar.hashCode();
 		hash = 31 * hash + this.statevars.hashCode();
-		hash = 31 * hash + this.assertion.hashCode();
 		return hash;
 	}
 }

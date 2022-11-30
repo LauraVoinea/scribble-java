@@ -13,6 +13,8 @@
  */
 package org.scribble.util;
 
+import java.util.Objects;
+
 public class Pair<T1, T2>
 {
 	public final T1 left;
@@ -28,8 +30,10 @@ public class Pair<T1, T2>
 	public int hashCode()
 	{
 		int hash = 11;
-		hash = 31 * hash + this.left.hashCode();
-		hash = 31 * hash + this.right.hashCode();
+		//hash = 31 * hash + this.left.hashCode();
+		//hash = 31 * hash + this.right.hashCode();
+		hash = 31 * hash + Objects.hashCode(this.left);
+		hash = 31 * hash + Objects.hashCode(this.right);
 		return hash;
 	}
 	
@@ -45,6 +49,8 @@ public class Pair<T1, T2>
 			return false;
 		}
 		Pair<?, ?> them = (Pair<?, ?>) o;
-		return this.left.equals(them.left) && this.right.equals(them.right);
+		//return this.left.equals(them.left) && this.right.equals(them.right);
+		return Objects.equals(this.left, them.left)
+				&& Objects.equals(this.right, them.right);
 	}
 }

@@ -8,9 +8,7 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.util.Pair;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssrtFormalGChoice extends AssrtFormalTypeBase
@@ -47,6 +45,16 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 		} else {
 			return lf.silent(cases);
 		}
+	}
+
+	@Override
+	public Set<Role> getRoles() {
+		Set<Role> rs = new HashSet<>();
+		rs.add(this.sender);
+		rs.add(this.receiver);
+		rs.addAll(this.cases.values().stream()
+				.flatMap(x -> x.right.getRoles().stream()).collect(Collectors.toSet()));
+		return rs;
 	}
 
 	/*@Override

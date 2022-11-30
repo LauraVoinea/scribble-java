@@ -118,7 +118,7 @@ public class AssrtCore extends Core
 		runGlobalModelCheckingPasses();
 
 		//tempRunSyncSat();  // XXX HERE global model building
-		//foo();
+		foo();
 	}
 
 	private void foo() {
@@ -143,7 +143,7 @@ public class AssrtCore extends Core
 
 					Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = new LinkedHashMap<>();
 
-					dstepper(lam, rho, p, graph);  //HERE make finite graph and do RCA translation
+					estepper(lam, rho, p, graph);  //HERE make finite graph and do RCA translation
 
 					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> f : graph.entrySet()) {
 						Pair<AssrtLambda, AssrtFormalLType> k = f.getKey();
@@ -180,9 +180,9 @@ public class AssrtCore extends Core
 		}
 	}
 
-	private void dstepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLType t,
-			  //Map<Pair<Pair<AssrtLambda, AssrtFormalLocal>, AssrtLAction>, Pair<AssrtLambda, AssrtFormalLocal>> graph) {
-				Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph) {
+	private void estepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLType t,
+						  //Map<Pair<Pair<AssrtLambda, AssrtFormalLocal>, AssrtLAction>, Pair<AssrtLambda, AssrtFormalLocal>> graph) {
+						  Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph) {
 		System.out.println("ccc1: " + lam + " ,, " + t);
 		Set<AssrtFormalLAction> dsteppable = t.getExplicitSteppable(lam, rho);
 
@@ -203,7 +203,9 @@ public class AssrtCore extends Core
 
 			as.put(a, new Pair<>(res.left, res.middle));
 
-			dstepper(res.left, res.right, res.middle, graph);
+			...HERE HERE FIXME !!! XXX Lambda should record mu t.L, not just L, to make iLTS stop (because Lambda comma not defined)
+					... XXX or no? just "manually" stop after every recvar ?
+			estepper(res.left, res.right, res.middle, graph);
 		}
 	}
 

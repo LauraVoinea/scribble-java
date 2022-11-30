@@ -7,11 +7,13 @@ import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AssrtFormalGRecVar extends AssrtFormalTypeBase
@@ -19,20 +21,18 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 {
 	public final RecVar recvar;
 
-	public final Map<AssrtVar, AssrtAFormula> statevars;
-	public final AssrtBFormula assertion;  // consolidated refinement
+	public final Map<AssrtVar, AssrtAFormula> statevars;  // null value if no init
 
-	protected AssrtFormalGRecVar(RecVar recvar, LinkedHashMap<AssrtVar, AssrtAFormula> svars, AssrtBFormula ass)
+	protected AssrtFormalGRecVar(RecVar recvar, LinkedHashMap<AssrtVar, AssrtAFormula> svars)
 	{
 		this.recvar = recvar;
 		this.statevars = Collections.unmodifiableMap(new LinkedHashMap<>(svars));
-		this.assertion = ass;
 	}
 
 	@Override
 	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
 		if (!phi.map.containsKey(this.recvar)) {  // TODO make Optional
-			throw new RuntimeException("Shouldn't get here: " + this);
+			throw new RuntimeException("Shouldn't get here: " + this + " ,, " + phi.map);
 		}
 		LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars = new LinkedHashMap<>();
 		for (Map.Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet()) {
@@ -42,7 +42,12 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 				svars.put(e.getKey(), new Pair<>(Multiplicity.ZERO, null));
 			}
 		}
-		return lf.recvar(this.recvar, svars, this.assertion);
+		return lf.recvar(this.recvar, svars);
+	}
+
+	@Override
+	public Set<Role> getRoles() {
+		return Collections.emptySet();
 	}
 
 	@Override
@@ -70,8 +75,7 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 		AssrtFormalGRecVar them = (AssrtFormalGRecVar) o;
 		return super.equals(o)  // Checks canEquals -- implicitly checks kind
 				&& this.recvar.equals(them.recvar)
-				&& this.statevars.equals(them.statevars)
-				&& this.assertion.equals(them.assertion);
+				&& this.statevars.equals(them.statevars);
 	}
 	
 	@Override
@@ -85,7 +89,6 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 		int hash = AssrtFormalGType.RECVAR_HASH;
 		hash = 31 * hash + this.recvar.hashCode();
 		hash = 31 * hash + this.statevars.hashCode();
-		hash = 31 * hash + this.assertion.hashCode();
 		return hash;
 	}
 }

@@ -3,6 +3,9 @@ package org.scribble.ext.assrt.core.type.formal.global;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.local.*;
 
+import java.util.Collections;
+import java.util.Set;
+
 
 public class AssrtFormalGEnd implements AssrtFormalGType
 {
@@ -16,6 +19,11 @@ public class AssrtFormalGEnd implements AssrtFormalGType
 	@Override
 	public AssrtFormalLEnd project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
 		return lf.end();
+	}
+
+	@Override
+	public Set<Role> getRoles() {
+		return Collections.emptySet();
 	}
 
 	/*
