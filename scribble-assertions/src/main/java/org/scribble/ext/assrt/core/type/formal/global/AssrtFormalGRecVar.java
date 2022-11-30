@@ -3,11 +3,13 @@ package org.scribble.ext.assrt.core.type.formal.global;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
+import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +31,18 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 
 	@Override
 	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
-		throw new RuntimeException("TODO");
+		if (!phi.map.containsKey(this.recvar)) {  // TODO make Optional
+			throw new RuntimeException("Shouldn't get here: " + this);
+		}
+		LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars = new LinkedHashMap<>();
+		for (Map.Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet()) {
+			if (phi.map.get(this.recvar).snd.contains(r)) {
+				svars.put(e.getKey(), new Pair<>(Multiplicity.OMEGA, e.getValue()));
+			} else {
+				svars.put(e.getKey(), new Pair<>(Multiplicity.ZERO, null));
+			}
+		}
+		return lf.recvar(this.recvar, svars, this.assertion);
 	}
 
 	@Override
