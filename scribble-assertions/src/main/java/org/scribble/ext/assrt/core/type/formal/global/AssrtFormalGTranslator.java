@@ -11,6 +11,7 @@ import org.scribble.ext.assrt.core.type.session.global.*;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +56,9 @@ public class AssrtFormalGTranslator {
 
         for (Map.Entry<AssrtVar, AssrtAFormula> e : g.statevars.entrySet()) {
             AssrtVar k = e.getKey();
-            //svars.put(k, new Triple<>(g.located.get(k), new DataName("int"), e.getValue()));
+            Set<Role> r = new HashSet();  // !!! current syntax requires distinct statevar names per located role
+            r.add(g.located.get(k));
+            svars.put(k, new Triple<>(r, new DataName("int"), e.getValue()));
         }
         return this.gf.rec(g.recvar, translate(g.body), svars, g.assertion);
     }

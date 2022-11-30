@@ -142,6 +142,9 @@ public class AssrtGTypeTranslator extends GTypeTranslator
 								"[TODO] Statevar sort not supported: " + pt);
 					}
 					AssrtVar v = x.getDeclName();
+					if (svars.containsKey(v)) {
+						throw new RuntimeException("Duplicate statevar names not supported: " + v);
+					}
 					svars.put(v, x.getStateVarExprChild().expr);
 					RoleNode r = x.getRoleNodeChild();  // null if no explicit role
 					located.put(v, (r == null ? null : r.toName()));

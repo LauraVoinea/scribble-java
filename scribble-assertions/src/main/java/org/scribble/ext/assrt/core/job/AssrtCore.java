@@ -118,7 +118,7 @@ public class AssrtCore extends Core
 		runGlobalModelCheckingPasses();
 
 		//tempRunSyncSat();  // XXX HERE global model building
-		foo();
+		//foo();
 	}
 
 	private void foo() {

@@ -18,9 +18,9 @@ type <fstar> "string" from "..." as String;
 
 
 // !!! Scribble has "global" statevars @'[y:int=0]' and "located" A[yA:int=0] B[yB:int=0]
-global protocol MyProto(role A, role B) @'A[y:int=0] B[y:int=0]' {
+global protocol MyProto(role A, role B) @'A[yA:int=0] B[yB:int=0]' {
     1(x: int) from A to B;  @'x=0'
-    do MyProto(A, B);       @'[y]'
+    do MyProto(A, B);       @'[yB, yA]'  // !!! TODO CHECKME bad knowledge
 }
 
 /*
