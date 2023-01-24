@@ -83,7 +83,7 @@ public class UnboundedRecursionChecker extends STypeVisitor<Local, LSeq> {
         UnboundedRecursionEnv env = getEnv();
         RecVar rv = n.getRecVar();
         if (env.out.contains(rv) && !env.in.contains(rv)) {
-            throw new ScribException("Potentially unbounded output recursion: " + n);
+            throw new UnboundedRecursionException("Potentially unbounded output recursion: " + n);
         }
 
         return n;
@@ -106,12 +106,8 @@ public class UnboundedRecursionChecker extends STypeVisitor<Local, LSeq> {
         nested.setEnv(entry);
         try {
             n.getBody().visitWith(nested);
-        } catch (ScribException e) {
-            if (e.getMessage().startsWith("Potentially unbounded output")) {
-                throw new ScribException("Potentially unbounded output recursion:\n" + n);
-            } else {
-                throw e;
-            }
+        } catch (UnboundedRecursionException e) {
+            throw new UnboundedRecursionException("Potentially unbounded output recursion:\n" + n);
         }
         UnboundedRecursionEnv visited = nested.getEnv();
         Set<RecVar> in = new HashSet<>(visited.in);

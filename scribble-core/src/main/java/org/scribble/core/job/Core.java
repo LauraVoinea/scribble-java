@@ -44,10 +44,7 @@ import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.gather.ProtoDepsCollector;
 import org.scribble.core.visit.gather.RoleGatherer;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
-import org.scribble.core.visit.local.LDoPruner;
-import org.scribble.core.visit.local.LRoleDeclAndDoArgPruner;
-import org.scribble.core.visit.local.LTypeVisitorFactoryImpl;
-import org.scribble.core.visit.local.SubprotoExtChoiceSubjFixer;
+import org.scribble.core.visit.local.*;
 import org.scribble.util.ScribException;
 
 
@@ -276,7 +273,14 @@ public class Core {
             }
             for (Role self : inlined.roles) {
                 LProjection iproj = this.context.getProjectedInlined(fullname, self);
-                iproj.checkUnboundedRecursiveOutput(this);
+                boolean b = false;
+                try {
+                    iproj.checkUnboundedRecursiveOutput(this);
+                } catch (UnboundedRecursionException e) {
+                    b = true;
+                    verbosePrintln(e.getMessage());
+                }
+                this.context.setPotentiallyUnbounded(fullname, b);
             }
         }
     }

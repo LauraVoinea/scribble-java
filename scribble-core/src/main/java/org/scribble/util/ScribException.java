@@ -17,45 +17,39 @@ package org.scribble.util;
 
 import org.antlr.runtime.tree.CommonTree;
 
-public class ScribException extends AntlrSourceException
-{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class ScribException extends AntlrSourceException {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public ScribException(CommonTree blame, String arg0)
-	{
-		super(blame, arg0);
-	}
+    public ScribException(CommonTree blame, String arg0) {
+        super(blame, arg0);
+    }
 
-	public ScribException()
-	{
-		// TODO Auto-generated constructor stub
-	}
+    public ScribException() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
 
-	public ScribException(String arg0)
-	{
-		super(arg0);
-		// TODO Auto-generated constructor stub
-	}
+    public ScribException(String arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
 
-	public ScribException(Throwable arg0)
-	{
-		super(arg0);
-		// TODO Auto-generated constructor stub
-	}
+    public ScribException(Throwable arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
 
-	public ScribException(String arg0, Throwable arg1)
-	{
-		super(arg0, arg1);
-		// TODO Auto-generated constructor stub
-	}
+    public ScribException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+        // TODO Auto-generated constructor stub
+    }
 
-	public ScribException(String arg0, Throwable arg1, boolean arg2,
-			boolean arg3)
-	{
-		super(arg0, arg1, arg2, arg3);
-		// TODO Auto-generated constructor stub
-	}
+    public ScribException(String arg0, Throwable arg1, boolean arg2,
+                          boolean arg3) {
+        super(arg0, arg1, arg2, arg3);
+        // TODO Auto-generated constructor stub
+    }
 }
