@@ -22,6 +22,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.base.ChoiceBase;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GChoice extends ChoiceBase<Global, GSeq> implements GType {
 

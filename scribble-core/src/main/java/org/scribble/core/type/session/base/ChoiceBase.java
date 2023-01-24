@@ -24,6 +24,7 @@ import org.scribble.core.type.session.Seq;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class ChoiceBase<K extends ProtoKind, B extends Seq<K, B>>
         extends SVisitableBase<K, B> implements Choice<K, B> {
@@ -47,6 +48,13 @@ public abstract class ChoiceBase<K extends ProtoKind, B extends Seq<K, B>>
         return this.blocks;
     }
 
+    @Override
+    public String toString() {
+        return "choice at " + this.subj + " "
+                + this.blocks.stream().map(x -> "{\n" + x.toString() + "\n}")
+                .collect(Collectors.joining(" or "));
+    }
+   
     @Override
     public int hashCode() {
         int hash = 1487;

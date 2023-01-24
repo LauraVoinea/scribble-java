@@ -17,18 +17,19 @@ package org.scribble.core.visit.local;
 
 import org.scribble.core.job.Core;
 
-public interface LTypeVisitorFactory
-{
+public interface LTypeVisitorFactory {
 
-	InlinedExtChoiceSubjFixer InlinedExtChoiceSubjFixer();
+    InlinedExtChoiceSubjFixer InlinedExtChoiceSubjFixer();
 
-	ReachabilityChecker ReachabilityChecker();
+    ReachabilityChecker ReachabilityChecker();
 
-	EGraphBuilder EGraphBuilder(Core core);
+    UnboundedRecursionChecker UnboundedRecursionChecker();
 
-	LRoleDeclAndDoArgPruner LDoArgPruner(Core core);
+    EGraphBuilder EGraphBuilder(Core core);
 
-	LDoPruner LDoPruner(Core core);
-	
-	SubprotoExtChoiceSubjFixer SubprotoExtChoiceSubjFixer(Core core);
+    LRoleDeclAndDoArgPruner LDoArgPruner(Core core);
+
+    LDoPruner LDoPruner(Core core);
+
+    SubprotoExtChoiceSubjFixer SubprotoExtChoiceSubjFixer(Core core);
 }
