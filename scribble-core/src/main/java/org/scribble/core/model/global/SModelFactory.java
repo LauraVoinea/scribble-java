@@ -25,28 +25,37 @@ import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.model.global.actions.SReq;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.model.global.actions.SServerWrap;
+import org.scribble.core.model.global.buffers.SingleBuffers;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public interface SModelFactory
-{
-	SGraphBuilderUtil SGraphBuilderUtil();
+public interface SModelFactory {
+    SGraphBuilderUtil SGraphBuilderUtil();
 
-	// protected constructors (MState mutable)
-	SState SState(SConfig config);
-	SConfig SConfig(Map<Role, EFsm> state, SingleBuffers buffs);
-	SGraph SGraph(GProtoName proto, Map<Integer, SState> states, 
-			SState init);  // states: s.id -> s
-	SModel SModel(SGraph g);
-	
-	// public constructors (subpackage, immutable)
-	SSend SSend(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SRecv SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SReq SReq(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SAcc SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SDisconnect SDisconnect(Role subj, Role obj);
-	SClientWrap SClientWrap(Role subj, Role obj);
-	SServerWrap SServerWrap(Role subj, Role obj);
+    // protected constructors (MState mutable)
+    SState SState(SConfig config);
+
+    SConfig SConfig(Map<Role, EFsm> state, SingleBuffers buffs);
+
+    SGraph SGraph(GProtoName proto, Map<Integer, SState> states,
+                  SState init);  // states: s.id -> s
+
+    SModel SModel(SGraph g);
+
+    // public constructors (subpackage, immutable)
+    SSend SSend(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    SRecv SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    SReq SReq(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    SAcc SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    SDisconnect SDisconnect(Role subj, Role obj);
+
+    SClientWrap SClientWrap(Role subj, Role obj);
+
+    SServerWrap SServerWrap(Role subj, Role obj);
 }
