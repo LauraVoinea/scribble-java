@@ -18,7 +18,7 @@ package org.scribble.core.type.session.global;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.base.SeqBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
@@ -36,13 +36,13 @@ public class GSeq extends SeqBase<Global, GSeq> implements GType {
 
     @Override
     public GSeq reconstruct(CommonTree source,
-                            List<? extends SType<Global, GSeq>> elems) {
+                            List<? extends SVisitable<Global, GSeq>> elems) {
         return new GSeq(source,
                 castElems(elems.stream()).collect(Collectors.toList()));
     }
 
     protected static Stream<GType> castElems(
-            Stream<? extends SType<Global, GSeq>> elems) {
+            Stream<? extends SVisitable<Global, GSeq>> elems) {
         return elems.map(x -> (GType) x);
     }
 

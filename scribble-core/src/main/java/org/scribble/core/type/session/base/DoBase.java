@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class DoBase<K extends ProtoKind, B extends Seq<K, B>>
-        extends STypeBase<K, B> implements Do<K, B> {
+        extends SVisitableBase<K, B> implements Do<K, B> {
 
     protected final ProtoName<K> proto;  // Currently disamb'd to fullname by GTypeTranslator (see GDoDel::translate)
     protected final List<Role> roles;  // Ordered role args -- Pre: size>2, unmodifiable

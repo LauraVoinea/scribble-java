@@ -17,7 +17,7 @@ package org.scribble.core.type.session.local;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Local;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.base.SeqBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
@@ -37,13 +37,13 @@ public class LSeq extends SeqBase<Local, LSeq> implements LType {
 
     @Override
     public LSeq reconstruct(CommonTree source,
-                            List<? extends SType<Local, LSeq>> elems) {
+                            List<? extends SVisitable<Local, LSeq>> elems) {
         return new LSeq(source,
                 castElems(elems.stream()).collect(Collectors.toList()));
     }
 
     protected static Stream<LType> castElems(
-            Stream<? extends SType<Local, LSeq>> elems) {
+            Stream<? extends SVisitable<Local, LSeq>> elems) {
         return elems.map(x -> (LType) x);
     }
 

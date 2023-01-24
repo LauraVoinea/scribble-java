@@ -18,16 +18,16 @@ package org.scribble.core.type.session.base;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
 
 // SessTypeBase is to SessType as ScribNodeBase is to ScribNode
-public abstract class STypeBase<K extends ProtoKind, B extends Seq<K, B>>
-        implements SType<K, B> {
+public abstract class SVisitableBase<K extends ProtoKind, B extends Seq<K, B>>
+        implements SVisitable<K, B> {
 
     private final CommonTree source;  // Currently null for "generated" terms (cf. hasSource)
 
-    public STypeBase(CommonTree source) {
+    public SVisitableBase(CommonTree source) {
 		/*CommonTree clone = (source == null)
 				? null
 				: CommonTree.clone();  // clone not visibile*/
@@ -59,10 +59,10 @@ public abstract class STypeBase<K extends ProtoKind, B extends Seq<K, B>>
         if (this == o) {
             return true;
         }
-        if (!(o instanceof STypeBase)) {
+        if (!(o instanceof SVisitableBase)) {
             return false;
         }
-        STypeBase<?, ?> them = (STypeBase<?, ?>) o;
+        SVisitableBase<?, ?> them = (SVisitableBase<?, ?>) o;
         return them.canEquals(this);
     }
 }

@@ -27,77 +27,67 @@ import org.scribble.util.ScribException;
 
 // Besides directed-ness, also features a Message
 public abstract class DirectedInteraction<K extends ProtoKind, B extends Seq<K, B>>
-		extends BasicInteraction<K, B>
-{
-	// Following ast children order
-	public final Msg msg;
-	public final Role src;
-	public final Role dst;
+        extends BasicInteraction<K, B> {
+    // Following ast children order
+    public final Msg msg;
+    public final Role src;
+    public final Role dst;
 
-	public DirectedInteraction(CommonTree source,
-			Msg msg, Role src, Role dst)
-	{
-		super(source);
-		this.msg = msg;
-		this.src = src;
-		this.dst = dst;
-	}
-	
-	public abstract DirectedInteraction<K, B> reconstruct(
-			CommonTree source, Msg msg, Role src,
-			Role dst);
-	
-	@Override
-	public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException
-	{
-		return v.visitDirectedInteraction(this);
-	}
-	
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v)
-	{
-		return v.visitDirectedInteraction(this);
-	}
-	
-	@Override
-	public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f)
-	{
-		return f.apply(this);
-	}
-	
-	@Override
-	public CommonTree getSource()
-	{
-		return (CommonTree) super.getSource();
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 10631;
-		hash = 31 * hash + super.hashCode();
-		hash = 31 * hash + this.msg.hashCode();
-		hash = 31 * hash + this.src.hashCode();
-		hash = 31 * hash + this.dst.hashCode();
-		return hash;
-	}
+    public DirectedInteraction(CommonTree source,
+                               Msg msg, Role src, Role dst) {
+        super(source);
+        this.msg = msg;
+        this.src = src;
+        this.dst = dst;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof DirectedInteraction))
-		{
-			return false;
-		}
-		DirectedInteraction<?, ?> them = (DirectedInteraction<?, ?>) o;
-		return super.equals(this)  // Does canEquals
-				&& this.msg.equals(them.msg) && this.src.equals(them.src) 
-				&& this.dst.equals(them.dst);
-	}
+    public abstract DirectedInteraction<K, B> reconstruct(
+            CommonTree source, Msg msg, Role src,
+            Role dst);
+
+    @Override
+    public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+        return v.visitDirectedInteraction(this);
+    }
+
+    @Override
+    public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+        return v.visitDirectedInteraction(this);
+    }
+
+    @Override
+    public <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
+        return f.apply(this);
+    }
+
+    @Override
+    public CommonTree getSource() {
+        return (CommonTree) super.getSource();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 10631;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.msg.hashCode();
+        hash = 31 * hash + this.src.hashCode();
+        hash = 31 * hash + this.dst.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DirectedInteraction)) {
+            return false;
+        }
+        DirectedInteraction<?, ?> them = (DirectedInteraction<?, ?>) o;
+        return super.equals(this)  // Does canEquals
+                && this.msg.equals(them.msg) && this.src.equals(them.src)
+                && this.dst.equals(them.dst);
+    }
 	
 	
 	

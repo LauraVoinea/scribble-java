@@ -53,7 +53,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     }
 
     @Override
-    public SType<Local, LSeq> visitChoice(Choice<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitChoice(Choice<Local, LSeq> n) {
         EGraphBuilderUtil util = this.util;
         util.enterChoice();
         for (LSeq block : n.getBlocks()) {
@@ -113,7 +113,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     }
 
     @Override
-    public SType<Local, LSeq> visitContinue(Continue<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitContinue(Continue<Local, LSeq> n) {
         // Choice-guarded continue -- choice-unguarded continue detected and handled above in visitChoice
         EState curr = this.util.getEntry();
         for (EState pred : this.util.getPreds(curr)) {  // Does getSuccs (i.e., gets all), e.g., choice sequenced to continue
@@ -131,7 +131,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     }
 
     @Override
-    public SType<Local, LSeq> visitDirectedInteraction(
+    public SVisitable<Local, LSeq> visitDirectedInteraction(
             DirectedInteraction<Local, LSeq> n) {
         Role peer = ((n instanceof LSend) || (n instanceof LReq)) ? n.dst  // CHECKME: refactor LType getSelf/Peer? cf. ast
                 : ((n instanceof LRecv) || (n instanceof LAcc)) ? n.src
@@ -154,7 +154,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     }
 
     @Override
-    public SType<Local, LSeq> visitDisconnect(DisconnectAction<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitDisconnect(DisconnectAction<Local, LSeq> n) {
         Role peer = ((LDisconnect) n).getPeer();  // CHECKME -- ?
         EAction a = this.util.mf.local.EDisconnect(peer);  // TODO: add toAction method to BasicInteraction
         this.util.addEdge(this.util.getEntry(), a, this.util.getExit());
@@ -162,12 +162,12 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     }
 
     @Override
-    public final SType<Local, LSeq> visitDo(Do<Local, LSeq> n) {
+    public final SVisitable<Local, LSeq> visitDo(Do<Local, LSeq> n) {
         throw new RuntimeException(this.getClass() + " unsupported for Do: " + n);
     }
 
     @Override
-    public SType<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n) {
         RecVar recvar = n.getRecVar();
         this.util.addEntryLabel(recvar);
         this.util.enterRecursion(recvar, this.util.getEntry());

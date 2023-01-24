@@ -2,7 +2,7 @@ package org.scribble.core.type.session.base;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
 
 import java.util.Collections;
@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class SeqBase<K extends ProtoKind, B extends Seq<K, B>>
-        extends STypeBase<K, B> implements Seq<K, B> {
+        extends SVisitableBase<K, B> implements Seq<K, B> {
 
     // GType or LType -- could make SType subclasses take themself as another param, but not worth it
-    protected final List<? extends SType<K, B>> elems;  // Pre: unmodifiable
+    protected final List<? extends SVisitable<K, B>> elems;  // Pre: unmodifiable
 
     // `?` will be, e.g., G/LType
-    public SeqBase(CommonTree source, List<? extends SType<K, B>> elems) {
+    public SeqBase(CommonTree source, List<? extends SVisitable<K, B>> elems) {
         super(source);
         this.elems = Collections.unmodifiableList(elems);
     }

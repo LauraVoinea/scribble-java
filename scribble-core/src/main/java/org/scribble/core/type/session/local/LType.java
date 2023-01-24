@@ -19,6 +19,7 @@ package org.scribble.core.type.session.local;
 import org.scribble.core.lang.local.LNode;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 
 public interface LType extends SType<Local, LSeq>, LNode {
     //Role getSelf();  // CHECKME: useful?  maybe only specifically for interactions

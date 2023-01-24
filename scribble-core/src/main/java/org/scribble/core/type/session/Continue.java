@@ -45,7 +45,7 @@ public interface Continue<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    default <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
+    default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return f.apply(this);
     }
 }

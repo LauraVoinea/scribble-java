@@ -25,16 +25,16 @@ import java.util.stream.Stream;
 
 // Seq is a SType: an "ad hoc sequential composition", and convenient for, e.g., STypeVisitor's return type
 public interface Seq<K extends ProtoKind, B extends Seq<K, B>>
-        extends SType<K, B> {
+        extends SVisitable<K, B> {
 
     // Re. return type, could make SType subclasses take themself as another param, but not worth it
-    List<? extends SType<K, B>> getElements();
+    List<? extends SVisitable<K, B>> getElements();
 
     // Corresponds to all getters (incl. super)
-    B reconstruct(CommonTree source, List<? extends SType<K, B>> elems);
+    B reconstruct(CommonTree source, List<? extends SVisitable<K, B>> elems);
 
     @Override
-    default <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
+    default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return getElements().stream().flatMap(x -> x.gather(f));
     }
 

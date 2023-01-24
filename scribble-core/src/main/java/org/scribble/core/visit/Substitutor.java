@@ -38,7 +38,7 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitChoice(Choice<K, B> n) {
+    public SVisitable<K, B> visitChoice(Choice<K, B> n) {
         List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
                 .collect(Collectors.toList());
         return n.reconstruct(n.getSource(),
@@ -46,7 +46,7 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitDirectedInteraction(DirectedInteraction<K, B> n) {
+    public SVisitable<K, B> visitDirectedInteraction(DirectedInteraction<K, B> n) {
         Msg msg = n.msg;
         if (msg instanceof MemberName) {
             MemberName<?> name = (MemberName<?>) msg;
@@ -60,14 +60,14 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitDisconnect(DisconnectAction<K, B> n) {
+    public SVisitable<K, B> visitDisconnect(DisconnectAction<K, B> n) {
         return n.reconstruct(n.getSource(),
                 this.subs.subsRole(n.left, this.passive),
                 this.subs.subsRole(n.right, this.passive));
     }
 
     @Override
-    public SType<K, B> visitDo(Do<K, B> n) {
+    public SVisitable<K, B> visitDo(Do<K, B> n) {
         List<Role> roles = n.getRoles().stream()
                 .map(x -> this.subs.subsRole(x, this.passive))
                 .collect(Collectors.toList());

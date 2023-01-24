@@ -28,11 +28,11 @@ public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
 
     // Internal use
     // Pre: agg(Stream.of(unit())) = unit()
-    protected abstract T unit(SType<K, B> n) throws ScribException;
+    protected abstract T unit(SVisitable<K, B> n) throws ScribException;
 
     // Internal use -- by default, agg is applied to the "compound" cases (choice, recursion, seq)
     // Pre: agg(Stream.of(unit())) = unit()
-    protected abstract T agg(SType<K, B> n, Stream<T> ts) throws ScribException;  // Cf. generic varargs, heap pollution issue
+    protected abstract T agg(SVisitable<K, B> n, Stream<T> ts) throws ScribException;  // Cf. generic varargs, heap pollution issue
 
     public T visitChoice(Choice<K, B> n) throws ScribException {
         List<T> blocks = new LinkedList<>();
@@ -68,7 +68,7 @@ public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
     // Param "hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction
     public T visitSeq(B n) throws ScribException {
         List<T> elems = new LinkedList<>();
-        for (SType<K, B> e : n.getElements()) {
+        for (SVisitable<K, B> e : n.getElements()) {
             elems.add(e.visitWith(this));
         }
         return agg(n, elems.stream());

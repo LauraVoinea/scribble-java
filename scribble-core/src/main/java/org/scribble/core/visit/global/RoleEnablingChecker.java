@@ -34,7 +34,7 @@ public class RoleEnablingChecker extends STypeVisitor<Global, GSeq> {
         setEnabled(enabled);
     }
 
-    public SType<Global, GSeq> visitChoice(Choice<Global, GSeq> n)
+    public SVisitable<Global, GSeq> visitChoice(Choice<Global, GSeq> n)
             throws ScribException {
         Role subj0 = n.getSubject();
         Set<Role> enabled = getEnabled();
@@ -60,7 +60,7 @@ public class RoleEnablingChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public SType<Global, GSeq> visitDirectedInteraction(
+    public SVisitable<Global, GSeq> visitDirectedInteraction(
             DirectedInteraction<Global, GSeq> n) throws ScribException {
         Set<Role> enabled = getEnabled();
         if (!enabled.contains(n.src)) {
@@ -76,12 +76,12 @@ public class RoleEnablingChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public final SType<Global, GSeq> visitDo(Do<Global, GSeq> n) throws ScribException {
+    public final SVisitable<Global, GSeq> visitDo(Do<Global, GSeq> n) throws ScribException {
         throw new RuntimeException(this.getClass() + " unsupported for Do: " + n);
     }
 
     @Override
-    public SType<Global, GSeq> visitDisconnect(
+    public SVisitable<Global, GSeq> visitDisconnect(
             DisconnectAction<Global, GSeq> n) throws ScribException {
         Set<Role> enabled = getEnabled();
         if (!enabled.contains(n.left)) {

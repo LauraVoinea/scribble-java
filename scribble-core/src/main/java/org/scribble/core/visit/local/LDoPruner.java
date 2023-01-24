@@ -24,7 +24,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Choice;
 import org.scribble.core.type.session.Do;
 import org.scribble.core.type.session.Recursion;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.local.LSeq;
 import org.scribble.core.type.session.local.LSkip;
 import org.scribble.core.type.session.local.LType;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 // Cf. RecPruner
 public class LDoPruner //extends DoPruner<Local, LSeq>
         extends STypeVisitorNoThrow<Local, LSeq>
-        implements LSubprotoVisitorNoThrow<SType<Local, LSeq>> {
+        implements LSubprotoVisitorNoThrow<SVisitable<Local, LSeq>> {
 
     protected final Core core;
 
@@ -77,7 +77,7 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
     }
 
     @Override
-    public SType<Local, LSeq> visitChoice(Choice<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitChoice(Choice<Local, LSeq> n) {
         // Duplicated from InlinedProjector.visitChoice
         List<LSeq> blocks = n.getBlocks().stream()
                 .map(x -> new LDoPruner(this).visitSeq(x)).filter(x -> !x.isEmpty())
@@ -90,7 +90,7 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
     }
 
     @Override
-    public SType<Local, LSeq> visitDo(Do<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitDo(Do<Local, LSeq> n) {
         SubprotoSig sig = new SubprotoSig(n.getProto(), n.getRoles(), n.getArgs());
         if (this.stack.contains(sig)) {
             return this.unguarded.contains(sig) ? LSkip.SKIP : n;
@@ -106,7 +106,7 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
     }
 
     @Override
-    public SType<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n) {
         LSeq body = visitSeq(n.getBody());
         return body.isEmpty()
                 ? LSkip.SKIP

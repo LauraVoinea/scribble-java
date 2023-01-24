@@ -23,7 +23,7 @@ import org.scribble.core.type.name.LProtoName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Do;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.local.LSeq;
 
 import java.util.Collections;
@@ -66,7 +66,7 @@ public class SubprotoExtChoiceSubjFixer extends InlinedExtChoiceSubjFixer {
     }
 
     @Override
-    public SType<Local, LSeq> visitDo(Do<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitDo(Do<Local, LSeq> n) {
         return unit(n);  // From STypeAggNoThrow
     }
 }

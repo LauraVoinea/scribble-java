@@ -91,7 +91,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         if (elems.size() != 1) {
             return false;
         }
-        SType<Local, LSeq> e = elems.get(0);
+        SVisitable<Local, LSeq> e = elems.get(0);
         return (e instanceof LContinue)
                 && this.unguarded.contains(((LContinue) e).getRecVar());  // Bound recvars already checked
     }
@@ -154,7 +154,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         // "Generalised" single-continue checked now unnecessary, single-continues pruned in choice visiting above
         List<LType> elems = body.getElements();
         if (elems.size() == 1) {
-            SType<Local, LSeq> e = elems.get(0);
+            SVisitable<Local, LSeq> e = elems.get(0);
             if (e instanceof LContinue
                     && ((LContinue) e).getRecVar().equals(recvar0)) {
                 return LSkip.SKIP;
@@ -168,7 +168,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
     @Override
     public LSeq visitSeq(GSeq n) {
         List<LType> elems = new LinkedList<>();
-        for (SType<Global, GSeq> e : n.getElements()) {
+        for (SVisitable<Global, GSeq> e : n.getElements()) {
             LType e1 = e.visitWithNoThrow(this);
             if (!(e1 instanceof LSkip)) {
                 elems.add(e1);
@@ -206,12 +206,12 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
     }
 
     @Override
-    protected LType unit(SType<Global, GSeq> n) {
+    protected LType unit(SVisitable<Global, GSeq> n) {
         throw new RuntimeException("Unsupported for InlinedProjector: " + n);
     }
 
     @Override
-    protected LType agg(SType<Global, GSeq> n, Stream<LType> ts) {
+    protected LType agg(SVisitable<Global, GSeq> n, Stream<LType> ts) {
         throw new RuntimeException(
                 "Unsupported for InlinedProjector: " + n + " ,, " + ts);
     }

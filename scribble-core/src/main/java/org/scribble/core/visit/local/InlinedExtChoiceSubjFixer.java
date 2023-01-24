@@ -54,7 +54,7 @@ public class InlinedExtChoiceSubjFixer extends STypeVisitorNoThrow<Local, LSeq> 
     }
 
     @Override
-    public SType<Local, LSeq> visitDo(Do<Local, LSeq> n) {
+    public SVisitable<Local, LSeq> visitDo(Do<Local, LSeq> n) {
         throw new RuntimeException("Unsupported for Do: " + n);
     }
 
@@ -122,7 +122,7 @@ class InlinedEnablerInferer extends STypeAggNoThrow<Local, LSeq, Optional<Role>>
 
     @Override
     public Optional<Role> visitSeq(LSeq n) {
-        for (SType<Local, LSeq> e : n.getElements()) {
+        for (SVisitable<Local, LSeq> e : n.getElements()) {
             Optional<Role> res = e.visitWithNoThrow(this);
             if (res.isPresent()) {
                 return res;
@@ -132,13 +132,13 @@ class InlinedEnablerInferer extends STypeAggNoThrow<Local, LSeq, Optional<Role>>
     }
 
     @Override
-    protected Optional<Role> unit(SType<Local, LSeq> n) {
+    protected Optional<Role> unit(SVisitable<Local, LSeq> n) {
         return Optional.empty();
     }
 
     // Currently only used by Recursion, Choice/Seq overrides don't use
     @Override
-    protected Optional<Role> agg(SType<Local, LSeq> n, Stream<Optional<Role>> ts) {
+    protected Optional<Role> agg(SVisitable<Local, LSeq> n, Stream<Optional<Role>> ts) {
         List<Optional<Role>> enabs = ts.collect(Collectors.toList());
         if (enabs.stream().anyMatch(x -> !x.isPresent())) {
             return Optional.empty();

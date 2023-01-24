@@ -55,7 +55,7 @@ public class ConnectionChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public SType<Global, GSeq> visitChoice(Choice<Global, GSeq> n)
+    public SVisitable<Global, GSeq> visitChoice(Choice<Global, GSeq> n)
             throws ScribException {
         List<Map<Set<Role>, Status>> blocks = new LinkedList<>();
         for (GSeq block : n.getBlocks()) {
@@ -73,7 +73,7 @@ public class ConnectionChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public SType<Global, GSeq> visitDirectedInteraction(
+    public SVisitable<Global, GSeq> visitDirectedInteraction(
             DirectedInteraction<Global, GSeq> n) throws ScribException {
         Set<Role> rs = Stream.of(n.src, n.dst).collect(Collectors.toSet());
         if (n instanceof ConnectAction<?, ?>) {
@@ -98,7 +98,7 @@ public class ConnectionChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public SType<Global, GSeq> visitDisconnect(DisconnectAction<Global, GSeq> n)
+    public SVisitable<Global, GSeq> visitDisconnect(DisconnectAction<Global, GSeq> n)
             throws ScribException {
         Set<Role> rs = Stream.of(n.left, n.right).collect(Collectors.toSet());
         switch (this.conns.get(rs)) {
@@ -113,7 +113,7 @@ public class ConnectionChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public final SType<Global, GSeq> visitDo(Do<Global, GSeq> n) throws ScribException {
+    public final SVisitable<Global, GSeq> visitDo(Do<Global, GSeq> n) throws ScribException {
         throw new RuntimeException(this.getClass() + " unsupported for Do: " + n);
     }
 

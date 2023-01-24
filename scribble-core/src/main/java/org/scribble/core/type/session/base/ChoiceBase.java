@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class ChoiceBase<K extends ProtoKind, B extends Seq<K, B>>
-        extends STypeBase<K, B> implements Choice<K, B> {
+        extends SVisitableBase<K, B> implements Choice<K, B> {
 
     protected final Role subj;
     protected final List<B> blocks;  // Pre: size>0, unmodifiable, sole owner

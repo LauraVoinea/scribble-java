@@ -22,19 +22,19 @@ import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.Do;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.visit.STypeInliner;
 import org.scribble.core.visit.Substitutor;
 
 public class GTypeInliner extends STypeInliner<Global, GSeq> {
-   
+
     protected GTypeInliner(Core core) {
         super(core);
     }
 
     @Override
-    public SType<Global, GSeq> visitDo(Do<Global, GSeq> n) {
+    public SVisitable<Global, GSeq> visitDo(Do<Global, GSeq> n) {
         ProtoName<Global> fullname = n.getProto();
         SubprotoSig sig = new SubprotoSig(fullname, n.getRoles(), n.getArgs());
         RecVar rv = getInlinedRecVar(sig);

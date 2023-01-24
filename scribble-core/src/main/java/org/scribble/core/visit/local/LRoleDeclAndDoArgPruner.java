@@ -25,7 +25,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.DirectedInteraction;
 import org.scribble.core.type.session.DisconnectAction;
 import org.scribble.core.type.session.Do;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.local.LSeq;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.core.visit.STypeVisitorNoThrow;
@@ -144,12 +144,12 @@ class SubprotoRoleCollector extends STypeAggNoThrow<Local, LSeq, Set<Role>>
     }
 
     @Override
-    protected Set<Role> unit(SType<Local, LSeq> n) {
+    protected Set<Role> unit(SVisitable<Local, LSeq> n) {
         return Collections.emptySet();
     }
 
     @Override
-    protected Set<Role> agg(SType<Local, LSeq> n, Stream<Set<Role>> ts) {
+    protected Set<Role> agg(SVisitable<Local, LSeq> n, Stream<Set<Role>> ts) {
         return ts.flatMap(x -> x.stream()).collect(Collectors.toSet());
     }
 }

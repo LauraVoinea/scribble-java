@@ -20,7 +20,7 @@ import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.Choice;
 import org.scribble.core.type.session.Recursion;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
 import org.scribble.core.visit.gather.RecVarGatherer;
 
@@ -37,7 +37,7 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitChoice(Choice<K, B> n) {
+    public SVisitable<K, B> visitChoice(Choice<K, B> n) {
         List<B> blocks0 = n.getBlocks();
         List<B> blocks = blocks0.stream().map(x -> visitSeq(x))
                 .filter(x -> !x.isEmpty()).collect(Collectors.toList());
@@ -48,7 +48,7 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitRecursion(Recursion<K, B> n) {
+    public SVisitable<K, B> visitRecursion(Recursion<K, B> n) {
         // Assumes no shadowing (e.g., use after SType#getInlined recvar disamb)
         RecVar recvar = n.getRecVar();
         B body = n.getBody();
@@ -61,9 +61,9 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
 
     @Override
     public B visitSeq(B n) {
-        List<SType<K, B>> elems = new LinkedList<>();
-        for (SType<K, B> e : n.getElements()) {
-            SType<K, B> e1 = (SType<K, B>) e.visitWithNoThrow(this);
+        List<SVisitable<K, B>> elems = new LinkedList<>();
+        for (SVisitable<K, B> e : n.getElements()) {
+            SVisitable<K, B> e1 = (SVisitable<K, B>) e.visitWithNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {  // cf. visitRecursion  (also cf. LSkip)
                 elems.addAll(((Seq<K, B>) e1).getElements());  // Handles empty Seq case
             } else {

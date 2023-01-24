@@ -37,7 +37,7 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
     }
 
     @Override
-    public SType<Local, LSeq> visitChoice(Choice<Local, LSeq> n)
+    public SVisitable<Local, LSeq> visitChoice(Choice<Local, LSeq> n)
             throws ScribException {
         ReachabilityEnv entry = getEnv();
         List<ReachabilityEnv> blocks = new LinkedList<>();
@@ -54,7 +54,7 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
         return n;
     }
 
-    public SType<Local, LSeq> visitContinue(Continue<Local, LSeq> n) throws ScribException {
+    public SVisitable<Local, LSeq> visitContinue(Continue<Local, LSeq> n) throws ScribException {
         ReachabilityEnv env = getEnv();
         Set<RecVar> tmp = new HashSet<>(env.recvars);
         tmp.add(n.getRecVar());
@@ -63,12 +63,12 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
     }
 
     @Override
-    public final SType<Local, LSeq> visitDo(Do<Local, LSeq> n) throws ScribException {
+    public final SVisitable<Local, LSeq> visitDo(Do<Local, LSeq> n) throws ScribException {
         throw new RuntimeException(this.getClass() + " unsupported for Do: " + n);
     }
 
     @Override
-    public SType<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n)
+    public SVisitable<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n)
             throws ScribException {
         RecVar recvar = n.getRecVar();
         n.getBody().visitWith(this);

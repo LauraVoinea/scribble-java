@@ -21,7 +21,7 @@ import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.Do;
 import org.scribble.core.type.session.Recursion;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
 
 import java.util.HashMap;
@@ -42,18 +42,18 @@ public abstract class STypeUnfolder<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public final SType<K, B> visitDo(Do<K, B> n) {
+    public final SVisitable<K, B> visitDo(Do<K, B> n) {
         throw new RuntimeException(this.getClass() + " unsupported for Do: " + n);
     }
 
     @Override
-    public SType<K, B> visitRecursion(Recursion<K, B> n) {
+    public SVisitable<K, B> visitRecursion(Recursion<K, B> n) {
         RecVar recvar = n.getRecVar();
         B body = n.getBody();
         if (!hasRec(recvar))  // N.B. doesn't work if recvars shadowed
         {
             pushRec(recvar, body);
-            SType<K, B> unf = visitSeq(body);//n.body.visitWithNoEx(this);
+            SVisitable<K, B> unf = visitSeq(body);//n.body.visitWithNoEx(this);
             popRec(recvar);
             // Needed for, e.g., repeat do's in separate choice cases -- cf. stack.pop in GDo::getInlined, must pop sig there for Seqs
             return unf;
@@ -63,9 +63,9 @@ public abstract class STypeUnfolder<K extends ProtoKind, B extends Seq<K, B>>
 
     @Override
     public B visitSeq(B n) {
-        List<SType<K, B>> elems = new LinkedList<>();
-        for (SType<K, B> e : n.getElements()) {
-            SType<K, B> e1 = e.visitWithNoThrow(this);
+        List<SVisitable<K, B>> elems = new LinkedList<>();
+        for (SVisitable<K, B> e : n.getElements()) {
+            SVisitable<K, B> e1 = e.visitWithNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {
                 elems.addAll(((Seq<K, B>) e1).getElements());
             } else {

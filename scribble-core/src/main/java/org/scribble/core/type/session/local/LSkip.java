@@ -19,14 +19,14 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.scribble.core.type.kind.Local;
-import org.scribble.core.type.session.SType;
-import org.scribble.core.type.session.base.STypeBase;
+import org.scribble.core.type.session.SVisitable;
+import org.scribble.core.type.session.base.SVisitableBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 
 // Used only *during* projection -- filtered out by GSeq::projection
 // CHECKME: can use empty Seq, and do "seq injection" in visitSeq overrides?  (cf. RecPruner)
-public class LSkip extends STypeBase<Local, LSeq> implements LType {
+public class LSkip extends SVisitableBase<Local, LSeq> implements LType {
     public static final LSkip SKIP = new LSkip();
 
     private LSkip() {
@@ -44,7 +44,7 @@ public class LSkip extends STypeBase<Local, LSeq> implements LType {
     }
 
     @Override
-    public <T> Stream<T> gather(Function<SType<Local, LSeq>, Stream<T>> f) {
+    public <T> Stream<T> gather(Function<SVisitable<Local, LSeq>, Stream<T>> f) {
         throw new RuntimeException("Unsupported for Skip: " + this);
     }
 

@@ -23,7 +23,7 @@ import org.scribble.core.type.session.Recursion;
 import org.scribble.core.type.session.Seq;
 
 public abstract class RecursionBase<K extends ProtoKind, B extends Seq<K, B>>
-        extends STypeBase<K, B> implements Recursion<K, B> {
+        extends SVisitableBase<K, B> implements Recursion<K, B> {
 
     protected final RecVar recvar;
     protected final B body;

@@ -23,7 +23,7 @@ import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.Continue;
 import org.scribble.core.type.session.Recursion;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
 
 import java.util.*;
@@ -48,13 +48,13 @@ public abstract class STypeInliner<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitContinue(Continue<K, B> n) {
+    public SVisitable<K, B> visitContinue(Continue<K, B> n) {
         RecVar rv = getInlinedRecVar(n.getRecVar());
         return n.reconstruct(n.getSource(), rv);
     }
 
     @Override
-    public SType<K, B> visitRecursion(Recursion<K, B> n) {
+    public SVisitable<K, B> visitRecursion(Recursion<K, B> n) {
         CommonTree source = n.getSource();  // CHECKME: or empty source?
         RecVar recvar0 = n.getRecVar();
         RecVar rv = enterRec(recvar0);  // FIXME: make GTypeInliner, and record recvars to check freshness (e.g., rec X in two choice cases)
@@ -67,9 +67,9 @@ public abstract class STypeInliner<K extends ProtoKind, B extends Seq<K, B>>
 
     @Override
     public B visitSeq(B n) {
-        List<SType<K, B>> elems = new LinkedList<>();
-        for (SType<K, B> e : n.getElements()) {
-            SType<K, B> e1 = e.visitWithNoThrow(this);
+        List<SVisitable<K, B>> elems = new LinkedList<>();
+        for (SVisitable<K, B> e : n.getElements()) {
+            SVisitable<K, B> e1 = e.visitWithNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {
                 elems.addAll(((Seq<K, B>) e1).getElements());
             } else {

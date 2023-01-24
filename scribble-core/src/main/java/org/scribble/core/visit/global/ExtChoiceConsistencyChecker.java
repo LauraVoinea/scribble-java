@@ -21,7 +21,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Choice;
 import org.scribble.core.type.session.DirectedInteraction;
 import org.scribble.core.type.session.Do;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.visit.STypeVisitor;
 import org.scribble.util.ScribException;
@@ -39,7 +39,7 @@ public class ExtChoiceConsistencyChecker extends STypeVisitor<Global, GSeq> {
         setEnablers(enabled);
     }
 
-    public SType<Global, GSeq> visitChoice(Choice<Global, GSeq> n)
+    public SVisitable<Global, GSeq> visitChoice(Choice<Global, GSeq> n)
             throws ScribException {
         Map<Role, Role> subj = Stream.of(n.getSubject())
                 .collect(Collectors.toMap(x -> x, x -> x));
@@ -73,7 +73,7 @@ public class ExtChoiceConsistencyChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public SType<Global, GSeq> visitDirectedInteraction(
+    public SVisitable<Global, GSeq> visitDirectedInteraction(
             DirectedInteraction<Global, GSeq> n) throws ScribException {
         Map<Role, Role> enablers = getEnablers();
         if (enablers.containsKey(n.dst)) {
@@ -86,7 +86,7 @@ public class ExtChoiceConsistencyChecker extends STypeVisitor<Global, GSeq> {
     }
 
     @Override
-    public final SType<Global, GSeq> visitDo(Do<Global, GSeq> n) throws ScribException {
+    public final SVisitable<Global, GSeq> visitDo(Do<Global, GSeq> n) throws ScribException {
         throw new RuntimeException(this.getClass() + " unsupported for Do: " + n);
     }
 

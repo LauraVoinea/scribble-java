@@ -23,7 +23,7 @@ import org.scribble.core.type.session.Continue;
 import org.scribble.core.type.session.Seq;
 
 public abstract class ContinueBase<K extends ProtoKind, B extends Seq<K, B>>
-        extends STypeBase<K, B> implements Continue<K, B> {
+        extends SVisitableBase<K, B> implements Continue<K, B> {
 
     protected final RecVar recvar;
 
