@@ -23,6 +23,8 @@ public interface LTypeVisitorFactory {
 
     ReachabilityChecker ReachabilityChecker();
 
+    OutputSequenceCounter OutputSequenceCounter();
+
     UnboundedRecursionChecker UnboundedRecursionChecker();
 
     EGraphBuilder EGraphBuilder(Core core);

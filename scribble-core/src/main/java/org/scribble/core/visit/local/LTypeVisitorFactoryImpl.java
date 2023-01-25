@@ -35,6 +35,11 @@ public class LTypeVisitorFactoryImpl implements LTypeVisitorFactory {
     }
 
     @Override
+    public OutputSequenceCounter OutputSequenceCounter() {
+        return new OutputSequenceCounter();
+    }
+
+    @Override
     public EGraphBuilder EGraphBuilder(Core core) {
         return new EGraphBuilder(core);
     }

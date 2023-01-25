@@ -109,6 +109,10 @@ public class LProtocol extends Protocol<Local, LProtoName, LSeq>
         this.def.visitWith(core.config.vf.local.UnboundedRecursionChecker());
     }
 
+    /*public void countOutputSequences(Core core) throws ScribException {
+        this.def.visitWith(core.config.vf.local.OutputSequenceCounter());
+    }*/
+
     // Implicitly means Subproto visitor
     public LProtocol pruneRoleDeclsAndDoArgs(LRoleDeclAndDoArgPruner v) {
         return v.visitLProtocol(this);

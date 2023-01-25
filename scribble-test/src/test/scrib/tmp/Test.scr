@@ -178,6 +178,10 @@ global protocol Proto1(role A, role B, role C)
     	4(T) from A to B;
     	5(T) from B to C;
     	6(T) from A to C;
+    	7(T) from A to C;
+    	8(T) from A to C;
+    	9(T) from A to C;
+    	10(T) from A to C;
     	//do Proto1(A, B, C);
     }
 }

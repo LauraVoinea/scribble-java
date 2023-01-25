@@ -275,6 +275,10 @@ public class Core {
                 LProjection iproj = this.context.getProjectedInlined(fullname, self);
                 boolean b = false;
                 try {
+                    /*OutputSequenceCounter c = this.config.vf.local.OutputSequenceCounter();
+                    iproj.def.visitWith(c);
+                    System.out.println("aaaaaaa:   " + c.getMaxCounts());*/
+
                     iproj.checkUnboundedRecursiveOutput(this);
                 } catch (UnboundedRecursionException e) {
                     b = true;
