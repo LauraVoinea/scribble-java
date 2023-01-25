@@ -29,6 +29,7 @@ import org.scribble.core.model.endpoint.EGraph;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.buffers.SingleBuffers;
+import org.scribble.core.model.global.buffers.SingleBuffersImpl;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.util.ScribException;
@@ -48,7 +49,7 @@ public class SGraphBuilder {
                                        boolean explicit) {
         Map<Role, EFsm> efsms = egraphs.entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey, e -> e.getValue().toFsm()));
-        SingleBuffers b0 = new SingleBuffers(efsms.keySet(), !explicit);
+        SingleBuffers b0 = new SingleBuffersImpl(efsms.keySet(), !explicit);
         return this.core.config.mf.global.SConfig(efsms, b0);
     }
 
