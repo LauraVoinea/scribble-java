@@ -152,6 +152,16 @@ module tmp.Test;
 
 
 data <java> "..." from "..." as T;
+type <java> "java.lang.Integer" from "rt.jar" as Int;
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+    1(Int) from A to B;
+    2(Int) from B to A;
+}
+//*/
 
 
 //*
@@ -161,8 +171,8 @@ global protocol Proto1(role A, role B, role C)
     choice at A {
     	1(T) from A to B;
     	2(T) from B to C;
-    	//3(T) from C to A;
-    	3(T) from A to C;
+    	3(T) from C to A;
+    	//3(T) from A to C;
     	do Proto1(A, B, C);
     } or {
     	4(T) from A to B;

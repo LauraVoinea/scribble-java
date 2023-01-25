@@ -118,16 +118,26 @@ public class CommandLine {
     // A Scribble extension should override as appropriate
     protected Map<CoreArgs, Boolean> parseCoreArgs() {
         Map<CoreArgs, Boolean> args = new HashMap<>();
+
+        // Total map cf. org.scribble.core.job.CoreArgs
         args.put(CoreArgs.VERBOSE, hasFlag(CLFlags.VERBOSE_FLAG));
-        args.put(CoreArgs.OLD_WF, hasFlag(CLFlags.OLD_WF_FLAG));
-        args.put(CoreArgs.NO_PROGRESS, hasFlag(CLFlags.NO_PROGRESS_FLAG));
-        args.put(CoreArgs.MIN_EFSM, hasFlag(CLFlags.LTSCONVERT_MIN_FLAG));
+
         args.put(CoreArgs.FAIR, hasFlag(CLFlags.FAIR_FLAG));
-        args.put(CoreArgs.NO_LCHOICE_SUBJ_CHECK,
+        args.put(CoreArgs.MIN_EFSM, hasFlag(CLFlags.LTSCONVERT_MIN_FLAG));
+
+        // Should be mutually exclusive
+        args.put(CoreArgs.SCRIBBLE_SINGLE_BUFFERS, hasFlag(CLFlags.SCRIBBLE_SINGLE_BUFFERS));
+        args.put(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS, hasFlag(CLFlags.SCRIBBLE_UNBOUNDED_BUFFERS));
+        //args.put(CoreArgs.SPIN, hasFlag(CLFlags.SPIN));
+        args.put(CoreArgs.NO_PROGRESS, hasFlag(CLFlags.NO_PROGRESS_FLAG));
+        //args.put(CoreArgs.NO_VALIDATION, hasFlag(CLFlags.NO_VALIDATION_FLAG));
+        //args.put(CoreArgs.OLD_WF, hasFlag(CLFlags.OLD_WF_FLAG));
+
+        /*args.put(CoreArgs.NO_LCHOICE_SUBJ_CHECK,
                 hasFlag(CLFlags.NO_LOCAL_CHOICE_SUBJECT_CHECK_FLAG));
         args.put(CoreArgs.NO_ACC_CORRELATION_CHECK,
-                hasFlag(CLFlags.NO_ACCEPT_CORRELATION_CHECK_FLAG));
-        args.put(CoreArgs.NO_VALIDATION, hasFlag(CLFlags.NO_VALIDATION_FLAG));
+                hasFlag(CLFlags.NO_ACCEPT_CORRELATION_CHECK_FLAG));*/
+
         return args;
     }
 

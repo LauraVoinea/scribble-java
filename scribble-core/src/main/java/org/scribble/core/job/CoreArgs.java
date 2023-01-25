@@ -15,19 +15,22 @@
  */
 package org.scribble.core.job;
 
-public enum CoreArgs
-{
-	VERBOSE,
-	FAIR,
-	SPIN,
-	NO_VALIDATION,
-	NO_PROGRESS,  // TODO: deprecate
-	MIN_EFSM,  // Currently only affects EFSM output (i.e. -fsm, -dot) and API gen -- doesn't affect model checking
+public enum CoreArgs {
+    VERBOSE,
 
-	OLD_WF,  // TODO: deprecate
-	NO_LCHOICE_SUBJ_CHECK,  // For debugging only?
-	NO_ACC_CORRELATION_CHECK,  // Currently unused
-	;
+    FAIR,
+    MIN_EFSM,  // (Currently) only affects EFSM output (i.e. -fsm, -dot) and API gen -- doesn't affect model checking
+
+    SCRIBBLE_SINGLE_BUFFERS,
+    SCRIBBLE_UNBOUNDED_BUFFERS,
+    //NO_VALIDATION,  // Currently unused
+    //SPIN,  // Not up to date
+    //OLD_WF,  // TODO: deprecate
+
+    //NO_LCHOICE_SUBJ_CHECK,  // For debugging only?
+    //NO_ACC_CORRELATION_CHECK,  // Currently unused
+    NO_PROGRESS,  // TODO: deprecate
+    ;
 	
 	/*public final boolean debug;
 	public final boolean useOldWf;

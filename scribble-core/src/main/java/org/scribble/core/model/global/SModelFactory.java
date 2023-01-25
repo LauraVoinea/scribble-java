@@ -15,21 +15,16 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Map;
-
 import org.scribble.core.model.endpoint.EFsm;
-import org.scribble.core.model.global.actions.SAcc;
-import org.scribble.core.model.global.actions.SClientWrap;
-import org.scribble.core.model.global.actions.SDisconnect;
-import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.model.global.actions.SReq;
-import org.scribble.core.model.global.actions.SSend;
-import org.scribble.core.model.global.actions.SServerWrap;
+import org.scribble.core.model.global.actions.*;
 import org.scribble.core.model.global.buffers.SBuffers;
-import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.MsgId;
+import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+
+import java.util.Map;
 
 public interface SModelFactory {
     SGraphBuilderUtil SGraphBuilderUtil();
@@ -39,7 +34,7 @@ public interface SModelFactory {
 
     SConfig SConfig(Map<Role, EFsm> state, SBuffers buffs);
 
-    SGraph SGraph(GProtoName proto, Map<Integer, SState> states,
+    SGraph SGraph(ProtoName<Global> proto, Map<Integer, SState> states,
                   SState init);  // states: s.id -> s
 
     SModel SModel(SGraph g);

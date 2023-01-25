@@ -36,6 +36,7 @@ import org.scribble.core.visit.global.GTypeInliner;
 import org.scribble.core.visit.global.GTypeUnfolder;
 import org.scribble.core.visit.global.InlinedProjector;
 import org.scribble.util.Pair;
+import org.scribble.util.RuntimeScribException;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribUtil;
 
@@ -60,7 +61,8 @@ public class CoreContext {
     private final Map<ProtoName<Global>, GProtocol> unfs = new HashMap<>();
 
     // cf. UnboundedRecursionChecker -- no key
-    private final Map<ProtoName<Global>, Boolean> unbounded = new HashMap<>();
+    private final Map<ProtoName<Global>, Boolean> unbounded_G = new HashMap<>();
+    //private final Map<ProtoName<Local>, Boolean> unbounded_L = new HashMap<>();
 
     // CHECKME: rename projis?
     private final Map<ProtoName<Local>, LProjection> iprojs = new HashMap<>();  // Projected from inlined; keys are full names
@@ -264,8 +266,8 @@ public class CoreContext {
         if (graph == null) {
             Map<Role, EGraph> egraphs = getEGraphsForSGraphBuilding(fullname, true);
             boolean explicit = this.imeds.get(fullname).isExplicit();
-            GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
-            graph = new SGraphBuilder(this.core).build(egraphs, explicit, cast);
+            //GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
+            graph = new SGraphBuilder(this.core).build(egraphs, explicit, fullname);
             addSGraph(fullname, graph);
         }
         return graph;
@@ -291,8 +293,8 @@ public class CoreContext {
         if (graph == null) {
             Map<Role, EGraph> egraphs = getEGraphsForSGraphBuilding(fullname, false);
             boolean explicit = this.imeds.get(fullname).isExplicit();
-            GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
-            graph = new SGraphBuilder(this.core).build(egraphs, explicit, cast);
+            //GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
+            graph = new SGraphBuilder(this.core).build(egraphs, explicit, fullname);
             addUnfairSGraph(fullname, graph);
         }
         return graph;
@@ -321,15 +323,17 @@ public class CoreContext {
     }
 
     public void setPotentiallyUnbounded(ProtoName<Global> g, boolean b) {
-        if (b || !this.unbounded.containsKey(g)) {
-            this.unbounded.put(g, b);
+        if (b || !this.unbounded_G.containsKey(g)) {
+            this.unbounded_G.put(g, b);
         }
     }
 
-    public Optional<Boolean> isPotentiallyUnbounded(ProtoName<Global> g) {
-        return !this.unbounded.containsKey(g)
-                ? Optional.empty()
-                : Optional.of(this.unbounded.get(g));
+    // Pre: unbounded recursion checked (Core.runProjectionSyntaxWfPasses)
+    public boolean isPotentiallyUnbounded(ProtoName<Global> g) {
+        if (!this.unbounded_G.containsKey(g)) {
+            throw new RuntimeScribException("Must do projection syntactic WF checks first: " + g);
+        }
+        return this.unbounded_G.get(g);
     }
 
     // TODO: relocate

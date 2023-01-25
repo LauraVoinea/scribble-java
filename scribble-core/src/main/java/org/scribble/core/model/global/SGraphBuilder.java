@@ -15,23 +15,24 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.scribble.core.job.Core;
+import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.endpoint.EFsm;
 import org.scribble.core.model.endpoint.EGraph;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.buffers.SBuffers;
+import org.scribble.core.model.global.buffers.SQueues;
 import org.scribble.core.model.global.buffers.SingleCellBuffers;
+import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
+import org.scribble.util.RuntimeScribException;
 import org.scribble.util.ScribException;
 
 public class SGraphBuilder {
@@ -45,11 +46,23 @@ public class SGraphBuilder {
     }
 
     // Do as an initial state rather than config?
-    protected SConfig createInitConfig(Map<Role, EGraph> egraphs,
-                                       boolean explicit) {
+    protected SConfig createInitConfig(
+            Map<Role, EGraph> egraphs, boolean explicit, ProtoName<Global> fullname) {
         Map<Role, EFsm> efsms = egraphs.entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey, e -> e.getValue().toFsm()));
-        SBuffers b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
+        SBuffers b0;
+        if (this.core.config.hasArg(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
+            if (this.core.getContext().isPotentiallyUnbounded(fullname)) {
+                /*throw new RuntimeScribException(
+                        "Potentially unbounded protocol, aborting model construction:\n"
+                                + fullname);*/
+                b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
+            } else {
+                b0 = new SQueues(efsms.keySet(), !explicit);
+            }
+        } else {
+            b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
+        }
         return this.core.config.mf.global.SConfig(efsms, b0);
     }
 
@@ -57,10 +70,10 @@ public class SGraphBuilder {
     // Also checks for non-deterministic payloads
     // Maybe refactor into an SGraph builder util; cf., EGraphBuilderUtil -- but not Visitor-based building (cf. EndpointGraphBuilder), this isn't an AST algorithm
     public SGraph build(Map<Role, EGraph> egraphs, boolean explicit,
-                        GProtoName fullname) throws ScribException {
+                        ProtoName<Global> fullname) throws ScribException {
         this.util.reset();
 
-        SConfig c0 = createInitConfig(egraphs, explicit);
+        SConfig c0 = createInitConfig(egraphs, explicit, fullname);
         SState init = this.util.newState(c0);
         Set<SState> seen = new HashSet<>();
         Set<SState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s>, faster than full SConfig hash ?
