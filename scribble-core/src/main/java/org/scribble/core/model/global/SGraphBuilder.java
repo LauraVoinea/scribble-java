@@ -62,6 +62,7 @@ public class SGraphBuilder {
 
         SConfig c0 = createInitConfig(egraphs, explicit);
         SState init = this.util.newState(c0);
+        Set<SState> seen = new HashSet<>();
         Set<SState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s>, faster than full SConfig hash ?
         todo.add(init);
         for (//int debugCount = 1
@@ -70,6 +71,7 @@ public class SGraphBuilder {
             Iterator<SState> i = todo.iterator();
             SState curr = i.next();
             i.remove();
+            seen.add(curr);
 			/*if (this.core.config.args.get(CoreArgs.VERBOSE))
 			{
 				if (debugCount++ % 50 == 0)
@@ -88,7 +90,8 @@ public class SGraphBuilder {
                         Set<SConfig> next = new HashSet<>(curr.config.async(r, a));
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
                         Set<SState> succs = this.util.getSuccs(curr, a.toGlobal(r), next);  // util.getSuccs constructs the edges
-                        todo.addAll(succs);
+                        succs.stream().filter(x -> !seen.contains(x))
+                                .forEach(x -> todo.add(x));
                     }
                     // Synchronous (client/server) actions
                     else if (a.isAccept() || a.isRequest() || a.isClientWrap()
@@ -104,7 +107,8 @@ public class SGraphBuilder {
                             Set<SConfig> next = new HashSet<>(curr.config.sync(r, a, a.peer, abar));
                             // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
                             Set<SState> succs = this.util.getSuccs(curr, aglobal, next);  // util.getSuccs constructs the edges
-                            todo.addAll(succs);
+                            succs.stream().filter(x -> !seen.contains(x))
+                                    .forEach(x -> todo.add(x));
                         }
                     } else {
                         throw new RuntimeException("Unknown action kind: " + a);
@@ -113,7 +117,7 @@ public class SGraphBuilder {
             }
         }
 
-        return this.core.config.mf.global.SGraph(fullname, this.util.getStates(),
-                init);
+        return this.core.config.mf.global.SGraph(
+                fullname, this.util.getStates(), init);
     }
 }

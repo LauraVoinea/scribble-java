@@ -127,7 +127,7 @@ public class SModel {
                         termset.stream()
                                 //.anyMatch(x -> x.config.queues.getQueue(r1).get(r2) == null)) {
                                 .anyMatch(x -> x.config.queues.getQueue(r1).get(r2).isEmpty())) {
-                    q0_r1.put(r2, null);
+                    q0_r1.put(r2, null);  // null (now) just a marker
                 }
             }
         }
@@ -138,6 +138,7 @@ public class SModel {
             Set<List<ESend>> msgs = q0.values().stream()
                     .flatMap(x -> x.entrySet().stream())  // For all input buffs at every role...
                     .filter(x -> x.getKey().equals(r) && x.getValue() != null && !x.getValue().isEmpty())  // ...s.t. the buff is from "r" and is non-empty
+                    // Above null/isEmpty hacked for SBuffers interface
                     .map(x -> x.getValue()).collect(Collectors.toSet());
             if (!msgs.isEmpty()) {
                 ignored.put(r, msgs.stream().flatMap(x -> x.stream()).collect(Collectors.toSet()));
