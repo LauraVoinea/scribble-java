@@ -15,12 +15,7 @@
  */
 package org.scribble.core.model.global.buffers;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import org.scribble.core.model.endpoint.actions.EAcc;
 import org.scribble.core.model.endpoint.actions.EClientWrap;
@@ -32,7 +27,7 @@ import org.scribble.core.model.endpoint.actions.EServerWrap;
 import org.scribble.core.type.name.Role;
 
 // Immutable -- send/receive/etc return updated copies
-public interface SingleBuffers {
+public interface SBuffers {
 
     boolean canSend(Role self, ESend a);
 
@@ -56,20 +51,20 @@ public interface SingleBuffers {
 
     // Pre: canSend, e.g., via via SConfig.getFireable
     // Return an updated copy
-    SingleBuffers send(Role self, ESend a);
+    SBuffers send(Role self, ESend a);
 
     // Pre: canReceive, e.g., via SConfig.getFireable
     // Return an updated copy
-    SingleBuffers receive(Role self, ERecv a);
+    SBuffers receive(Role self, ERecv a);
 
     // Sync action
     // Pre: canRequest(r1, [[r2]]) and canAccept(r2, [[r1]]), where [[r]] is a matching action with peer r -- e.g., via via SConfig.getFireable
     // Return an updated copy
-    SingleBuffers connect(Role r1, Role r2);  // Role sides and message don't matter
+    SBuffers connect(Role r1, Role r2);  // Role sides and message don't matter
 
     // Pre: canDisconnect(self, d), e.g., via SConfig.via getFireable
     // Return an updated copy
-    SingleBuffers disconnect(Role self, EDisconnect d);
+    SBuffers disconnect(Role self, EDisconnect d);
 
     // N.B. direction sensitive (viz., after some disconnect)
     boolean isConnected(Role self, Role peer);
@@ -77,9 +72,7 @@ public interface SingleBuffers {
     boolean isEmpty(Role r);  // this.connected doesn't matter
 
     // Return a (deep) copy -- currently, checkEventualReception expects a modifiable return
-    // N.B. hardcoded to capacity one
-    Map<Role, Map<Role, ESend>> getQueues();
+    Map<Role, Map<Role, List<ESend>>> getQueues();
 
-    // N.B. hardcoded to capacity one
-    Map<Role, ESend> getQueue(Role r);
+    Map<Role, List<ESend>> getQueue(Role r);
 }

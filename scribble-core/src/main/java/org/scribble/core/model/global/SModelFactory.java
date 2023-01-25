@@ -25,7 +25,7 @@ import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.model.global.actions.SReq;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.model.global.actions.SServerWrap;
-import org.scribble.core.model.global.buffers.SingleBuffers;
+import org.scribble.core.model.global.buffers.SBuffers;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
@@ -37,7 +37,7 @@ public interface SModelFactory {
     // protected constructors (MState mutable)
     SState SState(SConfig config);
 
-    SConfig SConfig(Map<Role, EFsm> state, SingleBuffers buffs);
+    SConfig SConfig(Map<Role, EFsm> state, SBuffers buffs);
 
     SGraph SGraph(GProtoName proto, Map<Integer, SState> states,
                   SState init);  // states: s.id -> s

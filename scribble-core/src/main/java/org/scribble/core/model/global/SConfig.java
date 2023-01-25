@@ -40,7 +40,7 @@ import org.scribble.core.model.endpoint.actions.EReq;
 import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.model.endpoint.actions.EClientWrap;
 import org.scribble.core.model.endpoint.actions.EServerWrap;
-import org.scribble.core.model.global.buffers.SingleBuffers;
+import org.scribble.core.model.global.buffers.SBuffers;
 import org.scribble.core.type.name.Role;
 
 // Immutable -- async/sync (i.e, "fire") return updated copies (in the general case, they must return List anyway due to non-det)
@@ -48,9 +48,9 @@ public class SConfig {
     protected final ModelFactory mf;
 
     public final Map<Role, EFsm> efsms;
-    public final SingleBuffers queues;  // N.B. currently hardcoded to capacity one
+    public final SBuffers queues;  // N.B. currently hardcoded to capacity one
 
-    protected SConfig(ModelFactory mf, Map<Role, EFsm> state, SingleBuffers queues) {
+    protected SConfig(ModelFactory mf, Map<Role, EFsm> state, SBuffers queues) {
         this.mf = mf;
         this.efsms = Collections.unmodifiableMap(state);
         this.queues = queues;
@@ -171,11 +171,11 @@ public class SConfig {
         for (EFsm succ : succs) {
             Map<Role, EFsm> efsms = new HashMap<>(this.efsms);
             efsms.put(self, succ);
-            SingleBuffers queues =  // N.B. queue updates are insensitive to non-det "a"
+            SBuffers queues =  // N.B. queue updates are insensitive to non-det "a"
                     a.isSend() ? this.queues.send(self, (ESend) a)
                             : a.isReceive() ? this.queues.receive(self, (ERecv) a)
-                            : a.isDisconnect() ? this.queues.disconnect(self, (EDisconnect) a)
-                            : null;
+                                    : a.isDisconnect() ? this.queues.disconnect(self, (EDisconnect) a)
+                                            : null;
             if (queues == null) {
                 throw new RuntimeException("Shouldn't get in here: " + a);
             }
@@ -198,7 +198,7 @@ public class SConfig {
                 // a1 and a2 are a "sync" pair, add all combinations of succ1 and succ2 that may arise
                 efsms.put(r1, succ1);  // Overwrite existing r1/r2 entries
                 efsms.put(r2, succ2);
-                SingleBuffers queues;
+                SBuffers queues;
                 // a1 and a2 definitely "sync", now just determine whether it is a connect or wrap
                 if (((a1.isRequest() && a2.isAccept())
                         || (a1.isAccept() && a2.isRequest()))) {
@@ -241,7 +241,9 @@ public class SConfig {
             EStateKind k = s.curr.getStateKind();
             if (k == EStateKind.UNARY_RECEIVE || k == EStateKind.POLY_RECIEVE) {
                 Role peer = s.curr.getActions().get(0).peer;  // Pre: consistent ext choice subj
-                ESend send = this.queues.getQueue(self).get(peer);
+                //ESend send = this.queues.getQueue(self).get(peer);
+                List<ESend> sends = this.queues.getQueue(self).get(peer);
+                ESend send = sends.isEmpty() ? null : sends.get(0);
                 if (send != null) {
                     ERecv recv = send.toDual(peer);
                     if (!s.curr.hasAction(recv)) {
@@ -357,11 +359,13 @@ public class SConfig {
             if (fsm.curr.isTerminal())  // Local termination of r, i.e. not necessarily "full deadlock cycle"
             {
                 orphs.addAll(this.queues.getQueue(r).values().stream()
-                        .filter(v -> v != null).collect(Collectors.toSet()));
+                        //.filter(v -> v != null).collect(Collectors.toSet()));
+                        .filter(v -> !v.isEmpty()).flatMap(x -> x.stream()).collect(Collectors.toSet()));
             } else {
                 this.efsms.keySet().stream()
                         .filter(x -> !r.equals(x) && !this.queues.isConnected(r, x))  // !isConnected(r, x), means r considers its side closed
-                        .map(x -> this.queues.getQueue(r).get(x)).filter(x -> x != null)  // r's side is closed, but remaining message(s) in r's buff
+                        //.map(x -> this.queues.getQueue(r).get(x)).filter(x -> x != null)  // r's side is closed, but remaining message(s) in r's buff
+                        .map(x -> this.queues.getQueue(r).get(x)).filter(x -> !x.isEmpty()).flatMap(x -> x.stream())  // r's side is closed, but remaining message(s) in r's buff
                         .forEachOrdered(x -> orphs.add(x));
             }
             if (!orphs.isEmpty()) {

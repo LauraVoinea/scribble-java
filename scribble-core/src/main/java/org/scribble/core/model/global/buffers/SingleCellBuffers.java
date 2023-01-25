@@ -18,30 +18,31 @@ package org.scribble.core.model.global.buffers;
 import org.scribble.core.model.endpoint.actions.*;
 import org.scribble.core.type.name.Role;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // Immutable -- send/receive/etc return updated copies
-public class SingleBuffersImpl implements SingleBuffers {
+public class SingleCellBuffers implements SBuffers {
 
-    private final Map<Role, Map<Role, Boolean>> connected = new HashMap<>();  // local -> peer -> does-local-consider-connected  (symmetric)
+    private final Map<Role, Map<Role, Boolean>> connected = new HashMap<>();
+    // local -> peer -> does-local-consider-connected  (symmetric)
     // CHECKME: refactor as Map<Role, Set<Role>> ?  cf. ConnectionChecker
 
-    private final Map<Role, Map<Role, ESend>> buffs = new HashMap<>();  // dest -> src -> msg -- N.B. connected.get(A).get(B) => can send into buffs.get(B).get(A) ("reversed")
+    private final Map<Role, Map<Role, ESend>> buffs = new HashMap<>();
+    // dest -> src -> msg -- N.B. connected.get(A).get(B) => can send into buffs.get(B).get(A) ("reversed")
     // N.B. hardcoded to capacity one -- SQueues would be the generalisation
     // null ESend for empty queue
 
-    public SingleBuffersImpl(Set<Role> roles, boolean implicit) {
+    public SingleCellBuffers(Set<Role> roles, boolean implicit) {
         for (Role r1 : roles) {
             HashMap<Role, Boolean> connected = new HashMap<>();
             HashMap<Role, ESend> queues = new HashMap<>();
             for (Role r2 : roles) {
                 if (!r1.equals(r2)) {
                     connected.put(r2, implicit);
+                    //queues.put(r2, null);  // null for empty queue
                     queues.put(r2, null);  // null for empty queue
                 }
             }
@@ -50,7 +51,7 @@ public class SingleBuffersImpl implements SingleBuffers {
         }
     }
 
-    protected SingleBuffersImpl(SingleBuffersImpl queues) {
+    protected SingleCellBuffers(SingleCellBuffers queues) {
         for (Role r : queues.buffs.keySet()) {
             this.connected.put(r, new HashMap<>(queues.connected.get(r)));
             this.buffs.put(r, new HashMap<>(queues.buffs.get(r)));
@@ -59,14 +60,16 @@ public class SingleBuffersImpl implements SingleBuffers {
 
     @Override
     public boolean canSend(Role self, ESend a) {
-        return isConnected(self, a.peer) //&& isConnected(a.peer, self)  // CHECKME: only consider local side?
+        return isConnected(self, a.peer)
+                //&& isConnected(a.peer, self)  // CHECKME: only consider local side?
                 && this.buffs.get(a.peer).get(self) == null;
     }
 
     @Override
     public boolean canReceive(Role self, ERecv a) {
         ESend send = this.buffs.get(self).get(a.peer);
-        return isConnected(self, a.peer)  // Other direction doesn't matter, local can still receive after peer disconnected
+        return isConnected(self, a.peer)
+                // Other direction doesn't matter, local can still receive after peer disconnected
                 && send != null && send.toDual(a.peer).equals(a);
     }
 
@@ -102,8 +105,8 @@ public class SingleBuffersImpl implements SingleBuffers {
     // Pre: canSend, e.g., via via SConfig.getFireable
     // Return an updated copy
     @Override
-    public SingleBuffersImpl send(Role self, ESend a) {
-        SingleBuffersImpl copy = new SingleBuffersImpl(this);
+    public SingleCellBuffers send(Role self, ESend a) {
+        SingleCellBuffers copy = new SingleCellBuffers(this);
         copy.buffs.get(a.peer).put(self, a);
         return copy;
     }
@@ -111,8 +114,8 @@ public class SingleBuffersImpl implements SingleBuffers {
     // Pre: canReceive, e.g., via SConfig.getFireable
     // Return an updated copy
     @Override
-    public SingleBuffersImpl receive(Role self, ERecv a) {
-        SingleBuffersImpl copy = new SingleBuffersImpl(this);
+    public SingleCellBuffers receive(Role self, ERecv a) {
+        SingleCellBuffers copy = new SingleCellBuffers(this);
         copy.buffs.get(self).put(a.peer, null);
         return copy;
     }
@@ -121,9 +124,9 @@ public class SingleBuffersImpl implements SingleBuffers {
     // Pre: canRequest(r1, [[r2]]) and canAccept(r2, [[r1]]), where [[r]] is a matching action with peer r -- e.g., via via SConfig.getFireable
     // Return an updated copy
     @Override
-    public SingleBuffersImpl connect(Role r1, Role r2)  // Role sides and message don't matter
+    public SingleCellBuffers connect(Role r1, Role r2)  // Role sides and message don't matter
     {
-        SingleBuffersImpl copy = new SingleBuffersImpl(this);
+        SingleCellBuffers copy = new SingleCellBuffers(this);
         copy.connected.get(r1).put(r2, true);
         copy.connected.get(r2).put(r1, true);
         return copy;
@@ -132,8 +135,8 @@ public class SingleBuffersImpl implements SingleBuffers {
     // Pre: canDisconnect(self, d), e.g., via SConfig.via getFireable
     // Return an updated copy
     @Override
-    public SingleBuffersImpl disconnect(Role self, EDisconnect d) {
-        SingleBuffersImpl copy = new SingleBuffersImpl(this);
+    public SingleCellBuffers disconnect(Role self, EDisconnect d) {
+        SingleCellBuffers copy = new SingleCellBuffers(this);
         copy.connected.get(self).put(d.peer, false);  // Didn't update buffs (cf. SConfig.getOrphanMessages)
         return copy;
     }
@@ -153,16 +156,36 @@ public class SingleBuffersImpl implements SingleBuffers {
     // Return a (deep) copy -- currently, checkEventualReception expects a modifiable return
     // N.B. hardcoded to capacity one
     @Override
-    public Map<Role, Map<Role, ESend>> getQueues() {
-        return this.buffs.entrySet().stream().collect(Collectors.toMap(
+    public Map<Role, Map<Role, List<ESend>>> getQueues() {
+        /*return this.buffs.entrySet().stream().collect(Collectors.toMap(
                 Entry::getKey,
-                x -> new HashMap<>(x.getValue())));  // Collections.unmodifiableMap(x.getValue())
+                x -> new HashMap<>(x.getValue())));  // Collections.unmodifiableMap(x.getValue())*/
+        Map<Role, Map<Role, List<ESend>>> collect =
+                this.buffs.entrySet().stream().collect(Collectors.toMap(
+                        x -> x.getKey(),
+                        x -> x.getValue().entrySet().stream().collect(Collectors.toMap(
+                                y -> y.getKey(),
+                                y -> {
+                                    ESend v = y.getValue();
+                                    return v == null
+                                            ? Collections.emptyList()
+                                            : Stream.of(v).collect(Collectors.toList());
+                                }))));
+        return collect;
     }
 
     // N.B. hardcoded to capacity one
     @Override
-    public Map<Role, ESend> getQueue(Role r) {
-        return Collections.unmodifiableMap(this.buffs.get(r));
+    public Map<Role, List<ESend>> getQueue(Role r) {
+        return this.buffs.get(r).entrySet().stream().collect(Collectors.toMap(
+                Entry::getKey,
+                x -> {
+                    ESend v = x.getValue();
+                    return v == null
+                            ? Collections.emptyList()
+                            : Stream.of(v).collect(Collectors.toList());
+                }
+        ));
     }
 
     @Override
@@ -178,17 +201,18 @@ public class SingleBuffersImpl implements SingleBuffers {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SingleBuffersImpl)) {
+        if (!(o instanceof SingleCellBuffers)) {
             return false;
         }
-        SingleBuffersImpl b = (SingleBuffersImpl) o;
+        SingleCellBuffers b = (SingleCellBuffers) o;
         return this.connected.equals(b.connected) && this.buffs.equals(b.buffs);
     }
 
     @Override
     public String toString() {
         return this.buffs.entrySet().stream()
-                .filter(e -> e.getValue().values().stream().anyMatch(v -> v != null))
+                .filter(e -> e.getValue().values().stream().anyMatch(v -> v
+                        != null))
                 .collect(Collectors.toMap(
                         e -> e.getKey(),
                         e -> e.getValue().entrySet().stream()
