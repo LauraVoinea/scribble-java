@@ -29,7 +29,6 @@ import org.scribble.core.model.global.buffers.SBuffers;
 import org.scribble.core.model.global.buffers.SQueues;
 import org.scribble.core.model.global.buffers.SingleCellBuffers;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.util.RuntimeScribException;
@@ -51,12 +50,12 @@ public class SGraphBuilder {
         Map<Role, EFsm> efsms = egraphs.entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey, e -> e.getValue().toFsm()));
         SBuffers b0;
-        if (this.core.config.hasArg(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
+        if (this.core.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
             if (this.core.getContext().isPotentiallyUnbounded(fullname)) {
-                /*throw new RuntimeScribException(
+                throw new RuntimeScribException(
                         "Potentially unbounded protocol, aborting model construction:\n"
-                                + fullname);*/
-                b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
+                                + fullname);
+                //b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
             } else {
                 b0 = new SQueues(efsms.keySet(), !explicit);
             }

@@ -279,6 +279,9 @@ public class Core {
                 } catch (UnboundedRecursionException e) {
                     b = true;
                     //verbosePrintln(e.getMessage());
+                    if (this.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
+                        throw e;  // AllTest, 256/355
+                    }
                 }
                 this.context.setPotentiallyUnbounded(fullname, b);
             }
@@ -299,7 +302,7 @@ public class Core {
             }
         }
 
-        if (!this.config.hasArg(CoreArgs.FAIR)) {
+        if (!this.config.hasFlag(CoreArgs.FAIR)) {
             verbosePrintPass(
                     "Building \"unfair\" EFSMs for all projected inlineds...");
             for (ProtoName<Global> fullname : this.context.getParsedFullnames()) {
@@ -337,7 +340,7 @@ public class Core {
                 continue;
             }
             validateByScribble(fullname, true);
-            if (!this.config.hasArg(CoreArgs.FAIR)) {
+            if (!this.config.hasFlag(CoreArgs.FAIR)) {
                 //verbosePrintPass("Validating by Scribble with \"unfair\" output choices: " + fullname);
                 validateByScribble(fullname, false);  // TODO: only need to check progress, not "full" validation
             }
@@ -349,7 +352,7 @@ public class Core {
         SGraph graph = fair
                 ? this.context.getSGraph(fullname)
                 : this.context.getUnfairSGraph(fullname);
-        if (this.config.hasArg(CoreArgs.VERBOSE)) {
+        if (this.config.hasFlag(CoreArgs.VERBOSE)) {
             String dot = graph.init.toDot();
             String[] lines = dot.split("\\R");
             verbosePrintPass(
@@ -402,7 +405,7 @@ public class Core {
     }
 
     public boolean isVerbose() {
-        return this.config.hasArg(CoreArgs.VERBOSE);
+        return this.config.hasFlag(CoreArgs.VERBOSE);
     }
 
     public void verbosePrintln(String s) {

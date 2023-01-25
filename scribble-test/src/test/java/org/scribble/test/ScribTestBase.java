@@ -68,12 +68,13 @@ public abstract class ScribTestBase {
         return false;
     }
 
+    // N.B. no CLFlags.FAIR_FLAG
     protected void runTest(String dir) throws CommandLineException, AntlrSourceException {
         new CommandLine(
                 this.example,
                 CLFlags.JUNIT_FLAG,  // Added JUNIT flag -- but for some reason only bad DoArgList01.scr was breaking without it...
-                CLFlags.IMPORT_PATH_FLAG, dir,
-                CLFlags.SCRIBBLE_UNBOUNDED_BUFFERS
+                CLFlags.IMPORT_PATH_FLAG, dir
+                //CLFlags.SCRIBBLE_UNBOUNDED_BUFFERS
         ).run();
     }
 

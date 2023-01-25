@@ -82,7 +82,8 @@ public class UnboundedRecursionChecker extends STypeVisitor<Local, LSeq> {
     public SVisitable<Local, LSeq> visitContinue(Continue<Local, LSeq> n) throws ScribException {
         UnboundedRecursionEnv env = getEnv();
         RecVar rv = n.getRecVar();
-        if (env.out.contains(rv) && !env.in.contains(rv)) {
+        if ((env.out.contains(rv) && !env.in.contains(rv))
+                || (!env.out.contains(rv) && env.in.contains(rv))) {
             throw new UnboundedRecursionException("Potentially unbounded output recursion: " + n);
         }
 

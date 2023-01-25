@@ -47,7 +47,7 @@ public class CoreConfig {
         this.mf = mf;
     }
 
-    public boolean hasArg(CoreArgs a) {
+    public boolean hasFlag(CoreArgs a) {
         return isTrue(this.args.get(a));
     }
 
