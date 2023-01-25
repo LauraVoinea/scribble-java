@@ -33,6 +33,7 @@ import org.scribble.core.type.name.Role;
 
 // Immutable -- send/receive/etc return updated copies
 public class SingleBuffers {
+
     private final Map<Role, Map<Role, Boolean>> connected = new HashMap<>();  // local -> peer -> does-local-consider-connected  (symmetric)
     // CHECKME: refactor as Map<Role, Set<Role>> ?  cf. ConnectionChecker
 

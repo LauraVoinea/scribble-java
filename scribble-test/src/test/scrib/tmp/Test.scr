@@ -135,6 +135,21 @@ module tmp.Test;
 
 
 
+//HERE
+//- move checking methods out of Protocol to visitors
+//- redo passes as a DS instead of method
+//- basicinteraction etc interfaces
+// XXX redo G/LType with composition and interfaces instead of inheritance -- XXX too much boiler, use composition when needed for extensions (e.g., L/GProtocol, EState/Action)
+//- check interfaces, e.g., proto, protoname, etc.
+//- hash code constants
+//- unmodifiable lists/maps
+//- runtime flags in test suite
+//- exceptions -> optional -- also warnings
+//- pretty printing
+
+
+
+
 
 data <java> "..." from "..." as T;
 
@@ -142,8 +157,6 @@ data <java> "..." from "..." as T;
 //*
 global protocol Proto1(role A, role B, role C)
 {
-    	//2(T) from C to A;  // HERE HERE redo G/LType with composition and interfaces instead of inheritance
-
     // Testing UnboundedRecursionChecker
     choice at A {
     	1(T) from A to B;
