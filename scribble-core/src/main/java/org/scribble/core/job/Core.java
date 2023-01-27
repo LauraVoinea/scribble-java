@@ -284,7 +284,7 @@ public class Core {
                     b = true;
                     //verbosePrintln(e.getMessage());
                     if (this.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
-                        throw e;  // AllTest, 256/355
+                        throw e;  // GoodTest, 92/191 -- BadTest, unbounded WF vs. unsafe fail not currently distinguished (so all "correctly" fail)
                     }
                 }
                 this.context.setPotentiallyUnbounded(fullname, b);
