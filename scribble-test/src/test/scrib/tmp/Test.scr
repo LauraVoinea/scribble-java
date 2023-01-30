@@ -154,6 +154,8 @@ global protocol Proto1(role A, role B) {
     /*1(T) from A to B;
     2(T) from B to A;*/
 
+    //do Proto1(A, B);
+
     mixed {
         1(T) from A to B;
     } () or A->B () {

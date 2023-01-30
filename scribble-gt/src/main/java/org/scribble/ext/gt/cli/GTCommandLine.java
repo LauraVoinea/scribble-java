@@ -9,6 +9,7 @@ import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
+import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
@@ -94,18 +95,18 @@ public class GTCommandLine extends CommandLine {
         Core core = this.job.getCore();
         CoreContext c = core.getContext();
 
+
         Map<ModuleName, Module> parsed = this.main.getParsedModules();
-        System.out.println("\n-----\n");
+        System.out.println("\n----- GT -----\n");
         System.out.println(parsed.keySet());
 
         for (ModuleName n : parsed.keySet()) {
             Module m = parsed.get(n);
             for (GProtoDecl g : m.getGProtoDeclChildren()) {
-                System.out.println(g);
+                GProtocol inlined = c.getInlined(g.getFullMemberName(parsed.get(n)));
+                System.out.println(inlined);
 
-                GProtoDef defChild = g.getDefChild();
-                GInteractionSeq interactSeqChild = defChild.getBlockChild().getInteractSeqChild();
-                GTGType translate = new GTGTypeTranslator2().translate(interactSeqChild);
+                GTGType translate = new GTGTypeTranslator2().translate(inlined.def);
 
                 System.out.println("---");
 

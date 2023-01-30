@@ -28,12 +28,10 @@ import org.scribble.visit.GTypeTranslator;
 import java.util.LinkedList;
 import java.util.List;
 
-public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel
-{
-	
-	@Override
-	public GNode translate(ScribNode n, GTypeTranslator t)
-	{
+public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel {
+
+    @Override
+    public GNode translate(ScribNode n, GTypeTranslator t) {
 		/*GChoice source = (GChoice) n;
 		Role subj = source.getSubjectChild().toName();
 		List<GSeq> blocks = new LinkedList<>();
@@ -42,7 +40,8 @@ public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel
 			blocks.add((GSeq) b.visitWithNoThrows(t));
 		}
 		return t.tf.global.GChoice(source, subj, blocks);*/
-		//throw new RuntimeException("TODO");
-		return null;  // !!! XXX FIXME: cf. GInteractionSeqDel
-	}
+
+        //throw new RuntimeException("TODO");
+        return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel
+    }
 }
