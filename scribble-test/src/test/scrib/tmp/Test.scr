@@ -132,13 +132,16 @@ module tmp.Test;
 // Multisend -- inference of multisend -- per-choice projection?
 
 
+// HERE extend ANTLR -- copy frontend stuff from scrib-assrt
 
 //... HERE:
 // - recursion
-// -  check projection in paper (wiggly projection, multichoice) -- paper is WIP
+//   - update global semantics -- need project \Theta
+// - check projection in paper (wiggly projection, multichoice) -- paper is WIP
 // - do projection -- test preservation of good, well-nested -- test well-nested invariant
 // - check vs. Latex -- global semantics
 // - check why B gets committed -- investigate l* -- projection, locals
+
 
 
 // A->B .... |> B->A
@@ -147,7 +150,23 @@ module tmp.Test;
 data <java> "..." from "..." as T;
 
 
-//*
+global protocol Proto1(role A, role B) {
+    /*1(T) from A to B;
+    2(T) from B to A;*/
+
+    mixed {
+        1(T) from A to B;
+    } () or A->B () {
+        2(T) from B to A;
+    }
+}
+
+
+
+
+
+
+/*
 global protocol Proto1(role A, role B, role C)
 {
 	//1(T) from A to B;
@@ -157,29 +176,196 @@ global protocol Proto1(role A, role B, role C)
 	    2(T) from A to B;
 	} or {
 	    3(T) from A to B;
-	}*/
+	}* /
 
     // !!! BNF p->q{...} L|>R q->p{...}  -- vs. G L|>R G'
 
     mixed {
 	    3(T) from A to B;
+	    4(T) from B to C;
 	    //5() from B to C;
         /*choice at A {
             5(T) from A to B;
         } or {
             6(T) from A to B;
         }*/
-	    mixed {
+	    /*mixed {
 	        5(T) from A to B;
 	    } () or A->B () {
 	        //6(T) from A to B;
 	        6(T) from B to A;
-	    }
+	    }* /
     //} () or A->B () {
     } () or A->B () {
 	    4(T) from B to A;
 	    //6() from B to C;
     }
+    //*/
+
+/*
+
+mixed {
+    A -> B : 1
+    B -> C : 2
+
+    mixed {
+        A -> B: 3
+        B -> C: 4
+    } |> {
+        B -> A: timeout2
+        B -> C: 200
+    }
+
+} |> {
+    B -> A : timeout1
+    B -> C : 100
+}
+
+
+
+HERE do local semantics with queues (FIFO + discard), static commit/noncommit messages
+
+
+
+C:
+B?{ 2:   B? {4: ..., 200:..., XXX100XXX}  ,
+    100: ... }
+
+
+// Alice receiving from Bob (l1) or Carol (timeout l2)
+receive
+    l2 -> ...
+    l1 -> ...
+after ...
+
+
+
+A->B.G1    |>(A->B)   B->A.G2
+
+A: B!. X?{l1..., l2...} |> B?l3...
+... -- when timeout message detected?  on send or not?  no, [LSnd]
+B!. Y? { ....  X?{l1..., l2...}   ... } |> B?l3...
+-encode->
+B!.B?{l1..., l2..., l3...} XXX
+- but scope of |> ? once B knows A committed L2 irrelevant (so inject all receives incorrect)
+=> local type -- need to drop |> contexts when committed?
+
+B: A?.L_1 |> A!.L_2
+receive A? -> L1 after t -> A! L2
+-- after A? commmitted L1, after disabled -- and vice versa
+
+=> recursion?
+
+*/
+
+/* LRCV2
+A->B . A->*C* ... |> B-A>...
+*/
+
+    /*mixed {
+        1(T) from A to B;
+
+        mixed {
+            3(T) from A to B;
+        } () or A->B () {
+            4(T) from B to A;
+        }
+
+    } () or A->B () {
+        2(T) from B to A;
+    }*/
+
+    /*Msg() from A to B;
+    mixed {
+        Msg() from A to B;
+        // DEATH/end
+    } () or A->B () {
+        Ack() from B to A;
+    }*/
+
+    /*Msg(T) from A to B;
+    mixed {
+        TIMEOUT() from A to B;
+    } () or A->B () {
+        Ack() from B to A;
+    }*/
+
+    /*Msg(T) from A to B;
+    mixed {
+        Ack() from B to A;
+        Msg(T) from A to B;
+        mixed {
+            Ack() from B to A;
+        } () or A->B () {
+            TIMEOUT() from A to B;
+        }
+    } () or B->A () {
+        TIMEOUT() from A to B;
+    }*/
+
+    // msg is from A to B
+    // fail/timeout is from A to B
+    // ack from B to A
+    /*mixed {
+        init(T) from B to A;
+        1() from A to B;
+        mixed {
+            2(T) from A to B;
+            Ack() from B to A;
+            Ack() from B to A;
+        } or {
+            Ack() from B to A;
+            2() from A to B;
+            Ack() from B to A;
+        }
+    } or {
+        TIMEOUT() A to B;
+    }*/
+
+    /*1(T) from A to B;  // HERE
+    mixed {
+        Ack() from B to A;
+    } () or B->A () {
+        2(T) from A to B;
+        mixed {
+            Ack2() from B to A;
+        } () or B->A () {
+            Fail() from A to B;
+        }
+    }*/
+
+/*
+[10:06] Laura Bocchi
+S0 = ! msg. S1
+S1 = ! msg. S2 + ? ack. S1
+S2 = ...
+Sn = ? ack . Sn-1 + DEATH
+
+[10:09] Laura Bocchi
+S0 = p-->q : msg . S1
+S1 =  p-->q : msg . S2 |> q-->p : ack. S0
+
+[10:30] Laura Bocchi
+
+S0 = p-->q : msg . S1
+
+S1 = q-->p : ack. S0 |> p-->q : msg . S2
+
+[10:56] Laura Bocchi
+S0=
+msg(T) from A to B ;  S1
+
+S1 =
+mixed
+   {ack() from B to A ; S0 } or
+   {msg(T) from A to B;
+      mixed
+      {ack() from B to A ; S1 } or
+     {fail(T) from A to B; end}
+    }
+* /
+
+
 }
 //*/
 

@@ -6,8 +6,11 @@ import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,7 +23,7 @@ public class GTGInteraction implements GTGType {
 
     public final Role src;
     public final Role dst;
-    public final Map<Op, GTGType> cases;  // Pre: Unmodifiable, non-empty
+    public final Map<Op, GTGType> cases;  // Pre: "Ordered", Unmodifiable, non-empty
 
     protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
@@ -28,6 +31,13 @@ public class GTGInteraction implements GTGType {
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                         Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                                 (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getTimeoutIds().stream())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -93,7 +103,7 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public Optional<GTGType> step(SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
         if (this.src.equals(a.subj)) {
            if (a.isSend()) {  // [Snd]
                SSend cast = (SSend) a;
@@ -101,7 +111,9 @@ public class GTGInteraction implements GTGType {
                        && this.cases.keySet().contains(cast.mid)) {
                    //return Optional.of(this.cases.get(cast.mid));
                    LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                   return Optional.of(this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp));
+                   return Optional.of(new Pair<>(
+                           theta,
+                           this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp)));
                }
            }
            return Optional.empty();
@@ -109,24 +121,27 @@ public class GTGInteraction implements GTGType {
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
                 : Optional.empty();*/
-            Optional<LinkedHashMap<Op, GTGType>> nestedCases = stepNested(this.cases, a);
-            return nestedCases.map(x -> this.fact.choice(this.src, this.dst, x));
+            Optional<LinkedHashMap<Op, GTGType>> nestedCases =
+                    stepNested(this.cases, theta, a);
+            return nestedCases.map(x -> new Pair<>(
+                    theta,
+                    this.fact.choice(this.src, this.dst, x)));
         }
         return Optional.empty();
     }
 
     protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
-            Map<Op, GTGType> cases, SAction a) {
+            Map<Op, GTGType> cases, Theta theta, SAction a) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
             GTGType c = e.getValue();
-            Optional<GTGType> step = c.step(a);
+            Optional<Pair<Theta, GTGType>> step = c.step(theta, a);
             if (step.isEmpty()) {
                 return Optional.empty();
             }
-            cs.put(op, step.get());
+            cs.put(op, step.get().right);
         }
         return Optional.of(cs);
         /*boolean done = false;
@@ -150,7 +165,7 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
+    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);
@@ -162,7 +177,7 @@ public class GTGInteraction implements GTGType {
                 SSend a = mf.SSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
                 collect.add(a);
             }
-            collect.addAll(e.getValue().getActs(mf, tmp));
+            collect.addAll(e.getValue().getActs(mf, theta, tmp));
         }
         return collect;
     }

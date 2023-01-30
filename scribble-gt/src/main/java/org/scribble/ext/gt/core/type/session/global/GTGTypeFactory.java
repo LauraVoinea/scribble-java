@@ -22,10 +22,17 @@ public class GTGTypeFactory {
     }
 
     public GTGMixedChoice mixedChoice(
-            GTGType left, GTGType right, Role sec, Role pri,
-            LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
-        return new GTGMixedChoice(left, right, sec, pri, committedLeft, committedRight);
+            int c, GTGType left, GTGType right, Role other, Role observer) {  // other->observer |> observer->other
+        return new GTGMixedChoice(c, left, right, other, observer);
     }
+
+    public GTGMixedActive activeMixedChoice(
+            int c, int n, GTGType left, GTGType right, Role other, Role observer,  // other->observer |> observer->other
+            LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
+        return new GTGMixedActive(c, n, left, right, other, observer, committedLeft, committedRight);
+    }
+
+    //public GTGMixedChoice mixedChoice(int c, GTGType left, GTGType right, Role sec, Role pri, ) {
 
     public GTGEnd end() {
         return GTGEnd.END;

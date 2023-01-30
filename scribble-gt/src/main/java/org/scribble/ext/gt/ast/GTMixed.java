@@ -31,8 +31,8 @@ public abstract class GTMixed<K extends ProtoKind>
 {
 	public static final int LEFT_BLOCK_CHILD_INDEX = 0;
 	public static final int LEFT_ROLEARGS_CHILD_INDEX = 1;
-	public static final int SECONDARY_CHILD_INDEX = 2;
-	public static final int PRIMARY_CHILD_INDEX = 3;
+	public static final int OTHER_CHILD_INDEX = 2;
+	public static final int OBSERVER_CHILD_INDEX = 3;
 	public static final int RIGHT_ROLEARGS_CHILD_INDEX = 4;
 	public static final int RIGHT_BLOCK_CHILD_INDEX = 5;
 
@@ -51,12 +51,12 @@ public abstract class GTMixed<K extends ProtoKind>
 	public abstract ProtoBlock<K> getLeftBlockChild();
 	public abstract ProtoBlock<K> getRightBlockChild();
 
-	public RoleNode getSecondaryChild() {
-		return (RoleNode) getChild(SECONDARY_CHILD_INDEX);
+	public RoleNode getOtherChild() {
+		return (RoleNode) getChild(OTHER_CHILD_INDEX);
 	}
 
-	public RoleNode getPrimaryChild() {
-		return (RoleNode) getChild(PRIMARY_CHILD_INDEX);
+	public RoleNode getObserverChild() {
+		return (RoleNode) getChild(OBSERVER_CHILD_INDEX);
 	}
 
 	public RoleArgList getLeftRoleListChild()  // cf. ast.Do
@@ -106,9 +106,9 @@ public abstract class GTMixed<K extends ProtoKind>
 		RoleArgList leftCommitted =
 				(RoleArgList) visitChild(getLeftRoleListChild(), nv);
 		RoleNode obs =
-				(RoleNode) visitChild(getSecondaryChild(), nv);
+				(RoleNode) visitChild(getOtherChild(), nv);
 		RoleNode tim =
-				(RoleNode) visitChild(getPrimaryChild(), nv);
+				(RoleNode) visitChild(getObserverChild(), nv);
 		RoleArgList rightCommitted =
 				(RoleArgList) visitChild(getRightRoleListChild(), nv);
 		ProtoBlock<K> right =
@@ -121,7 +121,7 @@ public abstract class GTMixed<K extends ProtoKind>
 	{
 		return "mixed " + getLeftBlockChild() + " " + getLeftRoleListChild()
 				+ " " + Constants.OR_KW + " "
-				+ getSecondaryChild()  + "->" + getPrimaryChild() + " "
+				+ getOtherChild()  + "->" + getObserverChild() + " "
 				+ getRightRoleListChild() + " " + getRightBlockChild();
 	}
 }

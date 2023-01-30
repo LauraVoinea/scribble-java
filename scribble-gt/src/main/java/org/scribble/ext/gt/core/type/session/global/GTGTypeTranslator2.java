@@ -9,13 +9,15 @@ import org.scribble.ext.gt.ast.GTMixed;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class GTGTypeTranslator2 {
 
+    private static int counter = 1;
+
     private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
+
 
     public GTGType translate(GScribNode g) {
         if (g instanceof GInteractionSeq) {
@@ -108,10 +110,10 @@ public class GTGTypeTranslator2 {
     protected GTGMixedChoice translateGMixed(GTGMixed g) {
         GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
-        Role sec = g.getSecondaryChild().toName();
-        Role pri = g.getPrimaryChild().toName();
-        LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
-        LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());
-        return this.fact.mixedChoice(left, right, sec, pri, committedLeft, committedRight);
+        Role other = g.getOtherChild().toName();
+        Role observer = g.getObserverChild().toName();
+        /*LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
+        LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());*/
+        return this.fact.mixedChoice(this.counter++, left, right, other, observer);//, committedLeft, committedRight);
     }
 }

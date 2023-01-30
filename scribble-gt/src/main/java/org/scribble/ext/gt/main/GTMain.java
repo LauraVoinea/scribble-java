@@ -5,8 +5,10 @@ import org.scribble.ast.Module;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.del.DelFactory;
+import org.scribble.ext.gt.core.job.GTJob;
 import org.scribble.ext.gt.del.GTDelFactoryImpl;
 import org.scribble.ext.gt.parser.GTScribAntlrWrapper;
+import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.parser.ScribAntlrWrapper;
@@ -35,6 +37,14 @@ public class GTMain extends Main
 			throws ScribException, ScribParserException
 	{
 		super(locator, mainpath, args);
+	}
+
+	@Override
+	protected GTJob newJob(Map<ModuleName, Module> parsed, CoreArgs args,
+						   ModuleName mainFullname, AstFactory af, DelFactory df)
+			throws ScribException
+	{
+		return new GTJob(mainFullname, args, parsed, af, df);
 	}
 
 	@Override

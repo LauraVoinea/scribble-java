@@ -4,22 +4,18 @@ import org.scribble.ast.Module;
 import org.scribble.ast.global.GInteractionSeq;
 import org.scribble.ast.global.GProtoDecl;
 import org.scribble.ast.global.GProtoDef;
-import org.scribble.cli.CLFlag;
-import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
 import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.ModuleName;
-import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator2;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.job.Job;
@@ -27,14 +23,12 @@ import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.util.AntlrSourceException;
-import org.scribble.util.Pair;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribParserException;
 
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GTCommandLine extends CommandLine {
 
@@ -52,7 +46,7 @@ public class GTCommandLine extends CommandLine {
 
 		GTCommandLine cl = new GTCommandLine(args);
 		cl.run();
-		cl.myRun();
+		cl.gtRun();
 	}
 
 	/*// A Scribble extension should override as appropriate
@@ -97,7 +91,7 @@ public class GTCommandLine extends CommandLine {
 		return main;
 	}
 
-	protected void myRun() {
+	protected void gtRun() {
 		Core core = this.job.getCore();
 		CoreContext c = core.getContext();
 
@@ -153,7 +147,11 @@ public class GTCommandLine extends CommandLine {
 			System.err.println("Pruned.");
 			return;
 		}
-		Set<SAction> as = g.getActs(core.config.mf.global);
+		GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+
+		Theta theta = new Theta(g.getTimeoutIds());
+
+		Set<SAction> as = g.getActs(mf, theta);
 		/*System.out.println(as);
 		SAction a = as.iterator().next();
 		GTGType g1 = g.step(a).get();  // a in as so step is non-empty
@@ -173,7 +171,8 @@ public class GTCommandLine extends CommandLine {
 
 		for (SAction a : as) {
 			//System.out.println("bbb: " + g + " ,, " + a);
-			GTGType g1 = g.step(a).get();  // a in as so step is non-empty
+
+			GTGType g1 = g.step(theta, a).get().right;  // a in as so step is non-empty
 			System.out.println(indent + "a = " + a);
 			System.out.println(indent + "g = " + g1);
 			if (!g1.equals(GTGEnd.END)) {

@@ -6,8 +6,11 @@ import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +33,13 @@ public class GTGWiggly implements GTGType {
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getTimeoutIds().stream())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -92,7 +102,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public Optional<GTGType> step(SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
         if (this.dst.equals(a.subj)) {
             if (a.isReceive()) {  // [Rcv]
                 SRecv cast = (SRecv) a;
@@ -100,7 +110,7 @@ public class GTGWiggly implements GTGType {
                         && this.cases.keySet().contains(cast.mid)) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    return Optional.of(this.cases.get(cast.mid));
+                    return Optional.of(new Pair<>(theta, this.cases.get(cast.mid)));
                 }
             }
             return Optional.empty();
@@ -109,24 +119,26 @@ public class GTGWiggly implements GTGType {
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
                     : Optional.empty();*/
             Optional<LinkedHashMap<Op, GTGType>> nestedCases
-                    = stepNested(this.cases, a);  // !!! XXX I\k
-            return nestedCases.map(x -> this.fact.wiggly(this.src, this.dst, this.op, x));
+                    = stepNested(this.cases, theta, a);  // !!! XXX I\k
+            return nestedCases.map(x -> new Pair<>(
+                    theta,
+                    this.fact.wiggly(this.src, this.dst, this.op, x)));
         }
     }
 
     protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
-            Map<Op, GTGType> cases, SAction a) {
+            Map<Op, GTGType> cases, Theta theta, SAction a) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
             GTGType c = e.getValue();
             if (op.equals(this.op)) {
-                Optional<GTGType> step = c.step(a);
+                Optional<Pair<Theta, GTGType>> step = c.step(theta, a);
                 if (step.isEmpty()) {
                     return Optional.empty();
                 }
-                cs.put(op, step.get());
+                cs.put(op, step.get().right);
             } else {
                 cs.put(op, c);
             }
@@ -135,7 +147,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
+    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.dst);
         LinkedHashSet<SAction> collect = new LinkedHashSet<>();
@@ -145,7 +157,7 @@ public class GTGWiggly implements GTGType {
                 SRecv a = mf.SRecv(this.dst, this.src, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
                 collect.add(a);
             }
-            collect.addAll(e.getValue().getActs(mf, tmp));
+            collect.addAll(e.getValue().getActs(mf, theta, tmp));
         }
         return collect;
     }

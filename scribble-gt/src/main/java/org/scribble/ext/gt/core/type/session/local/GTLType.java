@@ -17,6 +17,11 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int SELECT_HASH = 9859;
     int MIXED_CHOICE_HASH = 9871;
 
+    // this merge g  -- should be symmetric
+    default Optional<GTLType> merge(GTLType t) {
+        return this.equals(t) ? Optional.of(this) : Optional.empty();
+    }
+
     // a is deterministic (including "nested" steps)
     Optional<GTLType> step(EAction a);
 

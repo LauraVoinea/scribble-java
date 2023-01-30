@@ -1,22 +1,18 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.antlr.runtime.tree.CommonTree;
-import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.SType;
-import org.scribble.core.type.session.global.GSeq;
-import org.scribble.core.visit.STypeAgg;
-import org.scribble.core.visit.STypeAggNoThrow;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.local.GTLEnd;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.util.ScribException;
+import org.scribble.util.Pair;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
 
 // !!! No "fid"
 public class GTGEnd implements GTGType {
@@ -46,12 +42,17 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public Optional<GTGType> step(SAction a) {
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
         return Optional.empty();
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(SModelFactory mf, Set<Role> blocked) {
+    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         return new LinkedHashSet<>();
     }
 
