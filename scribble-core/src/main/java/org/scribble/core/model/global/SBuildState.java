@@ -43,6 +43,9 @@ public class SBuildState {
         return new SBuildState(succ, history);
     }
 
+    // Cf. sender with recursive "double" output but receiver with recursive "single" input...
+    // ...(e.g., from unfold-all expansions, e.g., "unguarded choice-recs")...
+    // ..."clear" is sound in some regards, but unsound in others (e.g., max buffer bounds)
     public SBuildState clear(Role dst, EAction a, SState succ) {
         Map<Role, Map<Role, List<EAction>>> history = cloneHistory(this.history);  // TODO optimise, factor out clone with constructor
         Map<Role, List<EAction>> map = history.get(a.peer);
