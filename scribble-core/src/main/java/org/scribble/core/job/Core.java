@@ -279,9 +279,9 @@ public class Core {
                 } catch (UnboundedRecursionException e) {
                     b = true;
                     //verbosePrintln(e.getMessage());
-                    if (this.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
+                    /*if (this.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
                         throw e;  // GoodTest, 92/191 -- cf. BadTest, "unbounded WF" exception vs. actual safety violation not currently distinguished (so all fail anyway)
-                    }
+                    }*/
                 }
                 this.context.setPotentiallyUnbounded(fullname, b);
             }

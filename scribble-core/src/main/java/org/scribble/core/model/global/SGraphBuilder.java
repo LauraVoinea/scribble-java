@@ -15,10 +15,6 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.endpoint.EFsm;
@@ -33,6 +29,10 @@ import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.util.RuntimeScribException;
 import org.scribble.util.ScribException;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class SGraphBuilder {
     public final Core core;
@@ -52,13 +52,11 @@ public class SGraphBuilder {
         SBuffers b0;
         if (this.core.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
             if (this.core.getContext().isPotentiallyUnbounded(fullname)) {
-                throw new RuntimeScribException(
+                /*throw new RuntimeScribException(
                         "Potentially unbounded protocol, aborting model construction:\n"
-                                + fullname);
-                //b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
-            } else {
-                b0 = new SQueues(efsms.keySet(), !explicit);
+                                + fullname);*/
             }
+            b0 = new SQueues(efsms.keySet(), !explicit);
         } else {
             b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
         }
@@ -73,15 +71,20 @@ public class SGraphBuilder {
         this.util.reset();
 
         SConfig c0 = createInitConfig(egraphs, explicit, fullname);
-        SState init = this.util.newState(c0);
-        Set<SState> seen = new HashSet<>();
-        Set<SState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s>, faster than full SConfig hash ?
+        SState initState = this.util.newState(c0);
+        SBuildState init = new SBuildState(initState, Collections.emptyMap());
+
+        SScheduler sched = new SScheduler();
+
+        // More efficient to use SConfig instead SState here?
+        Set<SBuildState> seen = new HashSet<>();
+        Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?
         todo.add(init);
         for (//int debugCount = 1
                 ; !todo.isEmpty(); ) // Compute configs and use util to construct graph, until no more new configs
         {
-            Iterator<SState> i = todo.iterator();
-            SState curr = i.next();
+            Iterator<SBuildState> i = todo.iterator();
+            SBuildState curr = i.next();
             i.remove();
             seen.add(curr);
 			/*if (this.core.config.args.get(CoreArgs.VERBOSE))
@@ -94,16 +97,43 @@ public class SGraphBuilder {
 			}*/
 
             // Based on dynamic config semantics, not "static" graph edges (cf., super.getActions) -- used to build global model graph
-            Map<Role, Set<EAction>> fireable = curr.config.getFireable();
+            Map<Role, Set<EAction>> fireable = curr.state.config.getFireable();
             for (Role r : fireable.keySet()) {
                 for (EAction a : fireable.get(r)) {
+
+                    if (!sched.canSchedule(curr.history, r, a)) {
+                        continue;
+                    }
+                    /*if (a.isSend()) {
+                        sched.add(r, a);
+                    } else if (a.isReceive() || a.isDisconnect()) {  // Async
+                        sched.clear(a.peer, r);
+                    } else if (a.isAccept() || a.isRequest() || a.isClientWrap()
+                            || a.isServerWrap()) {  // Sync
+                        sched.add(r, a);
+                        sched.clear(a.peer, r);
+                    }*/
+
                     // Asynchronous (input/output) actions
                     if (a.isSend() || a.isReceive() || a.isDisconnect()) {
-                        Set<SConfig> next = new HashSet<>(curr.config.async(r, a));
+                        Set<SConfig> next = new HashSet<>(curr.state.config.async(r, a));
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
-                        Set<SState> succs = this.util.getSuccs(curr, a.toGlobal(r), next);  // util.getSuccs constructs the edges
-                        succs.stream().filter(x -> !seen.contains(x))
-                                .forEach(x -> todo.add(x));
+                        Set<SState> succs = this.util.getSuccs(curr.state, a.toGlobal(r), next);  // util.getSuccs constructs the edges
+
+                        for (SState succ : succs) {
+                            SBuildState bsucc;
+                            if (a.isSend()) {
+                                bsucc = curr.add(r, a, succ);
+                            } else if (a.isReceive() || a.isDisconnect()) {
+                                bsucc = curr.clear(r, a, succ);
+                            } else {
+                                throw new RuntimeException("Unknown action kind: " + a);
+                            }
+
+                            if (!seen.contains(bsucc)) {
+                                todo.add(bsucc);
+                            }
+                        }
                     }
                     // Synchronous (client/server) actions
                     else if (a.isAccept() || a.isRequest() || a.isClientWrap()
@@ -116,11 +146,23 @@ public class SGraphBuilder {
                                     ? a.toGlobal(r)
                                     : abar.toGlobal(a.peer);
                             // CHECKME: edge will be drawn as the connect, but should be read as the sync. of both -- something like "r1, r2: sync" may be more consistent (or take a set of actions as the edge label?)
-                            Set<SConfig> next = new HashSet<>(curr.config.sync(r, a, a.peer, abar));
+                            Set<SConfig> next = new HashSet<>(curr.state.config.sync(r, a, a.peer, abar));
                             // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
-                            Set<SState> succs = this.util.getSuccs(curr, aglobal, next);  // util.getSuccs constructs the edges
-                            succs.stream().filter(x -> !seen.contains(x))
-                                    .forEach(x -> todo.add(x));
+                            Set<SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
+
+                            for (SState succ : succs) {
+                                SBuildState bsucc;
+                                if (a.isAccept() || a.isRequest() || a.isClientWrap()
+                                        || a.isServerWrap()) {
+                                    bsucc = curr.syncClear(r, a.peer, succ);
+                                } else {
+                                    throw new RuntimeException("Unknown action kind: " + a);
+                                }
+
+                                if (!seen.contains(bsucc)) {
+                                    todo.add(bsucc);
+                                }
+                            }
                         }
                     } else {
                         throw new RuntimeException("Unknown action kind: " + a);
@@ -130,6 +172,6 @@ public class SGraphBuilder {
         }
 
         return this.core.config.mf.global.SGraph(
-                fullname, this.util.getStates(), init);
+                fullname, this.util.getStates(), initState);
     }
 }
