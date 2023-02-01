@@ -17,6 +17,7 @@ package org.scribble.core.model.endpoint;
 
 import java.util.Set;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.ModelFactoryBase;
 import org.scribble.core.model.endpoint.actions.EAcc;
@@ -32,65 +33,54 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
 // Separate E/SModelFactories fits protected E/SState constructor pattern
-public class EModelFactoryImpl extends ModelFactoryBase implements EModelFactory
-{
-	
-	public EModelFactoryImpl(ModelFactory mf)
-	{
-		super(mf);
-	}
+public class EModelFactoryImpl extends ModelFactoryBase implements EModelFactory {
 
-	@Override
-	public EGraphBuilderUtil EGraphBuilderUtil()
-	{
-		return new EGraphBuilderUtil(this.mf);
-	}
+    public EModelFactoryImpl(ModelFactory mf) {
+        super(mf);
+    }
 
-	@Override
-	public EState EState(Set<RecVar> labs)
-	{
-		return new EState(labs);
-	}
+    @Override
+    public EGraphBuilderUtil EGraphBuilderUtil() {
+        return new EGraphBuilderUtil(this.mf);
+    }
 
-	@Override
-	public ESend ESend(Role peer, MsgId<?> mid, Payload pay)
-	{
-		return new ESend(this.mf, peer, mid, pay);
-	}
+    @Override
+    public EState EState(Set<RecVar> labs) {
+        return new EState(labs);
+    }
 
-	@Override
-	public ERecv ERecv(Role peer, MsgId<?> mid, Payload pay)
-	{
-		return new ERecv(this.mf, peer, mid, pay);
-	}
+    @Override
+    public <T extends ActionKind> ESend<T> ESend(Role peer, MsgId<?> mid, Payload pay) {
+        return new ESend<>(this.mf, peer, mid, pay);
+    }
 
-	@Override
-	public EReq EReq(Role peer, MsgId<?> mid, Payload pay)
-	{
-		return new EReq(this.mf, peer, mid, pay);
-	}
+    @Override
+    public <T extends ActionKind> ERecv<T> ERecv(Role peer, MsgId<?> mid, Payload pay) {
+        return new ERecv<>(this.mf, peer, mid, pay);
+    }
 
-	@Override
-	public EAcc EAcc(Role peer, MsgId<?> mid, Payload pay)
-	{
-		return new EAcc(this.mf, peer, mid, pay);
-	}
+    @Override
+    public <T extends ActionKind> EReq<T> EReq(Role peer, MsgId<?> mid, Payload pay) {
+        return new EReq<>(this.mf, peer, mid, pay);
+    }
 
-	@Override
-	public EDisconnect EDisconnect(Role peer)
-	{
-		return new EDisconnect(this.mf, peer);
-	}
+    @Override
+    public <T extends ActionKind> EAcc<T> EAcc(Role peer, MsgId<?> mid, Payload pay) {
+        return new EAcc<>(this.mf, peer, mid, pay);
+    }
 
-	@Override
-	public EClientWrap EClientWrap(Role peer)
-	{
-		return new EClientWrap(this.mf, peer);
-	}
+    @Override
+    public <T extends ActionKind> EDisconnect<T> EDisconnect(Role peer) {
+        return new EDisconnect<>(this.mf, peer);
+    }
 
-	@Override
-	public EServerWrap EServerWrap(Role peer)
-	{
-		return new EServerWrap(this.mf, peer);
-	}
+    @Override
+    public <T extends ActionKind> EClientWrap<T> EClientWrap(Role peer) {
+        return new EClientWrap<>(this.mf, peer);
+    }
+
+    @Override
+    public <T extends ActionKind> EServerWrap<T> EServerWrap(Role peer) {
+        return new EServerWrap<>(this.mf, peer);
+    }
 }

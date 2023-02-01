@@ -15,26 +15,30 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
-import org.scribble.core.model.MActionBase;
-import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.*;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class ESend extends EAction {
+public class ESend<A extends ActionKind> extends EAction<A> {
 
     public ESend(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
         super(ef, peer, mid, pay);
     }
 
     @Override
-    public ERecv toDual(Role self) {
+    public ESend<DynamicActionKind> toDynamic() {
+        return this.mf.local.ESend(this.peer, this.mid, this.payload);
+    }
+
+    @Override
+    public ERecv<DynamicActionKind> toDynamicDual(Role self) {
         return this.mf.local.ERecv(self, this.mid, this.payload);
     }
 
     @Override
-    public SSend toGlobal(Role self) {
+    public SSend<StaticActionKind> toStaticGlobal(Role self) {
         return this.mf.global.SSend(self, this.peer, this.mid, this.payload);
     }
 

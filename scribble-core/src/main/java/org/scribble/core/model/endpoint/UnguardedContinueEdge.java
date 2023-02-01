@@ -15,7 +15,9 @@
  */
 package org.scribble.core.model.endpoint;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
@@ -23,18 +25,23 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-class UnguardedContinueEdge extends EAction {
+class UnguardedContinueEdge extends EAction<StaticActionKind> {
     public UnguardedContinueEdge(ModelFactory mf, RecVar rv) {
         super(mf, Role.EMPTY_ROLE, new Op(rv.toString()), Payload.EMPTY_PAYLOAD);  // HACK
     }
 
     @Override
-    public EAction toDual(Role self) {
+    public EAction<DynamicActionKind> toDynamic() {
         throw new RuntimeException("Shouldn't get in here: " + this);
     }
 
     @Override
-    public SAction toGlobal(Role self) {
+    public EAction<DynamicActionKind> toDynamicDual(Role self) {
+        throw new RuntimeException("Shouldn't get in here: " + this);
+    }
+
+    @Override
+    public SAction<StaticActionKind> toStaticGlobal(Role self) {
         throw new RuntimeException("Shouldn't get in here: " + this);
     }
 

@@ -15,24 +15,33 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
+import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SAcc;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class EAcc extends EAction {
+public class EAcc<A extends ActionKind> extends EAction<A> {
+
     public EAcc(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay) {
         super(mf, peer, mid, pay);
     }
 
     @Override
-    public EReq toDual(Role self) {
+    public EAcc<DynamicActionKind> toDynamic() {
+        return this.mf.local.EAcc(this.peer, this.mid, this.payload);
+    }
+
+    @Override
+    public EReq<DynamicActionKind> toDynamicDual(Role self) {
         return this.mf.local.EReq(self, this.mid, this.payload);
     }
 
     @Override
-    public SAcc toGlobal(Role self) {
+    public SAcc<StaticActionKind> toStaticGlobal(Role self) {
         return this.mf.global.SAcc(self, this.peer, this.mid, this.payload);
     }
 

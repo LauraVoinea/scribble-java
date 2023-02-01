@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.type.name.Role;
 import org.scribble.util.Pair;
@@ -42,7 +43,7 @@ public class SModel {
         this.core = core;
 
         SortedMap<Integer, SStateErrors> sErrs = getSafetyErrors();
-        Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend>>>> pErrors
+        Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend<DynamicActionKind>>>>> pErrors
                 = Collections.emptyMap();
         if (!core.config.hasFlag(CoreArgs.NO_PROGRESS)) {
             pErrors = getProgressErrors();
@@ -56,7 +57,7 @@ public class SModel {
                         .collect(Collectors.joining(""));
             }
             if (!pErrors.isEmpty()) {
-                for (Entry<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend>>>> e :
+                for (Entry<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend<DynamicActionKind>>>>> e :
                         pErrors.entrySet()) {
                     msg += getProgressErrorMessages(e.getKey(), e.getValue());
                 }
@@ -80,13 +81,13 @@ public class SModel {
     // These are checked only on termsets (cf. safety checked on all), and "overlap" with safety errors within there
     // Could "skip" safety checks for termsets (probably better than coercing "progress" outside of termsets, as it would probably just amount to safety anyway)
     // CHECKME: factor out a TermSet class?
-    protected Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend>>>>
+    protected Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend<DynamicActionKind>>>>>
     getProgressErrors() {
-        Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend>>>> res
+        Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend<DynamicActionKind>>>>> res
                 = new HashMap<>();
         for (Set<SState> termset : this.graph.getTermSets()) {
             Set<Role> starved = checkRoleProgress(termset);
-            Map<Role, Set<ESend>> ignored = checkEventualReception(termset);
+            Map<Role, Set<ESend<DynamicActionKind>>> ignored = checkEventualReception(termset);
             if (!starved.isEmpty() || !ignored.isEmpty()) {
                 res.put(termset, new Pair<>(starved, ignored));
             }
@@ -115,12 +116,13 @@ public class SModel {
     }
 
     // cf. eventual stability (could also check within termsets)
-    protected Map<Role, Set<ESend>> checkEventualReception(Set<SState> termset) {
+    protected Map<Role, Set<ESend<DynamicActionKind>>>
+    checkEventualReception(Set<SState> termset) {
         SState s0 = termset.iterator().next();
         Set<Role> roles = s0.config.efsms.keySet();
-        Map<Role, Map<Role, List<ESend>>> q0 = s0.config.queues.getQueues();  // dest -> src -> msg -- dest.equals(msg.peer), msg is ESend to the dst
+        Map<Role, Map<Role, List<ESend<DynamicActionKind>>>> q0 = s0.config.queues.getQueues();  // dest -> src -> msg -- dest.equals(msg.peer), msg is ESend to the dst
         for (Role r1 : roles) {
-            Map<Role, List<ESend>> q0_r1 = q0.get(r1);
+            Map<Role, List<ESend<DynamicActionKind>>> q0_r1 = q0.get(r1);
             for (Role r2 : roles) {
                 //if (!r1.equals(r2) && q0_r1.get(r2) != null &&
                 if (!r1.equals(r2) && !q0_r1.get(r2).isEmpty() &&
@@ -133,9 +135,9 @@ public class SModel {
         }
 
         // q0 now shows which buffers are never null at any state in the termset
-        Map<Role, Set<ESend>> ignored = new HashMap<>();
+        Map<Role, Set<ESend<DynamicActionKind>>> ignored = new HashMap<>();
         for (Role r : roles) {
-            Set<List<ESend>> msgs = q0.values().stream()
+            Set<List<ESend<DynamicActionKind>>> msgs = q0.values().stream()
                     .flatMap(x -> x.entrySet().stream())  // For all input buffs at every role...
                     .filter(x -> x.getKey().equals(r) && x.getValue() != null && !x.getValue().isEmpty())  // ...s.t. the buff is from "r" and is non-empty
                     // Above null/isEmpty hacked for SBuffers interface
@@ -149,7 +151,7 @@ public class SModel {
 
     // Cf. SStateErrors  // TODO: refactor to Core, if not to its own class?
     protected String getProgressErrorMessages(Set<SState> termset,
-                                              Pair<Set<Role>, Map<Role, Set<ESend>>> perrors) {
+                                              Pair<Set<Role>, Map<Role, Set<ESend<DynamicActionKind>>>> perrors) {
         String msg = "";
         if (!perrors.left.isEmpty())  // starved
         {

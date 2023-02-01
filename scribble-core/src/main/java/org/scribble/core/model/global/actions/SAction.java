@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.MAction;
 import org.scribble.core.model.MActionBase;
 import org.scribble.core.type.kind.Global;
@@ -27,7 +28,8 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
 // N.B. these are not exactly global type constructors -- they are "endpoint-oriented" like locals, but record both subj/obj roles (so more like locals with self)
-public abstract class SAction extends MActionBase<Global> {
+// SAction never Dynamic
+public abstract class SAction<A extends ActionKind> extends MActionBase<Global, A> {
 
     public final Role subj;
 
@@ -64,17 +66,17 @@ public abstract class SAction extends MActionBase<Global> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SAction)) {
+        if (!(o instanceof SAction<?>)) {
             return false;
         }
-        SAction them = (SAction) o;
+        SAction<?> them = (SAction<?>) o;
         return super.equals(o)   // Checks canEquals
                 && this.subj.equals(them.subj);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof SAction;
+        return o instanceof SAction<?>;
     }
 }
 

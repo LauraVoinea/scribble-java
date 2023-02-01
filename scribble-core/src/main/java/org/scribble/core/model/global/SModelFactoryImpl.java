@@ -15,25 +15,19 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Map;
-
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.ModelFactoryBase;
 import org.scribble.core.model.endpoint.EFsm;
-import org.scribble.core.model.global.actions.SAcc;
-import org.scribble.core.model.global.actions.SClientWrap;
-import org.scribble.core.model.global.actions.SDisconnect;
-import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.model.global.actions.SReq;
-import org.scribble.core.model.global.actions.SSend;
-import org.scribble.core.model.global.actions.SServerWrap;
+import org.scribble.core.model.global.actions.*;
 import org.scribble.core.model.global.buffers.SBuffers;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+
+import java.util.Map;
 
 // Separate E/SModelFactories fits protected E/SState constructor pattern
 public class SModelFactoryImpl extends ModelFactoryBase implements SModelFactory {
@@ -70,37 +64,37 @@ public class SModelFactoryImpl extends ModelFactoryBase implements SModelFactory
     }
 
     @Override
-    public SSend SSend(Role subj, Role obj, MsgId<?> mid, Payload pay) {
-        return new SSend(subj, obj, mid, pay);
+    public <A extends ActionKind> SSend<A> SSend(Role subj, Role obj, MsgId<?> mid, Payload pay) {
+        return new SSend<>(subj, obj, mid, pay);
     }
 
     @Override
-    public SRecv SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay) {
-        return new SRecv(subj, obj, mid, pay);
+    public <A extends ActionKind> SRecv<A> SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay) {
+        return new SRecv<>(subj, obj, mid, pay);
     }
 
     @Override
-    public SReq SReq(Role subj, Role obj, MsgId<?> mid, Payload pay) {
-        return new SReq(subj, obj, mid, pay);
+    public <A extends ActionKind> SReq<A> SReq(Role subj, Role obj, MsgId<?> mid, Payload pay) {
+        return new SReq<>(subj, obj, mid, pay);
     }
 
     @Override
-    public SAcc SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay) {
-        return new SAcc(subj, obj, mid, pay);
+    public <A extends ActionKind> SAcc<A> SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay) {
+        return new SAcc<>(subj, obj, mid, pay);
     }
 
     @Override
-    public SDisconnect SDisconnect(Role subj, Role obj) {
-        return new SDisconnect(subj, obj);
+    public <A extends ActionKind> SDisconnect<A> SDisconnect(Role subj, Role obj) {
+        return new SDisconnect<>(subj, obj);
     }
 
     @Override
-    public SClientWrap SClientWrap(Role subj, Role obj) {
-        return new SClientWrap(subj, obj);
+    public <A extends ActionKind> SClientWrap<A> SClientWrap(Role subj, Role obj) {
+        return new SClientWrap<>(subj, obj);
     }
 
     @Override
-    public SServerWrap SServerWrap(Role subj, Role obj) {
-        return new SServerWrap(subj, obj);
+    public <A extends ActionKind> SServerWrap<A> SServerWrap(Role subj, Role obj) {
+        return new SServerWrap<>(subj, obj);
     }
 }

@@ -17,6 +17,7 @@ package org.scribble.core.model.endpoint;
 
 import java.util.Set;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.endpoint.actions.EAcc;
 import org.scribble.core.model.endpoint.actions.EClientWrap;
 import org.scribble.core.model.endpoint.actions.EDisconnect;
@@ -29,20 +30,25 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public interface EModelFactory
-{
-	EGraphBuilderUtil EGraphBuilderUtil();
+public interface EModelFactory {
+    EGraphBuilderUtil EGraphBuilderUtil();
 
-	// protected constructors (MState mutable)
-	EState EState(Set<RecVar> labs);
-	//EFsm new EFsm(...)
+    // protected constructors (MState mutable)
+    EState EState(Set<RecVar> labs);
+    //EFsm new EFsm(...)
 
-	// public constructors (subpackage, immutable)
-	ESend ESend(Role peer, MsgId<?> mid, Payload pay);
-	ERecv ERecv(Role peer, MsgId<?> mid, Payload pay);
-	EReq EReq(Role peer, MsgId<?> mid, Payload pay);
-	EAcc EAcc(Role peer, MsgId<?> mid, Payload pay);
-	EDisconnect EDisconnect(Role peer);
-	EClientWrap EClientWrap(Role peer);
-	EServerWrap EServerWrap(Role peer);
+    // public constructors (subpackage, immutable)
+    <T extends ActionKind> ESend<T> ESend(Role peer, MsgId<?> mid, Payload pay);
+
+    <T extends ActionKind> ERecv<T> ERecv(Role peer, MsgId<?> mid, Payload pay);
+
+    <T extends ActionKind> EReq<T> EReq(Role peer, MsgId<?> mid, Payload pay);
+
+    <T extends ActionKind> EAcc<T> EAcc(Role peer, MsgId<?> mid, Payload pay);
+
+    <T extends ActionKind> EDisconnect<T> EDisconnect(Role peer);
+
+    <T extends ActionKind> EClientWrap<T> EClientWrap(Role peer);
+
+    <T extends ActionKind> EServerWrap<T> EServerWrap(Role peer);
 }

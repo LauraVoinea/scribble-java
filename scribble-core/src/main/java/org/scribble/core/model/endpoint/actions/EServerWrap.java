@@ -15,7 +15,10 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
+import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SServerWrap;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
@@ -23,18 +26,23 @@ import org.scribble.core.type.session.Payload;
 
 // Wrap at the server side
 // Duplicated from Disconnect
-public class EServerWrap extends EAction {
+public class EServerWrap<A extends ActionKind> extends EAction<A> {
     public EServerWrap(ModelFactory ef, Role peer) {
         super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GWrap.UNIT_MESSAGE_SIG_NODE
     }
 
     @Override
-    public EClientWrap toDual(Role self) {
+    public EServerWrap<DynamicActionKind> toDynamic() {
+        return this.mf.local.EServerWrap(this.peer);
+    }
+
+    @Override
+    public EClientWrap<DynamicActionKind> toDynamicDual(Role self) {
         return this.mf.local.EClientWrap(self);
     }
 
     @Override
-    public SServerWrap toGlobal(Role self) {
+    public SServerWrap<StaticActionKind> toStaticGlobal(Role self) {
         return this.mf.global.SServerWrap(self, this.peer);
     }
 

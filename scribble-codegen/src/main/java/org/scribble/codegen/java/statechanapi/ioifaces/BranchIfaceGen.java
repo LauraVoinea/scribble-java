@@ -27,83 +27,76 @@ import org.scribble.codegen.java.util.AbstractMethodBuilder;
 import org.scribble.codegen.java.util.EnumBuilder;
 import org.scribble.codegen.java.util.InterfaceBuilder;
 import org.scribble.codegen.java.util.JavaBuilder;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Role;
 import org.scribble.util.ScribException;
 
-public class BranchIfaceGen extends IOStateIfaceGen
-{
-	public BranchIfaceGen(StateChannelApiGenerator apigen, Map<EAction, InterfaceBuilder> actions, EState curr)
-	{
-		super(apigen, actions, curr);
-	}
+public class BranchIfaceGen extends IOStateIfaceGen {
+    public BranchIfaceGen(StateChannelApiGenerator apigen, Map<EAction<StaticActionKind>, InterfaceBuilder> actions, EState curr) {
+        super(apigen, actions, curr);
+    }
 
-	@Override
-	protected void constructInterface() throws ScribException
-	{
-		super.constructInterface();
-		addBranchEnum();
-		addBranchMethods();
-	}
-				
-	protected void addBranchMethods()
-	{
-		Role self = this.apigen.getSelf();
-		//Set<EAction> as = this.curr.getActions();
-		List<EAction> as = this.curr.getDetActions();
+    @Override
+    protected void constructInterface() throws ScribException {
+        super.constructInterface();
+        addBranchEnum();
+        addBranchMethods();
+    }
 
-		// FIXME: factor out with BranchSocketGenerator
-		AbstractMethodBuilder bra = this.ib.newAbstractMethod("branch");
-		String ret = CaseIfaceGen.getCasesInterfaceName(self, this.curr)
-				+ "<" + IntStream.range(1, as.size()+1).mapToObj((i) -> "__Succ" + i).collect(Collectors.joining(", ")) + ">";  // FIXME: factor out
-		bra.setReturn(ret);
-		bra.addParameters(SessionApiGenerator.getRoleClassName(as.iterator().next().obj) + " role");
-		bra.addExceptions(StateChannelApiGenerator.SCRIBBLERUNTIMEEXCEPTION_CLASS, "java.io.IOException", "ClassNotFoundException");
-		
-		AbstractMethodBuilder bra2 = this.ib.newAbstractMethod("branch");
-		bra2.setReturn(JavaBuilder.VOID);
-		bra2.addParameters(SessionApiGenerator.getRoleClassName(as.iterator().next().obj) + " role");
-		String next = HandleIfaceGen.getHandleInterfaceName(self, this.curr) + "<" + IntStream.range(1, as.size() + 1).mapToObj((i) -> "__Succ" + i).collect(Collectors.joining(", ")) + ">";
-		bra2.addParameters(next + " handler");
-		bra2.addExceptions(StateChannelApiGenerator.SCRIBBLERUNTIMEEXCEPTION_CLASS, "java.io.IOException", "ClassNotFoundException");
-		
-		AbstractMethodBuilder bra3 = this.ib.newAbstractMethod("handle");
-		bra3.setReturn(JavaBuilder.VOID);
-		bra3.addParameters(SessionApiGenerator.getRoleClassName(as.iterator().next().obj) + " role");
-		String handle = HandleIfaceGen.getHandleInterfaceName(self, this.curr) + "<" +
-				as.stream().sorted(IOStateIfaceGen.IOACTION_COMPARATOR)
-					.map((a) -> SuccessorIfaceGen.getSuccessorInterfaceName(a)).collect(Collectors.joining(", ")) + ">";
-		bra3.addParameters(handle + " handler");
-		bra3.addExceptions(StateChannelApiGenerator.SCRIBBLERUNTIMEEXCEPTION_CLASS, "java.io.IOException", "ClassNotFoundException");
-	}
+    protected void addBranchMethods() {
+        Role self = this.apigen.getSelf();
+        //Set<EAction> as = this.curr.getActions();
+        List<EAction<StaticActionKind>> as = this.curr.getDetActions();
 
-	protected void addBranchEnum()
-	{
-		Role self = this.apigen.getSelf();
+        // FIXME: factor out with BranchSocketGenerator
+        AbstractMethodBuilder bra = this.ib.newAbstractMethod("branch");
+        String ret = CaseIfaceGen.getCasesInterfaceName(self, this.curr)
+                + "<" + IntStream.range(1, as.size() + 1).mapToObj((i) -> "__Succ" + i).collect(Collectors.joining(", ")) + ">";  // FIXME: factor out
+        bra.setReturn(ret);
+        bra.addParameters(SessionApiGenerator.getRoleClassName(as.iterator().next().obj) + " role");
+        bra.addExceptions(StateChannelApiGenerator.SCRIBBLERUNTIMEEXCEPTION_CLASS, "java.io.IOException", "ClassNotFoundException");
 
-		// Duplicated from BranchSocketGenerator
-		EnumBuilder eb = this.ib.newMemberEnum(getBranchInterfaceEnumName(self, this.curr));
-		eb.addModifiers(JavaBuilder.PUBLIC);
-		eb.addInterfaces(ScribSockGen.OPENUM_INTERFACE);
-		this.curr.getDetActions()
-				.forEach(a -> eb.addValues(SessionApiGenerator.getOpClassName(a.mid)));
-	}
+        AbstractMethodBuilder bra2 = this.ib.newAbstractMethod("branch");
+        bra2.setReturn(JavaBuilder.VOID);
+        bra2.addParameters(SessionApiGenerator.getRoleClassName(as.iterator().next().obj) + " role");
+        String next = HandleIfaceGen.getHandleInterfaceName(self, this.curr) + "<" + IntStream.range(1, as.size() + 1).mapToObj((i) -> "__Succ" + i).collect(Collectors.joining(", ")) + ">";
+        bra2.addParameters(next + " handler");
+        bra2.addExceptions(StateChannelApiGenerator.SCRIBBLERUNTIMEEXCEPTION_CLASS, "java.io.IOException", "ClassNotFoundException");
 
-	// Don't add Action Interfaces (added to CaseInterface)
-	@Override
-	protected void addSuccessorParamsAndActionInterfaces()
-	{
-		int i = 1;
-		for (EAction a : this.curr.getDetActions().stream().sorted(IOACTION_COMPARATOR).collect(Collectors.toList()))
-		{
-			this.ib.addParameters("__Succ" + i + " extends " + SuccessorIfaceGen.getSuccessorInterfaceName(a));
-			i++;
-		}
-	}
-	
-	public static String getBranchInterfaceEnumName(Role self, EState curr)
-	{
-		return getIOStateInterfaceName(self, curr) + "_Enum";
-	}
+        AbstractMethodBuilder bra3 = this.ib.newAbstractMethod("handle");
+        bra3.setReturn(JavaBuilder.VOID);
+        bra3.addParameters(SessionApiGenerator.getRoleClassName(as.iterator().next().obj) + " role");
+        String handle = HandleIfaceGen.getHandleInterfaceName(self, this.curr) + "<" +
+                as.stream().sorted(IOStateIfaceGen.IOACTION_COMPARATOR)
+                        .map((a) -> SuccessorIfaceGen.getSuccessorInterfaceName(a)).collect(Collectors.joining(", ")) + ">";
+        bra3.addParameters(handle + " handler");
+        bra3.addExceptions(StateChannelApiGenerator.SCRIBBLERUNTIMEEXCEPTION_CLASS, "java.io.IOException", "ClassNotFoundException");
+    }
+
+    protected void addBranchEnum() {
+        Role self = this.apigen.getSelf();
+
+        // Duplicated from BranchSocketGenerator
+        EnumBuilder eb = this.ib.newMemberEnum(getBranchInterfaceEnumName(self, this.curr));
+        eb.addModifiers(JavaBuilder.PUBLIC);
+        eb.addInterfaces(ScribSockGen.OPENUM_INTERFACE);
+        this.curr.getDetActions()
+                .forEach(a -> eb.addValues(SessionApiGenerator.getOpClassName(a.mid)));
+    }
+
+    // Don't add Action Interfaces (added to CaseInterface)
+    @Override
+    protected void addSuccessorParamsAndActionInterfaces() {
+        int i = 1;
+        for (EAction<StaticActionKind> a : this.curr.getDetActions().stream().sorted(IOACTION_COMPARATOR).collect(Collectors.toList())) {
+            this.ib.addParameters("__Succ" + i + " extends " + SuccessorIfaceGen.getSuccessorInterfaceName(a));
+            i++;
+        }
+    }
+
+    public static String getBranchInterfaceEnumName(Role self, EState curr) {
+        return getIOStateInterfaceName(self, curr) + "_Enum";
+    }
 }

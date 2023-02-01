@@ -17,6 +17,7 @@
 package org.scribble.core.visit.local;
 
 import org.scribble.core.job.Core;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EGraph;
 import org.scribble.core.model.endpoint.EGraphBuilderUtil;
 import org.scribble.core.model.endpoint.EState;
@@ -41,7 +42,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
 
     public final Core core;
 
-    private EGraphBuilderUtil util;
+    private final EGraphBuilderUtil util;
 
     protected EGraphBuilder(Core core) {
         this.core = core;
@@ -101,10 +102,10 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
             tail.visitWithNoThrow(this);  // nestedExit to exit
         }
 
-        Iterator<EAction> as = nestedEntry.getActions().iterator();  // "Enacting" actions
+        Iterator<EAction<StaticActionKind>> as = nestedEntry.getActions().iterator();  // "Enacting" actions
         Iterator<EState> succs = nestedEntry.getSuccs().iterator();
         while (as.hasNext()) {
-            EAction a = as.next();
+            EAction<StaticActionKind> a = as.next();
             EState succ = succs.next();
             util.addEdge(entry, a, succ);  // Add edges from original entry into "nested" graph, offset by enacting to nestedEntry succs
         }
@@ -118,9 +119,9 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
         EState curr = this.util.getEntry();
         for (EState pred : this.util.getPreds(curr)) {  // Does getSuccs (i.e., gets all), e.g., choice sequenced to continue
             // CHECKME: identical edges? i.e. same pred/prev/succ (e.g. rec X { choice at A { A->B:1 } or { A->B:1 } continue X; })
-            for (EAction a : new LinkedList<>(pred.getActions())) {
+            for (EAction<StaticActionKind> a : new LinkedList<>(pred.getActions())) {
                 // Following caters for non-det edges (to different succs)
-                for (EState succ : pred.getSuccs(a)) {
+                for (EState succ : pred.getSuccs(a.toDynamic())) {
                     if (succ.equals(curr)) {
                         this.util.fixContinueEdge(pred, a, curr, n.getRecVar());
                     }
@@ -135,7 +136,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
             DirectedInteraction<Local, LSeq> n) {
         Role peer = ((n instanceof LSend) || (n instanceof LReq)) ? n.dst  // CHECKME: refactor LType getSelf/Peer? cf. ast
                 : ((n instanceof LRecv) || (n instanceof LAcc)) ? n.src
-                : null;
+                        : null;
         if (peer == null) {
             throw new RuntimeException("Unknown action type: " + n);
         }
@@ -144,11 +145,11 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
                 ? ((SigLit) n.msg).payload
                 : Payload.EMPTY_PAYLOAD;
         // TODO: add toAction method to BasicInteraction (cf. toName methods of NameNodes)
-        EAction a = (n instanceof LSend) ? this.util.mf.local.ESend(peer, mid, pay)
+        EAction<StaticActionKind> a = (n instanceof LSend) ? this.util.mf.local.ESend(peer, mid, pay)
                 : (n instanceof LRecv) ? this.util.mf.local.ERecv(peer, mid, pay)
-                : (n instanceof LReq) ? this.util.mf.local.EReq(peer, mid, pay)
-                : //(n instanceof LAcc) ?
-                this.util.mf.local.EAcc(peer, mid, pay);  // Action type already checked above
+                        : (n instanceof LReq) ? this.util.mf.local.EReq(peer, mid, pay)
+                                : //(n instanceof LAcc) ?
+                                        this.util.mf.local.EAcc(peer, mid, pay);  // Action type already checked above
         this.util.addEdge(this.util.getEntry(), a, this.util.getExit());
         return n;
     }
@@ -156,7 +157,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     @Override
     public SVisitable<Local, LSeq> visitDisconnect(DisconnectAction<Local, LSeq> n) {
         Role peer = ((LDisconnect) n).getPeer();  // CHECKME -- ?
-        EAction a = this.util.mf.local.EDisconnect(peer);  // TODO: add toAction method to BasicInteraction
+        EAction<StaticActionKind> a = this.util.mf.local.EDisconnect(peer);  // TODO: add toAction method to BasicInteraction
         this.util.addEdge(this.util.getEntry(), a, this.util.getExit());
         return n;
     }

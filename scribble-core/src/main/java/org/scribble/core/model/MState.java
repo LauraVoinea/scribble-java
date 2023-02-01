@@ -33,7 +33,7 @@ import org.scribble.util.RuntimeScribException;
 public abstract class MState
         <
                 L,                             // Node label type (cosmetic)
-                A extends MAction<K>,          // Edge type
+                A extends MAction<K, StaticActionKind>,          // Edge type
                 S extends MState<L, A, S, K>,  // State type
                 K extends ProtoKind            // Global/Local -- CHECKME: useful?
                 > {
@@ -118,7 +118,8 @@ public abstract class MState
         return Collections.unmodifiableList(this.succs);
     }
 
-    public final List<S> getSuccs(A a) {
+    //public final List<S> getSuccs(A a) {
+    public final <T extends MAction<K, DynamicActionKind>> List<S> getSuccs(T a) {
         Iterator<A> as = this.actions.iterator();
         Iterator<S> ss = this.succs.iterator();
         List<S> res = new LinkedList<>();
@@ -147,11 +148,22 @@ public abstract class MState
     // Variant with implicit run-time check on determinism
     // (Pre: actions are deterministic)
     public S getDetSuccessor(A a) {
-        Set<A> as = new HashSet<>(this.actions);
+        Set<A> as = new HashSet<>(this.actions);  // TODO factor out and "cache"?
         if (as.size() != this.actions.size()) {
-            throw new RuntimeException("[FIXME] : " + this.actions);
+            throw new RuntimeException("[FIXME] " + this.actions);
         }
-        return getSuccs(a).get(0);
+        //return getSuccs(a).get(0);
+        Iterator<A> bs = this.actions.iterator();
+        Iterator<S> ss = this.succs.iterator();
+        List<S> res = new LinkedList<>();
+        while (bs.hasNext()) {
+            A nb = bs.next();
+            S ns = ss.next();
+            if (nb.equals(a)) {
+                return ns;
+            }
+        }
+        throw new RuntimeException("Shouldn't get here: " + this.actions);
     }
 
     public final boolean isTerminal() {

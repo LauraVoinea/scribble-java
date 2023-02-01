@@ -20,7 +20,8 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public interface MAction<K extends ProtoKind> {
+// SAction never Dynamic
+public interface MAction<K extends ProtoKind, A extends ActionKind> {
 
     Role getObject();
 

@@ -20,12 +20,13 @@ import java.util.Set;
 
 import org.scribble.core.model.MPrettyState;
 import org.scribble.core.model.MState;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
 
 // CHECKME: make a WFModel front-end class? (cf. EGraph)
 // N.B. only uses MState.id cosmetically, cf. MState equals/hashCode -- overrides equals/hashCode based on this.config (maybe extending MState is a bit misleading)
-public class SState extends MPrettyState<Void, SAction, SState, Global> {
+public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState, Global> {
     public final SConfig config;
 
     protected SState(SConfig config)  // CHECKME? now publically mutable (for mf imple), same for EState
@@ -36,7 +37,7 @@ public class SState extends MPrettyState<Void, SAction, SState, Global> {
 
     // For access from SGraphBuilderUtil
     @Override
-    protected void addEdge(SAction a, SState s) {
+    protected void addEdge(SAction<StaticActionKind> a, SState s) {
         super.addEdge(a, s);
     }
 

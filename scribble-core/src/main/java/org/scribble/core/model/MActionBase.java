@@ -20,7 +20,8 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public abstract class MActionBase<K extends ProtoKind> implements MAction<K> {
+public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
+        implements MAction<K, A> {
 	/*private static int count = 0;
 
 	public final int id;  // Was using for trace enumeration, but breaks isAcceptable -- but would be better for non-det models?*/
@@ -82,7 +83,7 @@ public abstract class MActionBase<K extends ProtoKind> implements MAction<K> {
         if (!(o instanceof MActionBase)) {
             return false;
         }
-        MActionBase<?> them = (MActionBase<?>) o;  // Refactor as "compatible"
+        MActionBase<?, ?> them = (MActionBase<?, ?>) o;  // Refactor as "compatible"
         return them.canEquals(this) && this.obj.equals(them.obj)
                 && this.mid.equals(them.mid) && this.payload.equals(them.payload);
     }

@@ -15,17 +15,15 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
-import org.scribble.core.model.MAction;
-import org.scribble.core.model.MActionBase;
-import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.*;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public abstract class EAction extends MActionBase<Local> {
-   
+public abstract class EAction<A extends ActionKind> extends MActionBase<Local, A> {
+
     public final Role peer;
 
     protected final ModelFactory mf;  // Internalising better ensures all constructions points (in a Scrib extension) consistently use the same ef/sf
@@ -36,10 +34,13 @@ public abstract class EAction extends MActionBase<Local> {
         this.mf = mf;
     }
 
-    // "self" means self of "this" (self of dual is this.peer)
-    public abstract EAction toDual(Role self);
+    public abstract EAction<DynamicActionKind> toDynamic();
 
-    public abstract SAction toGlobal(Role self);
+    // "self" means self of "this" (self of dual is this.peer)
+    public abstract EAction<DynamicActionKind> toDynamicDual(Role self);
+
+    // For SGraph construction
+    public abstract SAction<StaticActionKind> toStaticGlobal(Role self);
 }
 
 

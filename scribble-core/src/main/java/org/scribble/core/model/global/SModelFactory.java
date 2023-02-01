@@ -15,6 +15,7 @@
  */
 package org.scribble.core.model.global;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.endpoint.EFsm;
 import org.scribble.core.model.global.actions.*;
 import org.scribble.core.model.global.buffers.SBuffers;
@@ -40,17 +41,17 @@ public interface SModelFactory {
     SModel SModel(SGraph g);
 
     // public constructors (subpackage, immutable)
-    SSend SSend(Role subj, Role obj, MsgId<?> mid, Payload pay);
+    <A extends ActionKind> SSend<A> SSend(Role subj, Role obj, MsgId<?> mid, Payload pay);
 
-    SRecv SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay);
+    <A extends ActionKind> SRecv<A> SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay);
 
-    SReq SReq(Role subj, Role obj, MsgId<?> mid, Payload pay);
+    <A extends ActionKind> SReq<A> SReq(Role subj, Role obj, MsgId<?> mid, Payload pay);
 
-    SAcc SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay);
+    <A extends ActionKind> SAcc<A> SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay);
 
-    SDisconnect SDisconnect(Role subj, Role obj);
+    <A extends ActionKind> SDisconnect<A> SDisconnect(Role subj, Role obj);
 
-    SClientWrap SClientWrap(Role subj, Role obj);
+    <A extends ActionKind> SClientWrap<A> SClientWrap(Role subj, Role obj);
 
-    SServerWrap SServerWrap(Role subj, Role obj);
+    <A extends ActionKind> SServerWrap<A> SServerWrap(Role subj, Role obj);
 }

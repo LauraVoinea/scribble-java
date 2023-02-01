@@ -17,6 +17,8 @@ package org.scribble.core.model.global;
 
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
+import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EFsm;
 import org.scribble.core.model.endpoint.EGraph;
 import org.scribble.core.model.endpoint.actions.EAction;
@@ -27,7 +29,6 @@ import org.scribble.core.model.global.buffers.SingleCellBuffers;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
-import org.scribble.util.RuntimeScribException;
 import org.scribble.util.ScribException;
 
 import java.util.*;
@@ -97,9 +98,9 @@ public class SGraphBuilder {
 			}*/
 
             // Based on dynamic config semantics, not "static" graph edges (cf., super.getActions) -- used to build global model graph
-            Map<Role, Set<EAction>> fireable = curr.state.config.getFireable();
+            Map<Role, Set<EAction<StaticActionKind>>> fireable = curr.state.config.getFireable();
             for (Role r : fireable.keySet()) {
-                for (EAction a : fireable.get(r)) {
+                for (EAction<StaticActionKind> a : fireable.get(r)) {
 
                     if (!sched.canSchedule(curr.history, r, a)) {
                         continue;
@@ -118,7 +119,7 @@ public class SGraphBuilder {
                     if (a.isSend() || a.isReceive() || a.isDisconnect()) {
                         Set<SConfig> next = new HashSet<>(curr.state.config.async(r, a));
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
-                        Set<SState> succs = this.util.getSuccs(curr.state, a.toGlobal(r), next);  // util.getSuccs constructs the edges
+                        Set<SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
 
                         for (SState succ : succs) {
                             SBuildState bsucc;
@@ -138,13 +139,17 @@ public class SGraphBuilder {
                     // Synchronous (client/server) actions
                     else if (a.isAccept() || a.isRequest() || a.isClientWrap()
                             || a.isServerWrap()) {
-                        Set<EAction> as = fireable.get(a.peer);
-                        EAction abar = a.toDual(r);
+                        Set<EAction<DynamicActionKind>> as = fireable.get(a.peer)
+                                .stream().map(x -> x.toDynamic()).collect(Collectors.toSet());
+                        EAction<DynamicActionKind> abar = a.toDynamicDual(r);
                         if (as != null && as.contains(abar)) {
+
+                            // CHECKME ??
                             as.remove(abar);  // Removes one occurrence
-                            SAction aglobal = (a.isRequest() || a.isClientWrap()) // "client" side action
-                                    ? a.toGlobal(r)
-                                    : abar.toGlobal(a.peer);
+
+                            SAction<StaticActionKind> aglobal = (a.isRequest() || a.isClientWrap()) // "client" side action
+                                    ? a.toStaticGlobal(r)
+                                    : abar.toStaticGlobal(a.peer);
                             // CHECKME: edge will be drawn as the connect, but should be read as the sync. of both -- something like "r1, r2: sync" may be more consistent (or take a set of actions as the edge label?)
                             Set<SConfig> next = new HashSet<>(curr.state.config.sync(r, a, a.peer, abar));
                             // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")

@@ -15,11 +15,12 @@
  */
 package org.scribble.core.model.global.actions;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class SReq extends SAction {
+public class SReq<A extends ActionKind> extends SAction<A> {
     public SReq(Role subj, Role obj, MsgId<?> mid, Payload pay) {
         super(subj, obj, mid, pay);
     }

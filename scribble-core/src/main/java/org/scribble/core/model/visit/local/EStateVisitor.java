@@ -15,6 +15,7 @@
  */
 package org.scribble.core.model.visit.local;
 
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.visit.StateVisitor;
@@ -23,45 +24,37 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.util.ScribException;
 
 public abstract class EStateVisitor
-		extends StateVisitor<RecVar, EAction, EState, Local>
-{
-	
-	// Allows to visit branch succs with fresh visitors, but limited usefulness? because pattern doesn't support merge...
-	// (...but could try too? e.g., by using EGraph to join visitors? -- issue is recursion, may need to precompute/integrate traversal paths and join points, e.f., b/dfs)
-	// CHECKME: take "self" generic param, use as return?  or just override
-	public EStateVisitor enter(EState s, EAction a, EState succ)
-	{
-		return this;
-	}
-	
-	public void visitAccept(EState s) throws ScribException
-	{
-		setSeen(s);
-	}
+        extends StateVisitor<RecVar, EAction<StaticActionKind>, EState, Local> {
 
-	public void visitOutput(EState s) throws ScribException
-	{
-		setSeen(s);
-	}
+    // Allows to visit branch succs with fresh visitors, but limited usefulness? because pattern doesn't support merge...
+    // (...but could try too? e.g., by using EGraph to join visitors? -- issue is recursion, may need to precompute/integrate traversal paths and join points, e.f., b/dfs)
+    // CHECKME: take "self" generic param, use as return?  or just override
+    public EStateVisitor enter(EState s, EAction a, EState succ) {
+        return this;
+    }
 
-	public void visitPolyInput(EState s) throws ScribException
-	{
-		setSeen(s);
-	}
+    public void visitAccept(EState s) throws ScribException {
+        setSeen(s);
+    }
 
-	public void visitServerWrap(EState s) throws ScribException
-	{
-		setSeen(s);
-	}
+    public void visitOutput(EState s) throws ScribException {
+        setSeen(s);
+    }
 
-	public void visitTerminal(EState s) throws ScribException
-	{
-		setSeen(s);
-	}
+    public void visitPolyInput(EState s) throws ScribException {
+        setSeen(s);
+    }
 
-	public void visitUnaryInput(EState s) throws ScribException
-	{
-		setSeen(s);
-	}
+    public void visitServerWrap(EState s) throws ScribException {
+        setSeen(s);
+    }
+
+    public void visitTerminal(EState s) throws ScribException {
+        setSeen(s);
+    }
+
+    public void visitUnaryInput(EState s) throws ScribException {
+        setSeen(s);
+    }
 }
 	

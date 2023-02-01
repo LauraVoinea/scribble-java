@@ -18,68 +18,60 @@ package org.scribble.core.model.endpoint;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 
 // Factor out with SModel?
-public class EFsm
-{
-	public final EGraph graph;
-	public final EState curr;
-	
-	protected EFsm(EGraph graph)
-	{
-		this(graph, graph.init);
-	}
+public class EFsm {
+    public final EGraph graph;
+    public final EState curr;
 
-	protected EFsm(EGraph graph, EState curr)
-	{
-		this.graph = graph;
-		this.curr = curr;
-	}
+    protected EFsm(EGraph graph) {
+        this(graph, graph.init);
+    }
 
-	// CHECKME: Set? List is for non-det actions, but is that relevant to EFsm's?
-	// N.B. this just means "follow an edge", it is agnostic to an "actual semantics" (e.g., queues, queue sizes, etc.), cf. "fire"
-	public List<EFsm> getSuccs(EAction a)
-	{
-		return this.curr.getSuccs(a).stream().map(x -> new EFsm(this.graph, x))
-				.collect(Collectors.toList());
-	}
+    protected EFsm(EGraph graph, EState curr) {
+        this.graph = graph;
+        this.curr = curr;
+    }
 
-	// CHECKME: check if unfolded initial accept is possible, and if it breaks anything
-	public boolean isInitial()
-	{
-		return this.curr.equals(this.graph.init);  // i.e., "literally" in the initial state (not "semantically")
-	}
+    // CHECKME: Set? List is for non-det actions, but is that relevant to EFsm's?
+    // N.B. this just means "follow an edge", it is agnostic to an "actual semantics" (e.g., queues, queue sizes, etc.), cf. "fire"
+    public List<EFsm> getSuccs(EAction<DynamicActionKind> a) {
+        return this.curr.getSuccs(a).stream().map(x -> new EFsm(this.graph, x))
+                .collect(Collectors.toList());
+    }
 
-	@Override
-	public final int hashCode()
-	{
-		int hash = 1049;
-		hash = 31 * hash + this.graph.init.hashCode();
-		hash = 31 * hash + this.curr.hashCode();
-		return hash;
-	}
+    // CHECKME: check if unfolded initial accept is possible, and if it breaks anything
+    public boolean isInitial() {
+        return this.curr.equals(this.graph.init);  // i.e., "literally" in the initial state (not "semantically")
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof EFsm))
-		{
-			return false;
-		}
-		EFsm them = (EFsm) o;
-		return this.graph.equals(them.graph) && this.curr.equals(them.curr);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return Integer.toString(this.curr.id);
-	}
+    @Override
+    public final int hashCode() {
+        int hash = 1049;
+        hash = 31 * hash + this.graph.init.hashCode();
+        hash = 31 * hash + this.curr.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EFsm)) {
+            return false;
+        }
+        EFsm them = (EFsm) o;
+        return this.graph.equals(them.graph) && this.curr.equals(them.curr);
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(this.curr.id);
+    }
 }
 
 

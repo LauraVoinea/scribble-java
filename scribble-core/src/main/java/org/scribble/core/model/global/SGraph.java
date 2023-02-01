@@ -15,22 +15,14 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.scribble.core.model.MPrettyPrint;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.util.Pair;
+
+import java.util.*;
 
 public class SGraph implements MPrettyPrint {
     public final ProtoName<Global> proto;  // For debugging only?  deprecate?
@@ -67,12 +59,12 @@ public class SGraph implements MPrettyPrint {
     }
 
     // Returns null if end cannot be reached
-    public List<SAction> getTraceFromInit(SState end) {
-        Map<Integer, Pair<SAction, Integer>> traces = bfsFromInit(end);
-        LinkedList<SAction> trace = new LinkedList<>();
+    public List<SAction<StaticActionKind>> getTraceFromInit(SState end) {
+        Map<Integer, Pair<SAction<StaticActionKind>, Integer>> traces = bfsFromInit(end);
+        LinkedList<SAction<StaticActionKind>> trace = new LinkedList<>();
         for (int id = end.id; id != init.id; )  // Skipped if init.id == end.id (e.g., error in init state, such as a bad connect)
         {
-            Pair<SAction, Integer> p = traces.get(id);
+            Pair<SAction<StaticActionKind>, Integer> p = traces.get(id);
             trace.push(p.left);
             id = p.right;
         }
@@ -80,14 +72,14 @@ public class SGraph implements MPrettyPrint {
     }
 
     // Returns null if end cannot be reached
-    private Map<Integer, Pair<SAction, Integer>> bfsFromInit(SState end)  // (cf., Dijkstra's with all weights 1)
+    private Map<Integer, Pair<SAction<StaticActionKind>, Integer>> bfsFromInit(SState end)  // (cf., Dijkstra's with all weights 1)
     {
         // SState.id faster as keys than full SConfig
         Set<Integer> seen = new HashSet<>();
         List<Integer> todo = new LinkedList<>();
         seen.add(this.init.id);
         todo.add(this.init.id);
-        Map<Integer, Pair<SAction, Integer>> traces = new HashMap<>();
+        Map<Integer, Pair<SAction<StaticActionKind>, Integer>> traces = new HashMap<>();
         while (!todo.isEmpty()) {
             Iterator<Integer> i = todo.iterator();
             Integer currid = i.next();
@@ -96,9 +88,9 @@ public class SGraph implements MPrettyPrint {
                 return traces;
             }
             SState curr = this.states.get(currid);
-            Iterator<SAction> as = curr.getActions().iterator();  // CHECKME: how about non-det actions? (cf. below, todo.contains(succ.id)? e.g., bad.liveness.messagelive.Test01)
+            Iterator<SAction<StaticActionKind>> as = curr.getActions().iterator();  // CHECKME: how about non-det actions? (cf. below, todo.contains(succ.id)? e.g., bad.liveness.messagelive.Test01)
             for (SState succ : curr.getSuccs()) {
-                SAction a = as.next();
+                SAction<StaticActionKind> a = as.next();
                 if (seen.contains(succ.id) || todo.contains(succ.id)) {
                     continue;
                 }
@@ -128,11 +120,11 @@ public class SGraph implements MPrettyPrint {
     // Following are "one-time" usage, on instance construction
     // SState.id faster as keys than full SConfig
     private int counter = 0;
-    private Map<Integer, Integer> indices = new HashMap<>();  // s.id -> index
-    private Map<Integer, Integer> lowlinks = new HashMap<>();  // s.id -> lowlink
-    private Deque<SState> stack = new LinkedList<>();
-    private Set<Integer> onStack = new HashSet<>();
-    private Set<Set<SState>> sscs = new HashSet<>();
+    private final Map<Integer, Integer> indices = new HashMap<>();  // s.id -> index
+    private final Map<Integer, Integer> lowlinks = new HashMap<>();  // s.id -> lowlink
+    private final Deque<SState> stack = new LinkedList<>();
+    private final Set<Integer> onStack = new HashSet<>();
+    private final Set<Set<SState>> sscs = new HashSet<>();
 
     private void tarjan() {
         for (SState v : this.states.values()) {
@@ -157,7 +149,7 @@ public class SGraph implements MPrettyPrint {
                 strongConnect(w);
                 int vlowlink = this.lowlinks.get(v.id);
                 int wlowlink = this.lowlinks.get(w.id);
-                this.lowlinks.put(v.id, (vlowlink <= wlowlink ? vlowlink : wlowlink));
+                this.lowlinks.put(v.id, (Math.min(vlowlink, wlowlink)));
             } else if (this.onStack.contains(w.id)) {
                 // Successor w is in stack S and hence in the current SCC
                 // If w is not on stack, then (v, w) is a cross-edge in the DFS tree and must be ignored
@@ -165,7 +157,7 @@ public class SGraph implements MPrettyPrint {
                 // It says w.index not w.lowlink; that is deliberate and from the original paper
                 int vlowlink = this.lowlinks.get(v.id);
                 int windex = this.indices.get(w.id);
-                this.lowlinks.put(v.id, (vlowlink <= windex ? vlowlink : windex));
+                this.lowlinks.put(v.id, (Math.min(vlowlink, windex)));
             }
         }
 

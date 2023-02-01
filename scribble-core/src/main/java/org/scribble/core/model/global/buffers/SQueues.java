@@ -15,6 +15,7 @@
  */
 package org.scribble.core.model.global.buffers;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.*;
 import org.scribble.core.type.name.Role;
 import org.scribble.util.RuntimeScribException;
@@ -30,7 +31,7 @@ public class SQueues implements SBuffers {
     // local -> peer -> does-local-consider-connected  (symmetric)
     // CHECKME: refactor as Map<Role, Set<Role>> ?  cf. ConnectionChecker
 
-    private final Map<Role, Map<Role, List<ESend>>> buffs = new HashMap<>();
+    private final Map<Role, Map<Role, List<ESend<DynamicActionKind>>>> buffs = new HashMap<>();
     // dest -> src -> msg -- N.B. connected.get(A).get(B) => can send into buffs.get(B).get(A) ("reversed")
     // N.B. hardcoded to capacity one -- SQueues would be the generalisation
     // null ESend for empty queue
@@ -38,7 +39,7 @@ public class SQueues implements SBuffers {
     public SQueues(Set<Role> roles, boolean implicit) {
         for (Role r1 : roles) {
             HashMap<Role, Boolean> connected = new HashMap<>();
-            HashMap<Role, List<ESend>> queues = new HashMap<>();
+            HashMap<Role, List<ESend<DynamicActionKind>>> queues = new HashMap<>();
             for (Role r2 : roles) {
                 if (!r1.equals(r2)) {
                     connected.put(r2, implicit);
@@ -58,54 +59,58 @@ public class SQueues implements SBuffers {
     }
 
     @Override
-    public boolean canSend(Role self, ESend a) {
+    public boolean canSend(Role self, ESend<?> a) {
         return isConnected(self, a.peer);
     }
 
     @Override
-    public boolean canReceive(Role self, ERecv a) {
-        List<ESend> send = this.buffs.get(self).get(a.peer);
+    public boolean canReceive(Role self, ERecv<?> a) {
+        List<ESend<DynamicActionKind>> send = this.buffs.get(self).get(a.peer);
+        if (send.isEmpty()) {
+            return false;
+        }
+        ESend<DynamicActionKind> fst = send.get(0);
         return isConnected(self, a.peer)
                 // Other direction doesn't matter, local can still receive after peer disconnected
-                && !send.isEmpty() && send.get(0).toDual(a.peer).equals(a);
+                && a.toDynamicDual(fst.peer).equals(fst);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canAccept
     @Override
-    public boolean canRequest(Role self, EReq c) {
+    public boolean canRequest(Role self, EReq<?> c) {
         return !isConnected(self, c.peer);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canRequest
     @Override
-    public boolean canAccept(Role self, EAcc a) {
+    public boolean canAccept(Role self, EAcc<?> a) {
         return !isConnected(self, a.peer);
     }
 
-    public boolean canDisconnect(Role self, EDisconnect d) {
+    public boolean canDisconnect(Role self, EDisconnect<?> d) {
         return isConnected(self, d.peer);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canServerWrap
     // N.B. doesn't actually change any state
     @Override
-    public boolean canClientWrap(Role self, EClientWrap cw) {
+    public boolean canClientWrap(Role self, EClientWrap<?> cw) {
         return isConnected(self, cw.peer);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canClientWrap
     // N.B. doesn't actually change queues state
-    public boolean canServerWrap(Role self, EServerWrap sw) {
+    public boolean canServerWrap(Role self, EServerWrap<?> sw) {
         return isConnected(self, sw.peer);
     }
 
     // Pre: canSend, e.g., via via SConfig.getFireable
     // Return an updated copy
     @Override
-    public SQueues send(Role self, ESend a) {
+    public SQueues send(Role self, ESend<?> a) {
         SQueues copy = new SQueues(this);
-        List<ESend> ms = new LinkedList<>(copy.buffs.get(a.peer).get(self));  // TODO optimise this copy with above copy constructor
-        ms.add(a);
+        List<ESend<DynamicActionKind>> ms = new LinkedList<>(copy.buffs.get(a.peer).get(self));  // TODO optimise this copy with above copy constructor
+        ms.add(a.toDynamic());
         copy.buffs.get(a.peer).put(self, ms);
         return copy;
     }
@@ -113,9 +118,9 @@ public class SQueues implements SBuffers {
     // Pre: canReceive, e.g., via SConfig.getFireable
     // Return an updated copy
     @Override
-    public SQueues receive(Role self, ERecv a) {
+    public SQueues receive(Role self, ERecv<?> a) {
         SQueues copy = new SQueues(this);
-        List<ESend> ms = copy.buffs.get(self).get(a.peer);
+        List<ESend<DynamicActionKind>> ms = copy.buffs.get(self).get(a.peer);
         if (ms.isEmpty() || !ms.get(0).mid.equals(a.mid)) {
             throw new RuntimeScribException("FIXME");
         }
@@ -138,7 +143,7 @@ public class SQueues implements SBuffers {
     // Pre: canDisconnect(self, d), e.g., via SConfig.via getFireable
     // Return an updated copy
     @Override
-    public SQueues disconnect(Role self, EDisconnect d) {
+    public SQueues disconnect(Role self, EDisconnect<?> d) {
         SQueues copy = new SQueues(this);
         copy.connected.get(self).put(d.peer, false);  // Didn't update buffs (cf. SConfig.getOrphanMessages)
         return copy;
@@ -158,18 +163,18 @@ public class SQueues implements SBuffers {
 
     // Return a (deep) copy -- currently, checkEventualReception expects a modifiable return
     @Override
-    public Map<Role, Map<Role, List<ESend>>> getQueues() {
-        Map<Role, Map<Role, List<ESend>>> collect =
+    public Map<Role, Map<Role, List<ESend<DynamicActionKind>>>> getQueues() {
+        Map<Role, Map<Role, List<ESend<DynamicActionKind>>>> collect =
                 this.buffs.entrySet().stream().collect(Collectors.toMap(
-                        x -> x.getKey(),
+                        Entry::getKey,
                         x -> x.getValue().entrySet().stream().collect(Collectors.toMap(
-                                y -> y.getKey(),
+                                Entry::getKey,
                                 y -> Collections.unmodifiableList(y.getValue())))));
         return collect;
     }
 
     @Override
-    public Map<Role, List<ESend>> getQueue(Role r) {
+    public Map<Role, List<ESend<DynamicActionKind>>> getQueue(Role r) {
         return this.buffs.get(r).entrySet().stream().collect(Collectors.toMap(
                 Entry::getKey,
                 x -> Collections.unmodifiableList(x.getValue())
@@ -201,10 +206,10 @@ public class SQueues implements SBuffers {
         return this.buffs.entrySet().stream()
                 .filter(e -> e.getValue().values().stream().anyMatch(List::isEmpty))
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
+                        Entry::getKey,
                         e -> e.getValue().entrySet().stream()
                                 .filter(f -> f.getValue() != null)
-                                .collect(Collectors.toMap(f -> f.getKey(), f -> f.getValue()))
+                                .collect(Collectors.toMap(Entry::getKey, Entry::getValue))
                 )).toString();
     }
 }

@@ -15,11 +15,12 @@
  */
 package org.scribble.core.model.global.actions;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class SDisconnect extends SAction {
+public class SDisconnect<A extends ActionKind> extends SAction<A> {
     public SDisconnect(Role subj, Role obj) {
         super(subj, obj, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
     }

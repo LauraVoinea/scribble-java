@@ -20,30 +20,28 @@ import java.util.Set;
 
 import org.scribble.core.model.MAction;
 import org.scribble.core.model.MState;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.type.kind.ProtoKind;
 
 public abstract class StateVisitor
-<
-		L,
-		A extends MAction<K>,
-		S extends MState<L, A, S, K>,
-		K extends ProtoKind
->
-{
-	// "One-time" traveral (visitor no for reuse)
-	private final Set<S> seen = new HashSet<>();
-	
-	public boolean hasSeen(S s)
-	{
-		return this.seen.contains(s);
-	}
-	
-	protected void setSeen(S s)
-	{
-		//if (!this.seen.contains(s))  // Worth?  Or just do add
-		{
-			this.seen.add(s);
-		}
-	}
+        <
+                L,
+                A extends MAction<K, StaticActionKind>,
+                S extends MState<L, A, S, K>,
+                K extends ProtoKind
+                > {
+    // "One-time" traveral (visitor no for reuse)
+    private final Set<S> seen = new HashSet<>();
+
+    public boolean hasSeen(S s) {
+        return this.seen.contains(s);
+    }
+
+    protected void setSeen(S s) {
+        //if (!this.seen.contains(s))  // Worth?  Or just do add
+        {
+            this.seen.add(s);
+        }
+    }
 }
 	

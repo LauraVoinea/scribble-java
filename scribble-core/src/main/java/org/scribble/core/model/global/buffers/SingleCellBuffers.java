@@ -15,6 +15,7 @@
  */
 package org.scribble.core.model.global.buffers;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.*;
 import org.scribble.core.type.name.Role;
 
@@ -30,7 +31,7 @@ public class SingleCellBuffers implements SBuffers {
     // local -> peer -> does-local-consider-connected  (symmetric)
     // CHECKME: refactor as Map<Role, Set<Role>> ?  cf. ConnectionChecker
 
-    private final Map<Role, Map<Role, ESend>> buffs = new HashMap<>();
+    private final Map<Role, Map<Role, ESend<DynamicActionKind>>> buffs = new HashMap<>();
     // dest -> src -> msg -- N.B. connected.get(A).get(B) => can send into buffs.get(B).get(A) ("reversed")
     // N.B. hardcoded to capacity one -- SQueues would be the generalisation
     // null ESend for empty queue
@@ -38,7 +39,7 @@ public class SingleCellBuffers implements SBuffers {
     public SingleCellBuffers(Set<Role> roles, boolean implicit) {
         for (Role r1 : roles) {
             HashMap<Role, Boolean> connected = new HashMap<>();
-            HashMap<Role, ESend> queues = new HashMap<>();
+            HashMap<Role, ESend<DynamicActionKind>> queues = new HashMap<>();
             for (Role r2 : roles) {
                 if (!r1.equals(r2)) {
                     connected.put(r2, implicit);
@@ -58,62 +59,62 @@ public class SingleCellBuffers implements SBuffers {
     }
 
     @Override
-    public boolean canSend(Role self, ESend a) {
+    public boolean canSend(Role self, ESend<?> a) {
         return isConnected(self, a.peer)
                 //&& isConnected(a.peer, self)  // CHECKME: only consider local side?
                 && this.buffs.get(a.peer).get(self) == null;
     }
 
     @Override
-    public boolean canReceive(Role self, ERecv a) {
-        ESend send = this.buffs.get(self).get(a.peer);
+    public boolean canReceive(Role self, ERecv<?> a) {
+        ESend<DynamicActionKind> send = this.buffs.get(self).get(a.peer);
         return isConnected(self, a.peer)
                 // Other direction doesn't matter, local can still receive after peer disconnected
-                && send != null && send.toDual(a.peer).equals(a);
+                && send != null && a.toDynamicDual(send.peer).equals(send);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canAccept
     @Override
-    public boolean canRequest(Role self, EReq c) {
+    public boolean canRequest(Role self, EReq<?> c) {
         return !isConnected(self, c.peer);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canRequest
     @Override
-    public boolean canAccept(Role self, EAcc a) {
+    public boolean canAccept(Role self, EAcc<?> a) {
         return !isConnected(self, a.peer);
     }
 
-    public boolean canDisconnect(Role self, EDisconnect d) {
+    public boolean canDisconnect(Role self, EDisconnect<?> d) {
         return isConnected(self, d.peer);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canServerWrap
     // N.B. doesn't actually change any state
     @Override
-    public boolean canClientWrap(Role self, EClientWrap cw) {
+    public boolean canClientWrap(Role self, EClientWrap<?> cw) {
         return isConnected(self, cw.peer);
     }
 
     // N.B. "sync" action but only considers the self side, i.e., to actually fire, must also explicitly check canClientWrap
     // N.B. doesn't actually change queues state
-    public boolean canServerWrap(Role self, EServerWrap sw) {
+    public boolean canServerWrap(Role self, EServerWrap<?> sw) {
         return isConnected(self, sw.peer);
     }
 
     // Pre: canSend, e.g., via via SConfig.getFireable
     // Return an updated copy
     @Override
-    public SingleCellBuffers send(Role self, ESend a) {
+    public SingleCellBuffers send(Role self, ESend<?> a) {
         SingleCellBuffers copy = new SingleCellBuffers(this);
-        copy.buffs.get(a.peer).put(self, a);
+        copy.buffs.get(a.peer).put(self, a.toDynamic());
         return copy;
     }
 
     // Pre: canReceive, e.g., via SConfig.getFireable -- doesn't check message op
     // Return an updated copy
     @Override
-    public SingleCellBuffers receive(Role self, ERecv a) {
+    public SingleCellBuffers receive(Role self, ERecv<?> a) {
         SingleCellBuffers copy = new SingleCellBuffers(this);
         copy.buffs.get(self).put(a.peer, null);
         return copy;
@@ -134,7 +135,7 @@ public class SingleCellBuffers implements SBuffers {
     // Pre: canDisconnect(self, d), e.g., via SConfig.via getFireable
     // Return an updated copy
     @Override
-    public SingleCellBuffers disconnect(Role self, EDisconnect d) {
+    public SingleCellBuffers disconnect(Role self, EDisconnect<?> d) {
         SingleCellBuffers copy = new SingleCellBuffers(this);
         copy.connected.get(self).put(d.peer, false);  // Didn't update buffs (cf. SConfig.getOrphanMessages)
         return copy;
@@ -149,23 +150,23 @@ public class SingleCellBuffers implements SBuffers {
     @Override
     public boolean isEmpty(Role r)  // this.connected doesn't matter
     {
-        return this.buffs.get(r).values().stream().allMatch(v -> v == null);
+        return this.buffs.get(r).values().stream().allMatch(Objects::isNull);
     }
 
     // Return a (deep) copy -- currently, checkEventualReception expects a modifiable return
     // N.B. hardcoded to capacity one
     @Override
-    public Map<Role, Map<Role, List<ESend>>> getQueues() {
+    public Map<Role, Map<Role, List<ESend<DynamicActionKind>>>> getQueues() {
         /*return this.buffs.entrySet().stream().collect(Collectors.toMap(
                 Entry::getKey,
                 x -> new HashMap<>(x.getValue())));  // Collections.unmodifiableMap(x.getValue())*/
-        Map<Role, Map<Role, List<ESend>>> collect =
+        Map<Role, Map<Role, List<ESend<DynamicActionKind>>>> collect =
                 this.buffs.entrySet().stream().collect(Collectors.toMap(
-                        x -> x.getKey(),
+                        Entry::getKey,
                         x -> x.getValue().entrySet().stream().collect(Collectors.toMap(
-                                y -> y.getKey(),
+                                Entry::getKey,
                                 y -> {
-                                    ESend v = y.getValue();
+                                    ESend<DynamicActionKind> v = y.getValue();
                                     return v == null
                                             ? Collections.emptyList()
                                             : Stream.of(v).collect(Collectors.toList());
@@ -175,11 +176,11 @@ public class SingleCellBuffers implements SBuffers {
 
     // N.B. hardcoded to capacity one
     @Override
-    public Map<Role, List<ESend>> getQueue(Role r) {
+    public Map<Role, List<ESend<DynamicActionKind>>> getQueue(Role r) {
         return this.buffs.get(r).entrySet().stream().collect(Collectors.toMap(
                 Entry::getKey,
                 x -> {
-                    ESend v = x.getValue();
+                    ESend<DynamicActionKind> v = x.getValue();
                     return v == null
                             ? Collections.emptyList()
                             : Stream.of(v).collect(Collectors.toList());
@@ -210,13 +211,12 @@ public class SingleCellBuffers implements SBuffers {
     @Override
     public String toString() {
         return this.buffs.entrySet().stream()
-                .filter(e -> e.getValue().values().stream().anyMatch(v -> v
-                        != null))
+                .filter(e -> e.getValue().values().stream().anyMatch(Objects::nonNull))
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
+                        Entry::getKey,
                         e -> e.getValue().entrySet().stream()
                                 .filter(f -> f.getValue() != null)
-                                .collect(Collectors.toMap(f -> f.getKey(), f -> f.getValue()))
+                                .collect(Collectors.toMap(Entry::getKey, Entry::getValue))
                 )).toString();
     }
 }

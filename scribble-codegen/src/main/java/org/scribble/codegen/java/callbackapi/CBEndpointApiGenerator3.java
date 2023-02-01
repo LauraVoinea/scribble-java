@@ -37,6 +37,7 @@ import org.scribble.codegen.java.util.MethodBuilder;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.EStateKind;
 import org.scribble.core.model.endpoint.actions.EAction;
@@ -128,9 +129,9 @@ public class CBEndpointApiGenerator3 {
         Set<String> outputChoices = new HashSet<>();    // e.g., Proto1_A__B__1_Int__C__2_Int__C__4_Str, i.e., { B__1_Int, C__2_Int, C__4_Str }
         Map<String, Set<Set<String>>> reg = new HashMap<>();  // e.g., Proto1_A__B__1_Int -> { Proto1_A__B__1_Int__C__2_Int__C__4_Str, ... }
         for (EState s : (Iterable<EState>) states.stream().filter(x -> x.getStateKind() == EStateKind.OUTPUT)::iterator) {
-            List<EAction> as = s.getActions();
+            List<EAction<StaticActionKind>> as = s.getActions();
             Set<String> set = as.stream().map(this.getCallbackSuffix).collect(Collectors.toSet());
-            for (EAction a : as) {
+            for (EAction<StaticActionKind> a : as) {
                 String callbackName =
                         //endpointName
                         "OCallback_" + this.self  // FIXME: factor out  // Cf. ICallback, has self (due to message expansion nesting) -- but ScribMessage values of this type don't record self? -- Select i/f's have self in name though
@@ -208,7 +209,7 @@ public class CBEndpointApiGenerator3 {
                 String bprefix = getHandlersSelfPackage().replace('.', '/') + "/";
                 String branchName = this.stateNames.get(s.id) + "_Branch";
 
-                for (EAction a : s.getActions()) {
+                for (EAction<StaticActionKind> a : s.getActions()) {
                     // FIXME: factor out
                     boolean isSig = main.getNonProtoDeclChildren().stream()
                             .anyMatch(npd -> (npd instanceof SigDecl)
@@ -507,7 +508,7 @@ public class CBEndpointApiGenerator3 {
         stateCons.addBodyLine("super(\"" + stateName + "\""
                 + ((kind == EStateKind.UNARY_RECEIVE || kind == EStateKind.POLY_RECIEVE) ? ", " + getRolesPackage() + "." + peer + "." + peer : "")  // FIXME: factor out
                 + ");");
-        for (EAction a : s.getActions()) {
+        for (EAction<StaticActionKind> a : s.getActions()) {
             EState succ = s.getDetSuccessor(a);
             stateCons.addBodyLine("this.succs.put(" + getOpsPackage() + "." + SessionApiGenerator.getOpClassName(a.mid) + "." + SessionApiGenerator.getOpClassName(a.mid)  // FIXME: factor out
                     + ", \""
@@ -656,7 +657,7 @@ public class CBEndpointApiGenerator3 {
         branchAbstract += "@Override\n";
         branchAbstract += "public void dispatch(D data, org.scribble.runtime.message.ScribMessage m) {\n";
         branchAbstract += "switch (m.op.toString()) {\n";
-        for (EAction a : s.getActions()) {
+        for (EAction<StaticActionKind> a : s.getActions()) {
             // FIXME: factor out
             boolean isSig = jc.getMainModule().getNonProtoDeclChildren().stream()
                     .anyMatch(npd -> (npd instanceof SigDecl) && ((SigDecl) npd).getDeclName().toString().equals(a.mid.toString()));
@@ -688,7 +689,7 @@ public class CBEndpointApiGenerator3 {
     }
 
     protected String generateReceiveInterface(boolean isSig,
-                                              SigDecl msnd, JobContext jc, EAction a, String rootPack,
+                                              SigDecl msnd, JobContext jc, EAction<StaticActionKind> a, String rootPack,
                                               String receiveIfName) {
         String receiveInterface = "";
         receiveInterface += "package " + getHandlersSelfPackage() + ".inputs;\n";
@@ -959,7 +960,7 @@ public class CBEndpointApiGenerator3 {
 
     ;
 
-    protected final Function<EAction, String> getCallbackSuffix = a ->
+    protected final Function<EAction<StaticActionKind>, String> getCallbackSuffix = a ->
             a.peer + "_" + SessionApiGenerator.getOpClassName(a.mid)
                     + a.payload.elems.stream().map(e -> "_" + getExtName(e)).collect(Collectors.joining(""));  // FIXME: factor out
 
