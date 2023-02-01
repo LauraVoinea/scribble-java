@@ -93,7 +93,7 @@ public class SGraphBuilder {
 				}
 			}*/
 
-            // Based on config semantics, not "static" graph edges (cf., super.getActions) -- used to build global model graph
+            // Based on dynamic config semantics, not "static" graph edges (cf., super.getActions) -- used to build global model graph
             Map<Role, Set<EAction>> fireable = curr.config.getFireable();
             for (Role r : fireable.keySet()) {
                 for (EAction a : fireable.get(r)) {

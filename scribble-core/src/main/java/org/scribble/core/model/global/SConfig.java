@@ -48,7 +48,7 @@ public class SConfig {
     protected final ModelFactory mf;
 
     public final Map<Role, EFsm> efsms;
-    public final SBuffers queues;  // N.B. currently hardcoded to capacity one
+    public final SBuffers queues;
 
     protected SConfig(ModelFactory mf, Map<Role, EFsm> state, SBuffers queues) {
         this.mf = mf;
