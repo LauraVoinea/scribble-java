@@ -26,13 +26,15 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
 class UnguardedContinueEdge extends EAction<StaticActionKind> {
+
     public UnguardedContinueEdge(ModelFactory mf, RecVar rv) {
         super(mf, Role.EMPTY_ROLE, new Op(rv.toString()), Payload.EMPTY_PAYLOAD);  // HACK
     }
 
     @Override
     public EAction<DynamicActionKind> toDynamic() {
-        throw new RuntimeException("Shouldn't get in here: " + this);
+        //throw new RuntimeException("Shouldn't get in here: " + this);
+        return (EAction) this;  // FIXME cast
     }
 
     @Override

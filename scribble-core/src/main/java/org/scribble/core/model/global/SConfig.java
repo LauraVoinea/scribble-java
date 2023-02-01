@@ -243,7 +243,7 @@ public class SConfig {
                     ERecv<DynamicActionKind> recv = send.toDynamicDual(peer);
                     //if (!s.curr.hasAction(recv)) {
                     if (s.curr.getActions().stream()
-                            .anyMatch(x -> x.toDynamic().equals(recv))) {
+                            .noneMatch(x -> x.toDynamic().equals(recv))) {
                         res.put(self, recv);
                     }
                 }
@@ -309,7 +309,8 @@ public class SConfig {
         }
 
         if (k == EStateKind.UNARY_RECEIVE || k == EStateKind.POLY_RECIEVE) {
-            ERecv a = (ERecv) fsm.curr.getActions().get(0);  // Pre: consistent ext choice subject -- CHECKME: generalise?
+            ERecv<StaticActionKind> a =
+                    (ERecv<StaticActionKind>) fsm.curr.getActions().get(0);  // Pre: consistent ext choice subject -- CHECKME: generalise?
             if (this.queues.getQueue(r).get(a.peer) != null)  // Here, only looking for any message (not a.toDual, nor dual of any action, cf. stuck error)
             {
                 return null;

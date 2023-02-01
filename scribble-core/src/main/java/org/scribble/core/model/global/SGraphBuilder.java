@@ -120,13 +120,12 @@ public class SGraphBuilder {
                         Set<SConfig> next = new HashSet<>(curr.state.config.async(r, a));
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
                         Set<SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
-
                         for (SState succ : succs) {
                             SBuildState bsucc;
                             if (a.isSend()) {
-                                bsucc = curr.add(r, a, succ);
+                                bsucc = curr.add(r, a.toDynamic(), succ);
                             } else if (a.isReceive() || a.isDisconnect()) {
-                                bsucc = curr.clear(r, a, succ);
+                                bsucc = curr.clear(r, a.toDynamic(), succ);
                             } else {
                                 throw new RuntimeException("Unknown action kind: " + a);
                             }

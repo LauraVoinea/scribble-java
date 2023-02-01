@@ -54,7 +54,10 @@ public class SQueues implements SBuffers {
     protected SQueues(SQueues queues) {
         for (Role r : queues.buffs.keySet()) {
             this.connected.put(r, new HashMap<>(queues.connected.get(r)));
-            this.buffs.put(r, new HashMap<>(queues.buffs.get(r)));
+            this.buffs.put(r, new HashMap<>(queues.buffs.get(r).entrySet().stream().collect(Collectors.toMap(
+                    Entry::getKey,
+                    y -> new LinkedList<>(y.getValue())
+            ))));
         }
     }
 
@@ -109,9 +112,10 @@ public class SQueues implements SBuffers {
     @Override
     public SQueues send(Role self, ESend<?> a) {
         SQueues copy = new SQueues(this);
-        List<ESend<DynamicActionKind>> ms = new LinkedList<>(copy.buffs.get(a.peer).get(self));  // TODO optimise this copy with above copy constructor
+        Map<Role, List<ESend<DynamicActionKind>>> dst = copy.buffs.get(a.peer);
+        List<ESend<DynamicActionKind>> ms = new LinkedList<>(dst.get(self));  // TODO optimise this copy with above copy constructor
         ms.add(a.toDynamic());
-        copy.buffs.get(a.peer).put(self, ms);
+        dst.put(self, ms);
         return copy;
     }
 
@@ -204,7 +208,7 @@ public class SQueues implements SBuffers {
     @Override
     public String toString() {
         return this.buffs.entrySet().stream()
-                .filter(e -> e.getValue().values().stream().anyMatch(List::isEmpty))
+                .filter(e -> e.getValue().values().stream().anyMatch(x -> !x.isEmpty()))
                 .collect(Collectors.toMap(
                         Entry::getKey,
                         e -> e.getValue().entrySet().stream()

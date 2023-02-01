@@ -1,5 +1,6 @@
 package org.scribble.core.model.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Role;
 
@@ -15,17 +16,17 @@ public class SScheduler {
 
     // N.B. "eligible to schedule" -- not necessarily fireable
     public boolean canSchedule(
-            Map<Role, Map<Role, List<EAction>>> history, Role src, EAction a) {
+            Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history, Role src, EAction<?> a) {
         //return true;
         //*
         if (!a.isSend()) {
             return true;
         }
-        Map<Role, List<EAction>> map = history.get(src);
+        Map<Role, List<EAction<DynamicActionKind>>> map = history.get(src);
         if (map == null) {
             return true;
         }
-        List<EAction> as = map.get(a.peer);
+        List<EAction<DynamicActionKind>> as = map.get(a.peer);
         return as == null || as.isEmpty();
         //*/
     }
