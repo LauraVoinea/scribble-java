@@ -70,7 +70,7 @@ public class SState extends MPrettyState<Void, SAction, SState, Global> {
         return hash;
     }
 
-    // !!! Not using id (cf. super.equals), cf. ModelState -- TODO? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
+    // !!! Not using id (cf. super.equals), cf. MState -- TODO? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
     // Care is needed if hashing, since mutable (OK to use immutable config -- cf., ModelState.id)
     @Override
     public boolean equals(Object o) {

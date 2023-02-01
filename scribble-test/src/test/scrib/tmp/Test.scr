@@ -145,7 +145,8 @@ module tmp.Test;
 //- unmodifiable lists/maps
 //- runtime flags in test suite
 //- exceptions -> optional -- also warnings
-//- pretty printing
+//- proto/type pretty printing
+//- possibly consolidate some of newCore, newJob, newMain -- or some of the other "factory factories"
 
 
 
