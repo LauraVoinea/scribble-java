@@ -28,8 +28,9 @@ import org.scribble.util.ScribException;
 
 import java.util.*;
 
-// TODO incomplete
+// TODO incomplete -- need to do input sequence counting also
 // Cf. ReachabilityChecker
+@Deprecated
 public class OutputSequenceCounter extends STypeVisitor<Local, LSeq> {
 
     private OutputSequenceEnv env;

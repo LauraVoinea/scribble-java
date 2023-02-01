@@ -275,16 +275,12 @@ public class Core {
                 LProjection iproj = this.context.getProjectedInlined(fullname, self);
                 boolean b = false;
                 try {
-                    /*OutputSequenceCounter c = this.config.vf.local.OutputSequenceCounter();
-                    iproj.def.visitWith(c);
-                    System.out.println("aaaaaaa:   " + c.getMaxCounts());*/
-
                     iproj.checkUnboundedRecursiveOutput(this);
                 } catch (UnboundedRecursionException e) {
                     b = true;
                     //verbosePrintln(e.getMessage());
                     if (this.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
-                        throw e;  // GoodTest, 92/191 -- BadTest, unbounded WF vs. unsafe fail not currently distinguished (so all "correctly" fail)
+                        throw e;  // GoodTest, 92/191 -- cf. BadTest, "unbounded WF" exception vs. actual safety violation not currently distinguished (so all fail anyway)
                     }
                 }
                 this.context.setPotentiallyUnbounded(fullname, b);
