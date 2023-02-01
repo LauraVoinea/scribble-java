@@ -16,6 +16,7 @@
 package org.scribble.core.model.endpoint.actions;
 
 import org.scribble.core.model.MAction;
+import org.scribble.core.model.MActionBase;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Local;
@@ -23,57 +24,22 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public abstract class EAction extends MAction<Local>
-{
-	public final Role peer;
+public abstract class EAction extends MActionBase<Local> {
+   
+    public final Role peer;
 
-	protected final ModelFactory mf;  // Internalising better ensures all constructions points (in a Scrib extension) consistently use the same ef/sf
+    protected final ModelFactory mf;  // Internalising better ensures all constructions points (in a Scrib extension) consistently use the same ef/sf
 
-	protected EAction(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay)
-	{
-		super(peer, mid, pay);
-		this.peer = peer;
-		this.mf = mf;
-	}
-	
-	// "self" means self of "this" (self of dual is this.peer) 
-	public abstract EAction toDual(Role self);
-	public abstract SAction toGlobal(Role self);
+    protected EAction(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay) {
+        super(peer, mid, pay);
+        this.peer = peer;
+        this.mf = mf;
+    }
 
-	public boolean isSend()
-	{
-		return false;
-	}
-	
-	public boolean isReceive()
-	{
-		return false;
-	}
+    // "self" means self of "this" (self of dual is this.peer)
+    public abstract EAction toDual(Role self);
 
-	public boolean isRequest()
-	{
-		return false;
-	}
-
-	public boolean isDisconnect()
-	{
-		return false;
-	}
-
-	public boolean isAccept()
-	{
-		return false;
-	}
-
-	public boolean isClientWrap()
-	{
-		return false;
-	}
-
-	public boolean isServerWrap()
-	{
-		return false;
-	}
+    public abstract SAction toGlobal(Role self);
 }
 
 

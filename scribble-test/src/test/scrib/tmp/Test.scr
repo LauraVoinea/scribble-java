@@ -147,6 +147,7 @@ module tmp.Test;
 //- exceptions -> optional -- also warnings
 //- proto/type pretty printing
 //- possibly consolidate some of newCore, newJob, newMain -- or some of the other "factory factories"
+//- organise fair and unfair tests
 
 
 

@@ -21,63 +21,52 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class EDisconnect extends EAction
-{
-	public EDisconnect(ModelFactory ef, Role peer)
-	{
-		super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GDisconnect.UNIT_MESSAGE_SIG_NODE
-	}
-	
-	@Override
-	public EDisconnect toDual(Role self)
-	{
-		return this;
-	}
+public class EDisconnect extends EAction {
+    public EDisconnect(ModelFactory ef, Role peer) {
+        super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GDisconnect.UNIT_MESSAGE_SIG_NODE
+    }
 
-	@Override
-	public SDisconnect toGlobal(Role self)
-	{
-		return this.mf.global.SDisconnect(self, this.peer);
-	}
-	
-	@Override
-	public boolean isDisconnect()
-	{
-		return true;
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 1009;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public EDisconnect toDual(Role self) {
+        return this;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof EDisconnect))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public SDisconnect toGlobal(Role self) {
+        return this.mf.global.SDisconnect(self, this.peer);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof EDisconnect;
-	}
+    @Override
+    public boolean isDisconnect() {
+        return true;
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		//return "\u00A1\u00A1";
-		return "-/-";
-	}
+    @Override
+    public int hashCode() {
+        int hash = 1009;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EDisconnect)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof EDisconnect;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        //return "\u00A1\u00A1";
+        return "-/-";
+    }
 }

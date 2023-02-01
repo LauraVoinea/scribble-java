@@ -15,69 +15,59 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
+import org.scribble.core.model.MActionBase;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class ESend extends EAction
-{
+public class ESend extends EAction {
 
-	public ESend(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay)
-	{
-		super(ef, peer, mid, pay);
-	}
-	
-	@Override
-	public ERecv toDual(Role self)
-	{
-		return this.mf.local.ERecv(self, this.mid, this.payload);
-	}
+    public ESend(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
+        super(ef, peer, mid, pay);
+    }
 
-	@Override
-	public SSend toGlobal(Role self)
-	{
-		return this.mf.global.SSend(self, this.peer, this.mid, this.payload);
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 953;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-	
-	@Override
-	public boolean isSend()
-	{
-		return true;
-	}
+    @Override
+    public ERecv toDual(Role self) {
+        return this.mf.local.ERecv(self, this.mid, this.payload);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof ESend))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public SSend toGlobal(Role self) {
+        return this.mf.global.SSend(self, this.peer, this.mid, this.payload);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof ESend;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 953;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "!";
-	}
+    @Override
+    public boolean isSend() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ESend)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof ESend;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "!";
+    }
 }

@@ -19,51 +19,42 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class SDisconnect extends SAction
-{
-	public SDisconnect(Role subj, Role obj)
-	{
-		super(subj, obj, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
-	}
-	
-	@Override
-	public boolean isRequest()
-	{
-		return true;
-	}
+public class SDisconnect extends SAction {
+    public SDisconnect(Role subj, Role obj) {
+        super(subj, obj, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 1013;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public boolean isRequest() {
+        return true;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof SDisconnect))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public int hashCode() {
+        int hash = 1013;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof SDisconnect;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SDisconnect)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		//return "\u00A1\u00A1abc";
-		return "-/-";
-	}
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof SDisconnect;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        //return "\u00A1\u00A1abc";
+        return "-/-";
+    }
 }

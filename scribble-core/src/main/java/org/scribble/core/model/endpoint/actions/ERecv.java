@@ -21,64 +21,53 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class ERecv extends EAction
-{
+public class ERecv extends EAction {
 
-	public ERecv(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay)
-	{
-		super(ef, peer, mid, pay);
-	}
-	
-	@Override
-	public ESend toDual(Role self)
-	{
-		return this.mf.local.ESend(self, this.mid, this.payload);
-	}
+    public ERecv(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
+        super(ef, peer, mid, pay);
+    }
 
-	@Override
-	public SRecv toGlobal(Role self)
-	{
-		return this.mf.global.SRecv(self, this.peer, this.mid, this.payload);
+    @Override
+    public ESend toDual(Role self) {
+        return this.mf.local.ESend(self, this.mid, this.payload);
+    }
 
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 947;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-	
-	@Override
-	public boolean isReceive()
-	{
-		return true;
-	}
+    @Override
+    public SRecv toGlobal(Role self) {
+        return this.mf.global.SRecv(self, this.peer, this.mid, this.payload);
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof ERecv))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof ERecv;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 947;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "?";
-	}
+    @Override
+    public boolean isReceive() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ERecv)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof ERecv;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "?";
+    }
 }

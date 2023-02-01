@@ -19,49 +19,40 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class SRecv extends SAction
-{
-	public SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay)
-	{
-		super(subj, obj, mid, pay);
-	}
-	
-	@Override
-	public boolean isReceive()
-	{
-		return true;
-	}
+public class SRecv extends SAction {
+    public SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay) {
+        super(subj, obj, mid, pay);
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 977;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public boolean isReceive() {
+        return true;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof SRecv))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public int hashCode() {
+        int hash = 977;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	public boolean canEquals(Object o)
-	{
-		return o instanceof SRecv;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SRecv)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "?";
-	}
+    public boolean canEquals(Object o) {
+        return o instanceof SRecv;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "?";
+    }
 }

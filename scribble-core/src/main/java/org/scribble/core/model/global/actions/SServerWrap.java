@@ -20,50 +20,41 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
 // Wrap at the server side
-public class SServerWrap extends SAction
-{
-	public SServerWrap(Role subj, Role obj)
-	{
-		super(subj, obj, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
-	}
-	
-	@Override
-	public boolean isServerWrap()
-	{
-		return true;
-	}
+public class SServerWrap extends SAction {
+    public SServerWrap(Role subj, Role obj) {
+        super(subj, obj, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 1087;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public boolean isServerWrap() {
+        return true;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof SServerWrap))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public int hashCode() {
+        int hash = 1087;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof SServerWrap;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SServerWrap)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "(<<-)";
-	}
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof SServerWrap;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "(<<-)";
+    }
 }

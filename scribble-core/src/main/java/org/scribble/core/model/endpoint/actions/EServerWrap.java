@@ -23,62 +23,51 @@ import org.scribble.core.type.session.Payload;
 
 // Wrap at the server side
 // Duplicated from Disconnect
-public class EServerWrap extends EAction
-{
-	public EServerWrap(ModelFactory ef, Role peer)
-	{
-		super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GWrap.UNIT_MESSAGE_SIG_NODE
-	}
-	
-	@Override
-	public EClientWrap toDual(Role self)
-	{
-		return this.mf.local.EClientWrap(self);
-	}
+public class EServerWrap extends EAction {
+    public EServerWrap(ModelFactory ef, Role peer) {
+        super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GWrap.UNIT_MESSAGE_SIG_NODE
+    }
 
-	@Override
-	public SServerWrap toGlobal(Role self)
-	{
-		return this.mf.global.SServerWrap(self, this.peer);
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 1063;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-	
-	@Override
-	public boolean isServerWrap()
-	{
-		return true;
-	}
+    @Override
+    public EClientWrap toDual(Role self) {
+        return this.mf.local.EClientWrap(self);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof EServerWrap))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public SServerWrap toGlobal(Role self) {
+        return this.mf.global.SServerWrap(self, this.peer);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof EServerWrap;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 1063;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "(??)";
-	}
+    @Override
+    public boolean isServerWrap() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EServerWrap)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof EServerWrap;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "(??)";
+    }
 }

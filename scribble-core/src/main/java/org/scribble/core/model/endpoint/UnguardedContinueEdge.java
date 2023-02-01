@@ -23,56 +23,46 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-class UnguardedContinueEdge extends EAction
-{
-	public UnguardedContinueEdge(ModelFactory mf, RecVar rv)
-	{
-		super(mf, Role.EMPTY_ROLE, new Op(rv.toString()), Payload.EMPTY_PAYLOAD);  // HACK
-	}
-	
-	@Override
-	public EAction toDual(Role self)
-	{
-		throw new RuntimeException("Shouldn't get in here: " + this);
-	}
+class UnguardedContinueEdge extends EAction {
+    public UnguardedContinueEdge(ModelFactory mf, RecVar rv) {
+        super(mf, Role.EMPTY_ROLE, new Op(rv.toString()), Payload.EMPTY_PAYLOAD);  // HACK
+    }
 
-	@Override
-	public SAction toGlobal(Role self)
-	{
-		throw new RuntimeException("Shouldn't get in here: " + this);
-	}
+    @Override
+    public EAction toDual(Role self) {
+        throw new RuntimeException("Shouldn't get in here: " + this);
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "#";
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 1021;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public SAction toGlobal(Role self) {
+        throw new RuntimeException("Shouldn't get in here: " + this);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof UnguardedContinueEdge))
-		{
-			return false;
-		}
-		return super.equals(o);  // Checks canEquals
-	}
+    @Override
+    public String getCommSymbol() {
+        return "#";
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof UnguardedContinueEdge;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 1021;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof UnguardedContinueEdge)) {
+            return false;
+        }
+        return super.equals(o);  // Checks canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof UnguardedContinueEdge;
+    }
 }
