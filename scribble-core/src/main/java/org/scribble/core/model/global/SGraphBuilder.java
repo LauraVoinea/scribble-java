@@ -51,12 +51,12 @@ public class SGraphBuilder {
         Map<Role, EFsm> efsms = egraphs.entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey, e -> e.getValue().toFsm()));
         SBuffers b0;
-        if (this.core.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {
-            if (this.core.getContext().isPotentiallyUnbounded(fullname)) {
+        if (this.core.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {  // TODO refactor
+            /*if (this.core.getContext().isPotentiallyUnbounded(fullname)) {
                 /*throw new RuntimeScribException(
                         "Potentially unbounded protocol, aborting model construction:\n"
-                                + fullname);*/
-            }
+                                + fullname);* /
+            }*/
             b0 = new SQueues(efsms.keySet(), !explicit);
         } else {
             b0 = new SingleCellBuffers(efsms.keySet(), !explicit);
@@ -73,9 +73,14 @@ public class SGraphBuilder {
 
         SConfig c0 = createInitConfig(egraphs, explicit, fullname);
         SState initState = this.util.newState(c0);
-        SBuildState init = new SBuildState(initState, Collections.emptyMap());
-
-        SScheduler sched = new SScheduler();
+        SScheduler sched;
+        if (this.core.config.hasFlag(CoreArgs.SCRIBBLE_UNBOUNDED_BUFFERS)) {  // TODO refactor
+            sched = new SSetScheduler();  // TODO factor out (e.g., config factory)
+        } else {
+            sched = new SDumbScheduler();
+        }
+        SBuildStateHistory<?> history = sched.newHistory();
+        SBuildState init = new SBuildState(initState, history);
 
         // More efficient to use SConfig instead SState here?
         Set<SBuildState> seen = new HashSet<>();
@@ -123,9 +128,10 @@ public class SGraphBuilder {
                         for (SState succ : succs) {
                             SBuildState bsucc;
                             if (a.isSend()) {
-                                bsucc = curr.add(r, a.toDynamic(), succ);
+                                bsucc = curr.add(r, a, succ);  // Only ! increases state space (cf. !!, etc)
                             } else if (a.isReceive() || a.isDisconnect()) {
-                                bsucc = curr.clear(r, a.toDynamic(), succ);
+                                //bsucc = curr.clear(r, a, succ);
+                                bsucc = curr.remove(r, a, succ);
                             } else {
                                 throw new RuntimeException("Unknown action kind: " + a);
                             }
@@ -158,7 +164,8 @@ public class SGraphBuilder {
                                 SBuildState bsucc;
                                 if (a.isAccept() || a.isRequest() || a.isClientWrap()
                                         || a.isServerWrap()) {
-                                    bsucc = curr.syncClear(r, a.peer, succ);
+                                    //bsucc = curr.syncClear(r, a.peer, succ);
+                                    bsucc = curr.syncRemove(r, a, succ);
                                 } else {
                                     throw new RuntimeException("Unknown action kind: " + a);
                                 }

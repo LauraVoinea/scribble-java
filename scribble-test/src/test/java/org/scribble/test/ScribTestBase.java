@@ -73,8 +73,8 @@ public abstract class ScribTestBase {
         new CommandLine(
                 this.example,
                 CLFlags.JUNIT_FLAG,  // Added JUNIT flag -- but for some reason only bad DoArgList01.scr was breaking without it...
-                CLFlags.IMPORT_PATH_FLAG, dir,
-                CLFlags.SCRIBBLE_UNBOUNDED_BUFFERS
+                CLFlags.IMPORT_PATH_FLAG, dir
+                // , CLFlags.SCRIBBLE_UNBOUNDED_BUFFERS
         ).run();
     }
 

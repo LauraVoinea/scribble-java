@@ -1,89 +1,45 @@
 package org.scribble.core.model.global;
 
-import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Role;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class SBuildState {
 
     public final SState state;
-    public final Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history;
+    public final SBuildStateHistory<?> history;
 
-    public SBuildState(SState state, Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history) {
+    public SBuildState(SState state, SBuildStateHistory<?> history) {
         this.state = state;
-        this.history = Collections.unmodifiableMap(cloneHistory(history));
+        this.history = history;
     }
 
-    private static Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> cloneHistory(
-            Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history) {
-        return history.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                x -> x.getValue().entrySet().stream().collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        y -> y.getValue().stream().collect(Collectors.toList())
-                ))
-        ));
+    public SBuildState add(Role src, EAction<StaticActionKind> a, SState succ) {
+        return new SBuildState(succ, this.history.add(src, a));
     }
 
-    public SBuildState add(Role src, EAction<DynamicActionKind> a, SState succ) {
-        Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history = cloneHistory(this.history);  // TODO optimise, factor out clone with constructor
-        Map<Role, List<EAction<DynamicActionKind>>> map = history.get(src);
-        if (map == null) {
-            map = new HashMap<>();
-            history.put(src, map);
-        }
-        List<EAction<DynamicActionKind>> as = map.get(a.peer);
-        if (as == null) {
-            as = new LinkedList<>();
-            map.put(a.peer, as);
-        }
-        as.add(a);
-        return new SBuildState(succ, history);
+    public SBuildState remove(Role dst, EAction<StaticActionKind> a, SState succ) {
+        return new SBuildState(succ, this.history.remove(dst, a));
+    }
+
+    public SBuildState syncRemove(Role r1, EAction<StaticActionKind> a, SState succ) {
+        return new SBuildState(succ, this.history.syncRemove(r1, a));
     }
 
     // Cf. sender with recursive "double" output but receiver with recursive "single" input...
     // ...(e.g., from unfold-all expansions, e.g., "unguarded choice-recs")...
     // ..."clear" is sound in some regards, but unsound in others (e.g., max buffer bounds)
-    public SBuildState clear(Role dst, EAction<DynamicActionKind> a, SState succ) {
-        Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history = cloneHistory(this.history);  // TODO optimise, factor out clone with constructor
-        Map<Role, List<EAction<DynamicActionKind>>> map = history.get(a.peer);
-        if (map == null) {  // CHECKME Should be impossible?
-            return new SBuildState(succ, this.history);
-        }
-        List<EAction<DynamicActionKind>> as = map.get(dst);
-        if (as == null) {  // CHECKME Should be impossible?
-            return new SBuildState(succ, this.history);
-        }
-        as.clear();
-        return new SBuildState(succ, history);
+    public SBuildState clear(Role dst, EAction<StaticActionKind> a, SState succ) {
+        return new SBuildState(succ, this.history.clear(dst, a));
     }
 
     public SBuildState syncClear(Role r1, Role r2, SState succ) {
-        Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history = cloneHistory(this.history);  // TODO optimise, factor out clone with constructor
-        Map<Role, List<EAction<DynamicActionKind>>> map = history.get(r1);
-        if (map != null) {
-            List<EAction<DynamicActionKind>> as = map.get(r2);
-            if (as != null) {
-                if (as.size() > 1) {
-                    System.out.println("-----------------\n");
-                }
-                as.clear();
-            }
-        }
-        Map<Role, List<EAction<DynamicActionKind>>> map2 = history.get(r2);
-        if (map2 != null) {
-            List<EAction<DynamicActionKind>> as2 = map2.get(r1);
-            if (as2 != null) {
-                if (as2.size() > 1) {
-                    System.out.println("-----------------\n");
-                }
-                as2.clear();
-            }
-        }
-        return new SBuildState(succ, history);
+        return new SBuildState(succ, this.history.syncClear(r1, r2));
+    }
+
+    @Override
+    public String toString() {
+        return "(" + this.state.toString() + "::" + this.history + ")";
     }
 
     @Override

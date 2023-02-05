@@ -53,7 +53,7 @@ public abstract class MState
         this.succs = new LinkedList<>();
     }
 
-    // Mutating setter
+    // Mutating setter -- TODO factor out MutableState (BuildingState)
     protected final void addLabel(L lab) {
         this.labs.add(lab);
     }
@@ -62,7 +62,7 @@ public abstract class MState
         return Collections.unmodifiableSet(this.labs);
     }
 
-    // Mutating setter (can also overwrite edges)
+    // Mutating setter (can also overwrite edges) -- TODO factor out MutableState (BuildingState)
     protected void addEdge(A a, S s) {
 		/*if (this.equals(s)) 
 		{

@@ -1,33 +1,16 @@
 package org.scribble.core.model.global;
 
-import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Role;
 
-import java.util.*;
+import java.util.Collections;
 
 
-// HERE HERE generalise history to "action ids" (not just message queue non-empty, and also not just ops (cf. non det))
+public interface SScheduler {
 
-
-public class SScheduler {
-
-    public SScheduler() { }
+    SBuildStateHistory<?> newHistory();
 
     // N.B. "eligible to schedule" -- not necessarily fireable
-    public boolean canSchedule(
-            Map<Role, Map<Role, List<EAction<DynamicActionKind>>>> history, Role src, EAction<?> a) {
-        //return true;
-        //*
-        if (!a.isSend()) {
-            return true;
-        }
-        Map<Role, List<EAction<DynamicActionKind>>> map = history.get(src);
-        if (map == null) {
-            return true;
-        }
-        List<EAction<DynamicActionKind>> as = map.get(a.peer);
-        return as == null || as.isEmpty();
-        //*/
-    }
+    boolean canSchedule(SBuildStateHistory<?> history, Role src, EAction<StaticActionKind> a);
 }
