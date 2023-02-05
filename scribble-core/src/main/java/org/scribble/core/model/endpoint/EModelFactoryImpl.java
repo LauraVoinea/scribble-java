@@ -49,37 +49,37 @@ public class EModelFactoryImpl extends ModelFactoryBase implements EModelFactory
 
     @Override
     public ESend<StaticActionKind> StaticESend(Role peer, MsgId<?> mid, Payload pay) {
-        return new ESend<>(1, this.mf, peer, mid, pay);
+        return new ESend<>(MActionBase.nextCount(), this.mf, peer, mid, pay);
     }
 
     @Override
     public ERecv<StaticActionKind> StaticERecv(Role peer, MsgId<?> mid, Payload pay) {
-        return new ERecv<>(1, this.mf, peer, mid, pay);
+        return new ERecv<>(MActionBase.nextCount(), this.mf, peer, mid, pay);
     }
 
     @Override
     public EReq<StaticActionKind> StaticEReq(Role peer, MsgId<?> mid, Payload pay) {
-        return new EReq<>(1, this.mf, peer, mid, pay);
+        return new EReq<>(MActionBase.nextCount(), this.mf, peer, mid, pay);
     }
 
     @Override
     public EAcc<StaticActionKind> StaticEAcc(Role peer, MsgId<?> mid, Payload pay) {
-        return new EAcc<>(1, this.mf, peer, mid, pay);
+        return new EAcc<>(MActionBase.nextCount(), this.mf, peer, mid, pay);
     }
 
     @Override
     public EDisconnect<StaticActionKind> StaticEDisconnect(Role peer) {
-        return new EDisconnect<>(1, this.mf, peer);
+        return new EDisconnect<>(MActionBase.nextCount(), this.mf, peer);
     }
 
     @Override
     public EClientWrap<StaticActionKind> StaticEClientWrap(Role peer) {
-        return new EClientWrap<>(1, this.mf, peer);
+        return new EClientWrap<>(MActionBase.nextCount(), this.mf, peer);
     }
 
     @Override
     public EServerWrap<StaticActionKind> StaticEServerWrap(Role peer) {
-        return new EServerWrap<>(1, this.mf, peer);
+        return new EServerWrap<>(MActionBase.nextCount(), this.mf, peer);
     }
 
     @Override

@@ -40,6 +40,11 @@ public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
         this.payload = payload;
     }
 
+    @Override
+    public int getId() {
+        return this.id;
+    }
+
     public static int nextCount() {
         return MActionBase.count++;
     }

@@ -120,11 +120,14 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
         for (EState pred : this.util.getPreds(curr)) {  // Does getSuccs (i.e., gets all), e.g., choice sequenced to continue
             // CHECKME: identical edges? i.e. same pred/prev/succ (e.g. rec X { choice at A { A->B:1 } or { A->B:1 } continue X; })
             for (EAction<StaticActionKind> a : new LinkedList<>(pred.getActions())) {
-                // Following caters for non-det edges (to different succs)
+                /*// Following caters for non-det edges (to different succs)
                 for (EState succ : pred.getSuccs(a.toDynamic())) {
                     if (succ.equals(curr)) {
                         this.util.fixContinueEdge(pred, a, curr, n.getRecVar());
                     }
+                }*/
+                if (pred.getDetSuccessor(a).equals(curr)) {  // Revised w.r.t. StaticActionKind (always "det")
+                    this.util.fixContinueEdge(pred, a, curr, n.getRecVar());
                 }
             }
         }

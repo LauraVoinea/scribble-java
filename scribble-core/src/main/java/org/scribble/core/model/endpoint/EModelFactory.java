@@ -40,7 +40,9 @@ public interface EModelFactory {
     EState EState(Set<RecVar> labs);
     //EFsm new EFsm(...)
 
-    // public constructors (subpackage, immutable)
+
+    /*  public constructors (subpackage, immutable) */
+
     ESend<StaticActionKind> StaticESend(Role peer, MsgId<?> mid, Payload pay);
 
     ERecv<StaticActionKind> StaticERecv(Role peer, MsgId<?> mid, Payload pay);
@@ -54,6 +56,9 @@ public interface EModelFactory {
     EClientWrap<StaticActionKind> StaticEClientWrap(Role peer);
 
     EServerWrap<StaticActionKind> StaticEServerWrap(Role peer);
+
+
+    /* Used by toDynamic, toDynamicDual */
 
     ESend<DynamicActionKind> DynamicESend(Role peer, MsgId<?> mid, Payload pay);
 
