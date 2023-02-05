@@ -130,7 +130,7 @@ public class SGraphBuilder {
                             if (a.isSend()) {
                                 bsucc = curr.add(r, a, succ);  // Only ! increases state space (cf. !!, etc)
                             } else if (a.isReceive() || a.isDisconnect()) {
-                                //bsucc = curr.clear(r, a, succ);
+                                //bsucc = curr.clear(r, a, succ);  // Only OK for single cell buffs
                                 bsucc = curr.remove(r, a, succ);
                             } else {
                                 throw new RuntimeException("Unknown action kind: " + a);
@@ -164,7 +164,7 @@ public class SGraphBuilder {
                                 SBuildState bsucc;
                                 if (a.isAccept() || a.isRequest() || a.isClientWrap()
                                         || a.isServerWrap()) {
-                                    //bsucc = curr.syncClear(r, a.peer, succ);
+                                    //bsucc = curr.syncClear(r, a.peer, succ);  // Only OK for single cell buffs
                                     bsucc = curr.syncRemove(r, a, succ);
                                 } else {
                                     throw new RuntimeException("Unknown action kind: " + a);

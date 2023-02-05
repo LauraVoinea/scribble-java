@@ -15,9 +15,12 @@ public interface SBuildStateHistory<T> {
     SSetHistory syncRemove(Role r1, EAction<StaticActionKind> a);
 
     // Cf. sender with recursive "double" output but receiver with recursive "single" input...
-    // ...(e.g., from unfold-all expansions, e.g., "unguarded choice-recs")...
+    // ...in context of dynamic action history (not static action)...
+    // ...e.g., from unfold-all expansions, e.g., "unguarded choice-recs"...
     // ..."clear" is sound in some regards, but unsound in others (e.g., max buffer bounds)
+    @Deprecated
     SBuildStateHistory<T> clear(Role dst, EAction<StaticActionKind> a);
 
+    @Deprecated
     SBuildStateHistory<T> syncClear(Role r1, Role r2);
 }
