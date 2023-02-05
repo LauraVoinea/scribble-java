@@ -141,7 +141,7 @@ public class SConfig {
         return fsm.curr.getActions().stream().map(x -> (EAcc<StaticActionKind>) x)
                 .filter(x -> this.queues.canAccept(self, x)
                         && peeras.stream()
-                        .anyMatch(y -> y.peer.equals(self) //&& x.peer.equals(peer)
+                        .anyMatch(y -> y.peer.equals(self)   // cf. SupplierInfoNoFair  //&& x.peer.equals(peer)
                                 && y.toDynamicDual(peer).equals(x.toDynamic())))
                 .collect(Collectors.toSet());
     }
