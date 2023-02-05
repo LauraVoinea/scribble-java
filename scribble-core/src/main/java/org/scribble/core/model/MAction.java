@@ -23,6 +23,8 @@ import org.scribble.core.type.session.Payload;
 // SAction never Dynamic
 public interface MAction<K extends ProtoKind, A extends ActionKind> {
 
+    MAction<K, DynamicActionKind> toDynamic();
+
     Role getObject();
 
     MsgId<?> getMid();

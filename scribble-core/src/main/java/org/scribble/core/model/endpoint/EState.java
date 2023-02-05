@@ -39,6 +39,7 @@ import org.scribble.util.ScribException;
 
 // Label types used to be both RecVar and SubprotocolSigs; now using inlined protocol for FSM building so just RecVar
 public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, EState, Local> {
+   
     protected EState(Set<RecVar> labs) {
         super(labs);
     }

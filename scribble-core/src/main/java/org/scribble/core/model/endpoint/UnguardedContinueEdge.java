@@ -15,9 +15,7 @@
  */
 package org.scribble.core.model.endpoint;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.ModelFactory;
-import org.scribble.core.model.StaticActionKind;
+import org.scribble.core.model.*;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
@@ -25,16 +23,21 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-class UnguardedContinueEdge extends EAction<StaticActionKind> {
+class UnguardedContinueEdge<A extends ActionKind> extends EAction<A> {
 
     public UnguardedContinueEdge(ModelFactory mf, RecVar rv) {
-        super(mf, Role.EMPTY_ROLE, new Op(rv.toString()), Payload.EMPTY_PAYLOAD);  // HACK
+        this(nextCount(), mf, new Op(rv.toString()));  // HACK
+    }
+
+    protected UnguardedContinueEdge(int id, ModelFactory mf, Op op) {
+        super(id, mf, Role.EMPTY_ROLE, op, Payload.EMPTY_PAYLOAD);  // HACK
     }
 
     @Override
     public EAction<DynamicActionKind> toDynamic() {
         //throw new RuntimeException("Shouldn't get in here: " + this);
-        return (EAction) this;  // FIXME cast
+        //return (EAction) this;  // FIXME cast
+        return new UnguardedContinueEdge(MActionBase.DYNAMIC_ID, this.mf, (Op) this.mid);
     }
 
     @Override

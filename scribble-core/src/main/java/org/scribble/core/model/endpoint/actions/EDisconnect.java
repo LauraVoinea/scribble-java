@@ -26,18 +26,18 @@ import org.scribble.core.type.session.Payload;
 
 public class EDisconnect<A extends ActionKind> extends EAction<A> {
 
-    public EDisconnect(ModelFactory ef, Role peer) {
-        super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GDisconnect.UNIT_MESSAGE_SIG_NODE
+    public EDisconnect(int id, ModelFactory ef, Role peer) {
+        super(id, ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GDisconnect.UNIT_MESSAGE_SIG_NODE
     }
 
     @Override
     public EDisconnect<DynamicActionKind> toDynamic() {
-        return this.mf.local.EDisconnect(this.peer);
+        return this.mf.local.DynamicEDisconnect(this.peer);
     }
 
     @Override
     public EDisconnect<DynamicActionKind> toDynamicDual(Role self) {
-        return this.mf.local.EDisconnect(this.peer);
+        return this.mf.local.DynamicEDisconnect(this.peer);
     }
 
     @Override

@@ -26,18 +26,18 @@ import org.scribble.core.type.session.Payload;
 
 public class EAcc<A extends ActionKind> extends EAction<A> {
 
-    public EAcc(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay) {
-        super(mf, peer, mid, pay);
+    public EAcc(int id, ModelFactory mf, Role peer, MsgId<?> mid, Payload pay) {
+        super(id, mf, peer, mid, pay);
     }
 
     @Override
     public EAcc<DynamicActionKind> toDynamic() {
-        return this.mf.local.EAcc(this.peer, this.mid, this.payload);
+        return this.mf.local.DynamicEAcc(this.peer, this.mid, this.payload);
     }
 
     @Override
     public EReq<DynamicActionKind> toDynamicDual(Role self) {
-        return this.mf.local.EReq(self, this.mid, this.payload);
+        return this.mf.local.DynamicEReq(self, this.mid, this.payload);
     }
 
     @Override

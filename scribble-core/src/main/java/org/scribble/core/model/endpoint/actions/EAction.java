@@ -28,12 +28,14 @@ public abstract class EAction<A extends ActionKind> extends MActionBase<Local, A
 
     protected final ModelFactory mf;  // Internalising better ensures all constructions points (in a Scrib extension) consistently use the same ef/sf
 
-    protected EAction(ModelFactory mf, Role peer, MsgId<?> mid, Payload pay) {
-        super(peer, mid, pay);
+    // id == MActionBase.DYNAMIC_ID for dynamic, else nextCount()
+    protected EAction(int id, ModelFactory mf, Role peer, MsgId<?> mid, Payload pay) {
+        super(id, peer, mid, pay);
         this.peer = peer;
         this.mf = mf;
     }
 
+    @Override
     public abstract EAction<DynamicActionKind> toDynamic();
 
     // "self" means self of "this" (self of dual is this.peer)

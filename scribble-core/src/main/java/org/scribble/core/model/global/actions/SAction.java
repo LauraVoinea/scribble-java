@@ -20,8 +20,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.MAction;
 import org.scribble.core.model.MActionBase;
+import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
@@ -34,8 +36,13 @@ public abstract class SAction<A extends ActionKind> extends MActionBase<Global, 
     public final Role subj;
 
     public SAction(Role subj, Role obj, MsgId<?> mid, Payload pay) {
-        super(obj, mid, pay);
+        super(nextCount(), obj, mid, pay);
         this.subj = subj;
+    }
+
+    @Override
+    public SAction<DynamicActionKind> toDynamic() {
+        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     public Set<Role> getRoles() {

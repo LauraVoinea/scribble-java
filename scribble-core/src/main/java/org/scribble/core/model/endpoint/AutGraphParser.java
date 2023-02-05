@@ -215,14 +215,14 @@ public class AutGraphParser {
                         ? new Payload(Arrays.asList(paySplit).stream()
                         .map((pe) -> new DataName(pe)).collect(Collectors.toList()))
                         : Payload.EMPTY_PAYLOAD;
-                return ef.local.<StaticActionKind>ESend(new Role(peer), getMessageIdHack(msg), pay);  // FIXME: how about MessageSigNames? -- currently OK, treated as empty payload (cf. ModelAction)
+                return ef.local.<StaticActionKind>StaticESend(new Role(peer), getMessageIdHack(msg), pay);  // FIXME: how about MessageSigNames? -- currently OK, treated as empty payload (cf. ModelAction)
             }
             case "?": {
                 Payload pay = (paySplit != null)
                         ? new Payload(Arrays.asList(paySplit).stream()
                         .map((pe) -> new DataName(pe)).collect(Collectors.toList()))
                         : Payload.EMPTY_PAYLOAD;
-                return ef.local.<StaticActionKind>ERecv(new Role(peer), getMessageIdHack(msg), pay);  // FIXME: how about MessageSigNames?)
+                return ef.local.<StaticActionKind>StaticERecv(new Role(peer), getMessageIdHack(msg), pay);  // FIXME: how about MessageSigNames?)
             }
             case "!!": {
                 //return new Connect(new Role(peer));
@@ -230,7 +230,7 @@ public class AutGraphParser {
                         ? new Payload(Arrays.asList(paySplit).stream()
                         .map((pe) -> new DataName(pe)).collect(Collectors.toList()))
                         : Payload.EMPTY_PAYLOAD;
-                return ef.local.<StaticActionKind>EReq(new Role(peer), getMessageIdHack(msg), pay);
+                return ef.local.<StaticActionKind>StaticEReq(new Role(peer), getMessageIdHack(msg), pay);
             }
             case "??": {
                 //return new Accept(new Role(peer));
@@ -238,16 +238,16 @@ public class AutGraphParser {
                         ? new Payload(Arrays.asList(paySplit).stream()
                         .map((pe) -> new DataName(pe)).collect(Collectors.toList()))
                         : Payload.EMPTY_PAYLOAD;
-                return ef.local.<StaticActionKind>EAcc(new Role(peer), getMessageIdHack(msg), pay);
+                return ef.local.<StaticActionKind>StaticEAcc(new Role(peer), getMessageIdHack(msg), pay);
             }
             case "(!!)": {
-                return ef.local.<StaticActionKind>EClientWrap(new Role(peer));
+                return ef.local.<StaticActionKind>StaticEClientWrap(new Role(peer));
             }
             case "(??)": {
-                return ef.local.<StaticActionKind>EServerWrap(new Role(peer));
+                return ef.local.<StaticActionKind>StaticEServerWrap(new Role(peer));
             }
             case "-/-": {
-                return ef.local.<StaticActionKind>EDisconnect(new Role(peer));
+                return ef.local.<StaticActionKind>StaticEDisconnect(new Role(peer));
             }
             default: {
                 throw new RuntimeException(

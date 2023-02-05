@@ -118,6 +118,7 @@ public abstract class MState
         return Collections.unmodifiableList(this.succs);
     }
 
+    // DynamicActionKind used for non-det
     //public final List<S> getSuccs(A a) {
     public final <T extends MAction<K, DynamicActionKind>> List<S> getSuccs(T a) {
         Iterator<A> as = this.actions.iterator();
@@ -126,7 +127,7 @@ public abstract class MState
         while (as.hasNext()) {
             A na = as.next();
             S ns = ss.next();
-            if (na.equals(a)) {
+            if (na.toDynamic().equals(a)) {
                 res.add(ns);
             }
         }
@@ -222,7 +223,7 @@ public abstract class MState
     @Override
     public int hashCode() {
         int hash = 73;
-        hash = 31 * hash + this.id;  // N.B. using state ID only
+        hash = 31 * hash + this.id;  // N.B. using state ID only -- cf. addLabel, addEdge?
         return hash;
     }
 

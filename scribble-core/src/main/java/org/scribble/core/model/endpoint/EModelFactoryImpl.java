@@ -17,9 +17,7 @@ package org.scribble.core.model.endpoint;
 
 import java.util.Set;
 
-import org.scribble.core.model.ActionKind;
-import org.scribble.core.model.ModelFactory;
-import org.scribble.core.model.ModelFactoryBase;
+import org.scribble.core.model.*;
 import org.scribble.core.model.endpoint.actions.EAcc;
 import org.scribble.core.model.endpoint.actions.EClientWrap;
 import org.scribble.core.model.endpoint.actions.EDisconnect;
@@ -50,37 +48,72 @@ public class EModelFactoryImpl extends ModelFactoryBase implements EModelFactory
     }
 
     @Override
-    public <T extends ActionKind> ESend<T> ESend(Role peer, MsgId<?> mid, Payload pay) {
-        return new ESend<>(this.mf, peer, mid, pay);
+    public ESend<StaticActionKind> StaticESend(Role peer, MsgId<?> mid, Payload pay) {
+        return new ESend<>(1, this.mf, peer, mid, pay);
     }
 
     @Override
-    public <T extends ActionKind> ERecv<T> ERecv(Role peer, MsgId<?> mid, Payload pay) {
-        return new ERecv<>(this.mf, peer, mid, pay);
+    public ERecv<StaticActionKind> StaticERecv(Role peer, MsgId<?> mid, Payload pay) {
+        return new ERecv<>(1, this.mf, peer, mid, pay);
     }
 
     @Override
-    public <T extends ActionKind> EReq<T> EReq(Role peer, MsgId<?> mid, Payload pay) {
-        return new EReq<>(this.mf, peer, mid, pay);
+    public EReq<StaticActionKind> StaticEReq(Role peer, MsgId<?> mid, Payload pay) {
+        return new EReq<>(1, this.mf, peer, mid, pay);
     }
 
     @Override
-    public <T extends ActionKind> EAcc<T> EAcc(Role peer, MsgId<?> mid, Payload pay) {
-        return new EAcc<>(this.mf, peer, mid, pay);
+    public EAcc<StaticActionKind> StaticEAcc(Role peer, MsgId<?> mid, Payload pay) {
+        return new EAcc<>(1, this.mf, peer, mid, pay);
     }
 
     @Override
-    public <T extends ActionKind> EDisconnect<T> EDisconnect(Role peer) {
-        return new EDisconnect<>(this.mf, peer);
+    public EDisconnect<StaticActionKind> StaticEDisconnect(Role peer) {
+        return new EDisconnect<>(1, this.mf, peer);
     }
 
     @Override
-    public <T extends ActionKind> EClientWrap<T> EClientWrap(Role peer) {
-        return new EClientWrap<>(this.mf, peer);
+    public EClientWrap<StaticActionKind> StaticEClientWrap(Role peer) {
+        return new EClientWrap<>(1, this.mf, peer);
     }
 
     @Override
-    public <T extends ActionKind> EServerWrap<T> EServerWrap(Role peer) {
-        return new EServerWrap<>(this.mf, peer);
+    public EServerWrap<StaticActionKind> StaticEServerWrap(Role peer) {
+        return new EServerWrap<>(1, this.mf, peer);
+    }
+
+    @Override
+    public ESend<DynamicActionKind> DynamicESend(Role peer, MsgId<?> mid, Payload pay) {
+        return new ESend<>(MActionBase.DYNAMIC_ID, this.mf, peer, mid, pay);
+    }
+
+    @Override
+    public ERecv<DynamicActionKind> DynamicERecv(Role peer, MsgId<?> mid, Payload pay) {
+        return new ERecv<>(MActionBase.DYNAMIC_ID, this.mf, peer, mid, pay);
+    }
+
+    @Override
+    public EReq<DynamicActionKind> DynamicEReq(Role peer, MsgId<?> mid, Payload pay) {
+        return new EReq<>(MActionBase.DYNAMIC_ID, this.mf, peer, mid, pay);
+    }
+
+    @Override
+    public EAcc<DynamicActionKind> DynamicEAcc(Role peer, MsgId<?> mid, Payload pay) {
+        return new EAcc<>(MActionBase.DYNAMIC_ID, this.mf, peer, mid, pay);
+    }
+
+    @Override
+    public EDisconnect<DynamicActionKind> DynamicEDisconnect(Role peer) {
+        return new EDisconnect<>(MActionBase.DYNAMIC_ID, this.mf, peer);
+    }
+
+    @Override
+    public EClientWrap<DynamicActionKind> DynamicEClientWrap(Role peer) {
+        return new EClientWrap<>(MActionBase.DYNAMIC_ID, this.mf, peer);
+    }
+
+    @Override
+    public EServerWrap<DynamicActionKind> DynamicEServerWrap(Role peer) {
+        return new EServerWrap<>(MActionBase.DYNAMIC_ID, this.mf, peer);
     }
 }

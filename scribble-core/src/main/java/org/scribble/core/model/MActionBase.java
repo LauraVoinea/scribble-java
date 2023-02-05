@@ -22,20 +22,26 @@ import org.scribble.core.type.session.Payload;
 
 public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
         implements MAction<K, A> {
-	/*private static int count = 0;
 
-	public final int id;  // Was using for trace enumeration, but breaks isAcceptable -- but would be better for non-det models?*/
+    public static final int DYNAMIC_ID = -1;
+
+    private static int count = 1;  // >= 1
+
+    public final int id;  // Was using for trace enumeration, but breaks isAcceptable -- but would be better for non-det models?
 
     public final Role obj;
     public final MsgId<?> mid;
     public final Payload payload;  // Payload.EMPTY_PAYLOAD for SigName mid
 
-    protected MActionBase(Role obj, MsgId<?> mid, Payload payload) {
-        //this.id = ModelAction.count++;
-
+    protected MActionBase(int id, Role obj, MsgId<?> mid, Payload payload) {
+        this.id = id;
         this.obj = obj;
         this.mid = mid;
         this.payload = payload;
+    }
+
+    public static int nextCount() {
+        return MActionBase.count++;
     }
 
     @Override
@@ -69,6 +75,7 @@ public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
     @Override
     public int hashCode() {
         int hash = 919;
+        hash = 31 * hash + this.id;
         hash = 31 * hash + this.obj.hashCode();
         hash = 31 * hash + this.mid.hashCode();
         hash = 31 * hash + this.payload.hashCode();
@@ -84,7 +91,8 @@ public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
             return false;
         }
         MActionBase<?, ?> them = (MActionBase<?, ?>) o;  // Refactor as "compatible"
-        return them.canEquals(this) && this.obj.equals(them.obj)
+        return them.canEquals(this)
+                && this.id == them.id && this.obj.equals(them.obj)
                 && this.mid.equals(them.mid) && this.payload.equals(them.payload);
     }
 

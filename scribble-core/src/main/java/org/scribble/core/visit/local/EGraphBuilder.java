@@ -145,11 +145,11 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
                 ? ((SigLit) n.msg).payload
                 : Payload.EMPTY_PAYLOAD;
         // TODO: add toAction method to BasicInteraction (cf. toName methods of NameNodes)
-        EAction<StaticActionKind> a = (n instanceof LSend) ? this.util.mf.local.ESend(peer, mid, pay)
-                : (n instanceof LRecv) ? this.util.mf.local.ERecv(peer, mid, pay)
-                        : (n instanceof LReq) ? this.util.mf.local.EReq(peer, mid, pay)
+        EAction<StaticActionKind> a = (n instanceof LSend) ? this.util.mf.local.StaticESend(peer, mid, pay)
+                : (n instanceof LRecv) ? this.util.mf.local.StaticERecv(peer, mid, pay)
+                        : (n instanceof LReq) ? this.util.mf.local.StaticEReq(peer, mid, pay)
                                 : //(n instanceof LAcc) ?
-                                        this.util.mf.local.EAcc(peer, mid, pay);  // Action type already checked above
+                                        this.util.mf.local.StaticEAcc(peer, mid, pay);  // Action type already checked above
         this.util.addEdge(this.util.getEntry(), a, this.util.getExit());
         return n;
     }
@@ -157,7 +157,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
     @Override
     public SVisitable<Local, LSeq> visitDisconnect(DisconnectAction<Local, LSeq> n) {
         Role peer = ((LDisconnect) n).getPeer();  // CHECKME -- ?
-        EAction<StaticActionKind> a = this.util.mf.local.EDisconnect(peer);  // TODO: add toAction method to BasicInteraction
+        EAction<StaticActionKind> a = this.util.mf.local.StaticEDisconnect(peer);  // TODO: add toAction method to BasicInteraction
         this.util.addEdge(this.util.getEntry(), a, this.util.getExit());
         return n;
     }

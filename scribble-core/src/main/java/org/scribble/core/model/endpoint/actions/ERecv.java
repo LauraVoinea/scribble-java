@@ -26,18 +26,18 @@ import org.scribble.core.type.session.Payload;
 
 public class ERecv<A extends ActionKind> extends EAction<A> {
 
-    public ERecv(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
-        super(ef, peer, mid, pay);
+    public ERecv(int id, ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
+        super(id, ef, peer, mid, pay);
     }
 
     @Override
     public ERecv<DynamicActionKind> toDynamic() {
-        return this.mf.local.ERecv(this.peer, this.mid, this.payload);
+        return this.mf.local.DynamicERecv(this.peer, this.mid, this.payload);
     }
 
     @Override
     public ESend<DynamicActionKind> toDynamicDual(Role self) {
-        return this.mf.local.ESend(self, this.mid, this.payload);
+        return this.mf.local.DynamicESend(self, this.mid, this.payload);
     }
 
     @Override

@@ -23,18 +23,18 @@ import org.scribble.core.type.session.Payload;
 
 public class ESend<A extends ActionKind> extends EAction<A> {
 
-    public ESend(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
-        super(ef, peer, mid, pay);
+    public ESend(int id, ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
+        super(id, ef, peer, mid, pay);
     }
 
     @Override
     public ESend<DynamicActionKind> toDynamic() {
-        return this.mf.local.ESend(this.peer, this.mid, this.payload);
+        return this.mf.local.DynamicESend(this.peer, this.mid, this.payload);
     }
 
     @Override
     public ERecv<DynamicActionKind> toDynamicDual(Role self) {
-        return this.mf.local.ERecv(self, this.mid, this.payload);
+        return this.mf.local.DynamicERecv(self, this.mid, this.payload);
     }
 
     @Override

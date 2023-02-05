@@ -207,7 +207,7 @@ public class EGraphBuilderUtil
     public void addUnguardedContinueEdge(EState s, RecVar rv)  // Intermed continue edge makes its own dummy action
     {
         EState entry = getRecursionEntry(rv);
-        addEdgeAux(s, new UnguardedContinueEdge(this.mf, rv), entry);
+        addEdgeAux(s, new UnguardedContinueEdge<>(this.mf, rv), entry);
     }
 
 	/*// CHECKME: update enacting? (cf. this.addEdge)

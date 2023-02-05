@@ -110,6 +110,7 @@ public class SConfig {
                         || (a.isClientWrap()
                         && this.queues.canClientWrap(self, (EClientWrap<?>) a))) {
                     if (this.efsms.get(a.peer).curr.getActions().stream()
+                            .map(x -> x.toDynamic())
                             .anyMatch(x -> a.toDynamicDual(self).equals(x)))  // anyMatch (i.e., add "a" at most once), cf. getAcceptable
                     {
                         res.add(a);
@@ -136,10 +137,11 @@ public class SConfig {
     protected Set<EAcc<StaticActionKind>> getAcceptFireable(Role self, EFsm fsm) {
         List<EAction<StaticActionKind>> as = fsm.curr.getActions();
         Role peer = as.get(0).peer;  // All peer's the same
-        List<EAction<StaticActionKind>> peeras = this.efsms.get(peer).curr.getActions();
+        List<EAction<DynamicActionKind>> peeras = this.efsms.get(peer).curr.getActions().stream()
+                .map(x -> x.toDynamic()).collect(Collectors.toList());
         return fsm.curr.getActions().stream().map(x -> (EAcc<StaticActionKind>) x)
                 .filter(x -> this.queues.canAccept(self, x)
-                        && peeras.stream().anyMatch(y -> y.toDynamicDual(peer).equals(x)))
+                        && peeras.stream().anyMatch(y -> y.toDynamicDual(peer).equals(x.toDynamic())))
                 .collect(Collectors.toSet());
     }
 
@@ -149,10 +151,11 @@ public class SConfig {
     protected Set<EServerWrap<StaticActionKind>> getServerWrapFireable(Role self, EFsm fsm) {
         List<EAction<StaticActionKind>> as = fsm.curr.getActions();  // Actually for ServerWrap, size() == 1
         Role peer = as.get(0).peer;  // All peer's the same
-        List<EAction<StaticActionKind>> peeras = this.efsms.get(peer).curr.getActions();
+        List<EAction<DynamicActionKind>> peeras = this.efsms.get(peer).curr.getActions().stream()
+                .map(x -> x.toDynamic()).collect(Collectors.toList());
         return fsm.curr.getActions().stream().map(x -> (EServerWrap<StaticActionKind>) x)
                 .filter(x -> this.queues.canServerWrap(self, x)
-                        && peeras.stream().anyMatch(y -> y.toDynamicDual(peer).equals(x)))
+                        && peeras.stream().anyMatch(y -> y.toDynamicDual(peer).equals(x.toDynamic())))
                 .collect(Collectors.toSet());
     }
 
@@ -321,7 +324,8 @@ public class SConfig {
             {
                 return null;
             }
-            List<EAction<StaticActionKind>> as = fsm.curr.getActions();  // All accept
+            List<EAction<DynamicActionKind>> as = fsm.curr.getActions().stream()
+                    .map(x -> x.toDynamic()).collect(Collectors.toList());  // All accept
             Role peer = as.get(0).peer;  // Pre: consistent ext choice subject -- CHECKME: generalise?
             if (this.efsms.get(peer).curr.getActions().stream()
                     .anyMatch(x -> as.contains(x.toDynamicDual(peer)))) {
@@ -334,9 +338,10 @@ public class SConfig {
             {
                 return null;
             }
-            List<EAction<StaticActionKind>> as = fsm.curr.getActions();
+            List<EAction<DynamicActionKind>> as = fsm.curr.getActions().stream()
+                    .map(x -> x.toDynamic()).collect(Collectors.toList());
             Set<Role> res = new HashSet<Role>();
-            for (EAction<StaticActionKind> a : as) {
+            for (EAction<DynamicActionKind> a : as) {
                 if (this.efsms.get(a.peer).curr.getActions().contains(a.toDynamicDual(r))) {
                     return null;
                 }
