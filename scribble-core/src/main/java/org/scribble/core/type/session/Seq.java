@@ -25,65 +25,56 @@ import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
 
 public abstract class Seq<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeBase<K, B>
-{
-	// GType or LType -- could make SType subclasses take themself as another param, but not worth it
-	public final List<SType<K, B>> elems;
+        extends STypeBase<K, B> {
+    // GType or LType -- could make SType subclasses take themself as another param, but not worth it
+    public final List<SType<K, B>> elems;
 
-	public Seq(CommonTree source, List<? extends SType<K, B>> elems)
-	{
-		super(source);
-		this.elems = Collections.unmodifiableList(elems);
-	}
-	
-	public abstract B reconstruct(CommonTree source,
-			List<? extends SType<K, B>> elems);
-	
-	@Override
-	public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f)
-	{
-		return this.elems.stream().flatMap(x -> x.gather(f));
-	}
+    public Seq(CommonTree source, List<? extends SType<K, B>> elems) {
+        super(source);
+        this.elems = Collections.unmodifiableList(elems);
+    }
 
-	// Re. return type, could make SType subclasses take themself as another param, but not worth it
-	public abstract List<? extends SType<K, B>> getElements();
-	
-	public boolean isEmpty()
-	{
-		return this.elems.isEmpty();
-	}
-	
-	@Override
-	public String toString()
-	{
-		return this.elems.stream().map(x -> x.toString())
-				.collect(Collectors.joining("\n"));
-	}
+    public abstract B reconstruct(CommonTree source,
+                                  List<? extends SType<K, B>> elems);
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 1483;
-		hash = 31 * hash + super.hashCode();
-		hash = 31 * hash + this.elems.hashCode();
-		return hash;
-	}
+    @Override
+    public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
+        return this.elems.stream().flatMap(f);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof Seq))
-		{
-			return false;
-		}
-		Seq<?, ?> them = (Seq<?, ?>) o;
-		return super.equals(this)  // Does canEquals
-				&& this.elems.equals(them.elems);
-	}
+    // Re. return type, could make SType subclasses take themself as another param, but not worth it
+    public abstract List<? extends SType<K, B>> getElements();
+
+    public boolean isEmpty() {
+        return this.elems.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return this.elems.stream().map(x -> x.toString())
+                .collect(Collectors.joining("\n"));
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1483;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.elems.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Seq)) {
+            return false;
+        }
+        Seq<?, ?> them = (Seq<?, ?>) o;
+        return super.equals(this)  // Does canEquals
+                && this.elems.equals(them.elems);
+    }
 	
 	
 	

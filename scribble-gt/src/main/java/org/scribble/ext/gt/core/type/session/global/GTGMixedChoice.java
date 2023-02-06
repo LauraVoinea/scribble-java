@@ -16,7 +16,7 @@ public class GTGMixedChoice implements GTGType {
 
     protected final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
 
-    public final int c;
+    public final int c;       // Currently assigned by GTGTypeTranslator2
     public final Role other;  // other->observer.L |> observer->other.R
     public final Role observer;  // observer?  "monitor"?
     public final GTGType left;

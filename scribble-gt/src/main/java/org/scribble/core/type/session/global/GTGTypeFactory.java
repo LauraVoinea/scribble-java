@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.ext.gt.del;
+package org.scribble.core.type.session.global;
 
-import org.scribble.del.CompoundInteractionDel;
+import org.antlr.runtime.tree.CommonTree;
+import org.scribble.core.type.name.Role;
 
-public abstract class GTMixedDel extends CompoundInteractionDel {
+public interface GTGTypeFactory extends GTypeFactory {
+
+    GTGMixedChoice GTGMixedChoice(
+            CommonTree source, GSeq left, GSeq right, Role other, Role observer);
 
 }

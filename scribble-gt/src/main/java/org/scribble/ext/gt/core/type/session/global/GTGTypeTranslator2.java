@@ -1,11 +1,5 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.ast.MsgNode;
-import org.scribble.ast.SigLitNode;
-import org.scribble.ast.global.GInteractionSeq;
-import org.scribble.ast.global.GMsgTransfer;
-import org.scribble.ast.global.GProtoBlock;
-import org.scribble.ast.global.GSessionNode;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Msg;
@@ -15,7 +9,6 @@ import org.scribble.core.type.session.global.GMessageTransfer;
 import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.type.session.global.GType;
 import org.scribble.ext.gt.ast.GTMixed;
-import org.scribble.ext.gt.ast.global.GTGMixed;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,9 +50,9 @@ public class GTGTypeTranslator2 {
                     return translateGMessageTransfer((GMessageTransfer) fst, fact.end());
                 } else if (fst instanceof GChoice) {
                     return translateGChoice((GChoice) fst);
-                } /*else if (fst instanceof GTMixed) {
-                    return translateGMixed((GTGMixed) fst);
-                }*/ else {
+                } else if (fst instanceof GTMixed) {
+                    return translateGMixed((org.scribble.core.type.session.global.GTGMixedChoice) fst);
+                } else {
                     throw new RuntimeException("TODO: " + es);
                 }
             } else {
@@ -112,13 +105,11 @@ public class GTGTypeTranslator2 {
         return this.fact.choice(subj, dst, ds);
     }
 
-    /*protected GTGMixedChoice translateGMixed(GTGMixed g) {
-        GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
-        GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
-        Role other = g.getOtherChild().toName();
-        Role observer = g.getObserverChild().toName();
+    protected GTGMixedChoice translateGMixed(org.scribble.core.type.session.global.GTGMixedChoice g) {
+        GTGType left = translateGSeq(g.left);
+        GTGType right = translateGSeq(g.right);
         /*LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
-        LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());* /
-        return this.fact.mixedChoice(this.counter++, left, right, other, observer);//, committedLeft, committedRight);
-    }*/
+        LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());*/
+        return this.fact.mixedChoice(this.counter++, left, right, g.other, g.observer);//, committedLeft, committedRight);
+    }
 }

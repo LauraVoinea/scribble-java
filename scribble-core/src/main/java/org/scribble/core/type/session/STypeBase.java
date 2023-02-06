@@ -20,53 +20,45 @@ import org.scribble.core.type.kind.ProtoKind;
 
 // SessTypeBase is to SessType as ScribNodeBase is to ScribNode
 public abstract class STypeBase<K extends ProtoKind, B extends Seq<K, B>>
-		implements SType<K, B>
-{
-	private final CommonTree source;  // Currently null for "generated" terms (cf. hasSource)
+        implements SType<K, B> {
+    private final CommonTree source;  // Currently null for "generated" terms (cf. hasSource)
 
-	public STypeBase(CommonTree source)
-	{
+    public STypeBase(CommonTree source) {
 		/*CommonTree clone = (source == null)
 				? null
 				: CommonTree.clone();  // clone not visibile*/
-				// CHECKME: ScribNodes are technically mutable -- though should be treated immutable (defensive copies) post disamb, i.e., in core passes
-		this.source = source;
-	}
+        // CHECKME: ScribNodes are technically mutable -- though should be treated immutable (defensive copies) post disamb, i.e., in core passes
+        this.source = source;
+    }
 
-	@Override
-	public boolean hasSource()
-	{
-		return this.source != null;
-	}
-	
-	// Pre: hasSource
-	@Override
-	public CommonTree getSource()
-	{
-		return this.source;
-	}
+    @Override
+    public boolean hasSource() {
+        return this.source != null;
+    }
 
-	// Does *not* include this.source -- equals/hashCode is for "surface-level" syntactic equality of SessType only
-	@Override
-	public int hashCode()
-	{
-		int hash = 1871;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    // Pre: hasSource
+    @Override
+    public CommonTree getSource() {
+        return this.source;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof STypeBase))
-		{
-			return false;
-		}
-		STypeBase<?, ?> them = (STypeBase<?, ?>) o;
-		return them.canEquals(this);
-	}
+    // Does *not* include this.source -- equals/hashCode is for "surface-level" syntactic equality of SessType only
+    @Override
+    public int hashCode() {
+        int hash = 1871;
+        // No this.source -- equals/hashCode for "surface-level" syntactic equality of SessType
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof STypeBase)) {
+            return false;
+        }
+        STypeBase<?, ?> them = (STypeBase<?, ?>) o;
+        return them.canEquals(this);
+    }
 }

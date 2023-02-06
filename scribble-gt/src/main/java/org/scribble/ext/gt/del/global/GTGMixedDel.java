@@ -13,35 +13,32 @@
  */
 package org.scribble.ext.gt.del.global;
 
+import org.antlr.runtime.tree.CommonTree;
 import org.scribble.ast.ScribNode;
-import org.scribble.ast.global.GChoice;
-import org.scribble.ast.global.GProtoBlock;
 import org.scribble.core.lang.global.GNode;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.global.GSeq;
-import org.scribble.del.ChoiceDel;
+import org.scribble.core.type.session.global.GTGTypeFactoryImpl;
 import org.scribble.del.global.GCompoundSessionNodeDel;
-import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
+import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.del.GTMixedDel;
 import org.scribble.visit.GTypeTranslator;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel {
 
     @Override
     public GNode translate(ScribNode n, GTypeTranslator t) {
-		/*GChoice source = (GChoice) n;
-		Role subj = source.getSubjectChild().toName();
-		List<GSeq> blocks = new LinkedList<>();
-		for (GProtoBlock b : source.getBlockChildren())
-		{
-			blocks.add((GSeq) b.visitWithNoThrows(t));
-		}
-		return t.tf.global.GChoice(source, subj, blocks);*/
+        //return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel
+        //throw new RuntimeException("TODO");  // HERE HERE in base core MixedChoice, override visit methods to do general homomorphic visit of mixed choice
 
-        //throw new RuntimeException("TODO");
-        return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel
+        GTGMixed cast = (GTGMixed) n;
+        CommonTree src = cast.getSource();
+        Role other = cast.getOtherChild().toName();
+        Role observer = cast.getObserverChild().toName();
+        GSeq left = (GSeq) cast.getLeftBlockChild().visitWith(t);
+        GSeq right = (GSeq) cast.getRightBlockChild().visitWith(t);
+        return ((GTGTypeFactoryImpl) t.tf.global).GTGMixedChoice(
+                src, left, right, other, observer);
+
     }
 }
