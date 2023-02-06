@@ -32,10 +32,10 @@ import org.scribble.util.RuntimeScribException;
 
 public abstract class MState
         <
-                L,                             // Node label type (cosmetic)
-                A extends MAction<K, StaticActionKind>,          // Edge type
-                S extends MState<L, A, S, K>,  // State type
-                K extends ProtoKind            // Global/Local -- CHECKME: useful?
+                L,                                       // Node label type (cosmetic)
+                A extends MAction<K, StaticActionKind>,  // Static edge type
+                S extends MState<L, A, S, K>,            // State type
+                K extends ProtoKind                      // Global/Local -- CHECKME: useful?
                 > {
     private static int count = 1;  // A shared index counter for every single MState (and subclass) instance
 
@@ -120,7 +120,7 @@ public abstract class MState
 
     // DynamicActionKind used for non-det
     //public final List<S> getSuccs(A a) {
-    public final <T extends MAction<K, DynamicActionKind>> List<S> getSuccs(T a) {
+    public final <D extends MAction<K, DynamicActionKind>> List<S> getSuccs(D a) {
         Iterator<A> as = this.actions.iterator();
         Iterator<S> ss = this.succs.iterator();
         List<S> res = new LinkedList<>();

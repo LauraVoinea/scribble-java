@@ -165,28 +165,8 @@ global protocol Proto1(role A, role B)
 }
 //*/
 
-global protocol Proto1(role A, role B, role C)
-{
-	rec X
-	{
-		choice at A
-		{
-			1() from A to B;
-			1() from B to C;
-		continue X;  // EFSM building -- multiple predecessors for continue-edge replacement
-		}
-		or
-		{
-			2() from A to B;
-			2() from B to C;
-		continue X;  // EFSM building -- multiple predecessors for continue-edge replacement
-		}
-	}
-}
 
-
-
-/*
+//*
 global protocol Proto1(role A, role B, role C)
 {
     // Testing UnboundedRecursionChecker
@@ -204,7 +184,7 @@ global protocol Proto1(role A, role B, role C)
     	8(T) from A to C;
     	9(T) from A to C;
     	10(T) from A to C;
-    	//do Proto1(A, B, C);
+    	do Proto1(A, B, C);
     }
 }
 //*/

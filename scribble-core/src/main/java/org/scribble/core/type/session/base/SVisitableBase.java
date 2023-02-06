@@ -50,7 +50,7 @@ public abstract class SVisitableBase<K extends ProtoKind, B extends Seq<K, B>>
     @Override
     public int hashCode() {
         int hash = 1871;
-        hash = 31 * hash + super.hashCode();
+        //hash = 31 * hash + super.hashCode();  // XXX default hashCode
         return hash;
     }
 
