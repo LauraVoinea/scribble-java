@@ -18,6 +18,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator2;
+import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
@@ -103,10 +104,11 @@ public class GTCommandLine extends CommandLine {
         for (ModuleName n : parsed.keySet()) {
             Module m = parsed.get(n);
             for (GProtoDecl g : m.getGProtoDeclChildren()) {
-                GProtocol inlined = c.getInlined(g.getFullMemberName(parsed.get(n)));
-                System.out.println(inlined);
 
-                GTGType translate = new GTGTypeTranslator2().translate(inlined.def);
+                /*GProtocol inlined = c.getInlined(g.getFullMemberName());
+                System.out.println(inlined);
+                GTGType translate = new GTGTypeTranslator2().translate(inlined.def);*/
+                GTGType translate = new GTGTypeTranslator3().translate(g.getDefChild().getBlockChild().getInteractSeqChild());
 
                 System.out.println("---");
 
