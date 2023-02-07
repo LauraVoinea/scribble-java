@@ -136,7 +136,7 @@ public class SGraphBuilder {
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
 
                         //Set<SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
-                        Map<Integer, SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
+                        Map<Integer, SState> succs = this.util.getSemanticSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
 
                         //for (SState succ : succs) {
                         for (int k : succs.keySet()) {
@@ -180,7 +180,7 @@ public class SGraphBuilder {
                             // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
 
                             //Set<SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
-                            Map<Integer, SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
+                            Map<Integer, SState> succs = this.util.getSemanticSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
 
                             //for (SState succ : succs) {
                             for (int k : succs.keySet()) {

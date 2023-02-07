@@ -46,11 +46,11 @@ public class SGraphBuilderUtil
         return s;
     }
 
-    // Result is set-ified, semantic hash key
+    // Result is set-ified w.r.t. semantic hash
     // Pre: this.states.containsKey(curr.config)
     //public Set<SState> getSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
-    public Map<Integer, SState> getSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
-                                         Set<SConfig> succs)
+    public Map<Integer, SState> getSemanticSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
+                                                 Set<SConfig> succs)
     // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
     {
         //Set<SState> res = new LinkedHashSet<>();  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)

@@ -84,19 +84,19 @@ public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState
         return this.id + ":" + this.config.toString();
     }
 
-    public static Set<Integer> traces = new HashSet<>();
+    //public static Set<Integer> traces = new HashSet<>();
 
     @Override
     public int hashCode() {
         int hash = 79;
         hash = 31 * hash + super.hashCode();
         hash = 31 * hash + this.config.hashCode();
-        System.out.println("+++++++++++++++++++++++");
+        /*System.out.println("+++++++++++++++++++++++");
         int size = traces.size();
         traces.add(Arrays.hashCode(new RuntimeException().getStackTrace()));
         if (traces.size() != size) {
             new RuntimeException().printStackTrace();
-        }
+        }*/
         return hash;
     }
 

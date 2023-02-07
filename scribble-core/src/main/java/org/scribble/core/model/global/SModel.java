@@ -166,6 +166,7 @@ public class SModel {
         return msg;
     }
 
+    // TODO SSink
     protected String termSetToString(Set<SState> termset) {
         return this.core.config.hasFlag(CoreArgs.VERBOSE)
                 ? termset.stream().map(x -> x.toString())

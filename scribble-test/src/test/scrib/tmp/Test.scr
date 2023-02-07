@@ -157,7 +157,7 @@ data <java> "..." from "..." as T;
 type <java> "java.lang.Integer" from "rt.jar" as Int;
 
 
-//*
+/*
 global protocol Proto1(role A, role B)
 {
     1(Int) from A to B;
@@ -166,26 +166,30 @@ global protocol Proto1(role A, role B)
 //*/
 
 
-/*
+///*
 global protocol Proto1(role A, role B, role C)
 {
-    // Testing UnboundedRecursionChecker
-    choice at A {
-    	1(T) from A to B;
-    	2(T) from B to C;
-    	3(T) from C to A;
-    	//3(T) from A to C;
-    	do Proto1(A, B, C);
-    } or {
-    	4(T) from A to B;
-    	5(T) from B to C;
-    	6(T) from A to C;
-    	7(T) from A to C;
-    	8(T) from A to C;
-    	9(T) from A to C;
-    	10(T) from A to C;
-    	do Proto1(A, B, C);
-    }
+	choice at A  // OK if -fair
+	{
+		1() from A to B;
+		do Proto1Aux1(A, B, C);
+	}
+	or
+	{
+		do Proto1Aux2(A, B, C);
+	}
+}
+
+aux global protocol Proto1Aux1(role A, role B, role C)
+{
+	do Proto1(A, B, C);
+}
+
+aux global protocol Proto1Aux2(role A, role B, role C)
+{
+	2() from A to B;
+	3() from B to C;
+	do Proto1(A, B, C);
 }
 //*/
 

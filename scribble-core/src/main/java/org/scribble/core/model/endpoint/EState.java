@@ -345,18 +345,18 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
         return getReachableStatesAux(this);
     }
 
-    public static Set<Integer> traces = new HashSet<>();
+    //public static Set<Integer> traces = new HashSet<>();
 
     @Override
     public int hashCode() {
         int hash = 83;
         hash = 31 * hash + super.hashCode();
-        System.out.println("-------------------");
+        /*System.out.println("-------------------");
         int size = traces.size();
         traces.add(Arrays.hashCode(new RuntimeException().getStackTrace()));
         if (traces.size() != size) {
             new RuntimeException().printStackTrace();
-        }
+        }*/
         return hash;
     }
 
