@@ -23,6 +23,7 @@ import org.scribble.core.type.name.ProtoName;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SGraph implements MPrettyPrint {
     public final ProtoName<Global> proto;  // For debugging only?  deprecate?
@@ -30,6 +31,7 @@ public class SGraph implements MPrettyPrint {
     public final SState init;
     public final Map<Integer, SState> states;  // s.id -> s
 
+    // FIXME use id keys -- syntactic id fine, maybe semantic also OK (optimisiation)
     private final Set<Set<SState>> termSets;
     //private final Set<SSink> sinks;
 
@@ -51,13 +53,14 @@ public class SGraph implements MPrettyPrint {
                 continue;
             } */
         Set<Set<SState>> termSets = new HashSet<>();
-        for (Map<Integer, SState> scc : this.sscs) {
-            if ((scc.size() == 1 && scc.values().iterator().next().isTerminal())
-                    || scc.values().stream().anyMatch(y -> y.getSuccs().stream().anyMatch(x -> !scc.containsKey(x)))) {
+        for (Set<Integer> scc : this.sscs) {
+            if ((scc.size() == 1 && this.states.get(scc.iterator().next()).isTerminal())
+                    || scc.stream().anyMatch(y -> this.states.get(y).getSuccs().stream().anyMatch(
+                    x -> !scc.contains(x.id)))) {
                 continue;
             }
             //termSets.add(scc.stream().map(x -> x.id).collect(Collectors.toSet()));
-            termSets.add(Collections.unmodifiableSet(new HashSet<>(scc.values())));
+            termSets.add(Collections.unmodifiableSet(scc.stream().map(x -> this.states.get(x)).collect(Collectors.toSet())));
         }
         this.termSets = Collections.unmodifiableSet(termSets);
     }
@@ -136,7 +139,7 @@ public class SGraph implements MPrettyPrint {
     private final Deque<SState> stack = new LinkedList<>();
     private final Set<Integer> onStack = new HashSet<>();
     //private final Set<Set<SState>> sscs = new HashSet<>();
-    private final Set<Map<Integer, SState>> sscs = new HashSet<>();  // s.id key
+    private final Set<Set<Integer>> sscs = new HashSet<>();  // s.id key
 
     private void tarjan() {
         for (SState v : this.states.values()) {
@@ -187,7 +190,7 @@ public class SGraph implements MPrettyPrint {
                 ssc.put(w.id, w);
             }
             while (w.id != v.id);
-            this.sscs.add(ssc);
+            this.sscs.add(ssc.keySet());
         }
     }
 

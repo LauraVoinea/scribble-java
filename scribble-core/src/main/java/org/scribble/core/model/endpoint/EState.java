@@ -148,27 +148,40 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
     public Pair<EState, EState> unfairTransform(ModelFactory mf) {
         EState init = clone(mf);  // All state refs from here on are clones, original Graph unmodified
         EState term = init.getTerminal();
-        Set<EState> seen = new HashSet<>();
+
+        /*Set<EState> seen = new HashSet<>();
         Set<EState> todo = new LinkedHashSet<>();  // Linked unnecessary, but to follow the iteration pattern
-        todo.add(init);
+        todo.add(init);*/
+        Map<Integer, EState> seen = new HashMap<>();
+        Map<Integer, EState> todo = new LinkedHashMap<>();  // Linked unnecessary, but to follow the iteration pattern
+        todo.put(init.id, init);
+
         while (!todo.isEmpty()) {
-            Iterator<EState> i = todo.iterator();
+            /*Iterator<EState> i = todo.iterator();
             EState curr = i.next();
-            i.remove();
-            if (seen.contains(curr))
+            i.remove();*/
+            int i = todo.keySet().iterator().next();
+            EState curr = todo.get(i);
+            todo.remove(i);
+
+            //if (seen.contains(curr))
+            if (seen.containsKey(curr.id))
             // Convenient to check here (even though may get curr multiple times) to avoid doing the check before every todo.add
             // N.B. todo is also aliased from expandUnfairCases
             {
                 continue;
             }
-            seen.add(curr);
+
+            //seen.add(curr);
+            seen.put(curr.id, curr);
 
             if (curr.getStateKind() == EStateKind.OUTPUT
                     && curr.getActions().size() > 1)  // >1 makes this algorithm terminating -- in the expanded subgraph, the clone of curr will have all other edges pruned
             {
                 expandUnfairCases(mf, term, todo, curr);
             } else {
-                todo.addAll(curr.getSuccs());
+                //todo.addAll(curr.getSuccs());
+                curr.getSuccs().forEach(x -> todo.put(x.id, x));
             }
         }
         return new Pair<>(init, term);
@@ -177,8 +190,11 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
     // N.B. todo alias from unfairTransform -- refactor as return? (slower)
     // Pre: curr.getStateKind() == EStateKind.OUTPUT && curr.getActions().size() > 1
     // All involved states are already clones
-    private void expandUnfairCases(ModelFactory mf, EState term, Set<EState> todo,
+    private void expandUnfairCases(ModelFactory mf, EState term,
+                                   //Set<EState> todo,
+                                   Map<Integer, EState> todo,
                                    EState curr) {
+
         Iterator<EAction<StaticActionKind>> as = curr.getActions().iterator();
         Iterator<EState> succs = curr.getSuccs().iterator();
         List<EAction<StaticActionKind>> aclones = new LinkedList<>();  // Actions involved in clones (not actually cloned themselves, immutable)
@@ -195,7 +211,9 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
             //if (!succ.canReach(curr))  // Do unfairCloneSubgraph for each (potentially) "recursive" action
             if (!succ.canReach(curr.id))  // Do unfairCloneSubgraph for each (potentially) "recursive" action
             {
-                todo.add(succ);
+                //todo.add(succ);
+                todo.put(succ.id, succ);
+
                 continue;
             }
             EState succClone = curr.unfairCloneSubgraph(mf, term, a, succ);  // succ is a successor of curr
@@ -229,7 +247,10 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
                 EAction<StaticActionKind> a = iaclones.next();  // Same actions involved in toRemove loop above
                 EState succClone = isuccClones.next();  // Clones of the succs involved in toRemove loop above
                 curr.addEdge(a, succClone);  // Second, add edge to cloned succ (entry to the unfair-cloned subgraph)
-                todo.add(succClone);  // This will cause unfairTransform to "recursively" visit the nodes of the unfair-cloned subgraph
+
+                //todo.add(succClone);  // This will cause unfairTransform to "recursively" visit the nodes of the unfair-cloned subgraph
+                todo.put(succClone.id, succClone);  // This will cause unfairTransform to "recursively" visit the nodes of the unfair-cloned subgraph
+
                 // Doesn't work if non-det preserved by the "unfairClone" aux (recursively, edges always >1 -- termination condition never met)
                 // Idea is to bypass succ clone (for non-det, edges>1) but in general this will be cloned again before returning to it, so bypass doesn't work -- to solve this more generally probably need to keep a record of all clones to bypass future clones
             }

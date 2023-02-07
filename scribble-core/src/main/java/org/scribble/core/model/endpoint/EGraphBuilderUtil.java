@@ -38,6 +38,7 @@ import org.scribble.core.type.name.RecVar;
 // Tailored to support graph building from syntactic local protocol choice and recursion
 public class EGraphBuilderUtil
         extends GraphBuilderUtil<RecVar, EAction<StaticActionKind>, EState, Local> {
+
     protected EState entry;    // GraphBuilderUtil usage contract: entry on leaving a node is the same as on entering -- cf., EGraphBuilderUtil.visitSeq restores the original entry on leaving
     protected EState exit;  // Tracking exit is convenient for merges (otherwise have to generate dummy merge nodes)
 
@@ -49,7 +50,8 @@ public class EGraphBuilderUtil
 
     // Record enacting per-recvar, since a state could have multi-recvars -- CHECKME: caters for shadowing? (cf. recording only per unique recvar)
     // CHECKME: for a given state, the enacting list is the same for each recvar?
-    private final Map<EState, List<EAction<StaticActionKind>>> enacting = new HashMap<>();
+    //private final Map<EState, List<EAction<StaticActionKind>>> enacting = new HashMap<>();
+    private final Map<Integer, List<EAction<StaticActionKind>>> enacting = new HashMap<>();
 
     // Temporary storage of enacting while collecting in progress
     // First action(s) inside a rec scope ("enacting" means how to enact an unguarded choice-continue)
@@ -64,7 +66,8 @@ public class EGraphBuilderUtil
     // -- On block exit, pop the block list into the parent choice list for *all* rec states
     // - On choice exit, pop the choice list into the parent (recursion/choice-block) list for all *open* rec states, i.e., if the parent list is *still empty*
     // - On recursion exit, pop the list into the enacting map for the rec entry state
-    private final Map<EState, Deque<List<EAction<StaticActionKind>>>> collecting = new HashMap<>();
+    //private final Map<EState, Deque<List<EAction<StaticActionKind>>>> collecting = new HashMap<>();
+    private final Map<Integer, Deque<List<EAction<StaticActionKind>>>> collecting = new HashMap<>();
 
     protected EGraphBuilderUtil(ModelFactory mf) {
         super(mf);
@@ -111,14 +114,19 @@ public class EGraphBuilderUtil
      * Dealing with Choice contexts
      */
     public void enterChoice() {
-        for (EState entry : this.collecting.keySet()) {
+        /*for (EState entry : this.collecting.keySet()) {
+        Deque<List<EAction<StaticActionKind>>> deq = this.collecting.get(entry);*/
+        for (int entry : this.collecting.keySet()) {
             Deque<List<EAction<StaticActionKind>>> deq = this.collecting.get(entry);
+
             deq.push(new LinkedList<>());  // Initially empty to record nested enablings in choice blocks
         }
     }
 
     public void leaveChoice() {
-        for (EState entry : this.collecting.keySet()) {
+        //for (EState entry : this.collecting.keySet()) {
+        for (int entry : this.collecting.keySet()) {
+
             List<EAction<StaticActionKind>> pop = this.collecting.get(entry).pop();
             List<EAction<StaticActionKind>> peek = this.collecting.get(entry).peek();
             if (peek.isEmpty())  // Cf. addEdge
@@ -129,14 +137,18 @@ public class EGraphBuilderUtil
     }
 
     public void enterChoiceBlock() {
-        for (EState entry : this.collecting.keySet()) {
+        //for (EState entry : this.collecting.keySet()) {
+        for (int entry : this.collecting.keySet()) {
+
             Deque<List<EAction<StaticActionKind>>> deq = this.collecting.get(entry);
             deq.push(new LinkedList<>());
         }
     }
 
     public void leaveChoiceBlock() {
-        for (EState entry : this.collecting.keySet()) {
+        //for (EState entry : this.collecting.keySet()) {
+        for (int entry : this.collecting.keySet()) {
+
             List<EAction<StaticActionKind>> block = this.collecting.get(entry).pop();
             List<EAction<StaticActionKind>> blocks = this.collecting.get(entry).peek();  // Parent choice List
             blocks.addAll(block);
@@ -153,14 +165,18 @@ public class EGraphBuilderUtil
         recdeq.push(entry);  // Same as this.entry
 
         // Udpate this.collecting, if necessary
-        if (this.collecting.containsKey(entry) || this.enacting.containsKey(entry))
+        //if (this.collecting.containsKey(entry) || this.enacting.containsKey(entry))
+        if (this.collecting.containsKey(entry.id) || this.enacting.containsKey(entry.id))
         // Already doing/done this rec state for another of its recvar
         // Does checking this.enacting do anything?
         {
             return;
         }
         Deque<List<EAction<StaticActionKind>>> coldeq = new LinkedList<>();  // New Deque for this recvar
-        this.collecting.put(entry, coldeq);  // !this.collecting.containsKey(entry), leaveRecursion does remove -- necessary for addEdge/Choice to correctly add to this.collecting
+
+        //this.collecting.put(entry, coldeq);  // !this.collecting.containsKey(entry), leaveRecursion does remove -- necessary for addEdge/Choice to correctly add to this.collecting
+        this.collecting.put(entry.id, coldeq);  // !this.collecting.containsKey(entry), leaveRecursion does remove -- necessary for addEdge/Choice to correctly add to this.collecting
+
         coldeq.push(new LinkedList<>());  // Push new List onto deq
     }
 
@@ -175,20 +191,31 @@ public class EGraphBuilderUtil
         }
 
         // Udpate this.collecting, if necessary
-        if (!this.collecting.containsKey(entry)) {
+        //if (!this.collecting.containsKey(entry)) {
+        if (!this.collecting.containsKey(entry.id)) {
+
             // This state already done -- i.e., already popped another recvar for this same state, e.g., good.efsm.gcontinue.choiceunguarded.Test05b
             // (For a given state, the enacting for all associated recvars is the same (the recvars are "equivalently" identify the state) -- so only need to record per state)
             return;
         }
-        List<EAction<StaticActionKind>> coll = this.collecting.get(entry).pop();
-        if (this.collecting.get(entry).isEmpty())  // All Lists popped from the stack of this recvar -- could just clear instead
+
+        //List<EAction<StaticActionKind>> coll = this.collecting.get(entry).pop();
+        List<EAction<StaticActionKind>> coll = this.collecting.get(entry.id).pop();
+
+        //if (this.collecting.get(entry).isEmpty())  // All Lists popped from the stack of this recvar -- could just clear instead
+        if (this.collecting.get(entry.id).isEmpty())  // All Lists popped from the stack of this recvar -- could just clear instead
+
         {
-            this.collecting.remove(entry);
+            //this.collecting.remove(entry);
+            this.collecting.remove(entry.id);
+
             // N.B. we pushed on entry of *outermost rec*, but above popped on exit of *innermost* rec (due to checking entry in this.collecting)
             // This remove is necessary to prevent above containsKey check also succeeding  when leaving the outer rec, e.g., good.efsm.gcontinue.choiceunguarded.Test05b
             // Also necessary to prevent continued updating of this.collecting after leaving a rec (because this.collecting still has entry), e.g., good.efsm.gchoice.Test10
         }
-        this.enacting.put(entry, coll);
+        //this.enacting.put(entry, coll);
+        this.enacting.put(entry.id, coll);
+
         // !this.enacting.containsKey(entry) -- if it did contain (remove enacting check from enterRecursion), this.enacting.get(entry).equals(coll)
     }
 
@@ -281,7 +308,10 @@ public class EGraphBuilderUtil
             } else  // Choice--unguardedcontedge-->succOrig, i.e., curr is a Choice, succOrig is a rec entry state
             {
                 EState recEntry = succOrig;
-                for (EAction<StaticActionKind> e : this.enacting.get(recEntry)) // recEntry--enacting-->succEntry
+
+                //for (EAction<StaticActionKind> e : this.enacting.get(recEntry)) // recEntry--enacting-->succEntry
+                for (EAction<StaticActionKind> e : this.enacting.get(recEntry.id)) // recEntry--enacting-->succEntry
+
                 {
                     for (EState succEntry : recEntry.getSuccs(e.toDynamic())) {
                         EState succEntryClone = getClone(clones, succEntry);  // succEntryClone is a (cloned) successor of recEntry

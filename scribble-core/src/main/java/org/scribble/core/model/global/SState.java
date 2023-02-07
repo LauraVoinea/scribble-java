@@ -15,9 +15,7 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.scribble.core.model.MPrettyState;
 import org.scribble.core.model.MState;
@@ -86,11 +84,19 @@ public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState
         return this.id + ":" + this.config.toString();
     }
 
+    public static Set<Integer> traces = new HashSet<>();
+
     @Override
     public int hashCode() {
         int hash = 79;
         hash = 31 * hash + super.hashCode();
         hash = 31 * hash + this.config.hashCode();
+        System.out.println("+++++++++++++++++++++++");
+        int size = traces.size();
+        traces.add(Arrays.hashCode(new RuntimeException().getStackTrace()));
+        if (traces.size() != size) {
+            new RuntimeException().printStackTrace();
+        }
         return hash;
     }
 

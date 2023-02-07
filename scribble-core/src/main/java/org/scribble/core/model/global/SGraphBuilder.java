@@ -134,8 +134,14 @@ public class SGraphBuilder {
                     if (a.isSend() || a.isReceive() || a.isDisconnect()) {
                         Set<SConfig> next = new HashSet<>(curr.state.config.async(r, a));
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
-                        Set<SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
-                        for (SState succ : succs) {
+
+                        //Set<SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
+                        Map<Integer, SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
+
+                        //for (SState succ : succs) {
+                        for (int k : succs.keySet()) {
+                            SState succ = succs.get(k);
+
                             SBuildState bsucc;
                             if (a.isSend()) {
                                 bsucc = curr.add(r, a, succ);  // Only ! increases state space (cf. !!, etc)
@@ -172,9 +178,14 @@ public class SGraphBuilder {
                             // CHECKME: edge will be drawn as the connect, but should be read as the sync. of both -- something like "r1, r2: sync" may be more consistent (or take a set of actions as the edge label?)
                             Set<SConfig> next = new HashSet<>(curr.state.config.sync(r, a, a.peer, abar));
                             // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
-                            Set<SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
 
-                            for (SState succ : succs) {
+                            //Set<SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
+                            Map<Integer, SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
+
+                            //for (SState succ : succs) {
+                            for (int k : succs.keySet()) {
+                                SState succ = succs.get(k);
+
                                 SBuildState bsucc;
                                 if (a.isAccept() || a.isRequest() || a.isClientWrap()
                                         || a.isServerWrap()) {

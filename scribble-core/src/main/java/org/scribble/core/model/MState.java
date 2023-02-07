@@ -175,15 +175,19 @@ public abstract class MState
         return this.actions.isEmpty();
     }
 
+    // FIXME: make cached version for finalised immutable states
     public S getTerminal() {
         //getReachableStates().stream().filter(x -> x.isTerminal()).findFirst();
-        Set<S> terms = getReachableStates().values().stream()
-                .filter(s -> s.isTerminal()).collect(Collectors.toSet());
+        Map<Integer, S> terms = getReachableStates().entrySet().stream()
+                .filter(s -> s.getValue().isTerminal()).collect(Collectors.toMap(
+                        Entry::getKey,
+                        Entry::getValue
+                ));
         if (terms.size() > 1) {
             throw new RuntimeException("Shouldn't get in here: " + terms);
         }
         return terms.isEmpty() //.isPresent()
-                ? null : terms.iterator().next();  // CHECKME: return empty Set instead of null?  null used by EState.toGraph
+                ? null : terms.values().iterator().next();  // CHECKME: return empty Set instead of null?  null used by EState.toGraph
     }
 
     // Returns id -> state (i.e., a set)
