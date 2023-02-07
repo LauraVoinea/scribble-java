@@ -15,15 +15,7 @@
  */
 package org.scribble.core.model.endpoint;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import org.scribble.core.model.MPrettyState;
@@ -39,7 +31,7 @@ import org.scribble.util.ScribException;
 
 // Label types used to be both RecVar and SubprotocolSigs; now using inlined protocol for FSM building so just RecVar
 public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, EState, Local> {
-   
+
     protected EState(Set<RecVar> labs) {
         super(labs);
     }
@@ -64,9 +56,14 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
             }
             return clone;
         };
-        Set<EState> all = getReachableStates();
-        all.add(this);
-        for (EState s : all)  // Quadratic after getReachableStates, but simpler code for now
+
+        /*Set<EState> all = getReachableStates();
+        all.add(this);*/
+        Map<Integer, EState> all = getReachableStates();
+        all.put(this.id, this);
+
+        //for (EState s : all)  // Quadratic after getReachableStates, but simpler code for now
+        for (EState s : all.values())  // Quadratic after getReachableStates, but simpler code for now
         {
             Iterator<EAction<StaticActionKind>> as = s.getActions().iterator();
             Iterator<EState> succs = s.getSuccs().iterator();
@@ -102,9 +99,14 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
             }
             return clone;
         };
-        Set<EState> all = succ.getReachableStates();
-        all.add(succ);
-        for (EState s : all)  // Quadratic after getReachableStates, but simpler code for now
+
+        /*Set<EState> all = succ.getReachableStates();
+        all.add(succ);*/
+        Map<Integer, EState> all = succ.getReachableStates();
+        all.put(succ.id, succ);
+
+        //for (EState s : all)  // Quadratic after getReachableStates, but simpler code for now
+        for (EState s : all.values())  // Quadratic after getReachableStates, but simpler code for now
         {
             Iterator<EAction<StaticActionKind>> as = s.getActions().iterator();
             Iterator<EState> succs = s.getSuccs().iterator();
@@ -181,13 +183,17 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
         Iterator<EState> succs = curr.getSuccs().iterator();
         List<EAction<StaticActionKind>> aclones = new LinkedList<>();  // Actions involved in clones (not actually cloned themselves, immutable)
         List<EState> succClones = new LinkedList<>();
-        Map<EState, List<EAction<StaticActionKind>>> toRemove = new HashMap<>();  // Original succ -> actions "a" where "curr-a->succ"
+
+        //Map<EState, List<EAction<StaticActionKind>>> toRemove = new HashMap<>();  // Original succ -> actions "a" where "curr-a->succ"
+        Map<Integer, List<EAction<StaticActionKind>>> toRemove = new HashMap<>();  // Original succ -> actions "a" where "curr-a->succ"
+
         // List needed to handle removing multiple edges to the same state: e.g. mu X.(A->B:1 + A->B:2).X
 
         while (as.hasNext()) {
             EAction<StaticActionKind> a = as.next();
             EState succ = succs.next();
-            if (!succ.canReach(curr))  // Do unfairCloneSubgraph for each (potentially) "recursive" action
+            //if (!succ.canReach(curr))  // Do unfairCloneSubgraph for each (potentially) "recursive" action
+            if (!succ.canReach(curr.id))  // Do unfairCloneSubgraph for each (potentially) "recursive" action
             {
                 todo.add(succ);
                 continue;
@@ -195,17 +201,24 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
             EState succClone = curr.unfairCloneSubgraph(mf, term, a, succ);  // succ is a successor of curr
             aclones.add(a);
             succClones.add(succClone);
-            List<EAction<StaticActionKind>> tmp = toRemove.get(succ);
+
+            //List<EAction<StaticActionKind>> tmp = toRemove.get(succ);
+            List<EAction<StaticActionKind>> tmp = toRemove.get(succ.id);
+
             if (tmp == null) {
                 tmp = new LinkedList<>();
-                toRemove.put(succ, tmp);
+
+                //toRemove.put(succ, tmp);
+                toRemove.put(succ.id, tmp);
             }
             tmp.add(a);  // To replace original edge with new edge into unfair-cloned subgraph
         }
 
         if (!aclones.isEmpty())  // Redundant (toRemove would also be empty), but more clear
         {
-            for (EState succ : toRemove.keySet()) {
+            //for (EState succ : toRemove.keySet()) {
+            for (int succ : toRemove.keySet()) {
+
                 for (EAction<StaticActionKind> a1 : toRemove.get(succ)) {
                     curr.removeEdge(a1, succ);  // First, remove original edge to original succ
                 }
@@ -305,15 +318,24 @@ public class EState extends MPrettyState<RecVar, EAction<StaticActionKind>, ESta
 	}*/
 
     @Override
-    public Set<EState> getReachableStates()  // CHECKME: consider a "lazy" version?  Maybe as an Iterator or Stream
+    //public Set<EState> getReachableStates()  // CHECKME: consider a "lazy" version?  Maybe as an Iterator or Stream
+    public Map<Integer, EState> getReachableStates()  // CHECKME: consider a "lazy" version?  Maybe as an Iterator or Stream
     {
         return getReachableStatesAux(this);
     }
 
+    public static Set<Integer> traces = new HashSet<>();
+
     @Override
     public int hashCode() {
         int hash = 83;
-        hash = 31 * hash + super.hashCode();  // N.B. ultimately uses state ID only
+        hash = 31 * hash + super.hashCode();
+        System.out.println("-------------------");
+        int size = traces.size();
+        traces.add(Arrays.hashCode(new RuntimeException().getStackTrace()));
+        if (traces.size() != size) {
+            new RuntimeException().printStackTrace();
+        }
         return hash;
     }
 

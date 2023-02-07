@@ -31,6 +31,7 @@ public class SGraph implements MPrettyPrint {
     public final Map<Integer, SState> states;  // s.id -> s
 
     private final Set<Set<SState>> termSets;
+    //private final Set<SSink> sinks;
 
     // Unlike EState, SGraph is not just a "simple wrapper" for an existing graph of nodes -- it is a computed structure, so no lightweight "toGraph" wrapper method; cf., EState
     protected SGraph(ProtoName<Global> proto, Map<Integer, SState> states, SState init) {
@@ -41,20 +42,27 @@ public class SGraph implements MPrettyPrint {
 
         // TODO: refactor
         tarjan();
-        Set<Set<SState>> termSets = new HashSet<>();
+        /*Set<Set<SState>> termSets = new HashSet<>();
         for (Set<SState> scc : this.sscs) {
-            if (scc.size() == 1 && scc.iterator().next().isTerminal()
-                    || scc.stream().anyMatch(
-                    y -> y.getSuccs().stream().anyMatch(x -> !scc.contains(x)))) {
+        if ((scc.size() == 1 && scc.iterator().next().isTerminal())
+                || scc.stream().anyMatch(
+                y -> y.getSuccs().stream().anyMatch(
+                        x -> !scc.contains(x)))) {
+                continue;
+            } */
+        Set<Set<SState>> termSets = new HashSet<>();
+        for (Map<Integer, SState> scc : this.sscs) {
+            if ((scc.size() == 1 && scc.values().iterator().next().isTerminal())
+                    || scc.values().stream().anyMatch(y -> y.getSuccs().stream().anyMatch(x -> !scc.containsKey(x)))) {
                 continue;
             }
             //termSets.add(scc.stream().map(x -> x.id).collect(Collectors.toSet()));
-            termSets.add(Collections.unmodifiableSet(scc));
+            termSets.add(Collections.unmodifiableSet(new HashSet<>(scc.values())));
         }
         this.termSets = Collections.unmodifiableSet(termSets);
     }
 
-    public Set<Set<SState>> getTermSets() {
+    public Set<Set<SState>> getSinks() {
         return this.termSets;  // Already unmodifiable
     }
 
@@ -117,6 +125,9 @@ public class SGraph implements MPrettyPrint {
         return this.init.toString();
     }
 
+
+    /* --- */
+
     // Following are "one-time" usage, on instance construction
     // SState.id faster as keys than full SConfig
     private int counter = 0;
@@ -124,7 +135,8 @@ public class SGraph implements MPrettyPrint {
     private final Map<Integer, Integer> lowlinks = new HashMap<>();  // s.id -> lowlink
     private final Deque<SState> stack = new LinkedList<>();
     private final Set<Integer> onStack = new HashSet<>();
-    private final Set<Set<SState>> sscs = new HashSet<>();
+    //private final Set<Set<SState>> sscs = new HashSet<>();
+    private final Set<Map<Integer, SState>> sscs = new HashSet<>();  // s.id key
 
     private void tarjan() {
         for (SState v : this.states.values()) {
@@ -163,12 +175,16 @@ public class SGraph implements MPrettyPrint {
 
         // If v is a root node, pop the stack and generate an SCC
         if (this.lowlinks.get(v.id) == this.indices.get(v.id)) {
-            Set<SState> ssc = new HashSet<>();
+            //Set<SState> ssc = new HashSet<>();
+            Map<Integer, SState> ssc = new HashMap<>();
+
             SState w;
             do {
                 w = this.stack.pop();
                 this.onStack.remove(w.id);
-                ssc.add(w);
+
+                //ssc.add(w);
+                ssc.put(w.id, w);
             }
             while (w.id != v.id);
             this.sscs.add(ssc);

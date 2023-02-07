@@ -16,6 +16,7 @@
 package org.scribble.core.model.global;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.model.MPrettyState;
@@ -54,18 +55,14 @@ public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState
     }
 
     @Override
-    public Set<SState> getReachableStates() {
+    //public Set<SState> getReachableStates() {
+    public Map<Integer, SState> getReachableStates() {
         return getReachableStatesAux(this);
     }
 
-    @Override
-    public String toString() {
-        return this.id + ":" + this.config.toString();
-    }
-
     // N.B. does not use super.hashCode, need "semantic" equality of configs for model construction
-    @Override
-    public int hashCode() {
+    // ie.., no id -- e.g., for SGraphBuilder
+    public int semanticHash() {
         int hash = 79;
         hash = 31 * hash + this.config.hashCode();
         return hash;
@@ -73,6 +70,30 @@ public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState
 
     // !!! Not using id (cf. super.equals), cf. MState -- TODO? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
     // Care is needed if hashing, since mutable (OK to use immutable config -- cf., ModelState.id)
+    public boolean semanticEquals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SState)) {
+            return false;
+        }
+        SState them = (SState) o;
+        return them.canEquals(this) && this.config.equals(them.config);  // N.B. does not do super.equals, i.e., ignore id (cf. semanticHash)
+    }
+
+    @Override
+    public String toString() {
+        return this.id + ":" + this.config.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 79;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.config.hashCode();
+        return hash;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -82,7 +103,7 @@ public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState
             return false;
         }
         SState them = (SState) o;
-        return them.canEquals(this) && this.config.equals(them.config);  // N.B. does not do super.equals (cf. hashCode)
+        return super.equals(o) && this.config.equals(them.config);
     }
 
     @Override

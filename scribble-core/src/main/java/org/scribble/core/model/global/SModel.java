@@ -85,7 +85,7 @@ public class SModel {
     getProgressErrors() {
         Map<Set<SState>, Pair<Set<Role>, Map<Role, Set<ESend<DynamicActionKind>>>>> res
                 = new HashMap<>();
-        for (Set<SState> termset : this.graph.getTermSets()) {
+        for (Set<SState> termset : this.graph.getSinks()) {
             Set<Role> starved = checkRoleProgress(termset);
             Map<Role, Set<ESend<DynamicActionKind>>> ignored = checkEventualReception(termset);
             if (!starved.isEmpty() || !ignored.isEmpty()) {

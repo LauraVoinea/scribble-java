@@ -89,7 +89,8 @@ public abstract class MState
     }
 
     // Pre: (this, a, s) is a current edge -- mutating setter
-    protected final void removeEdge(A a, S s)
+    //protected final void removeEdge(A a, S s)
+    protected final void removeEdge(A a, int sid)
     //throws ScribException  // CHECKME: used? -- cf., Hack? EFSM building on bad-reachability protocols now done before actual reachability check
     {
         Iterator<A> as = this.actions.iterator();
@@ -97,13 +98,16 @@ public abstract class MState
         while (as.hasNext()) {
             A na = as.next();  // N.B. cannot "inline" into below if-condition, due to short circuiting
             S ns = ss.next();
-            if (na.equals(a) && ns.equals(s)) {
+
+            //if (na.equals(a) && ns.equals(s)) {
+            if (na.equals(a) && ns.id == sid) {
+
                 as.remove();  // Must follow next
                 ss.remove();
                 return;
             }
         }
-        throw new RuntimeException("No such transition: " + a + "->" + s);
+        throw new RuntimeException("No such transition: " + a + "->" + sid);
     }
 
     public final List<A> getActions() {
@@ -173,7 +177,7 @@ public abstract class MState
 
     public S getTerminal() {
         //getReachableStates().stream().filter(x -> x.isTerminal()).findFirst();
-        Set<S> terms = getReachableStates().stream()
+        Set<S> terms = getReachableStates().values().stream()
                 .filter(s -> s.isTerminal()).collect(Collectors.toSet());
         if (terms.size() > 1) {
             throw new RuntimeException("Shouldn't get in here: " + terms);
@@ -182,13 +186,15 @@ public abstract class MState
                 ? null : terms.iterator().next();  // CHECKME: return empty Set instead of null?  null used by EState.toGraph
     }
 
+    // Returns id -> state (i.e., a set)
     // CHECKME: add "caching" versions to, e.g., Graphs?
     // N.B. doesn't implicitly include start (only if start is reachable from start by at least one transition)
     // Concrete subclass implementation should call, e.g., getReachableStatesAux(this) -- for S param, putting "this" into Map
-    public abstract Set<S> getReachableStates();
+    public abstract Map<Integer, S> getReachableStates();
 
+    // Returns id -> state (i.e., a set)
     // N.B. doesn't implicitly include start (only if start is explicitly reachable from start by at least one transition)
-    protected Set<S> getReachableStatesAux(S start) {
+    protected Map<Integer, S> getReachableStatesAux(S start) {
         Map<Integer, S> all = new HashMap<>();
         Map<Integer, S> todo = new LinkedHashMap<>();  // Linked unnecessary, but to follow the iteration pattern
         todo.put(this.id, start);  // Suppressed: assumes ModelState subclass correctly instantiates S parameter
@@ -203,16 +209,17 @@ public abstract class MState
                 }
             }
         }
-        return new HashSet<>(all.values());  // Often will want to add this
+        return new HashMap<>(all);  // Often will want to add this
     }
 
     public Set<A> getReachableActions() {
-        return getReachableStates().stream().flatMap(x -> x.getActions().stream())
+        return getReachableStates().values().stream().flatMap(x -> x.getActions().stream())
                 .collect(Collectors.toSet());
     }
 
-    public boolean canReach(MState<L, A, S, K> s) {
-        return getReachableStates().contains(s);
+    //public boolean canReach(MState<L, A, S, K> s) {
+    public boolean canReach(int sid) {
+        return getReachableStates().containsKey(sid);
     }
 
     @Override

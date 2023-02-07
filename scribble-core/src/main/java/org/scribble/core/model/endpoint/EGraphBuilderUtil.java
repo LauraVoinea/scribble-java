@@ -42,7 +42,7 @@ public class EGraphBuilderUtil
     protected EState exit;  // Tracking exit is convenient for merges (otherwise have to generate dummy merge nodes)
 
     // N.B. new states should be made by this.newState, not this.mf.newEState
-    private final Set<EState> states = new HashSet<>();
+    private final Map<Integer, EState> states = new HashMap<>();  // bijection
 
     // Entry state for each recursion
     private final Map<RecVar, Deque<EState>> recEntries = new HashMap<>();  // CHECKME: Deque is for shadowing?
@@ -90,7 +90,8 @@ public class EGraphBuilderUtil
     // For the util to additionally record states -- use this, don't use this.mf.newEState
     public EState newState(Set<RecVar> labs) {
         EState s = this.mf.local.EState(labs);
-        this.states.add(s);
+        //this.states.add(s);
+        this.states.put(s.id, s);
         return s;
     }
 
@@ -147,11 +148,8 @@ public class EGraphBuilderUtil
      */
     public void enterRecursion(RecVar rv, EState entry) {
         // Update this.recEntries
-        Deque<EState> recdeq = this.recEntries.get(rv);
-        if (recdeq == null) {
-            recdeq = new LinkedList<>();
-            this.recEntries.put(rv, recdeq);
-        }
+        Deque<EState> recdeq =
+                this.recEntries.computeIfAbsent(rv, k -> new LinkedList<>());
         recdeq.push(entry);  // Same as this.entry
 
         // Udpate this.collecting, if necessary
@@ -225,8 +223,9 @@ public class EGraphBuilderUtil
     public List<EState> getPreds(EState s) {
         // Easier to recompute than "cache" (this.preds), due to removeEdge(Aux)? Cf. addEdge (Or due to maintaining this.collecting/enacting)
         // (Only currently used by visitContinue, so cost OK)
-        return this.states.stream().filter(x -> x.getSuccs().contains(s))
-                .collect(Collectors.toList());
+        //return this.states.stream().filter(x -> x.getSuccs().contains(s)).collect(Collectors.toList());
+        return this.states.values().stream()
+                .filter(x -> x.getSuccs().contains(s)).collect(Collectors.toList());
     }
 
     /*
@@ -236,24 +235,40 @@ public class EGraphBuilderUtil
     public EGraph finalise() {
         EState entryClone = this.entry.cloneNode(this.mf, this.entry.getLabels());
         EState exitClone = this.exit.cloneNode(this.mf, this.exit.getLabels());
-        Map<EState, EState> clones = new HashMap<>();  // Will be mostly populated by fixUnguardedContinueEdges
+
+        /*Map<EState, EState> clones = new HashMap<>();  // Will be mostly populated by fixUnguardedContinueEdges
         clones.put(this.entry, entryClone);
         clones.put(this.exit, exitClone);
         Set<EState> seenOrig = new HashSet<>();
         fixUnguardedContinueEdges(seenOrig, clones, this.entry, entryClone);
         if (!seenOrig.contains(this.exit)) {
             exitClone = null;
+        }*/
+        Map<Integer, EState> clones = new HashMap<>();  // orig id -> clone -- Will be mostly populated by fixUnguardedContinueEdges
+        clones.put(this.entry.id, entryClone);
+        clones.put(this.exit.id, exitClone);
+        //Set<EState> seenOrig = new HashSet<>();
+        Set<Integer> seenOrig = new HashSet<>();
+        fixUnguardedContinueEdges(seenOrig, clones, this.entry, entryClone);
+        if (!seenOrig.contains(this.exit.id)) {
+            exitClone = null;
         }
+
         reset();
         return new EGraph(entryClone, exitClone);
     }
 
-    protected void fixUnguardedContinueEdges(Set<EState> seenOrig,
-                                             Map<EState, EState> clones, EState currOrig, EState currClone) {
-        if (seenOrig.contains(currOrig)) {
+    protected void fixUnguardedContinueEdges(
+            //Set<EState> seenOrig,
+            Set<Integer> seenOrig,
+            //Map<EState, EState> clones,
+            Map<Integer, EState> clones,
+            EState currOrig,
+            EState currClone) {
+        if (seenOrig.contains(currOrig.id)) {
             return;
         }
-        seenOrig.add(currOrig);
+        seenOrig.add(currOrig.id);
         Iterator<EAction<StaticActionKind>> as = currOrig.getActions().iterator();  // Actions are immutable (no orig/clone)
         Iterator<EState> succsOrig = currOrig.getSuccs().iterator();
         while (as.hasNext()) {
@@ -285,12 +300,13 @@ public class EGraphBuilderUtil
         }
     }
 
-    private EState getClone(Map<EState, EState> clones, EState orig) {
-        if (clones.containsKey(orig)) {
-            return clones.get(orig);
+    //private EState getClone(Map<EState, EState> clones, EState orig) {
+    private EState getClone(Map<Integer, EState> clones, EState orig) {
+        if (clones.containsKey(orig.id)) {
+            return clones.get(orig.id);
         }
         EState res = orig.cloneNode(this.mf, orig.getLabels());
-        clones.put(orig, res);
+        clones.put(orig.id, res);
         return res;
     }
 

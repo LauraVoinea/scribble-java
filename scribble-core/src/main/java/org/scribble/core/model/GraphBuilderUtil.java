@@ -50,6 +50,7 @@ public abstract class GraphBuilderUtil
 
     protected void removeEdgeAux(S s, A a, S succ) //throws ScribException  // Exception necessary?
     {
-        s.removeEdge(a, succ);
+        //s.removeEdge(a, succ);
+        s.removeEdge(a, succ.id);
     }
 }

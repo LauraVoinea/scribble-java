@@ -15,10 +15,7 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.scribble.core.model.GraphBuilderUtil;
@@ -27,8 +24,10 @@ import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
 
+// TODO refactor to handle SBuildState, not just SState
 public class SGraphBuilderUtil
         extends GraphBuilderUtil<Void, SAction<StaticActionKind>, SState, Global> {
+
     private Map<SConfig, SState> states = new HashMap<>();
 
     protected SGraphBuilderUtil(ModelFactory mf) {
@@ -52,7 +51,9 @@ public class SGraphBuilderUtil
                                 Set<SConfig> succs)
     // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
     {
-        Set<SState> res = new LinkedHashSet<>();  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
+        //Set<SState> res = new LinkedHashSet<>();  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
+        Map<Integer, SState> res = new LinkedHashMap<>();  // Semantic hash  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
+
         for (SConfig c : succs) {
             boolean seen = this.states.containsKey(c);
             SState next = seen
@@ -61,10 +62,13 @@ public class SGraphBuilderUtil
             curr.addEdge(a, next);
             if (!seen)  // Must use cached test, newState changes adds the key
             {
-                res.add(next);
+                //res.add(next);
+                res.put(next.semanticHash(), next);
             }
         }
-        return res;
+
+        //return res;
+        return new LinkedHashSet<>(res.values());
     }
 
     // s.id -> s

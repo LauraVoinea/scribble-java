@@ -88,9 +88,14 @@ public class CBEndpointApiGenerator {
                 : jobc2.getEGraph(this.proto, this.self)
         ).init;
         // TODO: factor out with StateChannelApiGenerator constructor
-        Set<EState> states = new HashSet<>();
+
+        /*Set<EState> states = new HashSet<>();
         states.add(init);
-        states.addAll(init.getReachableStates());
+        states.addAll(init.getReachableStates());*/
+        // FIXME: sort order?
+        Map<Integer, EState> states = new HashMap<>();
+        states.put(init.id, init);
+        states.putAll(init.getReachableStates());
 
         // frontend handler class
         String pack = SessionApiGenerator.getEndpointApiRootPackageName(this.proto);
@@ -113,7 +118,10 @@ public class CBEndpointApiGenerator {
         epClass += "public " + name + "(" + sess + " sess, " + role
                 + " self, org.scribble.runtime.message.ScribMessageFormatter smf, D data) throws java.io.IOException, org.scribble.main.ScribbleRuntimeException {\n";
         epClass += "super(sess, self, smf, " + pack + ".handlers.states." + this.self + "." + name + "_" + init.id + ".id" + ", data);\n";  // FIXME: factor out
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
+
             String tmp = (s.getStateKind() == EStateKind.TERMINAL) ? "End" : this.proto.getSimpleName() + "_" + this.self + "_" + s.id;
             epClass += "this.states.put(\"" + tmp + "\", " + SessionApiGenerator.getEndpointApiRootPackageName(this.proto) + ".handlers.states." + this.self + "." + tmp + ".id);\n";
         }
@@ -123,7 +131,9 @@ public class CBEndpointApiGenerator {
 		/*epClass += "public enum State {" + states.stream().map(s -> getEDStateEnum(this.proto, this.self, s)) + "}\n";
 		epClass += "\n";*/
 
-        epClass += states.stream().map(s -> generateRegister(this.proto, this.self, s)).collect(Collectors.joining("\n"));
+        //epClass += states.stream().map(s -> generateRegister(this.proto, this.self, s)).collect(Collectors.joining("\n"));
+        epClass += states.values().stream().map(s -> generateRegister(this.proto, this.self, s)).collect(Collectors.joining("\n"));
+
 		/*epClass += "public void register(State s, Function<Object, org.scribble.runtime.message.ScribMessage> h) {\n";
 		epClass += "this.outputs.put(s, h)";
 		epClass += "}\n";
@@ -134,10 +144,13 @@ public class CBEndpointApiGenerator {
 
         epClass += "@Override\n";
         epClass += "public java.util.concurrent.Future<Void> run() throws org.scribble.main.ScribbleRuntimeException {\n";
+
         epClass += "java.util.Set<Object> states = java.util.stream.Stream.of("
-                + states.stream().filter(s -> s.getStateKind() != EStateKind.TERMINAL)
+                //+ states.stream().filter(s -> s.getStateKind() != EStateKind.TERMINAL)
+                + states.values().stream().filter(s -> s.getStateKind() != EStateKind.TERMINAL)
                 .map(s -> SessionApiGenerator.getEndpointApiRootPackageName(this.proto) + ".handlers.states." + this.self + "." + this.proto.getSimpleName() + "_" + this.self + "_" + s.id + ".id")
                 .collect(Collectors.joining(", ")) + ").collect(java.util.stream.Collectors.toSet());\n";
+
         epClass += "java.util.Set<Object> regd = new java.util.HashSet<>();\n";
         epClass += "regd.addAll(this.inputs.keySet());\n";
         epClass += "regd.addAll(this.outputs.keySet());\n";
@@ -156,7 +169,10 @@ public class CBEndpointApiGenerator {
 
         // states
         String sprefix = SessionApiGenerator.getEndpointApiRootPackageName(this.proto).replace('.', '/') + "/handlers/states/" + this.self + "/";  // StateChannelApiGenerator#generateApi
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
+           
             EStateKind kind = s.getStateKind();
             String stateId = (kind == EStateKind.TERMINAL) ? "End" : name + "_" + s.id;
             String stateKind;

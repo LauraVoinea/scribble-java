@@ -42,6 +42,13 @@ public class SBuildState {
         return "(" + this.state.toString() + "::" + this.history + ")";
     }
 
+    public int semanticHash() {
+        int hash = 31121;
+        hash = 31 * hash + this.state.semanticHash();  // !!!
+        hash = 31 * hash + this.history.hashCode();
+        return hash;
+    }
+
     @Override
     public int hashCode() {
         int hash = 31121;

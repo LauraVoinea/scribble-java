@@ -83,16 +83,26 @@ public class SGraphBuilder {
         SBuildState init = new SBuildState(initState, history);
 
         // More efficient to use SConfig instead SState here?
-        Set<SBuildState> seen = new HashSet<>();
-        Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?
-        todo.add(init);
+        /*Set<SBuildState> seen = new HashSet<>();
+        Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?*/
+        Set<Integer> seen = new HashSet<>();  // Build hashes -- "semantic", no id
+        Map<Integer, SBuildState> todo = new LinkedHashMap<>();  // Build hash key  // Consider Map<s.id, s> -- faster than full SConfig hash ?
+
+        //todo.add(init);
+        todo.put(init.semanticHash(), init);
+
         for (//int debugCount = 1
                 ; !todo.isEmpty(); ) // Compute configs and use util to construct graph, until no more new configs
         {
-            Iterator<SBuildState> i = todo.iterator();
+            /*Iterator<SBuildState> i = todo.iterator();
             SBuildState curr = i.next();
             i.remove();
-            seen.add(curr);
+            seen.add(curr);*/
+            Integer i = todo.entrySet().iterator().next().getKey();  // Semantic hash key
+            SBuildState curr = todo.get(i);
+            todo.remove(i);
+            seen.add(curr.semanticHash());
+
 			/*if (this.core.config.args.get(CoreArgs.VERBOSE))
 			{
 				if (debugCount++ % 50 == 0)
@@ -136,8 +146,12 @@ public class SGraphBuilder {
                                 throw new RuntimeException("Unknown action kind: " + a);
                             }
 
-                            if (!seen.contains(bsucc)) {
+                            /*if (!seen.contains(bsucc)) {
                                 todo.add(bsucc);
+                            }*/
+                            int sh = bsucc.semanticHash();
+                            if (!seen.contains(sh)) {
+                                todo.put(sh, bsucc);
                             }
                         }
                     }
@@ -170,8 +184,12 @@ public class SGraphBuilder {
                                     throw new RuntimeException("Unknown action kind: " + a);
                                 }
 
-                                if (!seen.contains(bsucc)) {
+                                /*if (!seen.contains(bsucc)) {
                                     todo.add(bsucc);
+                                }*/
+                                int sh = bsucc.semanticHash();
+                                if (!seen.contains(sh)) {
+                                    todo.put(sh, bsucc);
                                 }
                             }
                         }

@@ -15,44 +15,55 @@
  */
 package org.scribble.core.model.endpoint;
 
+import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.endpoint.actions.EAction;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.StaticActionKind;
-import org.scribble.core.model.endpoint.actions.EAction;
-
 // Factor out with SModel?
 public class EFsm {
+
     public final EGraph graph;
-    public final EState curr;
+    //public final EState curr;
+    public final int curr;  // Pre: this.graph.init.getReachableStates().containsKey(curr)
 
     protected EFsm(EGraph graph) {
-        this(graph, graph.init);
+        //this(graph, graph.init);
+        this(graph, graph.init.id);
     }
 
-    protected EFsm(EGraph graph, EState curr) {
+    //protected EFsm(EGraph graph, EState curr) {
+    protected EFsm(EGraph graph, int curr) {
         this.graph = graph;
         this.curr = curr;
+    }
+
+    public EState getCurrent() {
+        return this.graph.getReachable().get(this.curr);
     }
 
     // CHECKME: Set? List is for non-det actions, but is that relevant to EFsm's?
     // N.B. this just means "follow an edge", it is agnostic to an "actual semantics" (e.g., queues, queue sizes, etc.), cf. "fire"
     public List<EFsm> getSuccs(EAction<DynamicActionKind> a) {
-        return this.curr.getSuccs(a).stream().map(x -> new EFsm(this.graph, x))
-                .collect(Collectors.toList());
+        //return this.curr.getSuccs(a).stream().map(x -> new EFsm(this.graph, x)).collect(Collectors.toList());
+        return getCurrent().getSuccs(a).stream()
+                .map(x -> new EFsm(this.graph, x.id)).collect(Collectors.toList());
     }
 
     // CHECKME: check if unfolded initial accept is possible, and if it breaks anything
     public boolean isInitial() {
-        return this.curr.equals(this.graph.init);  // i.e., "literally" in the initial state (not "semantically")
+        //return this.curr.equals(this.graph.init);  // i.e., "literally" in the initial state (not "semantically")
+        return this.curr == this.graph.init.id;  // i.e., "literally" in the initial state (not "semantically")
     }
 
     @Override
     public final int hashCode() {
         int hash = 1049;
-        hash = 31 * hash + this.graph.init.hashCode();
-        hash = 31 * hash + this.curr.hashCode();
+        //hash = 31 * hash + this.graph.init.hashCode();
+        hash = 31 * hash + this.graph.hashCode();
+        //hash = 31 * hash + this.curr.hashCode();
+        hash = 31 * hash + this.curr;
         return hash;
     }
 
@@ -65,12 +76,15 @@ public class EFsm {
             return false;
         }
         EFsm them = (EFsm) o;
-        return this.graph.equals(them.graph) && this.curr.equals(them.curr);
+        return this.graph.equals(them.graph)
+                //&& this.curr.equals(them.curr);
+                && this.curr == them.curr;
     }
 
     @Override
     public String toString() {
-        return Integer.toString(this.curr.id);
+        //return Integer.toString(this.curr.id);
+        return Integer.toString(this.curr);
     }
 }
 

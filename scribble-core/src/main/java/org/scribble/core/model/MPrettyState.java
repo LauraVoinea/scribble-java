@@ -15,9 +15,7 @@
  */
 package org.scribble.core.model;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.scribble.core.type.kind.ProtoKind;
@@ -46,9 +44,14 @@ public abstract class MPrettyState
         b.append("digraph G {\n"); // rankdir=LR;\n
         b.append("compound = true;\n");
         b.append(toStateDot() + "\n");
-        Set<S> ss = getReachableStates();
+
+        /*Set<S> ss = getReachableStates();
         ss.remove(this);  // Avoids generic cast of alternative, ss.add((S) this) -- or else do Set<MPrettyState<L, A, S, K>>
-        ss.forEach(x -> b.append(x.toStateDot() + "\n"));
+        ss.forEach(x -> b.append(x.toStateDot() + "\n"));*/
+        Map<Integer, S> ss = getReachableStates();
+        ss.remove(this.id);  // Avoids generic cast of alternative, ss.add((S) this) -- or else do Set<MPrettyState<L, A, S, K>>
+        ss.values().forEach(x -> b.append(x.toStateDot() + "\n"));
+
         b.append("}");
         return b.toString();
     }
@@ -102,12 +105,19 @@ public abstract class MPrettyState
     // Move up to MState?
     @Override
     public final String toAut() {
-        Set<MPrettyState<L, A, S, K>> all = new HashSet<>();
+        /*Set<MPrettyState<L, A, S, K>> all = new HashSet<>();
         all.add(this);
-        all.addAll(getReachableStates());  // The only way to avoid generic cast?  not ideal though
+        all.addAll(getReachableStates());  // The only way to avoid generic cast?  not ideal though*/
+        Map<Integer, MPrettyState<L, A, S, K>> all = new HashMap<>();
+        all.put(this.id, this);
+        all.putAll(getReachableStates());  // The only way to avoid generic cast?  not ideal though
+
         String aut = "";
         int edges = 0;
-        for (MPrettyState<L, A, S, K> s : all) {
+
+        //for (MPrettyState<L, A, S, K> s : all) {
+        for (MPrettyState<L, A, S, K> s : all.values()) {
+
             Iterator<A> as = s.getActions().iterator();
             Iterator<S> succs = s.getSuccs().iterator();
             for (; as.hasNext(); edges++) {

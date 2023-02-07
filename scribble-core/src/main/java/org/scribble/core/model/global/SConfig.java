@@ -58,7 +58,10 @@ public class SConfig {
         for (Role self : this.efsms.keySet()) {
             EFsm fsm = this.efsms.get(self);
             Set<EAction<StaticActionKind>> as = new LinkedHashSet<>();
-            switch (fsm.curr.getStateKind())  // Choice subject enabling needed for non-mixed states (mixed states would be needed for async. permutations though)
+
+            //switch (fsm.curr.getStateKind())  // Choice subject enabling needed for non-mixed states (mixed states would be needed for async. permutations though)
+            switch (fsm.getCurrent().getStateKind())  // Choice subject enabling needed for non-mixed states (mixed states would be needed for async. permutations though)
+
             {
                 // Currently not convenient to delegate to states, as state types not distinguished
                 case TERMINAL:
@@ -93,7 +96,7 @@ public class SConfig {
     protected Set<EAction<StaticActionKind>> getOutputFireable(Role self, EFsm fsm)  // "output" and "client" actions
     {
         Set<EAction<StaticActionKind>> res = new LinkedHashSet<>();
-        for (EAction<StaticActionKind> a : fsm.curr.getActions())  // Actions may be a mixture of the following cases
+        for (EAction<StaticActionKind> a : fsm.getCurrent().getActions())  // Actions may be a mixture of the following cases
         {
             // Async
             if (a.isSend() || a.isDisconnect())  // For disconnect, only one "a"
@@ -109,7 +112,7 @@ public class SConfig {
                 if ((a.isRequest() && this.queues.canRequest(self, (EReq<?>) a))
                         || (a.isClientWrap()
                         && this.queues.canClientWrap(self, (EClientWrap<?>) a))) {
-                    if (this.efsms.get(a.peer).curr.getActions().stream()
+                    if (this.efsms.get(a.peer).getCurrent().getActions().stream()
                             .anyMatch(x -> x.peer.equals(self)
                                     && x.toDynamic().equals(a.toDynamicDual(self))))  // anyMatch (i.e., add "a" at most once), cf. getAcceptable
                     {
@@ -127,7 +130,7 @@ public class SConfig {
     // Unary or poly receive
     // (N.B. return Set, not List -- see getFireable)
     protected Set<ERecv<StaticActionKind>> getReceiveFireable(Role self, EFsm fsm) {
-        return fsm.curr.getActions().stream().map(x -> (ERecv<StaticActionKind>) x)
+        return fsm.getCurrent().getActions().stream().map(x -> (ERecv<StaticActionKind>) x)
                 .filter(x -> this.queues.canReceive(self, x))
                 .collect(Collectors.toSet());
     }
@@ -135,10 +138,10 @@ public class SConfig {
     // Pre: fsm.curr.getStateKind() == EStateKind.ACCEPT
     // (N.B. return Set, not List -- see getFireable)
     protected Set<EAcc<StaticActionKind>> getAcceptFireable(Role self, EFsm fsm) {
-        List<EAction<StaticActionKind>> as = fsm.curr.getActions();
+        List<EAction<StaticActionKind>> as = fsm.getCurrent().getActions();
         Role peer = as.get(0).peer;  // All peer's the same
-        List<EAction<StaticActionKind>> peeras = this.efsms.get(peer).curr.getActions();
-        return fsm.curr.getActions().stream().map(x -> (EAcc<StaticActionKind>) x)
+        List<EAction<StaticActionKind>> peeras = this.efsms.get(peer).getCurrent().getActions();
+        return fsm.getCurrent().getActions().stream().map(x -> (EAcc<StaticActionKind>) x)
                 .filter(x -> this.queues.canAccept(self, x)
                         && peeras.stream()
                         .anyMatch(y -> y.peer.equals(self)   // cf. SupplierInfoNoFair  //&& x.peer.equals(peer)
@@ -150,10 +153,10 @@ public class SConfig {
     // (N.B. return Set, not List -- see getFireable)
     // Duplicated from getAcceptFireable
     protected Set<EServerWrap<StaticActionKind>> getServerWrapFireable(Role self, EFsm fsm) {
-        List<EAction<StaticActionKind>> as = fsm.curr.getActions();  // Actually for ServerWrap, size() == 1
+        List<EAction<StaticActionKind>> as = fsm.getCurrent().getActions();  // Actually for ServerWrap, size() == 1
         Role peer = as.get(0).peer;  // All peer's the same
-        List<EAction<StaticActionKind>> peeras = this.efsms.get(peer).curr.getActions();
-        return fsm.curr.getActions().stream().map(x -> (EServerWrap<StaticActionKind>) x)
+        List<EAction<StaticActionKind>> peeras = this.efsms.get(peer).getCurrent().getActions();
+        return fsm.getCurrent().getActions().stream().map(x -> (EServerWrap<StaticActionKind>) x)
                 .filter(x -> this.queues.canServerWrap(self, x)
                         && peeras.stream()
                         .anyMatch(y -> y.peer.equals(self) //&& x.peer.equals(peer)
@@ -225,8 +228,8 @@ public class SConfig {
     // Should work both with and without accept-correlation?
     public boolean canSafelyTerminate(Role r) {
         EFsm fsm = this.efsms.get(r);
-        boolean safe = this.queues.isEmpty(r) && (fsm.curr.isTerminal() ||
-                (fsm.curr.getStateKind().equals(EStateKind.ACCEPT) && fsm.isInitial())); // Specifically the initial state
+        boolean safe = this.queues.isEmpty(r) && (fsm.getCurrent().isTerminal() ||
+                (fsm.getCurrent().getStateKind().equals(EStateKind.ACCEPT) && fsm.isInitial())); // Specifically the initial state
 
         // CHECKME: incorrectly allows stuck accepts?  if inactive not initial, should be clone of initial?
         //|| (s.getStateKind().equals(Kind.ACCEPT) && this.states.keySet().stream().noneMatch((rr) -> !r.equals(rr) && this.queues.isConnected(r, rr)))
@@ -238,16 +241,16 @@ public class SConfig {
         Map<Role, ERecv<DynamicActionKind>> res = new HashMap<>();
         for (Role self : this.efsms.keySet()) {
             EFsm s = this.efsms.get(self);
-            EStateKind k = s.curr.getStateKind();
+            EStateKind k = s.getCurrent().getStateKind();
             if (k == EStateKind.UNARY_RECEIVE || k == EStateKind.POLY_RECIEVE) {
-                Role peer = s.curr.getActions().get(0).peer;  // Pre: consistent ext choice subj
+                Role peer = s.getCurrent().getActions().get(0).peer;  // Pre: consistent ext choice subj
                 //ESend send = this.queues.getQueue(self).get(peer);
                 List<ESend<DynamicActionKind>> sends = this.queues.getQueue(self).get(peer);
                 ESend<DynamicActionKind> send = sends.isEmpty() ? null : sends.get(0);
                 if (send != null) {
                     ERecv<DynamicActionKind> recv = send.toDynamicDual(peer);
                     //if (!s.curr.hasAction(recv)) {
-                    if (s.curr.getActions().stream()
+                    if (s.getCurrent().getActions().stream()
                             .noneMatch(x -> x.toDynamic().equals(recv))) {
                         res.put(self, recv);
                     }
@@ -270,7 +273,7 @@ public class SConfig {
         while (!todo.isEmpty())  // CHECKME: maybe better to do directly on states, rather than via roles -- ?
         {
             Role r = todo.remove(0);
-            if (this.efsms.get(r).curr.isTerminal()) {
+            if (this.efsms.get(r).getCurrent().isTerminal()) {
                 continue;
             }
             Set<Role> cycle = isWaitForCycle(r);
@@ -308,14 +311,14 @@ public class SConfig {
     // Wait-for blocking includes sync-client (request, clientWrap) roles
     protected Set<Role> getWaitingFor(Role r) {
         EFsm fsm = this.efsms.get(r);
-        EStateKind k = fsm.curr.getStateKind();
+        EStateKind k = fsm.getCurrent().getStateKind();
         if (k == EStateKind.TERMINAL) {
             return null;
         }
 
         if (k == EStateKind.UNARY_RECEIVE || k == EStateKind.POLY_RECIEVE) {
             ERecv<StaticActionKind> a =
-                    (ERecv<StaticActionKind>) fsm.curr.getActions().get(0);  // Pre: consistent ext choice subject -- CHECKME: generalise?
+                    (ERecv<StaticActionKind>) fsm.getCurrent().getActions().get(0);  // Pre: consistent ext choice subject -- CHECKME: generalise?
             if (this.queues.getQueue(r).get(a.peer) != null)  // Here, only looking for any message (not a.toDual, nor dual of any action, cf. stuck error)
             {
                 return null;
@@ -326,24 +329,24 @@ public class SConfig {
             {
                 return null;
             }
-            List<EAction<DynamicActionKind>> as = fsm.curr.getActions().stream()
+            List<EAction<DynamicActionKind>> as = fsm.getCurrent().getActions().stream()
                     .map(x -> x.toDynamic()).collect(Collectors.toList());  // All accept
             Role peer = as.get(0).peer;  // Pre: consistent ext choice subject -- CHECKME: generalise?
-            if (this.efsms.get(peer).curr.getActions().stream()
+            if (this.efsms.get(peer).getCurrent().getActions().stream()
                     .anyMatch(x -> as.contains(x.toDynamicDual(peer)))) {
                 return null;
             }
             return Stream.of(peer).collect(Collectors.toSet());
         } else if (k == EStateKind.OUTPUT) //|| k == Kind.ACCEPT .. // CHECKME: check requests if no available sends -- ?
         {
-            if (!fsm.curr.isSyncClientOnly())  // Request, ClientWrap
+            if (!fsm.getCurrent().isSyncClientOnly())  // Request, ClientWrap
             {
                 return null;
             }
-            List<EAction<StaticActionKind>> as = fsm.curr.getActions();
+            List<EAction<StaticActionKind>> as = fsm.getCurrent().getActions();
             Set<Role> res = new HashSet<Role>();
             for (EAction<StaticActionKind> a : as) {
-                if (this.efsms.get(a.peer).curr.getActions().contains(a.toDynamicDual(r))) {
+                if (this.efsms.get(a.peer).getCurrent().getActions().contains(a.toDynamicDual(r))) {
                     return null;
                 }
                 res.add(a.peer);
@@ -360,7 +363,7 @@ public class SConfig {
         for (Role r : this.efsms.keySet()) {
             Set<ESend<DynamicActionKind>> orphs = new HashSet<>();
             EFsm fsm = this.efsms.get(r);
-            if (fsm.curr.isTerminal())  // Local termination of r, i.e. not necessarily "full deadlock cycle"
+            if (fsm.getCurrent().isTerminal())  // Local termination of r, i.e. not necessarily "full deadlock cycle"
             {
                 orphs.addAll(this.queues.getQueue(r).values().stream()
                         //.filter(v -> v != null).collect(Collectors.toSet()));
@@ -390,7 +393,7 @@ public class SConfig {
         }
         return this.efsms.entrySet().stream()
                 .filter(x -> !canSafelyTerminate(x.getKey()))
-                .collect(Collectors.toMap(Entry::getKey, x -> x.getValue().curr));
+                .collect(Collectors.toMap(Entry::getKey, x -> x.getValue().getCurrent()));
     }
 
     @Override

@@ -15,7 +15,9 @@
  */
 package org.scribble.core.model.visit;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.scribble.core.model.MAction;
@@ -30,17 +32,26 @@ public abstract class StateVisitor
                 S extends MState<L, A, S, K>,
                 K extends ProtoKind
                 > {
+
     // "One-time" traveral (visitor no for reuse)
-    private final Set<S> seen = new HashSet<>();
+    //private final Set<S> seen = new HashSet<>();
+    private final Map<Integer, S> seen = new HashMap<>();
 
     public boolean hasSeen(S s) {
-        return this.seen.contains(s);
+        //return this.seen.contains(s);
+        return this.seen.containsKey(s.id);
     }
 
-    protected void setSeen(S s) {
+    /*protected void setSeen(S s) {
         //if (!this.seen.contains(s))  // Worth?  Or just do add
         {
             this.seen.add(s);
+        }
+    }*/
+    protected void setSeen(S s) {
+        //if (!this.seen.contains(s))  // Worth?  Or just do add
+        {
+            this.seen.put(s.id, s);
         }
     }
 }

@@ -46,6 +46,7 @@ import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.PayElemType;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.name.SigName;
+import org.scribble.core.type.session.Payload;
 import org.scribble.job.Job;
 import org.scribble.job.JobContext;
 import org.scribble.util.ScribException;
@@ -104,13 +105,20 @@ public class CBEndpointApiGenerator3 {
                 : jobc2.getEGraph(this.proto, this.self)
         ).init;
         // TODO: factor out with StateChannelApiGenerator constructor
-        Set<EState> states = new HashSet<>();
+
+        /*Set<EState> states = new HashSet<>();
         states.add(init);
-        states.addAll(init.getReachableStates());
+        states.addAll(init.getReachableStates());*/
+        Map<Integer, EState> states = new HashMap<>();  // CHECKME sort order?
+        states.put(init.id, init);
+        states.putAll(init.getReachableStates());
 
         String endpointName = this.proto.getSimpleName() + "_" + this.self;
         int i = 1;
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
+
             EStateKind kind = s.getStateKind();
             String stateName = (kind == EStateKind.TERMINAL) ? "End" : endpointName + "_" + i++;
             this.stateNames.put(s.id, stateName);
@@ -128,7 +136,10 @@ public class CBEndpointApiGenerator3 {
         Set<String> outputCallbacks = new HashSet<>();  // e.g., Proto1_A__B__1_Int
         Set<String> outputChoices = new HashSet<>();    // e.g., Proto1_A__B__1_Int__C__2_Int__C__4_Str, i.e., { B__1_Int, C__2_Int, C__4_Str }
         Map<String, Set<Set<String>>> reg = new HashMap<>();  // e.g., Proto1_A__B__1_Int -> { Proto1_A__B__1_Int__C__2_Int__C__4_Str, ... }
-        for (EState s : (Iterable<EState>) states.stream().filter(x -> x.getStateKind() == EStateKind.OUTPUT)::iterator) {
+
+        //for (EState s : (Iterable<EState>) states.stream().filter(x -> x.getStateKind() == EStateKind.OUTPUT)::iterator) {
+        for (EState s : (Iterable<EState>) states.values().stream().filter(x -> x.getStateKind() == EStateKind.OUTPUT)::iterator) {
+
             List<EAction<StaticActionKind>> as = s.getActions();
             Set<String> set = as.stream().map(this.getCallbackSuffix).collect(Collectors.toSet());
             for (EAction<StaticActionKind> a : as) {
@@ -181,7 +192,10 @@ public class CBEndpointApiGenerator3 {
 
         // states
         String sprefix = getStatesSelfPackage().replace('.', '/') + "/";  // StateChannelApiGenerator#generateApi
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
+
             EStateKind kind = s.getStateKind();
             String stateName = this.stateNames.get(s.id);
             String stateClass = generateStateClass(s, rootPack, kind, stateName, endpointName);
@@ -204,7 +218,10 @@ public class CBEndpointApiGenerator3 {
 
         // branches
         JobContext jobc = this.job.getContext();
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
+
             if (s.getStateKind() == EStateKind.UNARY_RECEIVE || s.getStateKind() == EStateKind.POLY_RECIEVE) {
                 String bprefix = getHandlersSelfPackage().replace('.', '/') + "/";
                 String branchName = this.stateNames.get(s.id) + "_Branch";
@@ -243,7 +260,10 @@ public class CBEndpointApiGenerator3 {
         return res;
     }
 
-    protected String generateEndpointClass(String rootPack, String endpointName, String sessClassName, EState init, Set<EState> states) {
+    protected String generateEndpointClass(
+            String rootPack, String endpointName, String sessClassName, EState init,
+            //Set<EState> states) {
+            Map<Integer, EState> states) {
         String initStateName = getStatesSelfPackage() + "." + this.stateNames.get(init.id);//endpointName + "_" + init.id;  // FIXME: factor out
 
         ClassBuilder endpointClass = new ClassBuilder(endpointName);
@@ -255,7 +275,10 @@ public class CBEndpointApiGenerator3 {
         cb.addModifiers("public");
         cb.addExceptions("java.io.IOException", "org.scribble.main.ScribRuntimeException");
         cb.addBodyLine("super(sess, self, smf, " + initStateName + ".id, data);");
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
+
             //String tmp = (s.getStateKind() == EStateKind.TERMINAL) ? "End" : this.proto.getSimpleName() + "_" + this.self + "_" + s.id;
             String tmp = this.stateNames.get(s.id);
             cb.addBodyLine("this.states.put(\"" + tmp + "\", " + getStatesSelfPackage() + "." + tmp + ".id);");
@@ -265,10 +288,15 @@ public class CBEndpointApiGenerator3 {
         mb.setReturn("java.util.concurrent.Future<Void>");
         mb.addExceptions("org.scribble.main.ScribRuntimeException");
         mb.addAnnotations("@Override");
+
         mb.addBodyLine("java.util.Set<Object> states = java.util.stream.Stream.of("
-                + states.stream().filter(s -> s.getStateKind() != EStateKind.TERMINAL)
+
+                //+ states.stream().filter(s -> s.getStateKind() != EStateKind.TERMINAL)
+                + states.values().stream().filter(s -> s.getStateKind() != EStateKind.TERMINAL)
+
                 .map(s -> getStatesSelfPackage() + "." + this.stateNames.get(s.id) + ".id")
                 .collect(Collectors.joining(", ")) + ").collect(java.util.stream.Collectors.toSet());\n");
+
         mb.addBodyLine("java.util.Set<Object> regd = new java.util.HashSet<>();");
         mb.addBodyLine("regd.addAll(this.inputs.keySet());");
         mb.addBodyLine("regd.addAll(this.outputs.keySet());");
@@ -277,7 +305,9 @@ public class CBEndpointApiGenerator3 {
         mb.addBodyLine("throw new org.scribble.main.ScribRuntimeException(\"Missing state registrations: \" + states);");
         mb.addBodyLine("}");
         mb.addBodyLine("return super.run();");
-        for (EState s : states) {
+
+        //for (EState s : states) {
+        for (EState s : states.values()) {
             if (s.getStateKind() != EStateKind.TERMINAL) {
                 generateRegister(endpointClass, endpointName, rootPack, s);
             }
