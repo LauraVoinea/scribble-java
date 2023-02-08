@@ -58,13 +58,13 @@ public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState
         return getReachableStatesAux(this);
     }
 
-    // N.B. does not use super.hashCode, need "semantic" equality of configs for model construction
+    /*// N.B. does not use super.hashCode, need "semantic" equality of configs for model construction
     // ie.., no id -- e.g., for SGraphBuilder
     public int semanticHash() {
         int hash = 79;
         hash = 31 * hash + this.config.hashCode();
         return hash;
-    }
+    }*/
 
     // !!! Not using id (cf. super.equals), cf. MState -- TODO? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
     // Care is needed if hashing, since mutable (OK to use immutable config -- cf., ModelState.id)

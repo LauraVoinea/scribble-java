@@ -37,6 +37,7 @@ public abstract class MState
                 S extends MState<L, A, S, K>,            // State type
                 K extends ProtoKind                      // Global/Local -- CHECKME: useful?
                 > {
+
     private static int count = 1;  // A shared index counter for every single MState (and subclass) instance
 
     public final int id;

@@ -408,11 +408,10 @@ public class SConfig {
         //this.efsms.entrySet().forEach(x -> System.out.println("4444: " + x.getKey() + " ,, " + x.getValue().hashCode()));
 
         hash = 31 * hash + this.efsms.hashCode();
-
-        for (Entry<Role, EFsm> x : this.efsms.entrySet()) {  // FIXME !!! crazy hash collisions?  e.g., bad.wfchoice.gchoice.Choice06  (10, 26) and (11, 27)
+        /*for (Entry<Role, EFsm> x : this.efsms.entrySet()) {  // FIXME !!! crazy hash collisions?  e.g., bad.wfchoice.gchoice.Choice06  (10, 26) and (11, 27)
             hash = 31 * hash + x.getKey().hashCode();
             hash = 31 * hash + x.getValue().hashCode();
-        }
+        }*/
 
         hash = 31 * hash + this.queues.hashCode();
         //System.out.println("2222222: " + this.efsms.hashCode() + " ,, " + this.queues.hashCode());

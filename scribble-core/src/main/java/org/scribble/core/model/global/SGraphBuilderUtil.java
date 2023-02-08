@@ -48,13 +48,13 @@ public class SGraphBuilderUtil
 
     // Result is set-ified w.r.t. semantic hash
     // Pre: this.states.containsKey(curr.config)
-    //public Set<SState> getSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
-    public Map<Integer, SState> getSemanticSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
-                                                 Set<SConfig> succs)
+    public Set<SState> getSemanticSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
+                                        //public Map<Integer, SState> getSemanticSuccs(SState curr, SAction<StaticActionKind> a, //List<SConfig> succs)
+                                        Set<SConfig> succs)
     // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
     {
-        //Set<SState> res = new LinkedHashSet<>();  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
-        Map<Integer, SState> res = new LinkedHashMap<>();  // Semantic hash key  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
+        Set<SState> res = new LinkedHashSet<>();  // XXX Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
+        //Map<Integer, SState> res = new LinkedHashMap<>();  // Semantic hash key  // Takes care of duplicates (o/w should also do "|| res.containsKey(c)" below)
 
         for (SConfig c : succs) {
             boolean seen = this.states.containsKey(c);
@@ -65,12 +65,15 @@ public class SGraphBuilderUtil
             if (!seen)  // Must use cached test, newState changes adds the key
             {
                 //res.add(next);
-                res.put(next.semanticHash(), next);
+                //res.put(next.semanticHash(), next);
+                if (res.stream().noneMatch(x -> x.semanticEquals(next))) {  // FIXME: newState shouldn't even make the state if not really "new"
+                    res.add(next);
+                }
             }
         }
 
-        //return res;
-        return Collections.unmodifiableMap(res);
+        return res;
+        //return Collections.unmodifiableMap(res);
     }
 
     // s.id -> s

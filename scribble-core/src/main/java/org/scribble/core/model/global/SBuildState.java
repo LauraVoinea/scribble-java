@@ -42,12 +42,24 @@ public class SBuildState {
         return "(" + this.state.toString() + "::" + this.history + ")";
     }
 
-    public int semanticHash() {
+    public boolean semanticEquals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SBuildState)) {
+            return false;
+        }
+        SBuildState them = (SBuildState) o;
+        return this.state.semanticEquals(them.state)  // !!!
+                && this.history.equals(them.history);
+    }
+
+    /*public int semanticHash() {
         int hash = 31121;
         hash = 31 * hash + this.state.semanticHash();  // !!!
         hash = 31 * hash + this.history.hashCode();
         return hash;
-    }
+    }*/
 
     @Override
     public int hashCode() {

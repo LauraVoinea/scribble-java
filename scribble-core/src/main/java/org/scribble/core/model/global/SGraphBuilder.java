@@ -83,28 +83,23 @@ public class SGraphBuilder {
         SBuildState init = new SBuildState(initState, history);
 
         // More efficient to use SConfig instead SState here?
-        /*Set<SBuildState> seen = new HashSet<>();
-        Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?*/
-        Set<Integer> seen = new HashSet<>();  // Build hashes -- "semantic", no id
+        Set<SBuildState> seen = new HashSet<>();
+        Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?
+        //Set<Integer> seen = new HashSet<>();  // Build hashes -- "semantic", no id
         // !!! should be Map<SBuildState, ..semanticHash...> -- compare map.values().contains(candidate.semanticHash)
         // XXX should be Set<SBuildState> -- check none semantics-equal to candidate -- deprecate semanticHash
 
-        Map<Integer, SBuildState> todo = new LinkedHashMap<>();  // Build hash key  // Consider Map<s.id, s> -- faster than full SConfig hash ?
+        //Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?
 
-        //todo.add(init);
-        todo.put(init.semanticHash(), init);
+        todo.add(init);
 
         for (//int debugCount = 1
                 ; !todo.isEmpty(); ) // Compute configs and use util to construct graph, until no more new configs
         {
-            /*Iterator<SBuildState> i = todo.iterator();
+            Iterator<SBuildState> i = todo.iterator();
             SBuildState curr = i.next();
             i.remove();
-            seen.add(curr);*/
-            Integer i = todo.entrySet().iterator().next().getKey();  // Semantic hash key
-            SBuildState curr = todo.get(i);
-            todo.remove(i);
-            seen.add(curr.semanticHash());
+            seen.add(curr);
 
             //System.out.println("1111: " + curr + " ,, " + curr.semanticHash() + "\n" + seen);
 
@@ -140,12 +135,12 @@ public class SGraphBuilder {
                         Set<SConfig> next = new HashSet<>(curr.state.config.async(r, a));
                         // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
 
-                        //Set<SState> succs = this.util.getSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
-                        Map<Integer, SState> succs = this.util.getSemanticSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
+                        Set<SState> succs = this.util.getSemanticSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
+                        //Map<Integer, SState> succs = this.util.getSemanticSuccs(curr.state, a.toStaticGlobal(r), next);  // util.getSuccs constructs the edges
 
-                        //for (SState succ : succs) {
-                        for (int k : succs.keySet()) {
-                            SState succ = succs.get(k);
+                        for (SState succ : succs) {
+                        /*for (int k : succs.keySet()) {
+                             SState succ = succs.get(k);*/
 
                             SBuildState bsucc;
                             if (a.isSend()) {
@@ -157,14 +152,8 @@ public class SGraphBuilder {
                                 throw new RuntimeException("Unknown action kind: " + a);
                             }
 
-                            /*if (!seen.contains(bsucc)) {
+                            if (seen.stream().noneMatch(x -> x.semanticEquals(bsucc))) {
                                 todo.add(bsucc);
-                            }*/
-                            int sh = bsucc.semanticHash();
-                            if (!seen.contains(sh)) {
-                                todo.put(sh, bsucc);
-                            } else {
-                                System.out.println("aaaaaa: " + bsucc + " ,, " + bsucc.semanticHash() + "\n" + seen);
                             }
                         }
                     }
@@ -186,12 +175,12 @@ public class SGraphBuilder {
                             Set<SConfig> next = new HashSet<>(curr.state.config.sync(r, a, a.peer, abar));
                             // SConfig.a/sync currently produces a List, but here collapse identical configs for global model (represent non-det "by edges", not "by model states")
 
-                            //Set<SState> succs = this.util.getSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
-                            Map<Integer, SState> succs = this.util.getSemanticSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
+                            Set<SState> succs = this.util.getSemanticSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
+                            //Map<Integer, SState> succs = this.util.getSemanticSuccs(curr.state, aglobal, next);  // util.getSuccs constructs the edges
 
-                            //for (SState succ : succs) {
-                            for (int k : succs.keySet()) {
-                                SState succ = succs.get(k);
+                            for (SState succ : succs) {
+                            /*for (int k : succs.keySet()) {
+                                SState succ = succs.get(k);*/
 
                                 SBuildState bsucc;
                                 if (a.isAccept() || a.isRequest() || a.isClientWrap()
@@ -202,12 +191,8 @@ public class SGraphBuilder {
                                     throw new RuntimeException("Unknown action kind: " + a);
                                 }
 
-                                /*if (!seen.contains(bsucc)) {
+                                if (seen.stream().noneMatch(x -> x.semanticEquals(bsucc))) {
                                     todo.add(bsucc);
-                                }*/
-                                int sh = bsucc.semanticHash();
-                                if (!seen.contains(sh)) {
-                                    todo.put(sh, bsucc);
                                 }
                             }
                         }
