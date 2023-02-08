@@ -47,10 +47,17 @@ public abstract class MState
     protected final List<S> succs;
 
     public MState(Set<L> labs) {
-        this.id = MState.count++;
+        this.id = nextCount();
         this.labs = new HashSet<>(labs);
         this.actions = new LinkedList<>();
         this.succs = new LinkedList<>();
+    }
+
+    private int nextCount() {
+        if (MState.count == Integer.MAX_VALUE) {
+            throw new RuntimeScribException("[FIXME] Max actions reached.");
+        }
+        return MState.count++;
     }
 
     // Mutating setter -- TODO factor out MutableState (BuildingState)

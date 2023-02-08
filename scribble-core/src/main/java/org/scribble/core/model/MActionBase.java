@@ -19,6 +19,7 @@ import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.util.RuntimeScribException;
 
 public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
         implements MAction<K, A> {
@@ -46,7 +47,9 @@ public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
     }
 
     public static int nextCount() {
-        //if (MActionBase.count == )
+        if (MActionBase.count == Integer.MAX_VALUE) {
+            throw new RuntimeScribException("[FIXME] Max actions reached.");
+        }
         return MActionBase.count++;
     }
 
