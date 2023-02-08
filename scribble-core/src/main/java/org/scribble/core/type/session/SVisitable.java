@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 public interface SVisitable<K extends ProtoKind, B extends Seq<K, B>>
         extends SNode<K> {
 
+    // XXX below comment now doesn't apply, but now involves unchecked casts to B.
     // N.B. visitWith should be considered a "top-level" entry point only, i.e., do not assume visitWith is called (or not) again during the recursive traversal
     // (visitWith may be called enroute to each visitNode, except for Seq, which is "entered directly" via visitSeq due to its generic typing)
     // (However, visitWith is used by Seq to visit its elems -- main point of visitWith is to be agnostic to node type)

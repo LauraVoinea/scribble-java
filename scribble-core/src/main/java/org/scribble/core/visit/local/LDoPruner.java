@@ -71,7 +71,10 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
         SubprotoSig sig = new SubprotoSig(n);  // N.B. overloaded constructor, param type important
         this.stack.push(sig);
         this.unguarded.add(sig);
-        LSeq def = visitSeq(n.def);
+
+        //LSeq def = visitSeq(n.def);
+        LSeq def = (LSeq) n.def.acceptNoThrow(this);
+
         return n.reconstruct(n.getSource(), n.mods, n.fullname, n.roles,
                 n.self, n.params, def);
     }
@@ -80,7 +83,10 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
     public SVisitable<Local, LSeq> visitChoice(Choice<Local, LSeq> n) {
         // Duplicated from InlinedProjector.visitChoice
         List<LSeq> blocks = n.getBlocks().stream()
-                .map(x -> new LDoPruner(this).visitSeq(x)).filter(x -> !x.isEmpty())
+
+                //.map(x -> new LDoPruner(this).visitSeq(x)).filter(x -> !x.isEmpty())
+                .map(x -> (LSeq) x.acceptNoThrow(new LDoPruner(this))).filter(x -> !x.isEmpty())
+
                 .collect(Collectors.toList());
         if (blocks.isEmpty()) {
             return LSkip.SKIP;  // N.B. returning a Seq -- handled by visitSeq (similar to LSkip for locals)
@@ -98,7 +104,10 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
 
         // Duplicated from SubprotoRoleCollector
         this.stack.push(sig);
-        LSeq def = visitSeq(prepareSubprotoForVisit(this.core, n, true));
+
+        //LSeq def = visitSeq(prepareSubprotoForVisit(this.core, n, true));
+        LSeq def = (LSeq) (prepareSubprotoForVisit(this.core, n, true)).acceptNoThrow(this);
+
         // true (passive) to ignore non-fixed ext-choice subjs (e.g., good.efsm.gdo.Test11)
         // Changes ultimately discarded: "nested" entries only do "info collection", actual AST modifications only recoded for the top-level Projection (cf. visitProjection)
         this.stack.pop();
@@ -107,7 +116,10 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
 
     @Override
     public SVisitable<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n) {
-        LSeq body = visitSeq(n.getBody());
+
+        //LSeq body = visitSeq(n.getBody());
+        LSeq body = (LSeq) n.getBody().acceptNoThrow(this);
+
         return body.isEmpty()
                 ? LSkip.SKIP
                 : n.reconstruct(n.getSource(), n.getRecVar(), body);

@@ -39,7 +39,10 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
 
     @Override
     public SVisitable<K, B> visitChoice(Choice<K, B> n) {
-        List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+
+        //List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+        List<B> blocks = n.getBlocks().stream().map(x -> (B) (Seq<K, B>) x.acceptNoThrow(this))  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
                 .collect(Collectors.toList());
         return n.reconstruct(n.getSource(),
                 this.subs.subsRole(n.getSubject(), this.passive), blocks);

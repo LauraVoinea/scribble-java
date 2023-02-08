@@ -23,9 +23,6 @@ import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 public interface Recursion<K extends ProtoKind, B extends Seq<K, B>>
         extends SType<K, B> {
 

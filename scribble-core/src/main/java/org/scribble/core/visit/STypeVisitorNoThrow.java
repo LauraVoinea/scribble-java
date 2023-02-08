@@ -43,14 +43,18 @@ public abstract class STypeVisitorNoThrow<K extends ProtoKind, B extends Seq<K, 
 
     @Override
     public SVisitable<K, B> visitChoice(Choice<K, B> n) {
-        List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+        //List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+        List<B> blocks = n.getBlocks().stream().map(x -> (B) (Seq<K, B>) x.acceptNoThrow(this))  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
                 .collect(Collectors.toList());
         return n.reconstruct(n.getSource(), n.getSubject(), blocks);  // Disregarding agg (reconstruction done here)
     }
 
     @Override
     public SVisitable<K, B> visitRecursion(Recursion<K, B> n) {
-        B body = visitSeq(n.getBody());
+        //B body = visitSeq(n.getBody());
+        B body = (B) (Seq<K, B>) n.getBody().acceptNoThrow(this);  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
         return n.reconstruct(n.getSource(), n.getRecVar(), body);  // Disregarding agg (reconstruction done here)
     }
 

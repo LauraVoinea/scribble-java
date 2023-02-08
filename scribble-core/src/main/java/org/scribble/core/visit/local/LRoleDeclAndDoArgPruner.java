@@ -58,7 +58,10 @@ public class LRoleDeclAndDoArgPruner extends STypeVisitorNoThrow<Local, LSeq> {
                 .filter(x -> used.contains(x) || x.equals(n.self))  // FIXME: self roledecl not actually being a self role is a mess
                 .collect(Collectors.toList());
         // N.B. *role decls* (cf. do-args) don't feature "self" (cf. LSelfDecl)
-        LSeq pruned = visitSeq(n.def);
+
+        //LSeq pruned = visitSeq(n.def);
+        LSeq pruned = (LSeq) n.def.acceptNoThrow(this);
+
         return n.reconstruct(n.getSource(), n.mods, n.fullname, rs, n.self,
                 n.params, pruned);  // CHECKME: prune params?
     }

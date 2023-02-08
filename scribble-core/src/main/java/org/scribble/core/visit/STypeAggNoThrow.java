@@ -40,7 +40,10 @@ public abstract class STypeAggNoThrow<K extends ProtoKind, B extends Seq<K, B>, 
     }
 
     public T visitChoice(Choice<K, B> n) {
-        return agg(n, n.getBlocks().stream().map(this::visitSeq));
+
+        //return agg(n, n.getBlocks().stream().map(this::visitSeq));
+        return agg(n, n.getBlocks().stream().map(x -> x.acceptNoThrow(this)));
+
     }
 
     public T visitDirectedInteraction(DirectedInteraction<K, B> n) {
@@ -56,7 +59,10 @@ public abstract class STypeAggNoThrow<K extends ProtoKind, B extends Seq<K, B>, 
     }
 
     public T visitRecursion(Recursion<K, B> n) {
-        return agg(n, Stream.of(visitSeq(n.getBody())));
+
+        //return agg(n, Stream.of(visitSeq(n.getBody())));
+        return agg(n, Stream.of(n.getBody().acceptNoThrow(this)));
+
     }
 
     // Param "hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction

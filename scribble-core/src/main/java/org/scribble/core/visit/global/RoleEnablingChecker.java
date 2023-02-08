@@ -47,7 +47,10 @@ public class RoleEnablingChecker extends STypeVisitor<Global, GSeq> {
         List<Set<Role>> blocks = new LinkedList<>();
         for (GSeq block : n.getBlocks()) {
             nested.setEnabled(subj);  // Copies defensively
-            nested.visitSeq(block);
+
+            //nested.visitSeq(block);
+            block.accept(nested);
+
             blocks.add(nested.getEnabled());
         }
         Set<Role> res = new HashSet<>(enabled);

@@ -52,9 +52,15 @@ public class SubprotoExtChoiceSubjFixer extends InlinedExtChoiceSubjFixer {
 
         // Cf. InlinedExtChoiceSubjFixer.visitRecursion
         InlinedEnablerInferer v = getInferer(this);
-        Optional<Role> res = v.visitSeq(n.def);
+
+        //Optional<Role> res = v.visitSeq(n.def);
+        Optional<Role> res = n.def.acceptNoThrow(v);
+
         this.protos.put(n.fullname, res);
-        LSeq def = visitSeq(n.def);
+
+        //LSeq def = visitSeq(n.def);
+        LSeq def = (LSeq) n.def.acceptNoThrow(this);
+
         return n.reconstruct(n.getSource(), n.mods, n.fullname, n.roles, n.params,
                 def);
         // N.B. this reconstruct implicitly retains n.self
@@ -92,7 +98,9 @@ class SubprotoEnablerInferer extends InlinedEnablerInferer  // super takes care 
         }
 
         // Cf. LDoPruner.visitDo
-        return visitSeq(prepareSubprotoForVisit(this.core, n, true));
+        //return visitSeq(prepareSubprotoForVisit(this.core, n, true));
+        return prepareSubprotoForVisit(this.core, n, true).acceptNoThrow(this);
+
         // true (passive) for fixing ext-choice subjs (e.g., bad.liveness.roleprog.unfair.Test06)
     }
 }

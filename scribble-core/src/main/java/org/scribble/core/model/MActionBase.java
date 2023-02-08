@@ -46,6 +46,7 @@ public abstract class MActionBase<K extends ProtoKind, A extends ActionKind>
     }
 
     public static int nextCount() {
+        //if (MActionBase.count == )
         return MActionBase.count++;
     }
 

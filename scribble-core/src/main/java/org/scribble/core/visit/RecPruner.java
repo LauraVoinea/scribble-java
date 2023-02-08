@@ -22,6 +22,7 @@ import org.scribble.core.type.session.Choice;
 import org.scribble.core.type.session.Recursion;
 import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
+import org.scribble.core.type.session.local.LSeq;
 import org.scribble.core.visit.gather.RecVarGatherer;
 
 import java.util.LinkedList;
@@ -39,7 +40,10 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
     @Override
     public SVisitable<K, B> visitChoice(Choice<K, B> n) {
         List<B> blocks0 = n.getBlocks();
-        List<B> blocks = blocks0.stream().map(x -> visitSeq(x))
+
+        //List<B> blocks = blocks0.stream().map(x -> visitSeq(x))
+        List<B> blocks = blocks0.stream().map(x -> (B) (Seq<K, B>) x.acceptNoThrow(this))  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
                 .filter(x -> !x.isEmpty()).collect(Collectors.toList());
         if (blocks.isEmpty()) {
             return blocks0.get(0).reconstruct(null, blocks);  // N.B. returning a Seq -- handled by visitSeq (similar to LSkip for locals)
@@ -58,7 +62,10 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
 
                 .collect(Collectors.toSet());
         return rvs.contains(recvar)
-                ? n.reconstruct(n.getSource(), recvar, visitSeq(body))
+
+                //? n.reconstruct(n.getSource(), recvar, visitSeq(body))
+                ? n.reconstruct(n.getSource(), recvar, (B) (Seq<K, B>) body.acceptNoThrow(this))  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
                 : body;  // i.e., return a Seq, to be "inlined" by Seq.pruneRecs -- N.B. must handle empty Seq case
     }
 
@@ -66,7 +73,7 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
     public B visitSeq(B n) {
         List<SVisitable<K, B>> elems = new LinkedList<>();
         for (SVisitable<K, B> e : n.getElements()) {
-            SVisitable<K, B> e1 = (SVisitable<K, B>) e.acceptNoThrow(this);
+            SVisitable<K, B> e1 = e.acceptNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {  // cf. visitRecursion  (also cf. LSkip)
                 elems.addAll(((Seq<K, B>) e1).getElements());  // Handles empty Seq case
             } else {

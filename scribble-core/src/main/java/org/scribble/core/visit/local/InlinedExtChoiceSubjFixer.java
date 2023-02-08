@@ -63,9 +63,15 @@ public class InlinedExtChoiceSubjFixer extends STypeVisitorNoThrow<Local, LSeq> 
         LSeq body0 = n.getBody();
         RecVar recvar0 = n.getRecVar();
         InlinedEnablerInferer v = getInferer(this);  // Pattern: Inferer to access (and copy) this.recs directly
-        Optional<Role> res = v.visitSeq(body0);  // Can be empty or OK
+
+        //Optional<Role> res = v.visitSeq(body0);  // Can be empty or OK
+        Optional<Role> res = body0.acceptNoThrow(v);  // Can be empty or OK
+
         this.recs.put(recvar0, res);
-        LSeq body = visitSeq(body0);
+
+        //LSeq body = visitSeq(body0);
+        LSeq body = (LSeq) body0.acceptNoThrow(this);
+
         return n.reconstruct(n.getSource(), recvar0, body);
     }
 }
@@ -85,7 +91,10 @@ class InlinedEnablerInferer extends STypeAggNoThrow<Local, LSeq, Optional<Role>>
         // If inference does not succeed, keep the original
         // Such bad cases due, e.g., any inconsistency, will be caught as bad WF somewhere else (e.g., reachability)
         // Otherwise, should be "empty" cases, so keep original as a default
-        List<Optional<Role>> enablers = n.getBlocks().stream().map(x -> visitSeq(x))
+
+        //List<Optional<Role>> enablers = n.getBlocks().stream().map(x -> visitSeq(x))
+        List<Optional<Role>> enablers = n.getBlocks().stream().map(x -> x.acceptNoThrow(this))
+
                 .collect(Collectors.toList());  // Each elem is null, empty or isPresent
         Role subj = n.getSubject();
         if (enablers.stream().anyMatch(x -> !x.isPresent())) {

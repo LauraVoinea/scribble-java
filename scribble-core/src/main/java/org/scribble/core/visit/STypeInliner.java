@@ -58,8 +58,10 @@ public abstract class STypeInliner<K extends ProtoKind, B extends Seq<K, B>>
         CommonTree source = n.getSource();  // CHECKME: or empty source?
         RecVar recvar0 = n.getRecVar();
         RecVar rv = enterRec(recvar0);  // FIXME: make GTypeInliner, and record recvars to check freshness (e.g., rec X in two choice cases)
-        //B body = n.body.visitWithNoEx(this);
-        B body = visitSeq(n.getBody());//.visitWithNoEx(this);
+
+        //B body = visitSeq(n.getBody());//.visitWithNoEx(this);
+        B body = (B) (Seq<K, B>) n.getBody().acceptNoThrow(this);  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
         Recursion<K, B> res = n.reconstruct(source, rv, body);
         exitRec(recvar0);
         return res;

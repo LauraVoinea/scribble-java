@@ -48,7 +48,10 @@ public class ExtChoiceConsistencyChecker extends STypeVisitor<Global, GSeq> {
         // Arg redundant, but better to keep a single constructor, for factory pattern
         for (GSeq block : n.getBlocks()) {
             nested.setEnablers(subj);
-            nested.visitSeq(block);
+
+            //nested.visitSeq(block);
+            block.accept(nested);
+
             blocks.add(nested.getEnablers());
         }
         Map<Role, Role> res = new HashMap<>(getEnablers());

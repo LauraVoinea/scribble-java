@@ -44,7 +44,10 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
         ReachabilityChecker nested = new ReachabilityChecker();
         for (LSeq block : n.getBlocks()) {
             nested.setEnv(entry);
-            nested.visitSeq(block);//block.visitWith(nested);
+
+            //nested.visitSeq(block);
+            block.accept(nested);
+
             blocks.add(nested.getEnv());
         }
         boolean postcont = blocks.stream().allMatch(x -> x.postcont);  // i.e., no exits

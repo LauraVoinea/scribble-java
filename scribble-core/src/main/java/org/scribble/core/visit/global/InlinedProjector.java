@@ -68,7 +68,10 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
     @Override
     public LType visitChoice(Choice<Global, GSeq> n) {
         List<LSeq> blocks = n.getBlocks().stream()
-                .map(x -> dup().visitSeq(x))
+
+                //.map(x -> dup().visitSeq(x))
+                .map(x -> (LSeq) x.acceptNoThrow(dup()))
+
                 .filter(x -> !x.isEmpty() && !isUnguardedSingleContinue(x))
                 .collect(Collectors.toList());
         if (blocks.isEmpty()) {
@@ -143,7 +146,10 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         RecVar recvar0 = n.getRecVar();
         GSeq body0 = n.getBody();
         this.unguarded.add(recvar0);
-        LSeq body = visitSeq(body0);  // Single "nested" Seq, don't need to copy visitor
+
+        //LSeq body = visitSeq(body0);  // Single "nested" Seq, don't need to copy visitor
+        LSeq body = (LSeq) body0.acceptNoThrow(this);  // Single "nested" Seq, don't need to copy visitor
+
         if (body.isEmpty())  // A simple special case of empty-rec pruning -- leave it to "official" rec pruning?
         {
             return LSkip.SKIP;

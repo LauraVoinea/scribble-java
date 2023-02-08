@@ -37,8 +37,10 @@ public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
     public T visitChoice(Choice<K, B> n) throws ScribException {
         List<T> blocks = new LinkedList<>();
         for (B b : n.getBlocks()) {
-            //blocks.add(b.visitWith(this));
-            blocks.add(visitSeq(b));
+
+            //blocks.add(visitSeq(b));
+            blocks.add(b.accept(this));
+
         }
         return agg(n, blocks.stream());
     }
@@ -61,8 +63,10 @@ public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
     }
 
     public T visitRecursion(Recursion<K, B> n) throws ScribException {
-        //return agg(n, Stream.of(n.body.visitWith(this)));
-        return agg(n, Stream.of(visitSeq(n.getBody())));
+
+        //return agg(n, Stream.of(visitSeq(n.getBody())));
+        return agg(n, Stream.of(n.getBody().accept(this)));
+
     }
 
     // Param "hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction

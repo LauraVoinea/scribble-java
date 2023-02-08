@@ -54,15 +54,18 @@ public abstract class STypeVisitor<K extends ProtoKind, B extends Seq<K, B>>
     public SVisitable<K, B> visitChoice(Choice<K, B> n) throws ScribException {
         List<B> blocks = new LinkedList<>();
         for (B b : n.getBlocks()) {
-            blocks.add(visitSeq(b));
 
+            //blocks.add(visitSeq(b));
+            blocks.add((B) (Seq<K, B>) b.accept(this));  // FIXME unchecked cast -- B cast falsely subsumes Seq
         }
         return n.reconstruct(n.getSource(), n.getSubject(), blocks);  // Disregarding agg (reconstruction done here)
     }
 
     @Override
     public SVisitable<K, B> visitRecursion(Recursion<K, B> n) throws ScribException {
-        B body = visitSeq(n.getBody());
+        //B body = visitSeq(n.getBody());
+        B body = (B) (Seq<K, B>) n.getBody().accept(this);  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
         return n.reconstruct(n.getSource(), n.getRecVar(), body);  // Disregarding agg (reconstruction done here)
     }
 

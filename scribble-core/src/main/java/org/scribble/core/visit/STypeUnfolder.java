@@ -53,7 +53,10 @@ public abstract class STypeUnfolder<K extends ProtoKind, B extends Seq<K, B>>
         if (!hasRec(recvar))  // N.B. doesn't work if recvars shadowed
         {
             pushRec(recvar, body);
-            SVisitable<K, B> unf = visitSeq(body);//n.body.visitWithNoEx(this);
+
+            //SVisitable<K, B> unf = visitSeq(body);//n.body.visitWithNoEx(this);
+            SVisitable<K, B> unf = n.getBody().acceptNoThrow(this);
+
             popRec(recvar);
             // Needed for, e.g., repeat do's in separate choice cases -- cf. stack.pop in GDo::getInlined, must pop sig there for Seqs
             return unf;
