@@ -167,29 +167,29 @@ global protocol Proto1(role A, role B)
 
 
 ///*
-global protocol Proto1(role A, role B, role C)
+global protocol Proto1(role A, role B)
 {
-	choice at A  // OK if -fair
+	choice at A
 	{
-		1() from A to B;
-		do Proto1Aux1(A, B, C);
+		l1() from A to B;
 	}
 	or
 	{
-		do Proto1Aux2(A, B, C);
+		() from A to B;
 	}
-}
-
-aux global protocol Proto1Aux1(role A, role B, role C)
-{
-	do Proto1(A, B, C);
-}
-
-aux global protocol Proto1Aux2(role A, role B, role C)
-{
-	2() from A to B;
-	3() from B to C;
-	do Proto1(A, B, C);
+	l1() from A to B;
+	() from A to B;
+	choice at A
+	{
+		//l1() from A to B;  // Comment is bad
+		() from A to B;
+		2() from A to B;
+	}
+	or
+	{
+		() from A to B;
+		3() from B to A;
+	}
 }
 //*/
 

@@ -86,6 +86,7 @@ public class SGraphBuilder {
         /*Set<SBuildState> seen = new HashSet<>();
         Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?*/
         Set<Integer> seen = new HashSet<>();  // Build hashes -- "semantic", no id
+
         Map<Integer, SBuildState> todo = new LinkedHashMap<>();  // Build hash key  // Consider Map<s.id, s> -- faster than full SConfig hash ?
 
         //todo.add(init);
@@ -102,6 +103,8 @@ public class SGraphBuilder {
             SBuildState curr = todo.get(i);
             todo.remove(i);
             seen.add(curr.semanticHash());
+
+            //System.out.println("1111: " + curr + " ,, " + curr.semanticHash() + "\n" + seen);
 
 			/*if (this.core.config.args.get(CoreArgs.VERBOSE))
 			{
@@ -158,6 +161,8 @@ public class SGraphBuilder {
                             int sh = bsucc.semanticHash();
                             if (!seen.contains(sh)) {
                                 todo.put(sh, bsucc);
+                            } else {
+                                System.out.println("aaaaaa: " + bsucc + " ,, " + bsucc.semanticHash() + "\n" + seen);
                             }
                         }
                     }
