@@ -227,7 +227,7 @@ public class CommandLine {
         new CommandLine(args).run();
     }
 
-    protected Job getJob() {
+    public Job getJob() {
         return this.job;
     }
 
