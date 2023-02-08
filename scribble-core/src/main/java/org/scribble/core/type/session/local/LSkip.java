@@ -43,10 +43,10 @@ public class LSkip extends SVisitableBase<Local, LSeq> implements LType {
         throw new RuntimeException("Unsupported for Skip: " + this);
     }
 
-    @Override
+    /*@Override
     public <T> Stream<T> gather(Function<SVisitable<Local, LSeq>, Stream<T>> f) {
         throw new RuntimeException("Unsupported for Skip: " + this);
-    }
+    }*/
 
     @Override
     public String toString() {

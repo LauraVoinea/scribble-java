@@ -40,8 +40,8 @@ public interface SVisitable<K extends ProtoKind, B extends Seq<K, B>>
 
     <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v);
 
-    // Pass in an STypeGatherer::visit, e.g., n.(new RoleGatherer<Global, GSeq>()::visit)
-    <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f);
+    /*// Pass in an STypeGatherer::visit, e.g., n.(new RoleGatherer<Global, GSeq>()::visit)
+    <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f);*/
 }
 
 	

@@ -18,18 +18,41 @@ package org.scribble.core.visit.gather;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.Choice;
-import org.scribble.core.type.session.DirectedInteraction;
-import org.scribble.core.type.session.DisconnectAction;
-import org.scribble.core.type.session.Seq;
+import org.scribble.core.type.session.*;
 
 import java.util.stream.Stream;
 
 // N.B. does *not* gather do-args, nor follow subprotos
 public class RoleGatherer<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeGatherer<K, B, Role> {
+    //extends STypeAggNoThrow<K, B, Stream<Role>> {
 
     @Override
+    protected Stream<Role> unit(SVisitable<K, B> n) {
+        return Stream.empty();
+    }
+
+    @Override
+    protected Stream<Role> agg(SVisitable<K, B> n, Stream<Stream<Role>> ts) {
+        return ts.flatMap(x -> x);
+    }
+
+    @Override
+    public Stream<Role> visitChoice(Choice<K, B> n) {
+        return Stream.concat(Stream.of(n.getSubject()), super.visitChoice(n));
+    }
+
+    @Override
+    public Stream<Role> visitDirectedInteraction(DirectedInteraction<K, B> n) {
+        return Stream.of(n.src, n.dst);
+    }
+
+    @Override
+    public Stream<Role> visitDisconnect(DisconnectAction<K, B> n) {
+        return Stream.of(n.left, n.right);
+    }
+
+    /*@Override
     public Stream<Role> visitChoice(Choice<K, B> n) {
         return Stream.of(n.getSubject());
     }
@@ -42,5 +65,5 @@ public class RoleGatherer<K extends ProtoKind, B extends Seq<K, B>>
     @Override
     public Stream<Role> visitDisconnect(DisconnectAction<K, B> n) {
         return Stream.of(n.left, n.right);
-    }
+    }*/
 }

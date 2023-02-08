@@ -86,6 +86,8 @@ public class SGraphBuilder {
         /*Set<SBuildState> seen = new HashSet<>();
         Set<SBuildState> todo = new LinkedHashSet<>();  // Consider Map<s.id, s> -- faster than full SConfig hash ?*/
         Set<Integer> seen = new HashSet<>();  // Build hashes -- "semantic", no id
+        // !!! should be Map<SBuildState, ..semanticHash...> -- compare map.values().contains(candidate.semanticHash)
+        // XXX should be Set<SBuildState> -- check none semantics-equal to candidate -- deprecate semanticHash
 
         Map<Integer, SBuildState> todo = new LinkedHashMap<>();  // Build hash key  // Consider Map<s.id, s> -- faster than full SConfig hash ?
 

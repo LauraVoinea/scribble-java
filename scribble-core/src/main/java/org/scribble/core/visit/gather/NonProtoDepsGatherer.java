@@ -37,7 +37,7 @@ public class NonProtoDepsGatherer<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public Stream<MemberName<?>> visitSeq(Seq<K, B> n) {
+    public Stream<MemberName<?>> visitSeq(B n) {
         return super.visitSeq(n).distinct();
     }
 
@@ -71,7 +71,7 @@ public class NonProtoDepsGatherer<K extends ProtoKind, B extends Seq<K, B>>
     @Override
     public Stream<MemberName<?>> visitDo(Do<K, B> n) {
         return n.getArgs().stream()
-                .filter(x -> (x instanceof SigLit) || (x instanceof DataName))  // CHECKME: refactor?
+                .filter(x -> (x instanceof SigName) || (x instanceof DataName))  // CHECKME: refactor?
                 .map(x -> (MemberName<?>) x);
     }
 }

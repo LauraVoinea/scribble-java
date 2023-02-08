@@ -55,10 +55,10 @@ public abstract class DirectedInteraction<K extends ProtoKind, B extends Seq<K, 
         return v.visitDirectedInteraction(this);
     }
 
-    @Override
+    /*@Override
     public <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return f.apply(this);
-    }
+    }*/
 
     @Override
     public CommonTree getSource() {

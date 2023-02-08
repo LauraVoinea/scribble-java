@@ -46,8 +46,8 @@ public interface Recursion<K extends ProtoKind, B extends Seq<K, B>>
         return v.visitRecursion(this);
     }
 
-    @Override
+    /*@Override
     default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return Stream.concat(f.apply(this), getBody().gather(f));
-    }
+    }*/
 }

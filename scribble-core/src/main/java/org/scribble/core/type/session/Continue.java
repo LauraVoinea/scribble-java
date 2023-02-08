@@ -44,10 +44,10 @@ public interface Continue<K extends ProtoKind, B extends Seq<K, B>>
         return v.visitContinue(this);
     }
 
-    @Override
+    /*@Override
     default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return f.apply(this);
-    }
+    }*/
 }
 
 	

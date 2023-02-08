@@ -47,10 +47,10 @@ public interface Choice<K extends ProtoKind, B extends Seq<K, B>>
         return v.visitChoice(this);
     }
 
-    @Override
+    /*@Override
     default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return Stream.concat(f.apply(this),
                 getBlocks().stream().flatMap(x -> x.gather(f)));
-    }
+    }*/
 }
 

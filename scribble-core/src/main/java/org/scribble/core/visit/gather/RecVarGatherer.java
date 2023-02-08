@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 
 public class RecVarGatherer<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeGatherer<K, B, RecVar> {
+
     @Override
     public Stream<RecVar> visitContinue(Continue<K, B> n) {
         return Stream.of(n.getRecVar());

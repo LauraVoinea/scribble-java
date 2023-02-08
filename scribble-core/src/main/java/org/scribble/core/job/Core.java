@@ -125,7 +125,10 @@ public class Core {
         for (ProtoName<Global> fullname : this.context.getParsedFullnames()) {
             // CHECKME: relegate to "warning" ? -- some downsteam operations may depend on this though (e.g., graph building?)
             Set<Role> used = this.context.getInlined(fullname).def
-                    .gather(new RoleGatherer<Global, GSeq>()::visit)
+
+                    //.gather(new RoleGatherer<Global, GSeq>()::visit)
+                    .visitWithNoThrow(new RoleGatherer<>())
+
                     .collect(Collectors.toSet());
             Set<Role> unused = this.context.getIntermediate(fullname).roles
                     // imeds have original role decls (inlined's are pruned)
@@ -383,7 +386,10 @@ public class Core {
             ProtoName<Local> pfullname = todo.remove(0);
             LProjection proj = this.context.getProjection(pfullname);
             res.put(pfullname, proj);
-            proj.def.gather(new ProtoDepsCollector<Local, LSeq>()::visit).distinct()
+
+            //proj.def.gather(new ProtoDepsCollector<Local, LSeq>()::visit).distinct()
+            proj.def.visitWithNoThrow(new ProtoDepsCollector<>()).distinct()
+
                     .filter(x -> !res.containsKey(x) && !todo.contains(x))
                     .forEachOrdered(x -> todo.add(x));
 			/*proj.def.gather(new NonProtoDepsGatherer<Local, LSeq>()::visit)

@@ -33,10 +33,10 @@ public interface Seq<K extends ProtoKind, B extends Seq<K, B>>
     // Corresponds to all getters (incl. super)
     B reconstruct(CommonTree source, List<? extends SVisitable<K, B>> elems);
 
-    @Override
+    /*@Override
     default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return getElements().stream().flatMap(x -> x.gather(f));
-    }
+    }*/
 
     default boolean isEmpty() {
         return getElements().isEmpty();

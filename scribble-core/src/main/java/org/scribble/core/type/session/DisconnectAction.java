@@ -51,10 +51,10 @@ public abstract class DisconnectAction<K extends ProtoKind, B extends Seq<K, B>>
         return v.visitDisconnect(this);
     }
 
-    @Override
+    /*@Override
     public <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
         return f.apply(this);
-    }
+    }*/
 
     @Override
     public int hashCode() {

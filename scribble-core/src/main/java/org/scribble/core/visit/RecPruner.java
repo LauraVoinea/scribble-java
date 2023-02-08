@@ -52,7 +52,10 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
         // Assumes no shadowing (e.g., use after SType#getInlined recvar disamb)
         RecVar recvar = n.getRecVar();
         B body = n.getBody();
-        Set<RecVar> rvs = body.gather(new RecVarGatherer<K, B>()::visit)
+
+        //Set<RecVar> rvs = body.gather(new RecVarGatherer<K, B>()::visit)
+        Set<RecVar> rvs = body.visitWithNoThrow(new RecVarGatherer<>())
+
                 .collect(Collectors.toSet());
         return rvs.contains(recvar)
                 ? n.reconstruct(n.getSource(), recvar, visitSeq(body))

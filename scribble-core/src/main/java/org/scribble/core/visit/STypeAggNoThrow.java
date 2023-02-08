@@ -21,11 +21,12 @@ import org.scribble.core.type.session.*;
 
 import java.util.stream.Stream;
 
-// Worth it to maintain alongside STypeAgg? -- does touch a lot of places 
+// Worth it to maintain alongside STypeAgg? -- does touch a lot of places
+// Maybe worth it if used to refactor `throws` to, e.g., Optional
 public abstract class STypeAggNoThrow<K extends ProtoKind, B extends Seq<K, B>, T>
         //extends STypeAgg<K, B, T>  // Not worth it, ex/no-ex method variants easily confused
 {
-
+   
     // Internal use
     // Pre: agg(Stream.of(unit())) = unit()
     protected abstract T unit(SVisitable<K, B> n);
@@ -39,7 +40,7 @@ public abstract class STypeAggNoThrow<K extends ProtoKind, B extends Seq<K, B>, 
     }
 
     public T visitChoice(Choice<K, B> n) {
-        return agg(n, n.getBlocks().stream().map(x -> visitSeq(x)));
+        return agg(n, n.getBlocks().stream().map(this::visitSeq));
     }
 
     public T visitDirectedInteraction(DirectedInteraction<K, B> n) {

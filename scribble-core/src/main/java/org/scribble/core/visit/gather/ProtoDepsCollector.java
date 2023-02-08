@@ -35,7 +35,7 @@ public class ProtoDepsCollector<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public Stream<ProtoName<K>> visitSeq(Seq<K, B> n) {
+    public Stream<ProtoName<K>> visitSeq(B n) {
         return super.visitSeq(n).distinct();
     }
 

@@ -15,20 +15,52 @@
  */
 package org.scribble.core.visit.gather;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import org.scribble.core.type.kind.ProtoKind;
-import org.scribble.core.type.session.Choice;
-import org.scribble.core.type.session.Continue;
-import org.scribble.core.type.session.DirectedInteraction;
-import org.scribble.core.type.session.DisconnectAction;
-import org.scribble.core.type.session.Do;
-import org.scribble.core.type.session.Recursion;
 import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
+import org.scribble.core.visit.STypeAggNoThrow;
 
-// Refactor as special case of Agg?
+import java.util.stream.Stream;
+
+// Refactor as special case of Agg?  -- Yes
+//@Deprecated
+public abstract class STypeGatherer<K extends ProtoKind, B extends Seq<K, B>, T>
+        extends STypeAggNoThrow<K, B, Stream<T>> {
+
+    @Override
+    protected Stream<T> unit(SVisitable<K, B> n) {
+        return Stream.empty();
+    }
+
+    @Override
+    protected Stream<T> agg(SVisitable<K, B> n, Stream<Stream<T>> ts) {
+        return ts.flatMap(x -> x);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 public abstract class STypeGatherer<K extends ProtoKind, B extends Seq<K, B>, T> {
     // Pass this to SType.gather, e.g., n.gather(new RoleGatherer<Global, GSeq>()::visit)
     public Stream<T> visit(SVisitable<K, B> n) {
@@ -40,18 +72,18 @@ public abstract class STypeGatherer<K extends ProtoKind, B extends Seq<K, B>, T>
         return (n instanceof DirectedInteraction<?, ?>)
                 ? Optional.of(visitDirectedInteraction((DirectedInteraction<K, B>) n))
                 : (n instanceof DisconnectAction<?, ?>)
-                ? Optional.of(visitDisconnect((DisconnectAction<K, B>) n))
-                : (n instanceof Choice<?, ?>)
-                ? Optional.of(visitChoice((Choice<K, B>) n))
-                : (n instanceof Seq<?, ?>)
-                ? Optional.of(visitSeq((Seq<K, B>) n))
-                : (n instanceof Continue<?, ?>)
-                ? Optional.of(visitContinue((Continue<K, B>) n))
-                : (n instanceof Recursion<?, ?>)
-                ? Optional.of(visitRecursion((Recursion<K, B>) n))
-                : (n instanceof Do<?, ?>)
-                ? Optional.of(this.visitDo((Do<K, B>) n))
-                : Optional.empty();
+                        ? Optional.of(visitDisconnect((DisconnectAction<K, B>) n))
+                        : (n instanceof Choice<?, ?>)
+                                ? Optional.of(visitChoice((Choice<K, B>) n))
+                                : (n instanceof Seq<?, ?>)
+                                        ? Optional.of(visitSeq((Seq<K, B>) n))
+                                        : (n instanceof Continue<?, ?>)
+                                                ? Optional.of(visitContinue((Continue<K, B>) n))
+                                                : (n instanceof Recursion<?, ?>)
+                                                        ? Optional.of(visitRecursion((Recursion<K, B>) n))
+                                                        : (n instanceof Do<?, ?>)
+                                                                ? Optional.of(this.visitDo((Do<K, B>) n))
+                                                                : Optional.empty();
         // Better for extensibility than "manually" throwing Exception (e.g., for overriding)
         // N.B. currently causes exception on get in visit
     }
@@ -87,3 +119,4 @@ public abstract class STypeGatherer<K extends ProtoKind, B extends Seq<K, B>, T>
         return Stream.of();
     }
 }
+//*/
