@@ -47,12 +47,12 @@ public class GSeq extends SeqBase<Global, GSeq> implements GType {
     }
 
     @Override
-    public <T> T visitWith(STypeAgg<Global, GSeq, T> v) throws ScribException {
+    public <T> T accept(STypeAgg<Global, GSeq, T> v) throws ScribException {
         return v.visitSeq(this);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<Global, GSeq, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<Global, GSeq, T> v) {
         return v.visitSeq(this);
     }
 

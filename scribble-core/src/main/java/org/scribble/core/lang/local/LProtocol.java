@@ -102,11 +102,11 @@ public class LProtocol extends Protocol<Local, LProtoName, LSeq>
     }
 
     public void checkReachability(Core core) throws ScribException {
-        this.def.visitWith(core.config.vf.local.ReachabilityChecker());
+        this.def.accept(core.config.vf.local.ReachabilityChecker());
     }
 
     public void checkUnboundedRecursiveOutput(Core core) throws ScribException {
-        this.def.visitWith(core.config.vf.local.UnboundedRecursionChecker());
+        this.def.accept(core.config.vf.local.UnboundedRecursionChecker());
     }
 
     /*public void countOutputSequences(Core core) throws ScribException {
@@ -134,7 +134,7 @@ public class LProtocol extends Protocol<Local, LProtoName, LSeq>
             return new EGraph(s, s);  // TODO: refactor constructor inside mf
         }
         EGraphBuilder b = core.config.vf.local.EGraphBuilder(core);
-        this.def.visitWithNoThrow(b);
+        this.def.acceptNoThrow(b);
         return b.finalise();
     }
 

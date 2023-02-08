@@ -82,7 +82,7 @@ public class GProtocol extends Protocol<Global, GProtoName, GSeq>
         GSeq def = v.core.config.vf.<Global, GSeq>RecPruner().visitSeq(seq);
 
         //Set<Role> used = def.gather(new RoleGatherer<Global, GSeq>()::visit)
-        Set<Role> used = def.visitWithNoThrow(new RoleGatherer<>())
+        Set<Role> used = def.acceptNoThrow(new RoleGatherer<>())
 
                 .collect(Collectors.toSet());
         List<Role> rs = this.roles.stream().filter(x -> used.contains(x))  // Prune role decls -- CHECKME: what is an example? was this from before unused role checking?
@@ -103,7 +103,7 @@ public class GProtocol extends Protocol<Global, GProtoName, GSeq>
     public void checkRoleEnabling(Core core) throws ScribException {
         Set<Role> rs = this.roles.stream().collect(Collectors.toSet());
         RoleEnablingChecker v = core.config.vf.global.RoleEnablingChecker(rs);
-        this.def.visitWith(v);
+        this.def.accept(v);
     }
 
     public void checkExtChoiceConsistency(Core core) throws ScribException {
@@ -111,14 +111,14 @@ public class GProtocol extends Protocol<Global, GProtoName, GSeq>
                 .collect(Collectors.toMap(x -> x, x -> x));
         ExtChoiceConsistencyChecker v = core.config.vf.global
                 .ExtChoiceConsistencyChecker(rs);
-        this.def.visitWith(v);
+        this.def.accept(v);
     }
 
     public void checkConnectedness(Core core, boolean implicit)
             throws ScribException {
         Set<Role> rs = this.roles.stream().collect(Collectors.toSet());
         ConnectionChecker v = core.config.vf.global.ConnectionChecker(rs, implicit);
-        this.def.visitWith(v);
+        this.def.accept(v);
     }
 
     // Currently assuming inlining (or at least "disjoint" protodecl projection, without role fixing)
@@ -137,7 +137,7 @@ public class GProtocol extends Protocol<Global, GProtoName, GSeq>
                 .getFullProjectionName(this.fullname, self);
 
         //Set<Role> used = pruned.gather(new RoleGatherer<Local, LSeq>()::visit)
-        Set<Role> used = pruned.visitWithNoThrow(new RoleGatherer<>())
+        Set<Role> used = pruned.acceptNoThrow(new RoleGatherer<>())
 
                 .collect(Collectors.toSet());
         List<Role> roles = decls.stream()

@@ -158,7 +158,7 @@ public class Job {
             List<ImportDecl<?>> imports = new LinkedList<>();
             List<ProtoName<Local>> pdeps = proj.def
                     //.gather(new ProtoDepsCollector<Local, LSeq>()::visit).distinct()
-                    .visitWithNoThrow(new ProtoDepsCollector<>()).distinct()
+                    .acceptNoThrow(new ProtoDepsCollector<>()).distinct()
                     .collect(Collectors.toList());  // Gathering only from this proto decl (no subproto visiting)  // Overlaps with Core::getProjections
             pdeps.remove(pfullname);
             for (ProtoName<Local> imp : pdeps) {
@@ -170,7 +170,7 @@ public class Job {
             LinkedHashSet<MemberName<?>> npdeps = new LinkedHashSet<>();
 
             //proj.def.gather(new NonProtoDepsGatherer<Local, LSeq>()::visit)  // Gathering only from this proto decl (no subproto visiting)
-            proj.def.visitWithNoThrow(new NonProtoDepsGatherer<>())  // Gathering only from this proto decl (no subproto visiting)
+            proj.def.acceptNoThrow(new NonProtoDepsGatherer<>())  // Gathering only from this proto decl (no subproto visiting)
 
                     .forEachOrdered(npdeps::add);  // set-ify while preserving order
             List<NonProtoDecl<?>> nonprods = new LinkedList<>();

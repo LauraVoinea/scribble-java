@@ -65,7 +65,7 @@ public abstract class STypeUnfolder<K extends ProtoKind, B extends Seq<K, B>>
     public B visitSeq(B n) {
         List<SVisitable<K, B>> elems = new LinkedList<>();
         for (SVisitable<K, B> e : n.getElements()) {
-            SVisitable<K, B> e1 = e.visitWithNoThrow(this);
+            SVisitable<K, B> e1 = e.acceptNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {
                 elems.addAll(((Seq<K, B>) e1).getElements());
             } else {

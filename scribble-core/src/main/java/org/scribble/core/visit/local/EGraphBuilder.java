@@ -70,7 +70,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
                 buildUnguardedRecursion(util, elems);
             } else {
                 util.enterChoiceBlock();
-                block.visitWithNoThrow(this);
+                block.acceptNoThrow(this);
                 util.leaveChoiceBlock();
             }
         }
@@ -88,18 +88,18 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
         util.setEntry(nestedEntry);
         if (elems.size() == 1)  // Cf. visitSeq last element or not
         {
-            first.visitWithNoThrow(this);
+            first.acceptNoThrow(this);
         } else {
             EState exit = util.getExit();
             EState nestedExit = util.newState(Collections.emptySet());
             util.setExit(nestedExit);
-            first.visitWithNoThrow(this);  // entry to nestedExit -- reuse existing builder, to directly add continue-edges back to the "outer" graph
+            first.acceptNoThrow(this);  // entry to nestedExit -- reuse existing builder, to directly add continue-edges back to the "outer" graph
 
             util.setEntry(nestedExit);  // Must be non null
             util.setExit(exit);
             LSeq tail = this.core.config.tf.local.LSeq(null,
                     elems.subList(1, elems.size()));
-            tail.visitWithNoThrow(this);  // nestedExit to exit
+            tail.acceptNoThrow(this);  // nestedExit to exit
         }
 
         Iterator<EAction<StaticActionKind>> as = nestedEntry.getActions().iterator();  // "Enacting" actions
@@ -175,7 +175,7 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
         RecVar recvar = n.getRecVar();
         this.util.addEntryLabel(recvar);
         this.util.enterRecursion(recvar, this.util.getEntry());
-        n.getBody().visitWithNoThrow(this);
+        n.getBody().acceptNoThrow(this);
         this.util.leaveRecursion(recvar);
         return n;
     }
@@ -193,11 +193,11 @@ public class EGraphBuilder extends STypeVisitorNoThrow<Local, LSeq> {
             LType next = i.next();
             if (!i.hasNext()) {
                 util.setExit(exit);
-                next.visitWithNoThrow(this);
+                next.acceptNoThrow(this);
             } else {
                 EState tmp = util.newState(Collections.emptySet());
                 util.setExit(tmp);
-                next.visitWithNoThrow(this);
+                next.acceptNoThrow(this);
                 util.setEntry(util.getExit());
                 // CHECKME: exit may not be tmp, entry/exit can be modified, e.g. continue
             }

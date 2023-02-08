@@ -30,11 +30,9 @@ import org.scribble.codegen.java.util.FieldBuilder;
 import org.scribble.codegen.java.util.JavaBuilder;
 import org.scribble.codegen.java.util.MethodBuilder;
 import org.scribble.core.lang.global.GProtocol;
-import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.visit.gather.MessageIdGatherer;
 import org.scribble.job.Job;
 import org.scribble.util.ScribException;
@@ -186,7 +184,7 @@ public class SessionApiGenerator extends ApiGen {
         for (MsgId<?> mid : inlined.def
 
                 //.gather(new MessageIdGatherer<Global, GSeq>()::visit)
-                .visitWithNoThrow(new MessageIdGatherer<>())
+                .acceptNoThrow(new MessageIdGatherer<>())
 
                 .collect(Collectors.toList())) {
             //constructOpClass(this.cb.newClass(), mid);

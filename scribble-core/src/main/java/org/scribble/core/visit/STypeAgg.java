@@ -69,7 +69,7 @@ public abstract class STypeAgg<K extends ProtoKind, B extends Seq<K, B>, T> {
     public T visitSeq(B n) throws ScribException {
         List<T> elems = new LinkedList<>();
         for (SVisitable<K, B> e : n.getElements()) {
-            elems.add(e.visitWith(this));
+            elems.add(e.accept(this));
         }
         return agg(n, elems.stream());
     }

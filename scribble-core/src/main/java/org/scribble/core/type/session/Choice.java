@@ -38,12 +38,12 @@ public interface Choice<K extends ProtoKind, B extends Seq<K, B>>
     Choice<K, B> reconstruct(CommonTree source, Role subj, List<B> blocks); //List<? extends Seq<K, B>> blocks);
 
     @Override
-    default <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+    default <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
         return v.visitChoice(this);
     }
 
     @Override
-    default <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+    default <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
         return v.visitChoice(this);
     }
 

@@ -118,7 +118,7 @@ public class LDoPruner //extends DoPruner<Local, LSeq>
         // Duplicated from InlinedProjector.visitSeq
         List<LType> elems = new LinkedList<>();
         for (LType e : n.getElements()) {
-            LType e1 = (LType) e.visitWithNoThrow(this);
+            LType e1 = (LType) e.acceptNoThrow(this);
             if (!(e1 instanceof LSkip)) {
                 elems.add(e1);
                 this.unguarded.clear();

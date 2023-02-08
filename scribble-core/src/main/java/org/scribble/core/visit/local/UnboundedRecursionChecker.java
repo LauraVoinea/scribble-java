@@ -65,7 +65,7 @@ public class UnboundedRecursionChecker extends STypeVisitor<Local, LSeq> {
         UnboundedRecursionChecker nested = new UnboundedRecursionChecker();
         for (LSeq block : n.getBlocks()) {
             nested.setEnv(entry);
-            block.visitWith(nested);
+            block.accept(nested);
             blocks.add(nested.getEnv());
         }
         UnboundedRecursionEnv first = blocks.get(0);
@@ -106,7 +106,7 @@ public class UnboundedRecursionChecker extends STypeVisitor<Local, LSeq> {
         UnboundedRecursionChecker nested = new UnboundedRecursionChecker();
         nested.setEnv(entry);
         try {
-            n.getBody().visitWith(nested);
+            n.getBody().accept(nested);
         } catch (UnboundedRecursionException e) {
             throw new UnboundedRecursionException("Potentially unbounded output recursion:\n" + n);
         }
@@ -122,7 +122,7 @@ public class UnboundedRecursionChecker extends STypeVisitor<Local, LSeq> {
     @Override
     public LSeq visitSeq(LSeq n) throws ScribException {
         for (LType t : n.getElements()) {
-            t.visitWith(this);
+            t.accept(this);
         }
         return n;
     }

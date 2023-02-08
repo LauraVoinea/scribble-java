@@ -74,7 +74,7 @@ public abstract class STypeVisitor<K extends ProtoKind, B extends Seq<K, B>>
     public B visitSeq(B n) throws ScribException {
         List<SVisitable<K, B>> elems = new LinkedList<>();
         for (SVisitable<K, B> e : n.getElements()) {
-            elems.add(e.visitWith(this));
+            elems.add(e.accept(this));
         }
         return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
     }

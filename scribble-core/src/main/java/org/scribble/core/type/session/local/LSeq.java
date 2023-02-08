@@ -48,12 +48,12 @@ public class LSeq extends SeqBase<Local, LSeq> implements LType {
     }
 
     @Override
-    public <T> T visitWith(STypeAgg<Local, LSeq, T> v) throws ScribException {
+    public <T> T accept(STypeAgg<Local, LSeq, T> v) throws ScribException {
         return v.visitSeq(this);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<Local, LSeq, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<Local, LSeq, T> v) {
         return v.visitSeq(this);
     }
 

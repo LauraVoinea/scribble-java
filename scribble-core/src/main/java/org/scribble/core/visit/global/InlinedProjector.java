@@ -112,12 +112,12 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         {
             return n.src.equals(self) ? lf.LReq(null, n.msg, n.dst)
                     : n.dst.equals(self) ? lf.LAcc(null, n.src, n.msg)
-                    : LSkip.SKIP;
+                            : LSkip.SKIP;
         } else //if (n instanceof GMessageTransfer)
         {
             return n.src.equals(self) ? lf.LSend(null, n.msg, n.dst)
                     : n.dst.equals(self) ? lf.LRecv(null, n.src, n.msg)
-                    : LSkip.SKIP;
+                            : LSkip.SKIP;
         }
     }
 
@@ -130,7 +130,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
         LTypeFactory lf = this.core.config.tf.local;
         return n.left.equals(self) ? lf.LDisconnect(null, n.right)
                 : n.right.equals(self) ? lf.LDisconnect(null, n.left)
-                : LSkip.SKIP;
+                        : LSkip.SKIP;
     }
 
     @Override
@@ -169,7 +169,7 @@ public class InlinedProjector extends STypeAggNoThrow<Global, GSeq, LType> {
     public LSeq visitSeq(GSeq n) {
         List<LType> elems = new LinkedList<>();
         for (SVisitable<Global, GSeq> e : n.getElements()) {
-            LType e1 = e.visitWithNoThrow(this);
+            LType e1 = e.acceptNoThrow(this);
             if (!(e1 instanceof LSkip)) {
                 elems.add(e1);
                 this.unguarded.clear();

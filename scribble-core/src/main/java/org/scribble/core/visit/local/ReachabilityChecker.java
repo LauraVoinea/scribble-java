@@ -71,7 +71,7 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
     public SVisitable<Local, LSeq> visitRecursion(Recursion<Local, LSeq> n)
             throws ScribException {
         RecVar recvar = n.getRecVar();
-        n.getBody().visitWith(this);
+        n.getBody().accept(this);
         ReachabilityEnv env = getEnv();
         if (env.recvars.contains(recvar)) {
             Set<RecVar> tmp = new HashSet<>(env.recvars);
@@ -94,7 +94,7 @@ public class ReachabilityChecker extends STypeVisitor<Local, LSeq> {
                 throw new ScribException(
                         "Illegal sequence: " + (prev == null ? "" : prev + "\n") + next);
             }
-            next.visitWith(this);
+            next.accept(this);
         }
         return n;
     }

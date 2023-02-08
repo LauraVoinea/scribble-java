@@ -60,7 +60,7 @@ public class ConnectionChecker extends STypeVisitor<Global, GSeq> {
         List<Map<Set<Role>, Status>> blocks = new LinkedList<>();
         for (GSeq block : n.getBlocks()) {
             ConnectionChecker nested = new ConnectionChecker(this);
-            block.visitWith(nested);
+            block.accept(nested);
             blocks.add(nested.conns);
         }
         blocks.stream()

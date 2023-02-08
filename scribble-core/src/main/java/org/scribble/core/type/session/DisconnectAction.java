@@ -42,12 +42,12 @@ public abstract class DisconnectAction<K extends ProtoKind, B extends Seq<K, B>>
             CommonTree source, Role src, Role dst);
 
     @Override
-    public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+    public <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
         return v.visitDisconnect(this);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
         return v.visitDisconnect(this);
     }
 

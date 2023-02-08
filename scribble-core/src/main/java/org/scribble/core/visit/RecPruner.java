@@ -54,7 +54,7 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
         B body = n.getBody();
 
         //Set<RecVar> rvs = body.gather(new RecVarGatherer<K, B>()::visit)
-        Set<RecVar> rvs = body.visitWithNoThrow(new RecVarGatherer<>())
+        Set<RecVar> rvs = body.acceptNoThrow(new RecVarGatherer<>())
 
                 .collect(Collectors.toSet());
         return rvs.contains(recvar)
@@ -66,7 +66,7 @@ public class RecPruner<K extends ProtoKind, B extends Seq<K, B>>
     public B visitSeq(B n) {
         List<SVisitable<K, B>> elems = new LinkedList<>();
         for (SVisitable<K, B> e : n.getElements()) {
-            SVisitable<K, B> e1 = (SVisitable<K, B>) e.visitWithNoThrow(this);
+            SVisitable<K, B> e1 = (SVisitable<K, B>) e.acceptNoThrow(this);
             if (e1 instanceof Seq<?, ?>) {  // cf. visitRecursion  (also cf. LSkip)
                 elems.addAll(((Seq<K, B>) e1).getElements());  // Handles empty Seq case
             } else {

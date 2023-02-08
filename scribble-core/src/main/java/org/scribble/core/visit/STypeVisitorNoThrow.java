@@ -57,7 +57,7 @@ public abstract class STypeVisitorNoThrow<K extends ProtoKind, B extends Seq<K, 
     @Override
     public B visitSeq(B n) {
         List<SVisitable<K, B>> elems = n.getElements().stream()
-                .map(x -> x.visitWithNoThrow(this))
+                .map(x -> x.acceptNoThrow(this))
                 .collect(Collectors.toList());
         return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
     }

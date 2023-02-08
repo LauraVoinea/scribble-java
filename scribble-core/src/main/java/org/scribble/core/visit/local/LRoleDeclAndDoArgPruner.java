@@ -53,7 +53,7 @@ public class LRoleDeclAndDoArgPruner extends STypeVisitorNoThrow<Local, LSeq> {
 
     public LProtocol visitLProtocol(LProtocol n) {
         // N.B. must use PreRoleCollector (on orig), standard subproto traversal not possible yet because target proto role decls not yet fixed (being done now)
-        Set<Role> used = n.def.visitWithNoThrow(newPreRoleCollector());  // CHECKME: vf?
+        Set<Role> used = n.def.acceptNoThrow(newPreRoleCollector());  // CHECKME: vf?
         List<Role> rs = n.roles.stream()
                 .filter(x -> used.contains(x) || x.equals(n.self))  // FIXME: self roledecl not actually being a self role is a mess
                 .collect(Collectors.toList());
@@ -65,7 +65,7 @@ public class LRoleDeclAndDoArgPruner extends STypeVisitorNoThrow<Local, LSeq> {
 
     public Do<Local, LSeq> visitDo(Do<Local, LSeq> n) {
         List<Role> fixed = new LinkedList<>();
-        Set<Role> rs = n.visitWithNoThrow(newPreRoleCollector());  // N.B. does subproto visiting, unlike RoleGatherer
+        Set<Role> rs = n.acceptNoThrow(newPreRoleCollector());  // N.B. does subproto visiting, unlike RoleGatherer
         fixed = n.getRoles().stream()
                 /*.filter(x -> rs.contains(x) || x.equals(this.self))
                 .map(x -> x.equals(this.self) ? Role.SELF : x)		// FIXME: self roledecl not actually being a self role is a mess*/
@@ -100,7 +100,7 @@ class PreSubprotoRoleCollector extends SubprotoRoleCollector {
                 .collect(Collectors.toList());
         Substitutor<Local, LSeq> subs = this.core.config.vf
                 .Substitutor(tmp, n.getRoles(), target.params, n.getArgs(), true);  // true (passive) to ignore "self"  // CHECKME: prune args?
-        Set<Role> res = target.def.visitWithNoThrow(subs).visitWithNoThrow(this);
+        Set<Role> res = target.def.acceptNoThrow(subs).acceptNoThrow(this);
         this.stack.pop();
         return res;
     }
@@ -138,7 +138,7 @@ class SubprotoRoleCollector extends STypeAggNoThrow<Local, LSeq, Set<Role>>
         // Cf. LDoPruner.visitDo
         this.stack.push(sig);
         Set<Role> res = prepareSubprotoForVisit(this.core, n)  // Non-passive, cf. PreSubprotoRoleCollector
-                .visitWithNoThrow(this);
+                .acceptNoThrow(this);
         this.stack.pop();
         return res;
     }

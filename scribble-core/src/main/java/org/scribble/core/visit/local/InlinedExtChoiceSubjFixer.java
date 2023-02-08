@@ -49,7 +49,7 @@ public class InlinedExtChoiceSubjFixer extends STypeVisitorNoThrow<Local, LSeq> 
     @Override
     public Choice<Local, LSeq> visitChoice(Choice<Local, LSeq> n) {
         InlinedEnablerInferer v = getInferer(this);
-        Role subj = n.visitWithNoThrow(v).get();  // WF ensures result
+        Role subj = n.acceptNoThrow(v).get();  // WF ensures result
         return n.reconstruct(n.getSource(), subj, n.getBlocks());
     }
 
@@ -123,7 +123,7 @@ class InlinedEnablerInferer extends STypeAggNoThrow<Local, LSeq, Optional<Role>>
     @Override
     public Optional<Role> visitSeq(LSeq n) {
         for (SVisitable<Local, LSeq> e : n.getElements()) {
-            Optional<Role> res = e.visitWithNoThrow(this);
+            Optional<Role> res = e.acceptNoThrow(this);
             if (res.isPresent()) {
                 return res;
             }

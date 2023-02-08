@@ -36,9 +36,9 @@ public interface SVisitable<K extends ProtoKind, B extends Seq<K, B>>
     // N.B. visitWith should be considered a "top-level" entry point only, i.e., do not assume visitWith is called (or not) again during the recursive traversal
     // (visitWith may be called enroute to each visitNode, except for Seq, which is "entered directly" via visitSeq due to its generic typing)
     // (However, visitWith is used by Seq to visit its elems -- main point of visitWith is to be agnostic to node type)
-    <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException;
+    <T> T accept(STypeAgg<K, B, T> v) throws ScribException;
 
-    <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v);
+    <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v);
 
     /*// Pass in an STypeGatherer::visit, e.g., n.(new RoleGatherer<Global, GSeq>()::visit)
     <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f);*/

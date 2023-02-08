@@ -37,12 +37,12 @@ public interface Recursion<K extends ProtoKind, B extends Seq<K, B>>
     Recursion<K, B> reconstruct(CommonTree source, RecVar recvar, B body);
 
     @Override
-    default <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+    default <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
         return v.visitRecursion(this);
     }
 
     @Override
-    default <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+    default <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
         return v.visitRecursion(this);
     }
 

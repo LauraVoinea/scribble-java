@@ -34,12 +34,12 @@ public class LSkip extends SVisitableBase<Local, LSeq> implements LType {
     }
 
     @Override
-    public <T> T visitWith(STypeAgg<Local, LSeq, T> v) {
+    public <T> T accept(STypeAgg<Local, LSeq, T> v) {
         throw new RuntimeException("Unsupported for Skip: " + this);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<Local, LSeq, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<Local, LSeq, T> v) {
         throw new RuntimeException("Unsupported for Skip: " + this);
     }
 

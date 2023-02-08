@@ -94,7 +94,7 @@ public class OutputSequenceCounter extends STypeVisitor<Local, LSeq> {
         OutputSequenceCounter nested = new OutputSequenceCounter();
         for (LSeq block : n.getBlocks()) {
             nested.setEnv(entry);
-            block.visitWith(nested);
+            block.accept(nested);
             blocks.add(nested.getEnv());
         }
 
@@ -143,7 +143,7 @@ public class OutputSequenceCounter extends STypeVisitor<Local, LSeq> {
     @Override
     public LSeq visitSeq(LSeq n) throws ScribException {
         for (LType t : n.getElements()) {
-            t.visitWith(this);
+            t.accept(this);
         }
         return n;
     }

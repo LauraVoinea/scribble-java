@@ -46,12 +46,12 @@ public abstract class DirectedInteraction<K extends ProtoKind, B extends Seq<K, 
             Role dst);
 
     @Override
-    public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+    public <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
         return v.visitDirectedInteraction(this);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
         return v.visitDirectedInteraction(this);
     }
 

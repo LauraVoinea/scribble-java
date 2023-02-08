@@ -37,8 +37,6 @@ import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.STypeFactory;
-import org.scribble.core.type.session.global.GSeq;
-import org.scribble.core.type.session.local.LSeq;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.gather.ProtoDepsCollector;
@@ -127,7 +125,7 @@ public class Core {
             Set<Role> used = this.context.getInlined(fullname).def
 
                     //.gather(new RoleGatherer<Global, GSeq>()::visit)
-                    .visitWithNoThrow(new RoleGatherer<>())
+                    .acceptNoThrow(new RoleGatherer<>())
 
                     .collect(Collectors.toSet());
             Set<Role> unused = this.context.getIntermediate(fullname).roles
@@ -388,7 +386,7 @@ public class Core {
             res.put(pfullname, proj);
 
             //proj.def.gather(new ProtoDepsCollector<Local, LSeq>()::visit).distinct()
-            proj.def.visitWithNoThrow(new ProtoDepsCollector<>()).distinct()
+            proj.def.acceptNoThrow(new ProtoDepsCollector<>()).distinct()
 
                     .filter(x -> !res.containsKey(x) && !todo.contains(x))
                     .forEachOrdered(x -> todo.add(x));
