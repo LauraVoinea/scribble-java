@@ -1,0 +1,18 @@
+module good.reach.globals.grecursion.Unbounded01;
+
+data <java> "..." from "..." as T;
+
+global protocol Proto1(role A, role B, role C)
+{
+    // Testing UnboundedRecursionChecker
+    choice at A {
+    	1(T) from A to B;
+    	2(T) from B to C;
+    	3(T) from C to A;
+    	do Proto1(A, B, C);
+    } or {
+    	4(T) from A to B;
+    	5(T) from B to C;
+    	6(T) from A to C;
+    }
+}

@@ -15,38 +15,43 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Map;
-
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.endpoint.EFsm;
-import org.scribble.core.model.global.actions.SAcc;
-import org.scribble.core.model.global.actions.SClientWrap;
-import org.scribble.core.model.global.actions.SDisconnect;
-import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.model.global.actions.SReq;
-import org.scribble.core.model.global.actions.SSend;
-import org.scribble.core.model.global.actions.SServerWrap;
-import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.model.global.actions.*;
+import org.scribble.core.model.global.buffers.SBuffers;
+import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.MsgId;
+import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public interface SModelFactory
-{
-	SGraphBuilderUtil SGraphBuilderUtil();
+import java.util.Map;
 
-	// protected constructors (MState mutable)
-	SState SState(SConfig config);
-	SConfig SConfig(Map<Role, EFsm> state, SingleBuffers buffs);
-	SGraph SGraph(GProtoName proto, Map<Integer, SState> states, 
-			SState init);  // states: s.id -> s
-	SModel SModel(SGraph g);
-	
-	// public constructors (subpackage, immutable)
-	SSend SSend(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SRecv SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SReq SReq(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SAcc SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay);
-	SDisconnect SDisconnect(Role subj, Role obj);
-	SClientWrap SClientWrap(Role subj, Role obj);
-	SServerWrap SServerWrap(Role subj, Role obj);
+public interface SModelFactory {
+    SGraphBuilderUtil SGraphBuilderUtil();
+
+    // protected constructors (MState mutable)
+    SState SState(SConfig config);
+
+    SConfig SConfig(Map<Role, EFsm> state, SBuffers buffs);
+
+    SGraph SGraph(ProtoName<Global> proto, Map<Integer, SState> states,
+                  SState init);  // states: s.id -> s
+
+    SModel SModel(SGraph g);
+
+    // public constructors (subpackage, immutable)
+    <A extends ActionKind> SSend<A> SSend(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    <A extends ActionKind> SRecv<A> SRecv(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    <A extends ActionKind> SReq<A> SReq(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    <A extends ActionKind> SAcc<A> SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay);
+
+    <A extends ActionKind> SDisconnect<A> SDisconnect(Role subj, Role obj);
+
+    <A extends ActionKind> SClientWrap<A> SClientWrap(Role subj, Role obj);
+
+    <A extends ActionKind> SServerWrap<A> SServerWrap(Role subj, Role obj);
 }

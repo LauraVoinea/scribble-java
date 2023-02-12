@@ -15,70 +15,67 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
+import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class ERecv extends EAction
-{
+public class ERecv<A extends ActionKind> extends EAction<A> {
 
-	public ERecv(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay)
-	{
-		super(ef, peer, mid, pay);
-	}
-	
-	@Override
-	public ESend toDual(Role self)
-	{
-		return this.mf.local.ESend(self, this.mid, this.payload);
-	}
+    public ERecv(int id, ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
+        super(id, ef, peer, mid, pay);
+    }
 
-	@Override
-	public SRecv toGlobal(Role self)
-	{
-		return this.mf.global.SRecv(self, this.peer, this.mid, this.payload);
+    @Override
+    public ERecv<DynamicActionKind> toDynamic() {
+        return this.mf.local.DynamicERecv(this.peer, this.mid, this.payload);
+    }
 
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 947;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-	
-	@Override
-	public boolean isReceive()
-	{
-		return true;
-	}
+    @Override
+    public ESend<DynamicActionKind> toDynamicDual(Role self) {
+        return this.mf.local.DynamicESend(self, this.mid, this.payload);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof ERecv))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public SRecv<StaticActionKind> toStaticGlobal(Role self) {
+        return this.mf.global.SRecv(self, this.peer, this.mid, this.payload);
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof ERecv;
-	}
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "?";
-	}
+    @Override
+    public int hashCode() {
+        int hash = 947;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean isReceive() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ERecv)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof ERecv;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "?";
+    }
 }

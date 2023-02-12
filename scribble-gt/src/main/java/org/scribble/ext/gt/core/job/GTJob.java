@@ -18,15 +18,14 @@ import java.util.Set;
 
 public class GTJob extends Job {
 
-    public GTJob(ModuleName mainFullname, CoreArgs args,
+    public GTJob(ModuleName mainFullname, Map<CoreArgs, Boolean> args,
                  Map<ModuleName, Module> parsed, AstFactory af, DelFactory df)
             throws ScribException {
         super(mainFullname, args, parsed, af, df);
     }
 
-
     @Override
-    protected Core newCore(ModuleName mainFullname, CoreArgs args,
+    protected Core newCore(ModuleName mainFullname, Map<CoreArgs, Boolean> args,
                            Set<GProtocol> imeds, STypeFactory tf) {
         return new GTCore(mainFullname, args, imeds, tf);
     }

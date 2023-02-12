@@ -17,31 +17,28 @@ package org.scribble.codegen.statetype;
 
 import java.util.List;
 
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 
-public abstract class STReceiveStateBuilder extends STStateChanBuilder
-{
-	protected final STReceiveActionBuilder rb;
-	
-	public STReceiveStateBuilder(STReceiveActionBuilder rb)
-	{
-		this.rb = rb;
-	}
-	
-	@Override
-	public String build(STStateChanAPIBuilder api, EState s)
-	{
-		String out = getPreamble(api, s);
-		
-		List<EAction> as = s.getDetActions();
-		if (as.size() > 1)
-		{
-			throw new RuntimeException("Shouldn't get in here: " + as);
-		}
-		out += "\n\n";
-		out += this.rb.build(api, s, as.get(0));
+public abstract class STReceiveStateBuilder extends STStateChanBuilder {
+    protected final STReceiveActionBuilder rb;
 
-		return out;
-	}
+    public STReceiveStateBuilder(STReceiveActionBuilder rb) {
+        this.rb = rb;
+    }
+
+    @Override
+    public String build(STStateChanAPIBuilder api, EState s) {
+        String out = getPreamble(api, s);
+
+        List<EAction<StaticActionKind>> as = s.getDetActions();
+        if (as.size() > 1) {
+            throw new RuntimeException("Shouldn't get in here: " + as);
+        }
+        out += "\n\n";
+        out += this.rb.build(api, s, as.get(0));
+
+        return out;
+    }
 }

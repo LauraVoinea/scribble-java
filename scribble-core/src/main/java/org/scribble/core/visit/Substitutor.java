@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.visit;
 
 import org.scribble.core.type.kind.NonRoleParamKind;
@@ -28,7 +29,8 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeVisitorNoThrow<K, B> {
 
     public final Substitutions subs;  // CHECKME immutable?
-    public final boolean passive;
+
+    public boolean passive;  // !!!
 
     protected Substitutor(List<Role> rold, List<Role> rnew,
                           List<MemberName<? extends NonRoleParamKind>> aold,
@@ -38,15 +40,18 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitChoice(Choice<K, B> n) {
-        List<B> blocks = n.blocks.stream().map(x -> visitSeq(x))
+    public SVisitable<K, B> visitChoice(Choice<K, B> n) {
+
+        //List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+        List<B> blocks = n.getBlocks().stream().map(x -> (B) (Seq<K, B>) x.acceptNoThrow(this))  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
                 .collect(Collectors.toList());
         return n.reconstruct(n.getSource(),
-                this.subs.subsRole(n.subj, this.passive), blocks);
+                this.subs.subsRole(n.getSubject(), this.passive), blocks);
     }
 
     @Override
-    public SType<K, B> visitDirectedInteraction(DirectedInteraction<K, B> n) {
+    public SVisitable<K, B> visitDirectedInteraction(DirectedInteraction<K, B> n) {
         Msg msg = n.msg;
         if (msg instanceof MemberName) {
             MemberName<?> name = (MemberName<?>) msg;
@@ -67,12 +72,12 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
     }
 
     @Override
-    public SType<K, B> visitDo(Do<K, B> n) {
-        List<Role> roles = n.roles.stream()
+    public SVisitable<K, B> visitDo(Do<K, B> n) {
+        List<Role> roles = n.getRoles().stream()
                 .map(x -> this.subs.subsRole(x, this.passive))
                 .collect(Collectors.toList());
         List<Arg<? extends NonRoleParamKind>> args = new LinkedList<>();
-        for (Arg<? extends NonRoleParamKind> a : n.args) {
+        for (Arg<? extends NonRoleParamKind> a : n.getArgs()) {
             if (a instanceof MemberName<?> && this.subs.hasArg((MemberName<?>) a)) {
                 if (a instanceof DataName) {
                     a = this.subs.subsArg((DataName) a, this.passive);
@@ -82,6 +87,6 @@ public class Substitutor<K extends ProtoKind, B extends Seq<K, B>>
             }
             args.add(a);
         }
-        return n.reconstruct(n.getSource(), n.proto, roles, args);
+        return n.reconstruct(n.getSource(), n.getProto(), roles, args);
     }
 }

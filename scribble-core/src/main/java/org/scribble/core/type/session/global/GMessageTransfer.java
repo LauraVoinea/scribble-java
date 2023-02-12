@@ -22,54 +22,45 @@ import org.scribble.core.type.session.Msg;
 import org.scribble.core.type.session.MsgTransfer;
 
 public class GMessageTransfer extends MsgTransfer<Global, GSeq>
-		implements GType
-{
+        implements GType {
 
-	protected GMessageTransfer(CommonTree source, Role src, Msg msg, Role dst)
-	{
-		super(source, msg, src, dst);
-	}
+    protected GMessageTransfer(CommonTree source, Role src, Msg msg, Role dst) {
+        super(source, msg, src, dst);
+    }
 
-	@Override
-	public GMessageTransfer reconstruct(CommonTree source, Msg msg, Role src,
-			Role dst)
-	{
-		return new GMessageTransfer(source, src, msg, dst);
-	}
+    @Override
+    public GMessageTransfer reconstruct(CommonTree source, Msg msg, Role src,
+                                        Role dst) {
+        return new GMessageTransfer(source, src, msg, dst);
+    }
 
-	@Override
-	public String toString()
-	{
-		return this.msg + " from " + this.src + " to " + this.dst + ";";
-	}
+    @Override
+    public String toString() {
+        return this.msg + " from " + this.src + " to " + this.dst + ";";
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 1481;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 1481;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof GMessageTransfer))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GMessageTransfer)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof GMessageTransfer;
-	}
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GMessageTransfer;
+    }
 }
 
 

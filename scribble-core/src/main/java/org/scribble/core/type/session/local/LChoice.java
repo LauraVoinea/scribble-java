@@ -13,63 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.type.session.local;
 
-import java.util.List;
+package org.scribble.core.type.session.local;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.Choice;
+import org.scribble.core.type.session.base.ChoiceBase;
 
-public class LChoice extends Choice<Local, LSeq> implements LType
-{
-	protected LChoice(CommonTree source, Role subj,
-			List<LSeq> blocks)
-	{
-		super(source, subj, blocks);
-	}
-	
-	@Override
-	public LChoice reconstruct(CommonTree source, Role subj,
-			List<LSeq> blocks)
-	{
-		return new LChoice(source, subj, blocks);
-	}
+import java.util.List;
 
-	/*@Override
-	public List<LSeq> getBlocks()
-	{
-		return this.blocks;
-	}*/
+public class LChoice extends ChoiceBase<Local, LSeq> implements LType {
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 3067;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    protected LChoice(CommonTree source, Role subj, List<LSeq> blocks) {
+        super(source, subj, blocks);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof LChoice))
-		{
-			return false;
-		}
-		return super.equals(o);
-	}
+    @Override
+    public LChoice reconstruct(CommonTree source, Role subj, List<LSeq> blocks) {
+        return new LChoice(source, subj, blocks);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof LChoice;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 3067;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LChoice)) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof LChoice;
+    }
 }
 
 

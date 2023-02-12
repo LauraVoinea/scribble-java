@@ -15,194 +15,184 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.scribble.core.model.MPrettyPrint;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.kind.Global;
+import org.scribble.core.type.name.ProtoName;
 import org.scribble.util.Pair;
 
-public class SGraph implements MPrettyPrint
-{
-	public final GProtoName proto;  // For debugging only?  deprecate?
-	
-	public final SState init;
-	public final Map<Integer, SState> states;  // s.id -> s
+import java.util.*;
+import java.util.stream.Collectors;
 
-	private final Set<Set<SState>> termSets;
+public class SGraph implements MPrettyPrint {
+    public final ProtoName<Global> proto;  // For debugging only?  deprecate?
 
-	// Unlike EState, SGraph is not just a "simple wrapper" for an existing graph of nodes -- it is a computed structure, so no lightweight "toGraph" wrapper method; cf., EState
-	protected SGraph(GProtoName proto, Map<Integer, SState> states, SState init)
-	{
-		this.proto = proto;
-		this.init = init;
-		this.states = Collections.unmodifiableMap(states);  // s.id -> s
-		//this.reach = getReachabilityMap();
-		
-		// TODO: refactor
-		tarjan();
-		Set<Set<SState>> termSets = new HashSet<>();
-		for (Set<SState> scc : this.sscs)
-		{
-			if (scc.size() == 1 && scc.iterator().next().isTerminal() 
-					|| scc.stream().anyMatch(
-							y -> y.getSuccs().stream().anyMatch(x -> !scc.contains(x))))
-			{
-				continue;
-			}
-			//termSets.add(scc.stream().map(x -> x.id).collect(Collectors.toSet()));
-			termSets.add(Collections.unmodifiableSet(scc));
-		}
-		this.termSets = Collections.unmodifiableSet(termSets);
-	}
-	
-	public Set<Set<SState>> getTermSets()
-	{
-		return this.termSets;  // Already unmodifiable
-	}
+    public final SState init;
+    public final Map<Integer, SState> states;  // s.id -> s
 
-	// Returns null if end cannot be reached
-	public List<SAction> getTraceFromInit(SState end)
-	{
-		Map<Integer, Pair<SAction, Integer>> traces = bfsFromInit(end);
-		LinkedList<SAction> trace = new LinkedList<>();
-		for (int id = end.id; id != init.id; )  // Skipped if init.id == end.id (e.g., error in init state, such as a bad connect)
-		{
-			Pair<SAction, Integer> p = traces.get(id);
-			trace.push(p.left);
-			id = p.right;
-		}
-		return trace;
-	}
+    // FIXME use id keys -- syntactic id fine, maybe semantic also OK (optimisiation)
+    private final Set<Set<SState>> termSets;
+    //private final Set<SSink> sinks;
 
-	// Returns null if end cannot be reached
-	private Map<Integer, Pair<SAction, Integer>> bfsFromInit(SState end)  // (cf., Dijkstra's with all weights 1)
-	{
-		// SState.id faster as keys than full SConfig
-		Set<Integer> seen = new HashSet<>();
-		List<Integer> todo = new LinkedList<>();
-		seen.add(this.init.id);
-		todo.add(this.init.id);
-		Map<Integer, Pair<SAction, Integer>> traces = new HashMap<>();
-		while (!todo.isEmpty())
-		{
-			Iterator<Integer> i = todo.iterator();
-			Integer currid = i.next();
-			i.remove();
-			if (currid == end.id)
-			{
-				return traces;
-			}
-			SState curr = this.states.get(currid);
-			Iterator<SAction> as = curr.getActions().iterator();  // CHECKME: how about non-det actions? (cf. below, todo.contains(succ.id)? e.g., bad.liveness.messagelive.Test01)
-			for (SState succ : curr.getSuccs())
-			{
-				SAction a = as.next();
-				if (seen.contains(succ.id) || todo.contains(succ.id))
-				{
-					continue;
-				}
-				seen.add(succ.id);
-				traces.put(succ.id, new Pair<>(a, currid));
-				todo.add(succ.id);
-			}
-		}
-		return null;
-	}
+    // Unlike EState, SGraph is not just a "simple wrapper" for an existing graph of nodes -- it is a computed structure, so no lightweight "toGraph" wrapper method; cf., EState
+    protected SGraph(ProtoName<Global> proto, Map<Integer, SState> states, SState init) {
+        this.proto = proto;
+        this.init = init;
+        this.states = Collections.unmodifiableMap(states);  // s.id -> s
+        //this.reach = getReachabilityMap();
 
-	@Override
-	public String toDot()
-	{
-		return this.init.toDot();
-	}
+        // TODO: refactor
+        tarjan();
+        /*Set<Set<SState>> termSets = new HashSet<>();
+        for (Set<SState> scc : this.sscs) {
+        if ((scc.size() == 1 && scc.iterator().next().isTerminal())
+                || scc.stream().anyMatch(
+                y -> y.getSuccs().stream().anyMatch(
+                        x -> !scc.contains(x)))) {
+                continue;
+            } */
+        Set<Set<SState>> termSets = new HashSet<>();
+        for (Set<Integer> scc : this.sscs) {
+            if ((scc.size() == 1 && this.states.get(scc.iterator().next()).isTerminal())
+                    || scc.stream().anyMatch(y -> this.states.get(y).getSuccs().stream().anyMatch(
+                    x -> !scc.contains(x.id)))) {
+                continue;
+            }
+            //termSets.add(scc.stream().map(x -> x.id).collect(Collectors.toSet()));
+            termSets.add(Collections.unmodifiableSet(scc.stream().map(x -> this.states.get(x)).collect(Collectors.toSet())));
+        }
+        this.termSets = Collections.unmodifiableSet(termSets);
+    }
 
-	@Override
-	public String toAut()
-	{
-		return this.init.toAut();
-	}
+    public Set<Set<SState>> getSinks() {
+        return this.termSets;  // Already unmodifiable
+    }
 
-	@Override
-	public String toString()
-	{
-		return this.init.toString();
-	}
+    // Returns null if end cannot be reached
+    public List<SAction<StaticActionKind>> getTraceFromInit(SState end) {
+        Map<Integer, Pair<SAction<StaticActionKind>, Integer>> traces = bfsFromInit(end);
+        LinkedList<SAction<StaticActionKind>> trace = new LinkedList<>();
+        for (int id = end.id; id != init.id; )  // Skipped if init.id == end.id (e.g., error in init state, such as a bad connect)
+        {
+            Pair<SAction<StaticActionKind>, Integer> p = traces.get(id);
+            trace.push(p.left);
+            id = p.right;
+        }
+        return trace;
+    }
 
-	// Following are "one-time" usage, on instance construction
-	// SState.id faster as keys than full SConfig
-	private int counter = 0;
-	private Map<Integer, Integer> indices = new HashMap<>();  // s.id -> index
-	private Map<Integer, Integer> lowlinks = new HashMap<>();  // s.id -> lowlink
-	private Deque<SState> stack = new LinkedList<>();
-	private Set<Integer> onStack = new HashSet<>();
-	private Set<Set<SState>> sscs = new HashSet<>();
+    // Returns null if end cannot be reached
+    private Map<Integer, Pair<SAction<StaticActionKind>, Integer>> bfsFromInit(SState end)  // (cf., Dijkstra's with all weights 1)
+    {
+        // SState.id faster as keys than full SConfig
+        Set<Integer> seen = new HashSet<>();
+        List<Integer> todo = new LinkedList<>();
+        seen.add(this.init.id);
+        todo.add(this.init.id);
+        Map<Integer, Pair<SAction<StaticActionKind>, Integer>> traces = new HashMap<>();
+        while (!todo.isEmpty()) {
+            Iterator<Integer> i = todo.iterator();
+            Integer currid = i.next();
+            i.remove();
+            if (currid == end.id) {
+                return traces;
+            }
+            SState curr = this.states.get(currid);
+            Iterator<SAction<StaticActionKind>> as = curr.getActions().iterator();  // CHECKME: how about non-det actions? (cf. below, todo.contains(succ.id)? e.g., bad.liveness.messagelive.Test01)
+            for (SState succ : curr.getSuccs()) {
+                SAction<StaticActionKind> a = as.next();
+                if (seen.contains(succ.id) || todo.contains(succ.id)) {
+                    continue;
+                }
+                seen.add(succ.id);
+                traces.put(succ.id, new Pair<>(a, currid));
+                todo.add(succ.id);
+            }
+        }
+        return null;
+    }
 
-	private void tarjan()
-	{
-		for (SState v : this.states.values())
-		{
-			if (!indices.containsKey(v.id))
-			{
-				strongConnect(v);
-			}
-		}
-	}
+    @Override
+    public String toDot() {
+        return this.init.toDot();
+    }
 
-	private void strongConnect(SState v)
-	{
-		// Set the depth index for v to the smallest unused index
-		int index = this.counter++;
-		this.indices.put(v.id, index);
-		this.lowlinks.put(v.id, index);
-		this.stack.push(v);
-		this.onStack.add(v.id);
+    @Override
+    public String toAut() {
+        return this.init.toAut();
+    }
 
-		// Consider successors of v
-		for (SState w : v.getSuccs())
-		{
-			if (!this.indices.containsKey(w.id))
-			{
-				// Successor w has not yet been visited; recurse on it
-				strongConnect(w);
-				int vlowlink = this.lowlinks.get(v.id);
-				int wlowlink = this.lowlinks.get(w.id);
-				this.lowlinks.put(v.id, (vlowlink <= wlowlink ? vlowlink : wlowlink));
-			}
-			else if (this.onStack.contains(w.id))
-			{
-				// Successor w is in stack S and hence in the current SCC
-				// If w is not on stack, then (v, w) is a cross-edge in the DFS tree and must be ignored
-				// Note: The next line may look odd - but is correct.
-				// It says w.index not w.lowlink; that is deliberate and from the original paper
-				int vlowlink = this.lowlinks.get(v.id);
-				int windex = this.indices.get(w.id);
-				this.lowlinks.put(v.id, (vlowlink <= windex ? vlowlink : windex));
-			}
-		}
+    @Override
+    public String toString() {
+        return this.init.toString();
+    }
 
-		// If v is a root node, pop the stack and generate an SCC
-		if (this.lowlinks.get(v.id) == this.indices.get(v.id))
-		{
-			Set<SState> ssc = new HashSet<>();
-			SState w;
-			do
-			{
-				w = this.stack.pop();
-				this.onStack.remove(w.id);
-				ssc.add(w);
-			}
-			while (w.id != v.id);
-			this.sscs.add(ssc);
-		}
-	}
+
+    /* --- */
+
+    // Following are "one-time" usage, on instance construction
+    // SState.id faster as keys than full SConfig
+    private int counter = 0;
+    private final Map<Integer, Integer> indices = new HashMap<>();  // s.id -> index
+    private final Map<Integer, Integer> lowlinks = new HashMap<>();  // s.id -> lowlink
+    private final Deque<SState> stack = new LinkedList<>();
+    private final Set<Integer> onStack = new HashSet<>();
+    //private final Set<Set<SState>> sscs = new HashSet<>();
+    private final Set<Set<Integer>> sscs = new HashSet<>();  // s.id key
+
+    private void tarjan() {
+        for (SState v : this.states.values()) {
+            if (!indices.containsKey(v.id)) {
+                strongConnect(v);
+            }
+        }
+    }
+
+    private void strongConnect(SState v) {
+        // Set the depth index for v to the smallest unused index
+        int index = this.counter++;
+        this.indices.put(v.id, index);
+        this.lowlinks.put(v.id, index);
+        this.stack.push(v);
+        this.onStack.add(v.id);
+
+        // Consider successors of v
+        for (SState w : v.getSuccs()) {
+            if (!this.indices.containsKey(w.id)) {
+                // Successor w has not yet been visited; recurse on it
+                strongConnect(w);
+                int vlowlink = this.lowlinks.get(v.id);
+                int wlowlink = this.lowlinks.get(w.id);
+                this.lowlinks.put(v.id, (Math.min(vlowlink, wlowlink)));
+            } else if (this.onStack.contains(w.id)) {
+                // Successor w is in stack S and hence in the current SCC
+                // If w is not on stack, then (v, w) is a cross-edge in the DFS tree and must be ignored
+                // Note: The next line may look odd - but is correct.
+                // It says w.index not w.lowlink; that is deliberate and from the original paper
+                int vlowlink = this.lowlinks.get(v.id);
+                int windex = this.indices.get(w.id);
+                this.lowlinks.put(v.id, (Math.min(vlowlink, windex)));
+            }
+        }
+
+        // If v is a root node, pop the stack and generate an SCC
+        if (this.lowlinks.get(v.id) == this.indices.get(v.id)) {
+            //Set<SState> ssc = new HashSet<>();
+            Map<Integer, SState> ssc = new HashMap<>();
+
+            SState w;
+            do {
+                w = this.stack.pop();
+                this.onStack.remove(w.id);
+
+                //ssc.add(w);
+                ssc.put(w.id, w);
+            }
+            while (w.id != v.id);
+            this.sscs.add(ssc.keySet());
+        }
+    }
 
 
 

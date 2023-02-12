@@ -1,15 +1,13 @@
 package org.scribble.ext.gt.cli;
 
 import org.scribble.ast.Module;
-import org.scribble.ast.global.GInteractionSeq;
 import org.scribble.ast.global.GProtoDecl;
-import org.scribble.ast.global.GProtoDef;
+import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
-import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
@@ -17,7 +15,6 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator2;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.job.Job;
@@ -31,7 +28,6 @@ import org.scribble.util.ScribParserException;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GTCommandLine extends CommandLine {
 
@@ -74,31 +70,43 @@ public class GTCommandLine extends CommandLine {
 		}
 	}*/
 
-    protected GTMain main;
+    private boolean hasFlag(String flag) {
+        return this.args.stream().anyMatch(x -> x.left.equals(flag));
+    }
+
+    private String[] getUniqueFlagArgs(String flag) {
+        return this.args.stream().filter(x -> x.left.equals(flag)).findAny()
+                .get().right;
+    }
+
+    protected GTMain main;  // Hack for parsed modules, should use Job instead
 
     // Duplicated from AssrtCommandLine
     // Based on CommandLine.newMainContext
     @Override
     protected Main newMain() throws ScribParserException, ScribException {
-		/*if (!hasFlag(AssrtCLFlags.ASSRT_CORE_FLAG))
-		{
-			return super.newMain();
-		}*/
-        //AssrtCoreArgs args = newCoreArgs();
-        CoreArgs args = newCoreArgs();
-        List<Path> impaths = parseImportPaths();
-        ResourceLocator locator = new DirectoryResourceLocator(impaths);
-        Path mainpath = parseMainPath();
-        this.main = new GTMain(locator, mainpath, args);
-        return main;
+        Map<CoreArgs, Boolean> args = Collections.unmodifiableMap(parseCoreArgs());
+        if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG)) {
+            String inline = getUniqueFlagArgs(CLFlags.INLINE_MAIN_MOD_FLAG)[0];
+            return new Main(inline, args);
+        } else {
+            List<Path> impaths = hasFlag(CLFlags.IMPORT_PATH_FLAG)
+                    ? CommandLine
+                    .parseImportPaths(getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
+                    : Collections.emptyList();
+            ResourceLocator locator = new DirectoryResourceLocator(impaths);
+            Path mainpath = CommandLine
+                    .parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
+            this.main = new GTMain(locator, mainpath, args);
+            return this.main;
+        }
     }
 
     protected void gtRun() {
         Core core = this.job.getCore();
-        CoreContext c = core.getContext();
+        //CoreContext c = core.getContext();
 
-
-        Map<ModuleName, Module> parsed = this.main.getParsedModules();
+        Map<ModuleName, Module> parsed = this.main.getParsedModules();  // !!! Using main rather than job
         System.out.println("\n----- GT -----\n");
         System.out.println(parsed.keySet());
 

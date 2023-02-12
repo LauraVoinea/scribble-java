@@ -47,21 +47,15 @@ public abstract class GTMixedChoice<K extends ProtoKind, B extends Seq<K, B>>
             CommonTree source, Role other, Role observer, B left, B right);
 
     @Override
-    public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException {
+    public <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
         //return v.visitChoice(this);
         throw new RuntimeException("TODO: " + v.getClass() + " ,, " + this);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
         //return v.visitChoice(this);
         throw new RuntimeException("TODO: " + v.getClass() + " ,, " + this);
-    }
-
-    @Override
-    public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
-        //return Stream.concat(f.apply(this), this.blocks.stream().flatMap(x -> x.gather(f)));
-        throw new RuntimeException("TODO: " + f.getClass() + " ,, " + this);
     }
 
     @Override

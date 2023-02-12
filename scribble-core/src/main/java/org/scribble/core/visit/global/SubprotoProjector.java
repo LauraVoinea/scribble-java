@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.visit.global;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+package org.scribble.core.visit.global;
 
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreContext;
@@ -32,54 +29,54 @@ import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.type.session.local.LSkip;
 import org.scribble.core.type.session.local.LType;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 // Supports Do -- can use on parsed (intermed)
 public class SubprotoProjector extends InlinedProjector  // CHECKME: this way, or the other way round?
 {
-	protected SubprotoProjector(Core core, Role self)
-	{
-		super(core, self);
-	}
+    protected SubprotoProjector(Core core, Role self) {
+        super(core, self);
+    }
 
-	// Copy constructor for dup
-	protected SubprotoProjector(SubprotoProjector v)
-	{
-		super(v);
-	}
-	
-	@Override
-	protected SubprotoProjector dup()
-	{
-		return new SubprotoProjector(this);
-	}
+    // Copy constructor for dup
+    protected SubprotoProjector(SubprotoProjector v) {
+        super(v);
+    }
 
-	@Override
-	public LType visitDo(Do<Global, GSeq> n)
-	{
-		if (!n.roles.contains(this.self))
-		{
-			return LSkip.SKIP;
-		}
+    @Override
+    protected SubprotoProjector dup() {
+        return new SubprotoProjector(this);
+    }
 
-		CoreContext corec = this.core.getContext();
-		ProtoName<Global> proto = n.proto;
-		GProtocol imed = corec.getIntermediate(proto);
-		Role targSelf = imed.roles.get(n.roles.indexOf(this.self));
-		if (!imed.roles.contains(targSelf))  // CHECKME: because roles already pruned for intermed decl?
-		{
-			return LSkip.SKIP;
-		}
+    @Override
+    public LType visitDo(Do<Global, GSeq> n) {
+        if (!n.getRoles().contains(this.self)) {
+            return LSkip.SKIP;
+        }
 
-		LProtoName fullname = InlinedProjector.getFullProjectionName(proto,
-				targSelf);
-		Substitutions subs = new Substitutions(imed.roles, n.roles,
-				Collections.emptyList(), Collections.emptyList());
-		List<Role> used = corec.getInlined(proto).roles.stream()  // N.B. global (inlined) roles -- still need to prune roles w.r.t. localised projection
-				.map(x -> subs.subsRole(x)).collect(Collectors.toList());
-		List<Role> rs = n.roles.stream().filter(x -> used.contains(x))
-				.map(x -> x.equals(this.self) ? Role.SELF : x)  
-						// CHECKME: syntax: "self" explictly used for Choice subject, but implicitly for MessageTransfer, inconsistent?
-				.collect(Collectors.toList());
-		return this.core.config.tf.local.LDo(null, fullname, rs, n.args);  // TODO CHECKME: prune args?
-	}
+        CoreContext corec = this.core.getContext();
+        ProtoName<Global> proto = n.getProto();
+        GProtocol imed = corec.getIntermediate(proto);
+        Role targSelf = imed.roles.get(n.getRoles().indexOf(this.self));
+        if (!imed.roles.contains(targSelf))  // CHECKME: because roles already pruned for intermed decl?
+        {
+            return LSkip.SKIP;
+        }
+
+        LProtoName fullname = InlinedProjector.getFullProjectionName(proto,
+                targSelf);
+        Substitutions subs = new Substitutions(imed.roles, n.getRoles(),
+                Collections.emptyList(), Collections.emptyList());
+        List<Role> used = corec.getInlined(proto).roles.stream()  // N.B. global (inlined) roles -- still need to prune roles w.r.t. localised projection
+                .map(x -> subs.subsRole(x)).collect(Collectors.toList());
+        List<Role> rs = n.getRoles().stream().filter(x -> used.contains(x))
+                .map(x -> x.equals(this.self) ? Role.SELF : x)
+                // CHECKME: syntax: "self" explictly used for Choice subject, but implicitly for MessageTransfer, inconsistent?
+                .collect(Collectors.toList());
+        return this.core.config.tf.local.LDo(
+                null, fullname, rs, n.getArgs());  // TODO CHECK: prune args?
+    }
 }
 

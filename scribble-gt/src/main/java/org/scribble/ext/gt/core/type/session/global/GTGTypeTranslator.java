@@ -69,7 +69,7 @@ public class GTGTypeTranslator {
 
     // Pre: role enabling OK (choice subj = first senders)
     protected GTGInteraction translateGChoice(GChoice g) {
-        List<GTGType> cs = g.blocks.stream().map(x -> translate(x))
+        List<GTGType> cs = g.getBlocks().stream().map(x -> translate(x))
                 .collect(Collectors.toUnmodifiableList());  // cs.len > 0
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
         Role dst = null;
@@ -85,6 +85,6 @@ public class GTGTypeTranslator {
             }
             ds.putAll(cast.cases);
         }
-        return this.fact.choice(g.subj, dst, ds);
+        return this.fact.choice(g.getSubject(), dst, ds);
     }
 }

@@ -15,12 +15,6 @@
  */
 package org.scribble.core.job;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.lang.local.LProjection;
 import org.scribble.core.model.endpoint.AutGraphParser;
@@ -30,7 +24,6 @@ import org.scribble.core.model.global.SGraph;
 import org.scribble.core.model.global.SGraphBuilder;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.kind.Local;
-import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.LProtoName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
@@ -38,8 +31,15 @@ import org.scribble.core.visit.global.GTypeInliner;
 import org.scribble.core.visit.global.GTypeUnfolder;
 import org.scribble.core.visit.global.InlinedProjector;
 import org.scribble.util.Pair;
+import org.scribble.util.RuntimeScribException;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribUtil;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 // Global "static" context information for a Job -- single instance per Job, should not be shared between Jobs
 // Mutable: projections, graphs, etc are added mutably later -- replaceModule also mutable setter -- "users" get this from the Job and expect to setter mutate "in place"
@@ -61,6 +61,10 @@ public class CoreContext {
     private final Map<ProtoName<Global>, GProtocol> inlined = new HashMap<>();
     private final Map<ProtoName<Global>, GProtocol> unfs = new HashMap<>();
 
+    // cf. UnboundedRecursionChecker -- no key
+    private final Map<ProtoName<Global>, Boolean> unbounded_G = new HashMap<>();
+    //private final Map<ProtoName<Local>, Boolean> unbounded_L = new HashMap<>();
+
     // CHECKME: rename projis?
     private final Map<ProtoName<Local>, LProjection> iprojs = new HashMap<>();  // Projected from inlined; keys are full names
 
@@ -69,7 +73,7 @@ public class CoreContext {
     // N.B. unlike iprojs, initial projections not pruned/fixed at all -- do-arg pruning, do-pruning, ext-choice-subj fixing all done incrementally
     // LProtocolName is the full local protocol name (module name is the prefix)  // LProtocolName key is LProtocol value fullname (i.e., redundant)
     private final Map<ProtoName<Local>, LProjection> projs = new HashMap<>();
-    // FIXME: choice-subj fixing, do-pruning -- factor out to Job and do there via AstVisitor? -- make testing compare the two sides 
+    // FIXME: choice-subj fixing, do-pruning -- factor out to Job and do there via AstVisitor? -- make testing compare the two sides
     // TODO: refactor projection, choice-subj fixing, do-pruning, do-arg fixing, etc. fully to Job (and drop this.projs from here)
 
     // Built from projected inlined
@@ -117,7 +121,6 @@ public class CoreContext {
         GProtocol inlined = this.inlined.get(fullname);
         if (inlined == null) {
             GTypeInliner v = this.core.config.vf.global.GTypeInliner(this.core);  // Factor out?
-            System.out.println(this.imeds.get(fullname));
             inlined = this.imeds.get(fullname).getInlined(v);  // Protocol.getInlined does pruneRecs
             addInlined(fullname, inlined);
         }
@@ -264,8 +267,8 @@ public class CoreContext {
         if (graph == null) {
             Map<Role, EGraph> egraphs = getEGraphsForSGraphBuilding(fullname, true);
             boolean explicit = this.imeds.get(fullname).isExplicit();
-            GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
-            graph = new SGraphBuilder(this.core).build(egraphs, explicit, cast);
+            //GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
+            graph = new SGraphBuilder(this.core).build(egraphs, explicit, fullname);
             addSGraph(fullname, graph);
         }
         return graph;
@@ -291,8 +294,8 @@ public class CoreContext {
         if (graph == null) {
             Map<Role, EGraph> egraphs = getEGraphsForSGraphBuilding(fullname, false);
             boolean explicit = this.imeds.get(fullname).isExplicit();
-            GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
-            graph = new SGraphBuilder(this.core).build(egraphs, explicit, cast);
+            //GProtoName cast = (GProtoName) fullname;  // Could also reconstruct if really needed
+            graph = new SGraphBuilder(this.core).build(egraphs, explicit, fullname);
             addUnfairSGraph(fullname, graph);
         }
         return graph;
@@ -318,6 +321,20 @@ public class CoreContext {
 
     protected void addMinimisedEGraph(ProtoName<Local> fullname, EGraph graph) {
         this.mEGraphs.put(fullname, graph);
+    }
+
+    public void setPotentiallyUnbounded(ProtoName<Global> g, boolean b) {
+        if (b || !this.unbounded_G.containsKey(g)) {
+            this.unbounded_G.put(g, b);
+        }
+    }
+
+    // Pre: unbounded recursion checked (Core.runProjectionSyntaxWfPasses)
+    public boolean isPotentiallyUnbounded(ProtoName<Global> g) {
+        if (!this.unbounded_G.containsKey(g)) {
+            throw new RuntimeScribException("Must do projection syntactic WF checks first: " + g);
+        }
+        return this.unbounded_G.get(g);
     }
 
     // TODO: relocate

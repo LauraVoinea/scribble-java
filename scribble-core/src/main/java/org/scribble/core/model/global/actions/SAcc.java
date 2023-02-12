@@ -15,54 +15,46 @@
  */
 package org.scribble.core.model.global.actions;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class SAcc extends SAction
-{
-	public SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay)
-	{
-		super(subj, obj, mid, pay);
-	}
-	
-	@Override
-	public boolean isAccept()
-	{
-		return true;
-	}
+public class SAcc<A extends ActionKind> extends SAction<A> {
+    public SAcc(Role subj, Role obj, MsgId<?> mid, Payload pay) {
+        super(subj, obj, mid, pay);
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 967;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public boolean isAccept() {
+        return true;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof SAcc))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public int hashCode() {
+        int hash = 967;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	public boolean canEquals(Object o)
-	{
-		return o instanceof SAcc;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SAcc)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		//return "??";
-		return "<<-";
-	}
+    public boolean canEquals(Object o) {
+        return o instanceof SAcc;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        //return "??";
+        return "<<-";
+    }
 }

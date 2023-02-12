@@ -15,8 +15,6 @@
  */
 package org.scribble.codegen.java.statechanapi.ioifaces;
 
-import java.util.Map;
-
 import org.scribble.codegen.java.sessionapi.SessionApiGenerator;
 import org.scribble.codegen.java.statechanapi.InputFutureGen;
 import org.scribble.codegen.java.statechanapi.ReceiveSockGen;
@@ -24,52 +22,47 @@ import org.scribble.codegen.java.statechanapi.ScribSockGen;
 import org.scribble.codegen.java.statechanapi.StateChannelApiGenerator;
 import org.scribble.codegen.java.util.InterfaceBuilder;
 import org.scribble.codegen.java.util.MethodBuilder;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.util.ScribException;
 
-public class ReceiveIfaceGen extends IOStateIfaceGen
-{
-	public ReceiveIfaceGen(StateChannelApiGenerator apigen, Map<EAction, InterfaceBuilder> actions, EState curr)
-	{
-		super(apigen, actions, curr);
-	}
+import java.util.Map;
 
-	@Override
-	public InterfaceBuilder generateType() throws ScribException
-	{
-		if (this.curr.getActions().stream().anyMatch((a) -> !a.isReceive())) // TODO (connect/disconnect)
-		{
-			//return null;
-			throw new RuntimeException("TODO: " + this.curr);
-		}
-		return super.generateType();
-	}
+public class ReceiveIfaceGen extends IOStateIfaceGen {
+    public ReceiveIfaceGen(StateChannelApiGenerator apigen, Map<EAction<StaticActionKind>, InterfaceBuilder> actions, EState curr) {
+        super(apigen, actions, curr);
+    }
 
-	@Override
-	protected void constructInterface() throws ScribException
-	{
-		super.constructInterface();
-		addAsyncDiscardMethod();
-	}
+    @Override
+    public InterfaceBuilder generateType() throws ScribException {
+        if (this.curr.getActions().stream().anyMatch((a) -> !a.isReceive())) // TODO (connect/disconnect)
+        {
+            //return null;
+            throw new RuntimeException("TODO: " + this.curr);
+        }
+        return super.generateType();
+    }
 
-	protected void addAsyncDiscardMethod()
-	{
-		GProtoName gpn = this.apigen.getGProtocolName();
-		EAction first = this.curr.getDetActions().iterator().next();
+    @Override
+    protected void constructInterface() throws ScribException {
+        super.constructInterface();
+        addAsyncDiscardMethod();
+    }
 
-		MethodBuilder mb = this.ib.newAbstractMethod();
-		ReceiveSockGen.setAsyncDiscardHeaderWithoutReturnType(this.apigen, first, mb, InputFutureGen.getInputFutureName(this.apigen.getSocketClassName(this.curr)));
-		this.ib.addImports(SessionApiGenerator.getOpsPackageName(gpn) + ".*");
-		EState succ = this.curr.getDetSuccessor(first);
-		if (succ.isTerminal())
-		{
-			ScribSockGen.setNextSocketReturnType(this.apigen, mb, succ);
-		}
-		else
-		{
-			mb.setReturn("__Succ1");  // Hacky?  // FIXME: factor out Succ
-		}
-	}
+    protected void addAsyncDiscardMethod() {
+        GProtoName gpn = this.apigen.getGProtocolName();
+        EAction first = this.curr.getDetActions().iterator().next();
+
+        MethodBuilder mb = this.ib.newAbstractMethod();
+        ReceiveSockGen.setAsyncDiscardHeaderWithoutReturnType(this.apigen, first, mb, InputFutureGen.getInputFutureName(this.apigen.getSocketClassName(this.curr)));
+        this.ib.addImports(SessionApiGenerator.getOpsPackageName(gpn) + ".*");
+        EState succ = this.curr.getDetSuccessor(first);
+        if (succ.isTerminal()) {
+            ScribSockGen.setNextSocketReturnType(this.apigen, mb, succ);
+        } else {
+            mb.setReturn("__Succ1");  // Hacky?  // FIXME: factor out Succ
+        }
+    }
 }

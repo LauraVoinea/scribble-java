@@ -68,7 +68,7 @@ public class GTSNewTimeout extends SAction {
     }
 
     @Override
-    protected String getCommSymbol() {
+    public String getCommSymbol() {
         return "nu";
     }
 }

@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.scribble.cli.CLFlag;
 import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
@@ -29,94 +30,83 @@ import org.scribble.util.ScribException;
  * Packaging following pattern of putting tests into same package but different directory as classes being tested:
  * (in this case, testing org.scribble.cli.CommandLine -- but this essentially tests most of core/parser)
  */
-public abstract class ScribTestBase
-{
-	protected static int NUM_SKIPPED = 0;  // HACK
+public abstract class ScribTestBase {
+    protected static int NUM_SKIPPED = 0;  // HACK
 
-	protected static final boolean GOOD_TEST = false;
-	protected static final boolean BAD_TEST = !GOOD_TEST;
+    protected static final boolean GOOD_TEST = false;
+    protected static final boolean BAD_TEST = !GOOD_TEST;
 
-	protected final String example;
-	protected final boolean isBadTest;
+    protected final String example;
+    protected final boolean isBadTest;
 
-	// relative to scribble-test/src/test/resources (or target/test-classes/)
-	protected static final String TEST_ROOT_DIR = ".";  // FIXME: make relative to scribble-java root (for subclasses in extension modules)
+    // relative to scribble-test/src/test/resources (or target/test-classes/)
+    protected static final String TEST_ROOT_DIR = ".";  // FIXME: make relative to scribble-java root (for subclasses in extension modules)
 
-	public ScribTestBase(String example, boolean isBadTest)
-	{
-		this.example = example;
-		this.isBadTest = isBadTest;
-	}
-	
-	protected String getTestRootDir()
-	{
-		return ScribTestBase.TEST_ROOT_DIR;
-	}
-	
-	protected String[] getSkipList()
-	{
-		return new String[0];
-	}
+    public ScribTestBase(String example, boolean isBadTest) {
+        this.example = example;
+        this.isBadTest = isBadTest;
+    }
 
-	protected boolean checkSkip()
-	{
-		String[] SKIP = getSkipList();
-		String tmp = this.example.replace("\\", "/");
-		for (String skip : SKIP)
-		{
-			if (tmp.endsWith(skip))
-			{
-				ScribTestBase.NUM_SKIPPED++;
-				System.out.println("[scrib-test] Test on skip-list: " + this.example + " (" + ScribTestBase.NUM_SKIPPED + " skipped.)");
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	protected void runTest(String dir) throws CommandLineException, AntlrSourceException
-	{
-		new CommandLine(this.example, CLFlags.JUNIT_FLAG, CLFlags.IMPORT_PATH_FLAG, dir).run();
-					// Added JUNIT flag -- but for some reason only bad DoArgList01.scr was breaking without it...
-	}
+    protected String getTestRootDir() {
+        return ScribTestBase.TEST_ROOT_DIR;
+    }
 
-	@Test
-	public void tests() throws IOException, InterruptedException, ExecutionException
-	{
-		if (checkSkip())
-		{
-			return;
-		}
+    protected String[] getSkipList() {
+        return new String[0];
+    }
 
-		// TODO: For now just locate classpath for resources -- later maybe directly execute job
+    protected boolean checkSkip() {
+        String[] SKIP = getSkipList();
+        String tmp = this.example.replace("\\", "/");
+        for (String skip : SKIP) {
+            if (tmp.endsWith(skip)) {
+                ScribTestBase.NUM_SKIPPED++;
+                System.out.println("[scrib-test] Test on skip-list: " + this.example + " (" + ScribTestBase.NUM_SKIPPED + " skipped.)");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // N.B. no CLFlags.FAIR_FLAG
+    protected void runTest(String dir) throws CommandLineException, AntlrSourceException {
+        new CommandLine(
+                this.example,
+                CLFlags.JUNIT_FLAG,  // Added JUNIT flag -- but for some reason only bad DoArgList01.scr was breaking without it...
+                CLFlags.IMPORT_PATH_FLAG, dir
+                , CLFlags.SCRIBBLE_UNBOUNDED_BUFFERS
+        ).run();
+    }
+
+    @Test
+    public void tests() throws IOException, InterruptedException, ExecutionException {
+        if (checkSkip()) {
+            return;
+        }
+
+        // TODO: For now just locate classpath for resources -- later maybe directly execute job
 		/*URL url = ClassLoader.getSystemResource(AllTest.GOOD_ROOT);  // Assume good/bad have same parent
 		String dir = url.getFile().substring(0, url.getFile().length() - ("/" + AllTest.GOOD_ROOT).length());*/
-		String dir = ClassLoader.getSystemResource(getTestRootDir()).getFile();
-		if (File.separator.equals("\\")) // HACK: Windows
-		{
-			dir = dir.substring(1).replace("/", "\\");
-		}
+        String dir = ClassLoader.getSystemResource(getTestRootDir()).getFile();
+        if (File.separator.equals("\\")) // HACK: Windows
+        {
+            dir = dir.substring(1).replace("/", "\\");
+        }
 
-		try
-		{
-			// FIXME: read runtime arguments from a config file, e.g. -oldwf, -fair, etc
-			// Also need a way to specify expected tool output (e.g. projections/EFSMs for good, errors for bad)
-			//new CommandLine(this.example, CLArgParser.JUNIT_FLAG, CLArgParser.IMPORT_PATH_FLAG, dir).run();
-					// Added JUNIT flag -- but for some reason only bad DoArgList01.scr was breaking without it...
-			runTest(dir);
-			Assert.assertFalse("Expecting exception", this.isBadTest);
-		}
-		catch (ScribException e)
-		{
-			Assert.assertTrue("Unexpected exception '" + e.getMessage() + "'", this.isBadTest);
-		}
-		catch (CommandLineException e)
-		{
-			throw new RuntimeException(e);
-		}
-		catch (Exception e)  // Includes AntlrSourceExceptions that are not ScribbleExceptions -- hacky?
-		{
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            // FIXME: read runtime arguments from a config file, e.g. -oldwf, -fair, etc
+            // Also need a way to specify expected tool output (e.g. projections/EFSMs for good, errors for bad)
+            //new CommandLine(this.example, CLArgParser.JUNIT_FLAG, CLArgParser.IMPORT_PATH_FLAG, dir).run();
+            // Added JUNIT flag -- but for some reason only bad DoArgList01.scr was breaking without it...
+            runTest(dir);
+            Assert.assertFalse("Expecting exception", this.isBadTest);
+        } catch (ScribException e) {
+            Assert.assertTrue("Unexpected exception '" + e.getMessage() + "'", this.isBadTest);
+        } catch (CommandLineException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e)  // Includes AntlrSourceExceptions that are not ScribbleExceptions -- hacky?
+        {
+            throw new RuntimeException(e);
+        }
+    }
 }

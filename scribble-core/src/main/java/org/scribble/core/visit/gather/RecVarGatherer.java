@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.visit.gather;
 
-import java.util.stream.Stream;
+package org.scribble.core.visit.gather;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.Continue;
 import org.scribble.core.type.session.Seq;
 
+import java.util.stream.Stream;
+
 public class RecVarGatherer<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeGatherer<K, B, RecVar>
-{
-	@Override
-	public Stream<RecVar> visitContinue(Continue<K, B> n)
-	{
-		return Stream.of(n.recvar);
-	}
+        extends STypeGatherer<K, B, RecVar> {
+
+    @Override
+    public Stream<RecVar> visitContinue(Continue<K, B> n) {
+        return Stream.of(n.getRecVar());
+    }
 }

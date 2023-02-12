@@ -20,14 +20,12 @@ import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.GTMixedChoice;
 import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.core.visit.Substitutor;
 import org.scribble.core.visit.global.GTypeInliner;
 import org.scribble.util.ScribException;
-
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType {
 
@@ -52,26 +50,29 @@ public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType
     }
 
     @Override
-    public <T> T visitWith(STypeAgg<Global, GSeq, T> v) throws ScribException {
+    public <T> T accept(STypeAgg<Global, GSeq, T> v) throws ScribException {
         //return v.visitChoice(this);
         throw new RuntimeException("TODO: " + v.getClass() + " ,, " + this);
     }
 
     // Adapted from base visitor -- would be there alongside base AST cases
-    protected SType<Global, GSeq> visitNoThrowMixedChoice(STypeAggNoThrow<Global, GSeq, SType<Global, GSeq>> v) {
+    protected SType<Global, GSeq> visitNoThrowMixedChoice(STypeAggNoThrow<Global, GSeq, SVisitable<Global, GSeq>> v) {
         GSeq left = (GSeq) v.visitSeq(this.left);
         GSeq right = (GSeq) v.visitSeq(this.right);
         return reconstruct(getSource(), this.other, this.observer, left, right);
     }
 
     @Override
-    public <T> T visitWithNoThrow(STypeAggNoThrow<Global, GSeq, T> v) {
+    public <T> T acceptNoThrow(STypeAggNoThrow<Global, GSeq, T> v) {
+
+        // HERE HERE
+
         if (v instanceof Substitutor<?, ?>) {
             Substitutor<Global, GSeq> cast = (Substitutor<Global, GSeq>) v;
             Role other = cast.subs.subsRole(this.other, cast.passive);  // TODO refactor (subs/passive fields, base framework)
             Role observer = cast.subs.subsRole(this.observer, cast.passive);
-            GSeq left = (GSeq) this.left.visitWithNoThrow(cast);
-            GSeq right = (GSeq) this.right.visitWithNoThrow(cast);
+            GSeq left = (GSeq) this.left.acceptNoThrow(cast);
+            GSeq right = (GSeq) this.right.acceptNoThrow(cast);
             return (T) reconstruct(getSource(), other, observer, left, right);  // T = SType<Global, GSeq> implied by Subs/Visitor instantiation of T in Agg
             // CHECKME refactor to better satisfy <T> outside of Visitor class? as here)
         } else if (v instanceof GTypeInliner) {
@@ -80,24 +81,6 @@ public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType
             //return v.visitChoice(this);
             throw new RuntimeException("TODO: " + v.getClass() + " ,, " + this);
         }
-    }
-
-    protected <T> Stream<T> gatherMixedChoice(Function<SType<Global, GSeq>, Stream<T>> f) {
-        Stream<T> left = this.left.gather(f);
-        Stream<T> right = this.right.gather(f);
-        return Stream.concat(left, right);
-    }
-
-    @Override
-    public <T> Stream<T> gather(Function<SType<Global, GSeq>, Stream<T>> f) {
-
-        String v = f.getClass().toString();  // !!! XXX HACK -- refactor base Gatherers as proper Visitors
-        /*if (v.contains("RecPruner")) {
-            return gatherMixedChoice(f);
-        }*/
-
-        //return Stream.concat(f.apply(this), this.blocks.stream().flatMap(x -> x.gather(f)));
-        throw new RuntimeException("TODO: " + f.getClass() + " ,, " + this);
     }
 
     @Override

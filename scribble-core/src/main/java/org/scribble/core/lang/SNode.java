@@ -18,8 +18,12 @@ package org.scribble.core.lang;
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
 
-public interface SNode<L extends ProtoKind>
-{
-	boolean hasSource();  // i.e., was parsed
-	CommonTree getSource();  // Pre: hasSource
+public interface SNode<L extends ProtoKind> {
+
+    boolean hasSource();  // i.e., was parsed
+
+    CommonTree getSource();  // Pre: hasSource
+
+    // subclass equals should call this by: them.canEquals(this)
+    boolean canEquals(Object o);
 }

@@ -13,70 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.type.session;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package org.scribble.core.type.session;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
 
-public abstract class Seq<K extends ProtoKind, B extends Seq<K, B>>
-        extends STypeBase<K, B> {
-    // GType or LType -- could make SType subclasses take themself as another param, but not worth it
-    public final List<SType<K, B>> elems;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-    public Seq(CommonTree source, List<? extends SType<K, B>> elems) {
-        super(source);
-        this.elems = Collections.unmodifiableList(elems);
-    }
-
-    public abstract B reconstruct(CommonTree source,
-                                  List<? extends SType<K, B>> elems);
-
-    @Override
-    public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f) {
-        return this.elems.stream().flatMap(f);
-    }
+// Seq is a SType: an "ad hoc sequential composition", and convenient for, e.g., STypeVisitor's return type
+public interface Seq<K extends ProtoKind, B extends Seq<K, B>>
+        extends SVisitable<K, B> {
 
     // Re. return type, could make SType subclasses take themself as another param, but not worth it
-    public abstract List<? extends SType<K, B>> getElements();
+    List<? extends SVisitable<K, B>> getElements();
 
-    public boolean isEmpty() {
-        return this.elems.isEmpty();
-    }
+    // Corresponds to all getters (incl. super)
+    B reconstruct(CommonTree source, List<? extends SVisitable<K, B>> elems);
 
-    @Override
-    public String toString() {
-        return this.elems.stream().map(x -> x.toString())
-                .collect(Collectors.joining("\n"));
-    }
+    /*@Override
+    default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
+        return getElements().stream().flatMap(x -> x.gather(f));
+    }*/
 
-    @Override
-    public int hashCode() {
-        int hash = 1483;
-        hash = 31 * hash + super.hashCode();
-        hash = 31 * hash + this.elems.hashCode();
-        return hash;
+    default boolean isEmpty() {
+        return getElements().isEmpty();
     }
+}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Seq)) {
-            return false;
-        }
-        Seq<?, ?> them = (Seq<?, ?>) o;
-        return super.equals(this)  // Does canEquals
-                && this.elems.equals(them.elems);
-    }
-	
-	
+
 	
 	
 	
@@ -228,4 +195,3 @@ public abstract class Seq<K extends ProtoKind, B extends Seq<K, B>>
 		return v.visitSeq(cast);
 	}
 	*/
-}

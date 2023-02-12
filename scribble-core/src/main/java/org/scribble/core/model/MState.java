@@ -31,44 +31,47 @@ import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.util.RuntimeScribException;
 
 public abstract class MState
-<
-		L,                             // Node label type (cosmetic)
-		A extends MAction<K>,          // Edge type
-		S extends MState<L, A, S, K>,  // State type
-		K extends ProtoKind            // Global/Local -- CHECKME: useful?
->
-{
-	private static int count = 1;  // A shared index counter for every single MState (and subclass) instance
-	
-	public final int id;
+        <
+                L,                                       // Node label type (cosmetic)
+                A extends MAction<K, StaticActionKind>,  // Static edge type
+                S extends MState<L, A, S, K>,            // State type
+                K extends ProtoKind                      // Global/Local -- CHECKME: useful?
+                > {
 
-	// Labels and edges are mutable (via protected methods)
-	protected final Set<L> labs;  // Was RecVar and SubprotocolSigs, now using inlined protocol for FSM building so just RecVar
-	protected final List<A> actions;
-	protected final List<S> succs;
-	
-	public MState(Set<L> labs)
-	{
-		this.id = MState.count++;
-		this.labs = new HashSet<>(labs);
-		this.actions = new LinkedList<>();
-		this.succs = new LinkedList<>();
-	}
-	
-	// Mutating setter
-	protected final void addLabel(L lab)
-	{
-		this.labs.add(lab);
-	}
-	
-	public final Set<L> getLabels()
-	{
-		return Collections.unmodifiableSet(this.labs);
-	}
-	
-	// Mutating setter (can also overwrite edges)
-	protected void addEdge(A a, S s)
-	{
+    private static int count = 1;  // A shared index counter for every single MState (and subclass) instance
+
+    public final int id;
+
+    // Labels and edges are mutable (via protected methods)
+    protected final Set<L> labs;  // Was RecVar and SubprotocolSigs, now using inlined protocol for FSM building so just RecVar
+    protected final List<A> actions;
+    protected final List<S> succs;
+
+    public MState(Set<L> labs) {
+        this.id = nextCount();
+        this.labs = new HashSet<>(labs);
+        this.actions = new LinkedList<>();
+        this.succs = new LinkedList<>();
+    }
+
+    private int nextCount() {
+        if (MState.count == Integer.MAX_VALUE) {
+            throw new RuntimeScribException("[FIXME] Max actions reached.");
+        }
+        return MState.count++;
+    }
+
+    // Mutating setter -- TODO factor out MutableState (BuildingState)
+    protected final void addLabel(L lab) {
+        this.labs.add(lab);
+    }
+
+    public final Set<L> getLabels() {
+        return Collections.unmodifiableSet(this.labs);
+    }
+
+    // Mutating setter (can also overwrite edges) -- TODO factor out MutableState (BuildingState)
+    protected void addEdge(A a, S s) {
 		/*if (this.equals(s)) 
 		{
 			// CHECKME: refactor unfair transform to eliminate this special case -- or better to have? generalise to all "identical" non-det paths?...
@@ -89,178 +92,187 @@ public abstract class MState
 				}
 			}
 		}*/
-		this.actions.add(a);
-		this.succs.add(s);
-	}
-	
-	// Pre: (this, a, s) is a current edge -- mutating setter
-	protected final void removeEdge(A a, S s)
-			//throws ScribException  // CHECKME: used? -- cf., Hack? EFSM building on bad-reachability protocols now done before actual reachability check
-	{
-		Iterator<A> as = this.actions.iterator();
-		Iterator<S> ss = this.succs.iterator();
-		while (as.hasNext())
-		{
-			A na = as.next();  // N.B. cannot "inline" into below if-condition, due to short circuiting
-			S ns = ss.next();
-			if (na.equals(a) && ns.equals(s))
-			{
-				as.remove();  // Must follow next
-				ss.remove();
-				return;
-			}
-		}
-		throw new RuntimeException("No such transition: " + a + "->" + s);
-	}
+        this.actions.add(a);
+        this.succs.add(s);
+    }
 
-	public final List<A> getActions()
-	{
-		return Collections.unmodifiableList(this.actions);
-	}
-	
-	public final boolean hasAction(A a)
-	{
-		return this.actions.contains(a);
-	}
+    // Pre: (this, a, s) is a current edge -- mutating setter
+    //protected final void removeEdge(A a, S s)
+    protected final void removeEdge(A a, int sid)
+    //throws ScribException  // CHECKME: used? -- cf., Hack? EFSM building on bad-reachability protocols now done before actual reachability check
+    {
+        Iterator<A> as = this.actions.iterator();
+        Iterator<S> ss = this.succs.iterator();
+        while (as.hasNext()) {
+            A na = as.next();  // N.B. cannot "inline" into below if-condition, due to short circuiting
+            S ns = ss.next();
 
-	public final List<S> getSuccs()
-	{
-		return Collections.unmodifiableList(this.succs);
-	}
+            //if (na.equals(a) && ns.equals(s)) {
+            if (na.equals(a) && ns.id == sid) {
 
-	public final List<S> getSuccs(A a)
-	{
-		Iterator<A> as = this.actions.iterator();
-		Iterator<S> ss = this.succs.iterator();
-		List<S> res = new LinkedList<>();
-		while (as.hasNext())
-		{
-			A na = as.next();
-			S ns = ss.next();
-			if (na.equals(a))
-			{
-				res.add(ns);
-			}
-		}
-		return res;
-	}
-	
-	// Variant of getActions with implicit run-time check on determinism -- currently used by codegen utils (that have that assumption)
-	// (Pre: actions are deterministic)
-	public final List<A> getDetActions()
-	{
-		Set<A> as = new HashSet<>(this.actions);
-		if (as.size() != this.actions.size())
-		{
-			throw new RuntimeScribException("[TODO] Non-deterministic state: "
-					+ this.actions + "  (Try -minlts if available)");
-					// This getter checks for determinism -- mainly affects API generation  
-		}
-		return getActions();
-	}
+                as.remove();  // Must follow next
+                ss.remove();
+                return;
+            }
+        }
+        throw new RuntimeException("No such transition: " + a + "->" + sid);
+    }
 
-	// Variant with implicit run-time check on determinism
-	// (Pre: actions are deterministic)
-	public S getDetSuccessor(A a)
-	{
-		Set<A> as = new HashSet<>(this.actions);
-		if (as.size() != this.actions.size())
-		{
-			throw new RuntimeException("[FIXME] : " + this.actions);
-		}
-		return getSuccs(a).get(0);
-	}
+    public final List<A> getActions() {
+        return Collections.unmodifiableList(this.actions);
+    }
 
-	public final boolean isTerminal()
-	{
-		return this.actions.isEmpty();
-	}
+    public final boolean hasAction(A a) {
+        return this.actions.contains(a);
+    }
 
-	public S getTerminal()
-	{
-		//getReachableStates().stream().filter(x -> x.isTerminal()).findFirst();
-		Set<S> terms = getReachableStates().stream()
-				.filter(s -> s.isTerminal()).collect(Collectors.toSet());
-		if (terms.size() > 1)
-		{
-			throw new RuntimeException("Shouldn't get in here: " + terms);
-		}
-		return terms.isEmpty() //.isPresent()
-				? null : terms.iterator().next();  // CHECKME: return empty Set instead of null?  null used by EState.toGraph
-	}
+    public final List<S> getSuccs() {
+        return Collections.unmodifiableList(this.succs);
+    }
 
-	// CHECKME: add "caching" versions to, e.g., Graphs?
-	// N.B. doesn't implicitly include start (only if start is reachable from start by at least one transition)
-  // Concrete subclass implementation should call, e.g., getReachableStatesAux(this) -- for S param, putting "this" into Map
-	public abstract Set<S> getReachableStates();
+    // DynamicActionKind used for non-det
+    //public final List<S> getSuccs(A a) {
+    public final <D extends MAction<K, DynamicActionKind>> List<S> getSuccs(D a) {
+        Iterator<A> as = this.actions.iterator();
+        Iterator<S> ss = this.succs.iterator();
+        List<S> res = new LinkedList<>();
+        while (as.hasNext()) {
+            A na = as.next();
+            S ns = ss.next();
+            if (na.toDynamic().equals(a)) {
+                res.add(ns);
+            }
+        }
+        return res;
+    }
 
-	// N.B. doesn't implicitly include start (only if start is explicitly reachable from start by at least one transition)
-	protected Set<S> getReachableStatesAux(S start)
-	{
-		Map<Integer, S> all = new HashMap<>();
-		Map<Integer, S> todo = new LinkedHashMap<>();  // Linked unnecessary, but to follow the iteration pattern
-		todo.put(this.id, start);  // Suppressed: assumes ModelState subclass correctly instantiates S parameter
-		while (!todo.isEmpty())
-		{
-			Iterator<Entry<Integer, S>> i = todo.entrySet().iterator();
-			Entry<Integer, S> next = i.next();
-			i.remove();  // Must follow next
-			for (S s : next.getValue().getSuccs())
-			{
-				if (!all.containsKey(s.id))
-				{	
-					all.put(s.id, s);
-					todo.put(s.id, s);
-				}
-			}
-		}
-		return new HashSet<>(all.values());  // Often will want to add this
-	}
+    // Variant of getActions with implicit run-time check on determinism -- currently used by codegen utils (that have that assumption)
+    // (Pre: actions are deterministic)
+    public final List<A> getDetActions() {
+        Set<A> as = new HashSet<>(this.actions);
+        if (as.size() != this.actions.size()) {
+            throw new RuntimeScribException("[TODO] Non-deterministic state: "
+                    + this.actions + "  (Try -minlts if available)");
+            // This getter checks for determinism -- mainly affects API generation
+        }
+        return getActions();
+    }
 
-	public Set<A> getReachableActions()
-	{
-		return getReachableStates().stream().flatMap(x -> x.getActions().stream())
-				.collect(Collectors.toSet());
-	}
-	
-	public boolean canReach(MState<L, A, S, K> s)
-	{
-		return getReachableStates().contains(s);
-	}
+    // Variant with implicit run-time check on determinism
+    // (Pre: actions are deterministic)
+    public S getDetSuccessor(A a) {
+        Set<A> as = new HashSet<>(this.actions);  // TODO factor out and "cache"?
+        if (as.size() != this.actions.size()) {
+            throw new RuntimeException("[FIXME] " + this.actions);
+        }
+        //return getSuccs(a).get(0);
+        Iterator<A> bs = this.actions.iterator();
+        Iterator<S> ss = this.succs.iterator();
+        List<S> res = new LinkedList<>();
+        while (bs.hasNext()) {
+            A nb = bs.next();
+            S ns = ss.next();
+            if (nb.equals(a)) {
+                return ns;
+            }
+        }
+        throw new RuntimeException("Shouldn't get here: " + this.actions);
+    }
 
-	@Override
-	public String toString()
-	{
-		return Integer.toString(this.id);  // CHECKME: ?
-	}
+    public final boolean isTerminal() {
+        return this.actions.isEmpty();
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 73;
-		hash = 31 * hash + this.id;  // N.B. using state ID only
-		return hash;
-	}
+    // FIXME: make cached version for finalised immutable states
+    public S getTerminal() {
+        //getReachableStates().stream().filter(x -> x.isTerminal()).findFirst();
+        Map<Integer, S> terms = getReachableStates().entrySet().stream()
+                .filter(s -> s.getValue().isTerminal()).collect(Collectors.toMap(
+                        Entry::getKey,
+                        Entry::getValue
+                ));
+        if (terms.size() > 1) {
+            throw new RuntimeException("Shouldn't get in here: " + terms);
+        }
+        return terms.isEmpty() //.isPresent()
+                ? null : terms.values().iterator().next();  // CHECKME: return empty Set instead of null?  null used by EState.toGraph
+    }
 
-	// N.B. Based only on state ID
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof MState))
-		{
-			return false;
-		}
-		MState<?, ?, ?, ?> them = (MState<?, ?, ?, ?>) o;
-		return them.canEquals(this) && this.id == them.id;
-				// Convenient to use id, due to edge mutability
-	}
-	
-	protected abstract boolean canEquals(MState<?, ?, ?, ?> s);
+    // Returns id -> state (i.e., a set)
+    // CHECKME: add "caching" versions to, e.g., Graphs?
+    // N.B. doesn't implicitly include start (only if start is reachable from start by at least one transition)
+    // Concrete subclass implementation should call, e.g., getReachableStatesAux(this) -- for S param, putting "this" into Map
+    public abstract Map<Integer, S> getReachableStates();
+
+    // Returns id -> state (i.e., a set)
+    // N.B. doesn't implicitly include start (only if start is explicitly reachable from start by at least one transition)
+    protected Map<Integer, S> getReachableStatesAux(S start) {
+        Map<Integer, S> all = new HashMap<>();
+        Map<Integer, S> todo = new LinkedHashMap<>();  // Linked unnecessary, but to follow the iteration pattern
+        todo.put(this.id, start);  // Suppressed: assumes ModelState subclass correctly instantiates S parameter
+        while (!todo.isEmpty()) {
+            Iterator<Entry<Integer, S>> i = todo.entrySet().iterator();
+            Entry<Integer, S> next = i.next();
+            i.remove();  // Must follow next
+            for (S s : next.getValue().getSuccs()) {
+                if (!all.containsKey(s.id)) {
+                    all.put(s.id, s);
+                    todo.put(s.id, s);
+                }
+            }
+        }
+        return new HashMap<>(all);  // Often will want to add this
+    }
+
+    public Set<A> getReachableActions() {
+        return getReachableStates().values().stream().flatMap(x -> x.getActions().stream())
+                .collect(Collectors.toSet());
+    }
+
+    //public boolean canReach(MState<L, A, S, K> s) {
+    public boolean canReach(int sid) {
+        return getReachableStates().containsKey(sid);
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(this.id);  // CHECKME: ?
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 73;
+        hash = 31 * hash + this.id;  // N.B. using state ID only -- cf. addLabel, addEdge?
+        return hash;
+    }
+
+    // N.B. Based only on state ID
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MState)) {
+            return false;
+        }
+        MState<?, ?, ?, ?> them = (MState<?, ?, ?, ?>) o;
+        return them.canEquals(this) && this.id == them.id;
+        // Convenient to use id, due to edge mutability
+    }
+
+    protected abstract boolean canEquals(MState<?, ?, ?, ?> s);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

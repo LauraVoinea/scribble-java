@@ -19,73 +19,62 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.scribble.core.type.kind.Local;
-import org.scribble.core.type.session.SType;
-import org.scribble.core.type.session.STypeBase;
+import org.scribble.core.type.session.SVisitable;
+import org.scribble.core.type.session.base.SVisitableBase;
 import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 
 // Used only *during* projection -- filtered out by GSeq::projection
 // CHECKME: can use empty Seq, and do "seq injection" in visitSeq overrides?  (cf. RecPruner)
-public class LSkip extends STypeBase<Local, LSeq> implements LType
-{
-	public static final LSkip SKIP = new LSkip();
-	
-	private LSkip()
-	{
-		super(null);
-	}
+public class LSkip extends SVisitableBase<Local, LSeq> implements LType {
+    public static final LSkip SKIP = new LSkip();
 
-	@Override
-	public <T> T visitWith(STypeAgg<Local, LSeq, T> v)
-	{
-		throw new RuntimeException("Unsupported for Skip: " + this);
-	}
+    private LSkip() {
+        super(null);
+    }
 
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<Local, LSeq, T> v)
-	{
-		throw new RuntimeException("Unsupported for Skip: " + this);
-	}
+    @Override
+    public <T> T accept(STypeAgg<Local, LSeq, T> v) {
+        throw new RuntimeException("Unsupported for Skip: " + this);
+    }
 
-	@Override
-	public <T> Stream<T> gather(Function<SType<Local, LSeq>, Stream<T>> f)
-	{
-		throw new RuntimeException("Unsupported for Skip: " + this);
-	}
+    @Override
+    public <T> T acceptNoThrow(STypeAggNoThrow<Local, LSeq, T> v) {
+        throw new RuntimeException("Unsupported for Skip: " + this);
+    }
 
-	@Override
-	public String toString()
-	{
-		return "[skip];";
-	}
+    /*@Override
+    public <T> Stream<T> gather(Function<SVisitable<Local, LSeq>, Stream<T>> f) {
+        throw new RuntimeException("Unsupported for Skip: " + this);
+    }*/
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 2833;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    @Override
+    public String toString() {
+        return "[skip];";
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof LSkip))
-		{
-			return false;
-		}
-		return ((LSkip) o).canEquals(this);
-	}
+    @Override
+    public int hashCode() {
+        int hash = 2833;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof LSkip;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LSkip)) {
+            return false;
+        }
+        return ((LSkip) o).canEquals(this);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof LSkip;
+    }
 	
 	
 	

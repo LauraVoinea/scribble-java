@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.visit;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Stream;
+package org.scribble.core.visit;
 
 import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.session.Choice;
 import org.scribble.core.type.session.Recursion;
-import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 import org.scribble.core.type.session.Seq;
 import org.scribble.util.ScribException;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Stream;
 
 // "Instantiates" STypeAgg by implicitly treating Stream as always a singleton Stream of the *reconstructed* node.
 // The main benefit is to reuse the SType.visitWith(STypeAgg) methods for STypeVisitors.
@@ -35,55 +36,51 @@ import org.scribble.util.ScribException;
 // T = B ... ? Considering Stream like a Seq, and elems as singleton Seqs -- cf. Stream<B>, for Choice/etc reconstruct
 // The sticking issue is that the "compound" nodes are not quite uniform w.r.t. agg: Choice/Recursion have Seq children, Seq has SType (but not Seq) children
 public abstract class STypeVisitor<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeAgg<K, B, SType<K, B>>  // T = SType gives more flexibile/extensibile reconstruction patterns
-{
-	@Override
-	protected final SType<K, B> unit(SType<K, B> n) throws ScribException
-	{
-		return n;
-	}
+        extends STypeAgg<K, B, SVisitable<K, B>> {  // T = SType gives more flexibile/extensibile reconstruction patterns
 
-	// Should disregard agg for STypeVisitors -- the STypeVisitor pattern is instead to manually reconstruct within each visit[Node]
-	@Override
-	protected final SType<K, B> agg(SType<K, B> n, Stream<SType<K, B>> ns)
-			throws ScribException
-	{
-		throw new RuntimeException("Disregarded for STypeVisitor: " + n + " ,, " + ns);
-	}
+    @Override
+    protected final SVisitable<K, B> unit(SVisitable<K, B> n) throws ScribException {
+        return n;
+    }
 
-	@Override
-	public SType<K, B> visitChoice(Choice<K, B> n) throws ScribException
-	{
-		List<B> blocks = new LinkedList<>();
-		for (B b : n.blocks)
-		{
-			blocks.add(visitSeq(b));
-			
-		}
-		return n.reconstruct(n.getSource(), n.subj, blocks);  // Disregarding agg (reconstruction done here)
-	}
+    // Should disregard agg for STypeVisitors -- the STypeVisitor pattern is instead to manually reconstruct within each visit[Node]
+    @Override
+    protected final SVisitable<K, B> agg(SVisitable<K, B> n, Stream<SVisitable<K, B>> ns)
+            throws ScribException {
+        throw new RuntimeException("Disregarded for STypeVisitor: " + n + " ,, " + ns);
+    }
 
-	@Override
-	public SType<K, B> visitRecursion(Recursion<K, B> n) throws ScribException
-	{
-		B body = visitSeq(n.body);
-		return n.reconstruct(n.getSource(), n.recvar, body);  // Disregarding agg (reconstruction done here)
-	}
+    @Override
+    public SVisitable<K, B> visitChoice(Choice<K, B> n) throws ScribException {
+        List<B> blocks = new LinkedList<>();
+        for (B b : n.getBlocks()) {
 
-	// "Hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction
-	// This means a Visitor that needs to restructure a Seq should handle this within visitSeq
-	// E.g., Seq "injection" by inlining and unfolding (i.e., when a visited elem is a Seq)
-	// For this purpose, visited children passed "directly" instead of via a reconstruction (cf. above methods) -- ?
-	@Override
-	public B visitSeq(B n) throws ScribException
-	{
-		List<SType<K, B>> elems = new LinkedList<>();
-		for (SType<K, B> e : n.elems)
-		{
-			elems.add(e.visitWith(this));
-		}
-		return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
-	}
+            //blocks.add(visitSeq(b));
+            blocks.add((B) (Seq<K, B>) b.accept(this));  // FIXME unchecked cast -- B cast falsely subsumes Seq
+        }
+        return n.reconstruct(n.getSource(), n.getSubject(), blocks);  // Disregarding agg (reconstruction done here)
+    }
+
+    @Override
+    public SVisitable<K, B> visitRecursion(Recursion<K, B> n) throws ScribException {
+        //B body = visitSeq(n.getBody());
+        B body = (B) (Seq<K, B>) n.getBody().accept(this);  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
+        return n.reconstruct(n.getSource(), n.getRecVar(), body);  // Disregarding agg (reconstruction done here)
+    }
+
+    // "Hardcoded" to B (cf. Seq, or SType return) -- this visitor pattern depends on B for Choice/Recursion/etc reconstruction
+    // This means a Visitor that needs to restructure a Seq should handle this within visitSeq
+    // E.g., Seq "injection" by inlining and unfolding (i.e., when a visited elem is a Seq)
+    // For this purpose, visited children passed "directly" instead of via a reconstruction (cf. above methods) -- ?
+    @Override
+    public B visitSeq(B n) throws ScribException {
+        List<SVisitable<K, B>> elems = new LinkedList<>();
+        for (SVisitable<K, B> e : n.getElements()) {
+            elems.add(e.accept(this));
+        }
+        return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
+    }
 }
 
 

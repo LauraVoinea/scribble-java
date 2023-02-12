@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
+import org.scribble.core.type.session.base.SVisitableBase;
 
 public abstract class BasicInteraction<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeBase<K, B> implements SType<K, B>
-{
-	public BasicInteraction(CommonTree source)
-	{
-		super(source);
-	}
-	
-	@Override
-	public CommonTree getSource()
-	{
-		return (CommonTree) super.getSource();
-	}
-	
+        extends SVisitableBase<K, B> implements SType<K, B> {
+
+    public BasicInteraction(CommonTree source) {
+        super(source);
+    }
+
+}
+
 	
 	
 	
@@ -73,4 +70,3 @@ public abstract class BasicInteraction<K extends ProtoKind, B extends Seq<K, B>>
 		return this;
 	}
 	*/
-}

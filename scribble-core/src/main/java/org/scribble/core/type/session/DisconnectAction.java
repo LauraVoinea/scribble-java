@@ -27,65 +27,56 @@ import org.scribble.util.ScribException;
 
 // Base class would be "SymmetricInteraction" (cf., DirectedInteraction)
 public abstract class DisconnectAction<K extends ProtoKind, B extends Seq<K, B>>
-		extends BasicInteraction<K, B>
-{
-	public final Role left;
-	public final Role right;
+        extends BasicInteraction<K, B> {
+    public final Role left;
+    public final Role right;
 
-	public DisconnectAction(CommonTree source,
-			Role left, Role right)
-	{
-		super(source);
-		this.left = left;
-		this.right = right;
-	}
-	
-	public abstract DisconnectAction<K, B> reconstruct(
-			CommonTree source, Role src, Role dst);
-	
-	@Override
-	public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException
-	{
-		return v.visitDisconnect(this);
-	}
-	
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v)
-	{
-		return v.visitDisconnect(this);
-	}
-	
-	@Override
-	public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f)
-	{
-		return f.apply(this);
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 10663;
-		hash = 31 * hash + super.hashCode();
-		hash = 31 * hash + this.left.hashCode();
-		hash = 31 * hash + this.right.hashCode();
-		return hash;
-	}
+    public DisconnectAction(CommonTree source,
+                            Role left, Role right) {
+        super(source);
+        this.left = left;
+        this.right = right;
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof DisconnectAction))
-		{
-			return false;
-		}
-		DisconnectAction<?, ?> them = (DisconnectAction<?, ?>) o;
-		return super.equals(this)  // Does canEquals
-				&& this.left.equals(them.left) && this.right.equals(them.right);
-	}
+    public abstract DisconnectAction<K, B> reconstruct(
+            CommonTree source, Role src, Role dst);
+
+    @Override
+    public <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
+        return v.visitDisconnect(this);
+    }
+
+    @Override
+    public <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
+        return v.visitDisconnect(this);
+    }
+
+    /*@Override
+    public <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
+        return f.apply(this);
+    }*/
+
+    @Override
+    public int hashCode() {
+        int hash = 10663;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.left.hashCode();
+        hash = 31 * hash + this.right.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DisconnectAction)) {
+            return false;
+        }
+        DisconnectAction<?, ?> them = (DisconnectAction<?, ?>) o;
+        return super.equals(this)  // Does canEquals
+                && this.left.equals(them.left) && this.right.equals(them.right);
+    }
 	
 	
 	

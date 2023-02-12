@@ -37,6 +37,7 @@ module tmp.Test;
 
 
 
+/* HERE FIXME: intellij scribble-java-core jdk1.8 is actually 11 (broken naming) */
 
 
 
@@ -146,8 +147,35 @@ module tmp.Test;
 
 // A->B .... |> B->A
 
+//HERE
+//- move checking methods out of Protocol to visitors
+//- redo passes as a DS instead of method
+//- basicinteraction etc interfaces
+// XXX redo G/LType with composition and interfaces instead of inheritance -- XXX too much boiler, use composition when needed for extensions (e.g., L/GProtocol, EState/Action)
+//- check interfaces, e.g., proto, protoname, etc.
+//- hash code constants
+//- unmodifiable lists/maps
+//- runtime flags in test suite
+//- exceptions -> optional -- also warnings
+//- proto/type pretty printing
+//- possibly consolidate some of newCore, newJob, newMain -- or some of the other "factory factories"
+//- organise fair and unfair tests
+
+
+
+
 
 data <java> "..." from "..." as T;
+type <java> "java.lang.Integer" from "rt.jar" as Int;
+
+
+/*
+global protocol Proto1(role A, role B)
+{
+    1(Int) from A to B;
+    2(Int) from B to A;
+}
+//*/
 
 
 global protocol Proto1(role A, role B) {
@@ -377,8 +405,6 @@ mixed
      {fail(T) from A to B; end}
     }
 * /
-
-
 }
 //*/
 
