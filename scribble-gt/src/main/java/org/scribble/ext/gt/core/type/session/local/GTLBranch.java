@@ -3,7 +3,10 @@ package org.scribble.ext.gt.core.type.session.local;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,8 +22,20 @@ public class GTLBranch implements GTLType {
     protected GTLBranch(Role src, LinkedHashMap<Op, GTLType> cases) {
         this.src = src;
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
-                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                                (x, y) -> x, LinkedHashMap::new)));
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public GTLBranch unfoldContext(Map<RecVar, GTLType> c) {
+        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldContext(c),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTLBranch(this.src, cases);
     }
 
     @Override
@@ -94,8 +109,8 @@ public class GTLBranch implements GTLType {
     public String toString() {
         return this.src + "& {"
                 + this.cases.entrySet().stream()
-                    .map(e -> e.getKey() + "." + e.getValue())
-                    .collect(Collectors.joining(", "))
+                .map(e -> e.getKey() + "." + e.getValue())
+                .collect(Collectors.joining(", "))
                 + "}";
     }
 

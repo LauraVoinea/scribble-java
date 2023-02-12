@@ -2,13 +2,12 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.GTSType;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
@@ -16,6 +15,15 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int BRANCH_HASH = 9857;
     int SELECT_HASH = 9859;
     int MIXED_CHOICE_HASH = 9871;
+    int REC_HASH = 9883;
+    int RECVAR_HASH = 9887;
+
+    @Override
+    default GTLType unfold() {
+        return unfoldContext(Collections.emptyMap());
+    }
+
+    GTLType unfoldContext(Map<RecVar, GTLType> c);
 
     // this merge g  -- should be symmetric
     default Optional<GTLType> merge(GTLType t) {

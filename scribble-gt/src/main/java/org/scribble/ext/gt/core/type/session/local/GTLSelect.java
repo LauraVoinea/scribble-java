@@ -3,6 +3,7 @@ package org.scribble.ext.gt.core.type.session.local;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 
 import java.util.*;
@@ -19,8 +20,20 @@ public class GTLSelect implements GTLType {
     protected GTLSelect(Role dst, LinkedHashMap<Op, GTLType> cases) {
         this.dst = dst;
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
-                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                                (x, y) -> x, LinkedHashMap::new)));
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public GTLSelect unfoldContext(Map<RecVar, GTLType> c) {
+        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldContext(c),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTLSelect(this.dst, cases);
     }
 
     @Override
@@ -94,8 +107,8 @@ public class GTLSelect implements GTLType {
     public String toString() {
         return this.dst + "+ {"
                 + this.cases.entrySet().stream()
-                    .map(e -> e.getKey() + "." + e.getValue())
-                    .collect(Collectors.joining(", "))
+                .map(e -> e.getKey() + "." + e.getValue())
+                .collect(Collectors.joining(", "))
                 + "}";
     }
 

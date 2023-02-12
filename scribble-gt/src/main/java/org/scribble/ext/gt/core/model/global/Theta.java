@@ -11,7 +11,7 @@ public class Theta {
     public final Map<Integer, Integer> map;
 
     public Theta(Set<Integer> init) {
-        this.map = init.stream().collect(Collectors.toMap(x -> x, x -> 0));
+        this.map = init.stream().collect(Collectors.toMap(x -> x, x -> 1));
     }
 
     public Theta(Map<Integer, Integer> map) {

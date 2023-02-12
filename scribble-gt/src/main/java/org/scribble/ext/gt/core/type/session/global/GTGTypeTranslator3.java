@@ -5,7 +5,6 @@ import org.scribble.ast.SigLitNode;
 import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.ast.GTMixed;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 
 import java.util.LinkedHashMap;
@@ -51,6 +50,10 @@ public class GTGTypeTranslator3 {
                     return translateGMessageTransfer((GMsgTransfer) fst, fact.end());
                 } else if (fst instanceof GChoice) {
                     return translateGChoice((GChoice) fst);
+                } else if (fst instanceof GRecursion) {
+                    return translateGRecursion((GRecursion) fst);
+                } else if (fst instanceof GContinue) {  // cf. GDo
+                    return translateGContinue((GContinue) fst);
                 } else if (fst instanceof GTGMixed) {
                     return translateGMixed((GTGMixed) fst);
                 } else {
@@ -108,6 +111,15 @@ public class GTGTypeTranslator3 {
         }
         Role subj = g.getSubjectChild().toName();
         return this.fact.choice(subj, dst, ds);
+    }
+
+    protected GTGRecursion translateGRecursion(GRecursion g) {
+        GTGType body = translateGSeq(g.getBlockChild().getInteractSeqChild());
+        return this.fact.recursion(g.getRecVarChild().toName(), body);
+    }
+
+    protected GTGRecVar translateGContinue(GContinue g) {
+        return this.fact.recVar(g.getRecVarChild().toName());
     }
 
     protected GTGMixedChoice translateGMixed(GTGMixed g) {

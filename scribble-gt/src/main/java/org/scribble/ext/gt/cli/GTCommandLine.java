@@ -25,6 +25,7 @@ import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.util.AntlrSourceException;
+import org.scribble.util.Pair;
 import org.scribble.util.ScribException;
 import org.scribble.util.ScribParserException;
 
@@ -122,7 +123,9 @@ public class GTCommandLine extends CommandLine {
                     System.err.println("Not single pointed: " + translate);
                 } else {
                     System.out.println("Initial g = " + translate);
-                    foo(core, "", translate, 0);
+
+                    Theta theta = new Theta(translate.getTimeoutIds());
+                    foo(core, "", theta, translate, 0);
                 }
             }
         }
@@ -137,7 +140,12 @@ public class GTCommandLine extends CommandLine {
 		}*/
     }
 
-    private void foo(Core core, String indent, GTGType g, int count) {
+    private static final Scanner KB = new Scanner(System.in);
+
+    private void foo(Core core, String indent, Theta theta, GTGType g, int count) {
+        System.out.print("Press [Enter]: ");
+        KB.nextLine();
+
         if (!g.isGood()) {
             System.err.println("Not good: " + g);
             System.exit(0);
@@ -151,8 +159,6 @@ public class GTCommandLine extends CommandLine {
             return;
         }
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
-
-        Theta theta = new Theta(g.getTimeoutIds());
 
         Set<SAction> as = g.getActs(mf, theta);
 		/*System.out.println(as);
@@ -175,11 +181,11 @@ public class GTCommandLine extends CommandLine {
         for (SAction a : as) {
             //System.out.println("bbb: " + g.getClass() + " ,, " + g + " ,, " + a);
 
-            GTGType g1 = g.step(theta, a).get().right;  // a in as so step is non-empty
+            Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty
             System.out.println(indent + "a = " + a);
-            System.out.println(indent + "g = " + g1);
-            if (!g1.equals(GTGEnd.END)) {
-                foo(core, indent + "    ", g1, count++);
+            System.out.println(indent + "g = " + p.right);
+            if (!p.right.equals(GTGEnd.END)) {
+                foo(core, indent + "    ", p.left, p.right, count++);
             }
         }
     }

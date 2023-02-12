@@ -1,8 +1,8 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -30,8 +30,8 @@ public class GTGMixedActive implements GTGType {
     public final Set<Role> committedRight;
 
     protected GTGMixedActive(int c, int n,
-            GTGType left, GTGType right, Role other, Role observer,
-            LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
+                             GTGType left, GTGType right, Role other, Role observer,
+                             LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
         this.c = c;
         this.n = n;
         this.left = left;
@@ -42,6 +42,14 @@ public class GTGMixedActive implements GTGType {
                 new LinkedHashSet<>(committedLeft));
         this.committedRight = Collections.unmodifiableSet(
                 new LinkedHashSet<>(committedRight));
+    }
+
+    @Override
+    public GTGMixedActive unfoldContext(Map<RecVar, GTGType> c) {
+        GTGType left = this.left.unfoldContext(c);
+        GTGType right = this.left.unfoldContext(c);
+        return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
+                new LinkedHashSet<>(this.committedLeft), new LinkedHashSet<>(this.committedRight));  // FIXME repeated copying
     }
 
     @Override
@@ -109,7 +117,7 @@ public class GTGMixedActive implements GTGType {
     @Override
     public boolean isCoherent() {
         return (this.committedLeft.isEmpty() || this.committedRight.isEmpty())
-            && this.left.isCoherent() && this.right.isCoherent();
+                && this.left.isCoherent() && this.right.isCoherent();
     }
 
     // Pre: a in getActs
@@ -124,14 +132,13 @@ public class GTGMixedActive implements GTGType {
         if (optl.isPresent() && optr.isPresent()) {
             // [RTAct]
             // !!! CHECKME: check something re. this.p/q and a ?
-            return Optional.of( new Pair<>(
+            return Optional.of(new Pair<>(
                     theta,
                     this.fact.activeMixedChoice(this.c, this.n,
                             optl.get().right,
                             optr.get().right,
                             this.other, this.observer, cl, cr)));
-        }
-        else if (optl.isPresent()) {
+        } else if (optl.isPresent()) {
             if (optr.isPresent() || this.committedRight.contains(a.subj)) {  // First cond is redundant
                 return Optional.empty();
             }

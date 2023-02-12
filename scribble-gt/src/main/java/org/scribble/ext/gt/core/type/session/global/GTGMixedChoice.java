@@ -2,6 +2,7 @@ package org.scribble.ext.gt.core.type.session.global;
 
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -29,6 +30,13 @@ public class GTGMixedChoice implements GTGType {
         this.observer = observer;
         this.left = left;
         this.right = right;
+    }
+
+    @Override
+    public GTGMixedChoice unfoldContext(Map<RecVar, GTGType> c) {
+        GTGType left = this.left.unfoldContext(c);
+        GTGType right = this.right.unfoldContext(c);
+        return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
     }
 
     @Override

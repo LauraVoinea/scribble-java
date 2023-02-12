@@ -6,27 +6,36 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.type.session.local.GTLEnd;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
 
 import java.util.*;
 
-// !!! No "fid"
-public class GTGEnd implements GTGType {
+public class GTGRecVar implements GTGType {
 
-    public static final GTGEnd END = new GTGEnd();
+    public final RecVar var;
 
-    protected GTGEnd() { }
-
-    @Override
-    public GTGEnd unfoldContext(Map<RecVar, GTGType> c) {
-        return this;
+    protected GTGRecVar(RecVar var) {
+        this.var = var;
     }
 
     @Override
-    public Optional<GTLEnd> project(Role r) {
-        return Optional.of(GTLTypeFactory.FACTORY.end());
+    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
+        return c.containsKey(this.var)
+                ? c.get(this.var)
+                : this;  // CHECKME
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<? extends GTLType> project(Role r) {
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        return Optional.of(lf.recVar(this.var));
     }
 
     @Override
@@ -42,11 +51,6 @@ public class GTGEnd implements GTGType {
     @Override
     public boolean isCoherent() {
         return true;
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -68,27 +72,29 @@ public class GTGEnd implements GTGType {
 
     @Override
     public String toString() {
-        return "end";
+        return this.var.toString();
     }
 
     /* hashCode, equals, canEquals */
 
     @Override
     public int hashCode() {
-        int hash = GTGType.END_HASH;
+        int hash = GTGType.RECVAR_HASH;
+        hash = 31 * hash + this.var.hashCode();
         return hash;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGEnd)) return false;
-        GTGEnd them = (GTGEnd) obj;
-        return them.canEquals(this);
+        if (obj == null || !(obj instanceof GTGRecVar)) return false;
+        GTGRecVar them = (GTGRecVar) obj;
+        return them.canEquals(this)
+                && this.var.equals(them.var);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof GTGEnd;
+        return o instanceof GTGRecVar;
     }
 }

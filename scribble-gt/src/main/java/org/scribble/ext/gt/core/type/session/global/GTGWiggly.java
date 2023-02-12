@@ -1,9 +1,9 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
@@ -33,6 +33,18 @@ public class GTGWiggly implements GTGType {
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public GTGWiggly unfoldContext(Map<RecVar, GTGType> c) {
+        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldContext(c),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGWiggly(this.src, this.dst, this.op, cases);
     }
 
     @Override

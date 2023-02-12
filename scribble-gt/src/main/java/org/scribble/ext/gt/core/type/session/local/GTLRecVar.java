@@ -2,28 +2,28 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.model.global.SModelFactory;
-import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.type.session.global.GTGEnd;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-// !!! No "fid"
-public class GTLEnd implements GTLType {
+public class GTLRecVar implements GTLType {
 
-    public static final GTLEnd END = new GTLEnd();
+    public final RecVar var;
 
-    protected GTLEnd() { }
-
-    @Override
-    public GTLEnd unfoldContext(Map<RecVar, GTLType> c) {
-        return this;
+    protected GTLRecVar(RecVar var) {
+        this.var = var;
     }
 
+    @Override
+    public GTLType unfoldContext(Map<RecVar, GTLType> c) {
+        return c.containsKey(this.var)
+                ? c.get(this.var)
+                : this;  // CHECKME
+    }
 
     @Override
     public Optional<GTLType> step(EAction a) {
@@ -39,27 +39,29 @@ public class GTLEnd implements GTLType {
 
     @Override
     public String toString() {
-        return "end";
+        return this.var.toString();
     }
 
     /* hashCode, equals, canEquals */
 
     @Override
     public int hashCode() {
-        int hash = GTLType.END_HASH;
+        int hash = GTLType.RECVAR_HASH;
+        hash = 31 * hash + this.var.hashCode();
         return hash;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLEnd)) return false;
-        GTLEnd them = (GTLEnd) obj;
-        return them.canEquals(this);
+        if (obj == null || !(obj instanceof GTLRecVar)) return false;
+        GTLRecVar them = (GTLRecVar) obj;
+        return them.canEquals(this)
+                && this.var.equals(them.var);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof GTLEnd;
+        return o instanceof GTLRecVar;
     }
 }

@@ -1,9 +1,9 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
@@ -29,8 +29,20 @@ public class GTGInteraction implements GTGType {
         this.src = src;
         this.dst = dst;
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
-                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                                (x, y) -> x, LinkedHashMap::new)));
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public GTGInteraction unfoldContext(Map<RecVar, GTGType> c) {
+        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldContext(c),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGInteraction(this.src, this.dst, cases);
     }
 
     @Override
@@ -105,18 +117,18 @@ public class GTGInteraction implements GTGType {
     @Override
     public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
         if (this.src.equals(a.subj)) {
-           if (a.isSend()) {  // [Snd]
-               SSend cast = (SSend) a;
-               if (cast.obj.equals(this.dst)
-                       && this.cases.keySet().contains(cast.mid)) {
-                   //return Optional.of(this.cases.get(cast.mid));
-                   LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                   return Optional.of(new Pair<>(
-                           theta,
-                           this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp)));
-               }
-           }
-           return Optional.empty();
+            if (a.isSend()) {  // [Snd]
+                SSend cast = (SSend) a;
+                if (cast.obj.equals(this.dst)
+                        && this.cases.keySet().contains(cast.mid)) {
+                    //return Optional.of(this.cases.get(cast.mid));
+                    LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
+                    return Optional.of(new Pair<>(
+                            theta,
+                            this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp)));
+                }
+            }
+            return Optional.empty();
         } else if (!this.dst.equals(a.subj)) {  // [Cont1]
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))

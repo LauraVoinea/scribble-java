@@ -154,13 +154,24 @@ global protocol Proto1(role A, role B) {
     /*1(T) from A to B;
     2(T) from B to A;*/
 
-    //do Proto1(A, B);
-
-    mixed {
-        1(T) from A to B;
-    } () or A->B () {
-        2(T) from B to A;
+    rec X {
+        mixed {
+            1(T) from A to B;
+            continue X;
+        } () or A->B () {
+            3(T) from B to A;
+        }
     }
+
+    /*rec X {
+        mixed {
+            1(T) from A to B;
+            2(T) from B to A;
+            continue X;
+        } () or A->B () {
+            3(T) from B to A;
+        }
+    }*/
 }
 
 

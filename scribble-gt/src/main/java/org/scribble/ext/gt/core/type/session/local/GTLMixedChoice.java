@@ -5,7 +5,10 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +26,13 @@ public class GTLMixedChoice implements GTLType {
             GTLType left, GTLType right) {
         this.left = left;
         this.right = right;
+    }
+
+    @Override
+    public GTLMixedChoice unfoldContext(Map<RecVar, GTLType> c) {
+        GTLType left = this.left.unfoldContext(c);
+        GTLType right = this.right.unfoldContext(c);
+        return new GTLMixedChoice(left, right);
     }
 
     // Pre: a in getActs
