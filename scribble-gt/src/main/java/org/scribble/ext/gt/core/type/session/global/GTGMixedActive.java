@@ -6,6 +6,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -157,6 +158,12 @@ public class GTGMixedActive implements GTGType {
                 return Optional.of(new Pair<>(
                         theta,
                         this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
+
+            } else if (a instanceof GTSNewTimeout) {  // Hack
+                return Optional.of(new Pair<>(
+                        get.left,
+                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
+
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
@@ -181,6 +188,12 @@ public class GTGMixedActive implements GTGType {
                 return Optional.of(new Pair<>(
                         theta,
                         this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
+
+            } else if (a instanceof GTSNewTimeout) {  // Hack
+                return Optional.of(new Pair<>(
+                        get.left,
+                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
+
             } else {
                 throw new RuntimeException("TODO: " + a);
             }

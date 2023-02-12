@@ -28,6 +28,7 @@ import org.scribble.util.ScribParserException;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GTCommandLine extends CommandLine {
 
@@ -133,7 +134,8 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("Initial g = " + translate);
 
                     Theta theta = new Theta(translate.getTimeoutIds());
-                    foo(core, "", theta, translate, 0);
+                    //foo(core, "", theta, translate, 0);
+                    bar(core, "", theta, translate, 0);
                 }
             }
         }
@@ -150,8 +152,53 @@ public class GTCommandLine extends CommandLine {
 
     private static final Scanner KB = new Scanner(System.in);
 
+    private void bar(Core core, String indent, Theta theta, GTGType g, int count) {
+        if (!g.isGood()) {
+            System.err.println("Not good: " + g);
+            System.exit(0);
+        }
+        if (!g.isCoherent()) {
+            System.err.println("Not coherent: " + g);
+            System.exit(0);
+        }
+        GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+
+        List<Integer> tmp = new LinkedList<>();
+        tmp.add(1);
+        Map<Integer, SAction> as = g.getActs(mf, theta).stream().collect(Collectors.toMap(
+                x -> {
+                    int i = tmp.remove(0);
+                    tmp.add(i + 1);
+                    return i;
+                },
+                x -> x,
+                (x, y) -> null,
+                LinkedHashMap::new
+        ));
+
+        if (!as.isEmpty()) {
+            System.out.println("Actions: " + as.entrySet().stream().map(
+                    x -> x.getKey() + "=" + x.getValue()).collect(Collectors.joining(", ")));
+            System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
+            String read = KB.nextLine();
+            SAction a = null;
+            try {
+                a = as.get(Integer.parseInt(read));
+            } catch (NumberFormatException x) {
+                System.exit(0);
+            }
+
+            Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty
+            System.out.println(indent + "a = " + a);
+            System.out.println(indent + "g = " + p.right);
+            if (!p.right.equals(GTGEnd.END)) {
+                bar(core, indent + "    ", p.left, p.right, count++);
+            }
+        }
+    }
+
     private void foo(Core core, String indent, Theta theta, GTGType g, int count) {
-        System.out.print("Press [Enter]: ");
+        System.out.print("Press [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
         KB.nextLine();
 
         if (!g.isGood()) {
