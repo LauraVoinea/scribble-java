@@ -39,6 +39,8 @@ public interface AssrtFormalLType extends AssrtFormalType
 
     // With epsilons squashed (called "intermed LTS" in draft) -- all below AssrtLActions are concrete, i.e., not silent
     Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho);
+
+    // FIXME a should be derived action -- cf. above comment
     Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a);
 
 }

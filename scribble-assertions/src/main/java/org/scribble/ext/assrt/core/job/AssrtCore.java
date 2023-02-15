@@ -46,7 +46,7 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtRho;
-import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.*;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -153,7 +153,7 @@ public class AssrtCore extends Core
 					}
 
 					RCA rca = new RCA();
-					rca(graph, new Pair<>(lam, p), null, null, RCAState.fresh(), rca);
+					rca(new HashMap<>(), graph, new Pair<>(lam, p), null, null, RCAState.fresh(), rca);
 
 					System.out.println("eee: ");
 					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> ee : graph.entrySet()) {
@@ -203,37 +203,88 @@ public class AssrtCore extends Core
 
 			as.put(a, new Pair<>(res.left, res.middle));
 
-			...HERE HERE FIXME !!! XXX Lambda should record mu t.L, not just L, to make iLTS stop (because Lambda comma not defined)
-					... XXX or no? just "manually" stop after every recvar ?
-			estepper(res.left, res.right, res.middle, graph);
+			//...HERE HERE FIXME !!! XXX Lambda should record mu t.L, not just L, to make iLTS stop (because Lambda comma not defined)
+			//		... XXX or no? just "manually" stop after every recvar ?
+			if (!(a instanceof AssrtFormalLContinue)) {
+				estepper(res.left, res.right, res.middle, graph);
+			}
 		}
 	}
 
 	// Pre: s1 != null => res.S.contains(s1) -- and n corresponds to s2
-	private void rca(Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph,
+	private void rca(Map<RecVar, RCAState> P,
+			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph,
 					 Pair<AssrtLambda, AssrtFormalLType> n,
-					 RCAState s1, AssrtFormalLAction a, RCAState s2, RCA res) {
+					 RCAState s1, AssrtFormalLComm a, RCAState s2, RCA res) {
 		if (res.S.contains(s2)) {
 			return;
 		}
-		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = graph.get(n);
-		for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> e : as.entrySet()) {
-
-			RCAState fresh = RCAState.fresh();
-			Pair<AssrtLambda, AssrtFormalLType> succ = e.getValue();
-			rca(graph, succ, s2, e.getKey(), fresh, res);
-
-		}
-		res.S.add(s2);
-		if (s1 != null) {
-			Map<AssrtFormalLAction, RCAState> tmp = res.delta.get(s1);
-			if (tmp == null) {
-				tmp = new HashMap<>();
-				res.delta.put(s1, tmp);
+		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> es = graph.get(n);
+		Set<AssrtFormalLAction> as = es.keySet();
+		if (as.stream().anyMatch(x -> x instanceof AssrtFormalLEnter)) {
+			if (as.size() != 1)	{
+				throw new RuntimeException("Shouldn't get here: " + as);
 			}
-			tmp.put(a, s2);
+			AssrtFormalLEnter k = (AssrtFormalLEnter) as.iterator().next();
+			Pair<AssrtLambda, AssrtFormalLType> succ = es.values().iterator().next();
+
+			// !!! XXX TODO bootstrapping -- `a` NPE
+
+			AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+			Map<RecVar, RCAState> P1 = new HashMap<>(P);
+			P1.put(k.recvar, s2);
+			rca(P1, graph, succ, s1, a1, s2, res);
+
+			AssrtLambda tmp = res.sigma.get(s2);
+			if (tmp == null) {
+				tmp = n.left;
+			} else {
+				Optional<AssrtLambda> add = tmp.addAll(n.left);
+				if (!add.isPresent()) {
+					throw new RuntimeException("Shouldn't get here: " + as);
+				}
+				tmp = add.get();
+			}
+			res.sigma.put(s2, tmp);
+
+		} else if (as.stream().anyMatch(x -> x instanceof AssrtFormalLContinue)) {
+			if (as.size() != 1)	{
+				throw new RuntimeException("Shouldn't get here: " + as);
+			}
+			AssrtFormalLContinue k = (AssrtFormalLContinue) as.iterator().next();
+
+			if (s1 != null) {  // bootstrapping check
+				Map<AssrtFormalLAction, RCAState> tmp = res.delta.get(s1);
+				if (tmp == null) {
+					tmp = new HashMap<>();
+					res.delta.put(s1, tmp);
+				}
+				AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+				tmp.put(a1, P.get(k.recvar));
+			}
+
+		} else {  // AssrtFormalLComm only
+			for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> e : es.entrySet()) {
+				AssrtFormalLAction k = e.getKey();
+				if (!(k instanceof AssrtFormalLComm)) {  // No more epsilon
+					throw new RuntimeException("Shouldn't get here: " + k.getClass() + "\n\t" + e);
+				}
+				AssrtFormalLComm cast = (AssrtFormalLComm) k;
+				RCAState fresh = RCAState.fresh();
+				Pair<AssrtLambda, AssrtFormalLType> succ = e.getValue();
+				rca(P, graph, succ, s2, cast, fresh, res);
+			}
+			res.S.add(s2);
+			if (s1 != null) {  // bootstrapping check
+				Map<AssrtFormalLAction, RCAState> tmp = res.delta.get(s1);
+				if (tmp == null) {
+					tmp = new HashMap<>();
+					res.delta.put(s1, tmp);
+				}
+				tmp.put(a, s2);
+			}
+			res.sigma.put(s2, n.left);
 		}
-		res.sigma.put(s2, n.left);
 	}
 
 	private void tempRunSyncSat() throws ScribException {

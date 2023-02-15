@@ -5,6 +5,7 @@ import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLComm;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLDerivedAction;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEpsilon;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
@@ -91,7 +92,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 			}
 			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> p = istep.get();
 			Set<AssrtFormalLAction> ds = p.middle.getExplicitSteppable(p.left, p.right);
-			res.addAll(ds.stream().map(x -> ((AssrtFormalLComm) x).prependSilent(cast.msg)).collect(Collectors.toList()));
+			res.addAll(ds.stream().map(x -> ((AssrtFormalLDerivedAction) x).prependSilent(cast.msg)).collect(Collectors.toList()));
 		}
 		return res;
 	}
@@ -100,9 +101,9 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		AssrtFormalLType t = this;
-		AssrtFormalLComm cast = (AssrtFormalLComm) a;
+		AssrtFormalLDerivedAction cast = (AssrtFormalLDerivedAction) a;
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
-		for (AssrtMsg m : cast.silent) {
+		for (AssrtMsg m : cast.getSilent()) {
 			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
 					t.istep(lambda, lf.epsilon(m), rho);
 			if (!istep.isPresent()) {
@@ -113,7 +114,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 			t = get.middle;
 			rho = get.right;
 		}
-		return t.estep(lambda, rho, ((AssrtFormalLComm) a).drop());  // Could be recvar, so dstep (for rho)
+		return t.estep(lambda, rho, ((AssrtFormalLDerivedAction) a).drop());  // Could be recvar, so dstep (for rho)
 	}
 
 	@Override

@@ -13,14 +13,46 @@ type <fstar> "string" from "..." as String;
 
 
 // HERE
+// 1. test examples and unit tests
+// 2. integrate with artifact
+// 3. do global type LTS and validation
+// 4. dynamic test global-local correspondence
 // - derived LTS should fully replace base LTS recursion rules -- then do silent squashing on top
 // !!! FIXME: duplicate located statevars not checked, e.g., A[y:int=0] B[y:int=0]
 
-
-global protocol MyProto(role A, role B) @'A[y:int=0]' {
-    1(x: int) from A to B;  @'x=0'
-    do MyProto(A, B);       @'[y]'
+global protocol MyProto(role A, role B, role C) {
+  start(n:int) from A to B;  @'0<=n && n<100'
+  do HigherLowerAux(A, B, C);     @'B[n]'
 }
+
+aux global protocol HigherLowerAux(role A, role B, role C) @'B[n1: int = 0]' {
+  guess(x:int) from C to B;  // TODO: add guess refinement
+  guess(z:int) from C to A;
+  /*choice at B {
+    higher() from B to C;   @'n1>x'
+    higher() from B to A;
+    //do HigherLowerAux(A, B, C);  @'B[n1]'
+  } or {
+    win() from B to C;      @'n1=x'
+    win() from B to A;
+  } or {
+    lower() from B to C;    @'n1<x'
+    lower() from B to A;
+    //do HigherLowerAux(A, B, C);  @'B[n1]'
+  }*/
+}
+
+/*
+global protocol MyProto(role A, role B) {
+    1(z: int) from A to B;  @'z=0'
+    do MyAux(A, B);       @'[42]'  // HERE resolved? // !!! TODO 42 should be phantom for B -- handle in projection/estepper? B label should be silent rec enter -- cf. AssrtFormalLRec.getIntermedSteppable
+}
+
+aux global protocol MyAux(role A, role B) @'A[y:int=41]' {
+    2(x: int) from A to B;  @'x=-1'
+    do MyAux(A, B);       @'[y]'
+}
+//*/
 
 
 /*// !!! Scribble has "global" statevars @'[y:int=0]' and "located" A[yA:int=0] B[yB:int=0]

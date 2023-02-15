@@ -54,6 +54,20 @@ public class AssrtLambda {
         }
     }
 
+    public Optional<AssrtLambda> addAll(AssrtLambda lam) {
+        AssrtLambda tmp = this;
+        for (Map.Entry<AssrtVar, Pair<Multiplicity, DataName>> e : lam.map.entrySet()) {
+            AssrtVar k = e.getKey();
+            Pair<Multiplicity, DataName> v = e.getValue();
+            Optional<AssrtLambda> add = tmp.add(k, v.left, v.right);
+            if (!add.isPresent()) {
+                return Optional.empty();
+            }
+            tmp = add.get();
+        }
+        return Optional.of(tmp);
+    }
+
     // Disjoint add
     public Optional<AssrtLambda> add(AssrtVar v, Multiplicity theta, DataName t) {
         if (theta == Multiplicity.ZERO || theta == Multiplicity.HAT) {

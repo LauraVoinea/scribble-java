@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class AssrtFormalLContinue implements AssrtFormalLAction
+public class AssrtFormalLContinue implements AssrtFormalLDerivedAction
 {
-	public final List<AssrtMsg> silents;  // TODO: factor out a "derived action" interface
+	public final List<AssrtMsg> silents;
 
 	public final RecVar recvar;
 	public final AssrtVar svar;
@@ -31,12 +31,19 @@ public class AssrtFormalLContinue implements AssrtFormalLAction
 		this.silents = silents.stream().collect(Collectors.toList());
 	}
 
-	public AssrtFormalLContinue prepend(AssrtMsg m) {
+	@Override
+	public List<AssrtMsg> getSilent() {
+		return this.silents;
+	}
+
+	@Override
+	public AssrtFormalLContinue prependSilent(AssrtMsg m) {
 		List<AssrtMsg> ms = new LinkedList<>(this.silents);
 		ms.add(0, m);
 		return AssrtFormalLFactory.factory.continu(this.recvar, this.svar, this.multip, this.init, ms);
 	}
 
+	@Override
 	public AssrtFormalLContinue drop() {
 		return AssrtFormalLFactory.factory.continu(this.recvar, this.svar, this.multip, this.init);
 	}
