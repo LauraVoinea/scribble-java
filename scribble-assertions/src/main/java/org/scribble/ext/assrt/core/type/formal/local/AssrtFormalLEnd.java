@@ -7,6 +7,8 @@ import org.scribble.util.Pair;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class AssrtFormalLEnd implements AssrtFormalLType
@@ -43,6 +45,12 @@ public class AssrtFormalLEnd implements AssrtFormalLType
 	@Override
 	public Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return getIntermedSteppable(lambda, rho);
+	}
+
+	@Override
+	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		//return Collections.emptySet();
+		throw new RuntimeException("Shouldn't get here");
 	}
 
 	@Override

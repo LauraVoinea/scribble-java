@@ -113,6 +113,21 @@ public class AssrtFormalLRec extends AssrtFormalTypeBase
 	}
 
 	@Override
+	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		Set<AssrtFormalLAction> imeds = getIntermedSteppable(lambda, rho);
+		if (imeds.size() != 1) { // Cf. getIntermedSteppable returns singleton
+			throw new RuntimeException("Shouldn't get in here");
+		}
+		AssrtFormalLAction a = imeds.iterator().next();
+		Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> opt = istep(lambda, a, rho);
+		if (!opt.isPresent()) {
+			throw new RuntimeException("Shouldn't get in here");
+		}
+		Triple<AssrtLambda, AssrtFormalLType, AssrtRho> succ = opt.get();
+		return succ.middle.fastforwardEnters(succ.left, succ.right);
+	}
+
+	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);

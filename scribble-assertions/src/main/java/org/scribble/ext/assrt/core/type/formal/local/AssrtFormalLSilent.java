@@ -83,7 +83,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	@Override
 	public Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho) {
 		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet();
-		for (AssrtFormalLAction a : getFormalSteppable(lambda)) {
+		for (AssrtFormalLAction a : getIntermedSteppable(lambda, rho)) {  // Basically FormalSteppable (rho ignored)
 			AssrtFormalLEpsilon cast = (AssrtFormalLEpsilon) a;
 			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
 					istep(lambda, cast, rho);
@@ -93,6 +93,22 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> p = istep.get();
 			Set<AssrtFormalLAction> ds = p.middle.getExplicitSteppable(p.left, p.right);
 			res.addAll(ds.stream().map(x -> ((AssrtFormalLDerivedAction) x).prependSilent(cast.msg)).collect(Collectors.toList()));
+		}
+		return res;
+	}
+
+	@Override
+	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		LinkedHashSet<Pair<AssrtLambda, AssrtFormalLType>> res = new LinkedHashSet();
+		for (AssrtFormalLAction a : getIntermedSteppable(lambda, rho)) {  // Basically FormalSteppable (rho ignored)
+			AssrtFormalLEpsilon cast = (AssrtFormalLEpsilon) a;
+			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
+					istep(lambda, cast, rho);
+			if (!istep.isPresent()) {
+				throw new RuntimeException("Shouldn't get here " + cast);
+			}
+			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> p = istep.get();
+			res.addAll(p.middle.fastforwardEnters(p.left, p.right));  // "silents" dropped, cf. getExplicitSteppable
 		}
 		return res;
 	}
@@ -119,7 +135,8 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 
 	@Override
 	public String toString() {
-		return AssrtFormalLChoice.casesToString(this.cases);
+		String m = AssrtFormalLChoice.casesToString(this.cases);
+		return m.startsWith(":") ? m.substring(1) : m;
 	}
 	
 	@Override

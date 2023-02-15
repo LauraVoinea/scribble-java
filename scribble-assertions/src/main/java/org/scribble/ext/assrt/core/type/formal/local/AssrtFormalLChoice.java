@@ -11,6 +11,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 		implements AssrtFormalLType {
@@ -43,9 +44,13 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 		return Optional.of(new Triple<>(res.left, res.right, rho));
 	}
 
-	@Override
 	public Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho) {
 		return getIntermedSteppable(lambda, rho);
+	}
+
+	@Override
+	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		return Stream.of(new Pair<>(lambda, (AssrtFormalLType) this)).collect(Collectors.toSet());
 	}
 
 	@Override

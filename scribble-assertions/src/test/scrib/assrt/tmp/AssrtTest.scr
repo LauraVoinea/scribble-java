@@ -20,6 +20,7 @@ type <fstar> "string" from "..." as String;
 // - derived LTS should fully replace base LTS recursion rules -- then do silent squashing on top
 // !!! FIXME: duplicate located statevars not checked, e.g., A[y:int=0] B[y:int=0]
 
+/*
 global protocol MyProto(role A, role B, role C) {
   start(n:int) from A to B;  @'0<=n && n<100'
   do HigherLowerAux(A, B, C);     @'B[n]'
@@ -39,10 +40,11 @@ aux global protocol HigherLowerAux(role A, role B, role C) @'B[n1: int = 0]' {
     lower() from B to C;    @'n1<x'
     lower() from B to A;
     //do HigherLowerAux(A, B, C);  @'B[n1]'
-  }*/
+  }* /
 }
+//*/
 
-/*
+//*
 global protocol MyProto(role A, role B) {
     1(z: int) from A to B;  @'z=0'
     do MyAux(A, B);       @'[42]'  // HERE resolved? // !!! TODO 42 should be phantom for B -- handle in projection/estepper? B label should be silent rec enter -- cf. AssrtFormalLRec.getIntermedSteppable

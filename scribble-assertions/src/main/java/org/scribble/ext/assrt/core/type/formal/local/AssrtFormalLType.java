@@ -37,10 +37,11 @@ public interface AssrtFormalLType extends AssrtFormalType
     Set<AssrtFormalLAction> getIntermedSteppable(AssrtLambda lambda, AssrtRho rho);
     Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep(AssrtLambda lambda, AssrtFormalLAction a, AssrtRho rho);
 
-    // With epsilons squashed (called "intermed LTS" in draft) -- all below AssrtLActions are concrete, i.e., not silent
+    // TODO should be LDerivedAction
+    // With epsilons squashed (called "intermed LTS" in draft -- cf. NOT the `intermed` above) -- all below AssrtLActions are concrete, i.e., not silent
     Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho);
+    Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho);
 
     // FIXME a should be derived action -- cf. above comment
     Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a);
-
 }

@@ -93,6 +93,11 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 	}
 
 	@Override
+	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		throw new RuntimeException("Shouldn't get here");
+	}
+
+	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);

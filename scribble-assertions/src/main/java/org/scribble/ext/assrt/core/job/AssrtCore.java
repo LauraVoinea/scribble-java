@@ -141,10 +141,12 @@ public class AssrtCore extends Core
 					AssrtRho rho = new AssrtRho();
 					//stepper(lam, p);
 
+					// make finite graph and do RCA translation
+
 					Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = new LinkedHashMap<>();
+					estepper(lam, rho, p, graph);
 
-					estepper(lam, rho, p, graph);  //HERE make finite graph and do RCA translation
-
+					System.out.println("eee1: ");
 					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> f : graph.entrySet()) {
 						Pair<AssrtLambda, AssrtFormalLType> k = f.getKey();
 						Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> v = f.getValue();
@@ -153,14 +155,21 @@ public class AssrtCore extends Core
 					}
 
 					RCA rca = new RCA();
-					rca(new HashMap<>(), graph, new Pair<>(lam, p), null, null, RCAState.fresh(), rca);
+					System.out.println("fff1: " + lam + " ,, " + p);
+					Pair<AssrtLambda, AssrtFormalLType> init = new Pair<>(lam, p);
+					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = init.right.fastforwardEnters(init.left, new AssrtRho());
+					if (ffs.size() != 1) {
+						throw new RuntimeException("FIXME: " + ffs);
+					}
+					Pair<AssrtLambda, AssrtFormalLType> ff = ffs.iterator().next();
+					rca(new HashMap<>(), graph, ff, null, null, RCAState.fresh(), rca);
 
-					System.out.println("eee: ");
+					System.out.println("eee2: ");
 					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> ee : graph.entrySet()) {
 						System.out.print(AssrtUtil.pairToString(ee.getKey()) + " -> ");
 						System.out.println(ee.getValue().entrySet().stream().map(x -> x.getKey() + "=" + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(", ")));
 					}
-					System.out.println("fff: " + rca);
+					System.out.println("fff2: " + rca);
 				}
 			}
 		}
@@ -180,7 +189,9 @@ public class AssrtCore extends Core
 		}
 	}
 
-	private void estepper(AssrtLambda lam, AssrtRho rho, AssrtFormalLType t,
+	private //Set<Pair<AssrtLambda, AssrtFormalLType>>
+	void estepper(
+			AssrtLambda lam, AssrtRho rho, AssrtFormalLType t,
 						  //Map<Pair<Pair<AssrtLambda, AssrtFormalLocal>, AssrtLAction>, Pair<AssrtLambda, AssrtFormalLocal>> graph) {
 						  Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph) {
 		System.out.println("ccc1: " + lam + " ,, " + t);
@@ -192,6 +203,8 @@ public class AssrtCore extends Core
 			as = new HashMap<>();
 			graph.put(k, as);
 		}
+
+		//Set<Pair<AssrtLambda, AssrtFormalLType>> init = new HashSet<>();
 
 		for (AssrtFormalLAction a : dsteppable) {
 			System.out.println("ddd1: " + lam + " ,, " + t + " ,, " + a);

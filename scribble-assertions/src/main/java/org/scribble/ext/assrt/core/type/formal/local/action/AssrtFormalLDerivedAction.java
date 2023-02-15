@@ -4,6 +4,7 @@ import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 
 import java.util.List;
 
+// i.e., not LEpsilon
 public interface AssrtFormalLDerivedAction extends AssrtFormalLAction {
 
     List<AssrtMsg> getSilent();
