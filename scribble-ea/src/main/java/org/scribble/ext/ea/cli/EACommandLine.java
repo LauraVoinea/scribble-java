@@ -1,5 +1,10 @@
 package org.scribble.ext.ea.cli;
 
+import org.antlr.runtime.ANTLRStringStream;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.Lexer;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.tree.CommonTree;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.type.name.Op;
@@ -15,17 +20,18 @@ import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAHandlersType;
 import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
+import org.scribble.ext.ea.parser.antlr.EACalculusParser;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 
 
 
-//- key point: only relevant handlers available at any one time -- cf. prev EDP works
+//- key point: only "relevant" handlers available at any one time -- cf. prev EDP works (all handlers all the time)
+
 // HERE
 //- check getFoo for input side -- generalise for async
 //- "unify" handlers and lambdas/recs
@@ -52,8 +58,7 @@ public class EACommandLine extends CommandLine
 	}
 
 	public static void main(String[] args)
-			throws CommandLineException, AntlrSourceException
-	{
+			throws CommandLineException, AntlrSourceException {
 		/*%%   p (+) { l1(A) -> p & { ... }, l2(B) -> p (+) { l3(C) -> End } }
 %%   let () <=
 %%       if rand () then
@@ -65,8 +70,56 @@ public class EACommandLine extends CommandLine
 %%   -- p (+) { l3(C) -> End }
 %%   print("still alive")*/
 
-		//CommandLine.main(args);  // No main module
+		//CommandLine.main(args);  // !!! base CommandLine fully bypassed -- No main module used
+		//eamain();
 
+		EAPFactory pf = EAPFactory.factory;
+		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+		EATypeFactory tf = EATypeFactory.factory;
+
+		//String input = "(A ! a((())))";
+		String input = "A ! a(handler A { b(x) -> return () c(y) -> return () })";
+		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+		try {
+			//par.setTreeAdaptor(new EATreeAdaptor());  // XXX this requires nodes to be CommonTree to add children -- adaptor only constructs each node individualy without children
+			CommonTree tree = (CommonTree) par.nM().getTree();
+			System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
+
+			EAPTerm res = new ASTBuilder().visit(tree);
+			System.out.println("bbb: " + res);
+
+			//tree.token;
+		} catch (RecognitionException x) {
+			x.printStackTrace();
+		}
+
+	}
+
+
+	/*static class EATreeAdaptor extends CommonTreeAdaptor {
+		static EAPFactory pf = EAPFactory.factory;
+		static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+		static EATypeFactory tf = EATypeFactory.factory;
+
+		public EATreeAdaptor() {
+		}
+
+		// Generated parser seems to use nil to create "blank" nodes and then "fill them in"
+		//@Override public Object nil() {return new ScribNil();}
+
+		// Create a Tree (ScribNode) from a Token
+		// N.B. not using AstFactory, construction here is pre adding children (and also here directly record parsed Token, not recreate)
+		@Override public EAPVal create(Token t) {
+			switch (t.getText()) {
+				case "RETURN": {
+						pf.returnn()
+				}
+			}
+		}
+	}*/
+
+	private static void eamain() {
 		LTypeFactoryImpl lf = new LTypeFactoryImpl();
 
 		EAPFactory pf = EAPFactory.factory;

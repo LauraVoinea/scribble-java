@@ -104,7 +104,7 @@ public class EAPSend implements EAPExpr {
 
     @Override
     public String toString() {
-        return "send " + this.dst + "!" + this.op + "(" + this.val + ")";
+        return this.dst + "!" + this.op + "(" + this.val + ")";
     }
 
     /* equals/canEquals, hashCode */
