@@ -21,6 +21,12 @@ type <fstar> "string" from "..." as String;
 // !!! FIXME: duplicate located statevars not checked, e.g., A[y:int=0] B[y:int=0]
 
 
+/*
+global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
+    1() from A to B;
+    do Proto1(A, B); @'A[0, m]'
+}
+//*/
 
 
 //*

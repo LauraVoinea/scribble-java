@@ -39,6 +39,7 @@ import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
+import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGType;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtPhi;
@@ -47,6 +48,7 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtRho;
 import org.scribble.ext.assrt.core.type.formal.local.action.*;
+import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -58,6 +60,7 @@ import org.scribble.ext.assrt.core.visit.gather.AssrtRoleGatherer;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
 import org.scribble.ext.assrt.util.AssrtUtil;
+import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.ext.assrt.util.Z3Wrapper;
 import org.scribble.util.Pair;
@@ -243,12 +246,19 @@ public class AssrtCore extends Core
 			if (as.size() != 1)	{
 				throw new RuntimeException("Shouldn't get here: " + as);
 			}
+
 			AssrtFormalLEnter k = (AssrtFormalLEnter) as.iterator().next();
 			Pair<AssrtLambda, AssrtFormalLType> succ = es.values().iterator().next();
 
 			// !!! XXX TODO bootstrapping -- `a` NPE
 
-			AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+			//AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+			AssrtFormalLComm a1 = a;
+			for (Map.Entry<AssrtVar, Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula>> e
+					: k.svars.entrySet()) {
+				a1 = a1.addStateUpdate(e.getKey(), e.getValue().fth);
+			}
+
 			Map<RecVar, RCAState> P1 = new HashMap<>(P);
 			P1.put(k.recvar, s2);
 			rca(P1, graph, succ, s1, a1, s2, res);
@@ -277,11 +287,16 @@ public class AssrtCore extends Core
 					tmp = new HashMap<>();
 					res.delta.put(s1, tmp);
 				}
-				AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
-				System.out.println("\n---------: " + k.recvar + " ,, " + P + " ,, " + P.get(k.recvar));
+
+				//AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+				AssrtFormalLComm a1 = a;
+				for (Map.Entry<AssrtVar, Pair<Multiplicity, AssrtAFormula>> e
+						: k.svars.entrySet()) {
+					a1 = a1.addStateUpdate(e.getKey(), e.getValue().right);
+				}
 				tmp.put(a1, P.get(k.recvar));
 	 		} else {
-				throw new RuntimeException("SFSDFSS: " + k);
+				throw new RuntimeException("Shouldn't get in here? " + k);
 			}
 
 		} else {  // AssrtFormalLComm only

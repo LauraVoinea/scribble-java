@@ -14,24 +14,39 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssrtPhi {
-    public final Map<RecVar, Quadple<AssrtVar, Set<Role>, DataName, AssrtBFormula>> map;
+    //public final Map<RecVar, Quadple<AssrtVar, Set<Role>, DataName, AssrtBFormula>> map;
+    public final Map<RecVar, Map<AssrtVar, Triple<Set<Role>, DataName, AssrtBFormula>>> map;
 
     public AssrtPhi() {
         this(new LinkedHashMap<>());
     }
 
-    public AssrtPhi(LinkedHashMap<RecVar, Quadple<AssrtVar, Set<Role>, DataName, AssrtBFormula>> map) {
-        this.map = Collections.unmodifiableMap(new LinkedHashMap<>(map));
+    public AssrtPhi(LinkedHashMap<RecVar, Map<AssrtVar, Triple<Set<Role>, DataName, AssrtBFormula>>> map) {
+        //this.map = Collections.unmodifiableMap(new LinkedHashMap<>(map));
+        this.map = Collections.unmodifiableMap(map.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> Collections.unmodifiableMap(x.getValue().entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        y -> {
+                            Triple<Set<Role>, DataName, AssrtBFormula> tmp = y.getValue();
+                            return new Triple<>(new HashSet(tmp.left), tmp.middle, tmp.right);
+                        },
+                        (z1, z2) -> null,
+                        LinkedHashMap::new
+                ))),
+                (x, y) -> null,
+                LinkedHashMap::new
+        )));
     }
 
     // Disjoint union
-    public Optional<AssrtPhi> comma(RecVar rv, AssrtVar v, Set<Role> rs, DataName data, AssrtBFormula ass) {
+    public Optional<AssrtPhi> comma(RecVar rv, Map<AssrtVar, Triple<Set<Role>, DataName, AssrtBFormula>> vars) {
         if (this.map.containsKey(rv)) {
             return Optional.empty();
         } else {
-            LinkedHashMap<RecVar, Quadple<AssrtVar, Set<Role>, DataName, AssrtBFormula>> tmp = new LinkedHashMap<>(this.map);
-            tmp.put(rv, new Quadple<>(v, rs, data, ass));
-            return Optional.of(new AssrtPhi(tmp));
+            LinkedHashMap<RecVar, Map<AssrtVar, Triple<Set<Role>, DataName, AssrtBFormula>>> tmp = new LinkedHashMap<>(this.map);
+            tmp.put(rv, vars);
+            return Optional.of(new AssrtPhi(tmp));  // Does def copy (cf. above not defensive)
         }
     }
 
@@ -39,7 +54,9 @@ public class AssrtPhi {
     public String toString() {
         return "{" +
                 this.map.entrySet().stream()
-                        .map(x -> x.getKey() + "=" + AssrtUtil.quadpleToString(x.getValue()))
+                        .map(x -> x.getKey() + "=["+ x.getValue().entrySet().stream()
+                                .map(y -> y.getKey() + "=" + AssrtUtil.tripleToString(y.getValue()))
+                                .collect(Collectors.joining(", ")) + "]")
                         .collect(Collectors.joining(", ")) +
                 "}";
     }

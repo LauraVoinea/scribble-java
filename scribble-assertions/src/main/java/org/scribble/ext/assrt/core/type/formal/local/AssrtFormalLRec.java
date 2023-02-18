@@ -9,9 +9,11 @@ import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEnter;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,19 +52,30 @@ public class AssrtFormalLRec extends AssrtFormalTypeBase
 	public Set<AssrtFormalLAction> getIntermedSteppable(
 			AssrtLambda lambda, AssrtRho rho) {
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
-		if (this.statevars.size() != 1) {
+		/*if (this.statevars.size() != 1) {
 			throw new RuntimeException("TODO " + this);
-		}
+		}*/
 		if (rho.map.containsKey(this.recvar)) {
 			return Collections.emptySet();
 		}
-		AssrtVar svar = this.statevars.keySet().iterator().next();
-		if (lambda.map.containsKey(svar)) {  // !!! Lambda , Lambda -- comma is disjoint
-			return Collections.emptySet();
+
+		Map<AssrtVar, Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula>> svars = new LinkedHashMap<>();
+		for (Map.Entry<AssrtVar, Triple<Multiplicity, DataName, AssrtAFormula>> es :
+				this.statevars.entrySet()) {
+			AssrtVar svar = es.getKey();
+			if (lambda.map.containsKey(svar)) {  // !!! Lambda , Lambda -- comma is disjoint
+				return Collections.emptySet();  // If one seen, all should be seen...
+			}
+
+			Triple<Multiplicity, DataName, AssrtAFormula> p = es.getValue();
+			svars.put(svar, new Quadple<>(p.left, p.middle, this.assertion, p.right));  // !!! duplicating assertion
 		}
-		Triple<Multiplicity, DataName, AssrtAFormula> p = this.statevars.get(svar);
+
 		HashSet<AssrtFormalLAction> res = new HashSet<>();
-		res.add(lf.enter(this.recvar, svar, p.left, p.middle, p.right, this.assertion));
+
+		//res.add(lf.enter(this.recvar, svar, p.left, p.middle, p.right, this.assertion));
+		res.add(lf.enter(this.recvar, svars));
+
 		return res;
 	}
 
@@ -76,35 +89,52 @@ public class AssrtFormalLRec extends AssrtFormalTypeBase
 			throw new RuntimeException("TODO " + this);
 		}
 		AssrtFormalLEnter cast = (AssrtFormalLEnter) a;
-		if (this.statevars.size() != 1) {
+
+		/*if (this.statevars.size() != 1) {
 			throw new RuntimeException("TODO " + this);
 		}
 		AssrtVar svar = this.statevars.keySet().iterator().next();
 		if (lambda.map.containsKey(svar)) {
 			return Optional.empty();
-		}
-		Triple<Multiplicity, DataName, AssrtAFormula> p = this.statevars.get(svar);
-		if (this.recvar.equals(cast.recvar) && svar.equals(cast.svar) && p.left == cast.multip
-				&& p.middle.equals(cast.data) && Objects.equals(p.right, cast.init)) {
-
-			// init not really used in LTS -- no "loop counting" -- so could collapse silent and non-silent labels/rules (for RCA building, not bisim)
-
-			//...update lambda and rho, and proceed with body
-			Optional<AssrtLambda> add = lambda.add(svar, cast.multip, cast.data);
-			if (!add.isPresent()) {
-				return Optional.empty();
-			}
-			AssrtLambda lam1 = add.get();
-			Optional<AssrtRho> rhoAdd = rho.add(this.recvar, lam1, this.body);
-			if (!rhoAdd.isPresent()) {
-				return Optional.empty();
-			}
-			AssrtRho rho1 = rhoAdd.get();
-
-			return Optional.of(new Triple<>(lam1, this.body, rho1));
-		} else {
+		}*/
+		if (this.statevars.keySet().stream().anyMatch(x -> !cast.svars.containsKey(x))) {
 			return Optional.empty();
 		}
+
+		System.out.println("4444444: " + this + " ,, " + cast);
+
+		// TODO combine with above
+		if (this.statevars.keySet().stream().anyMatch(x -> {
+			Triple<Multiplicity, DataName, AssrtAFormula> t3 = this.statevars.get(x);
+			Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula> t4 = cast.svars.get(x);
+			if (!t3.left.equals(t4.fst) || !t3.middle.equals(t4.snd) || !Objects.equals(t3.right, t4.fth) || !this.assertion.equals(t4.thd)) {
+				return true;
+			}
+			return false;
+		})) {
+			return Optional.empty();
+		}
+
+		// init not really used in LTS -- no "loop counting" -- so could collapse silent and non-silent labels/rules (for RCA building, not bisim)
+
+		//...update lambda and rho, and proceed with body
+		Optional<AssrtLambda> opt = Optional.of(lambda);
+		for (Map.Entry<AssrtVar, Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula>> e
+				: cast.svars.entrySet()) {
+			Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula> q = e.getValue();
+			opt = opt.flatMap(x -> x.add(e.getKey(), q.fst, q.snd));
+		}
+		if (!opt.isPresent()) {
+			return Optional.empty();
+		}
+		AssrtLambda lam1 = opt.get();
+		Optional<AssrtRho> rhoAdd = rho.add(this.recvar, lam1, this.body);
+		if (!rhoAdd.isPresent()) {
+			return Optional.empty();
+		}
+		AssrtRho rho1 = rhoAdd.get();
+
+		return Optional.of(new Triple<>(lam1, this.body, rho1));
 	}
 
 	@Override

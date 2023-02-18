@@ -10,12 +10,14 @@ import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AssrtFormalLFactory
 {
@@ -75,25 +77,34 @@ public class AssrtFormalLFactory
 		return new AssrtFormalLReceive(sender, m, consumed);
 	}
 
-	public AssrtFormalLEnter enter(RecVar recvar, AssrtVar svar, Multiplicity multip,
-								   DataName data, AssrtAFormula init, AssrtBFormula assertion) {
-		return enter(recvar, svar, multip, data, init, assertion, Collections.emptyList());
+	public AssrtFormalLEnter enter(RecVar recvar,
+								   //AssrtVar svar, Multiplicity multip, DataName data, AssrtAFormula init, AssrtBFormula assertion) {
+								   Map<AssrtVar, Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula>> svars) {
+		//return enter(recvar, svar, multip, data, init, assertion, Collections.emptyList());
+		return enter(recvar, svars, Collections.emptyList());
 	}
 
-	public AssrtFormalLEnter enter(RecVar recvar, AssrtVar svar, Multiplicity multip,
-								   DataName data, AssrtAFormula init,
-								   AssrtBFormula assertion, List<AssrtMsg> silents) {
-		return new AssrtFormalLEnter(recvar, svar, multip, data, init, assertion, silents);
+	public AssrtFormalLEnter enter(RecVar recvar,
+								   //AssrtVar svar, Multiplicity multip, DataName data, AssrtAFormula init, AssrtBFormula assertion,
+								   Map<AssrtVar, Quadple<Multiplicity, DataName, AssrtBFormula, AssrtAFormula>> svars,
+								   List<AssrtMsg> silents) {
+		//return new AssrtFormalLEnter(recvar, svar, multip, data, init, assertion, silents);
+		return new AssrtFormalLEnter(recvar, svars, silents);
 	}
 
-	public AssrtFormalLContinue continu(RecVar recvar, AssrtVar svar, Multiplicity multip,
-										AssrtAFormula init) {
-		return continu(recvar, svar, multip, init, Collections.emptyList());
+	public AssrtFormalLContinue continu(RecVar recvar,
+										//AssrtVar svar, Multiplicity multip, AssrtAFormula init,
+										Map<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars) {
+		//return continu(recvar, svar, multip, init, Collections.emptyList());
+		return continu(recvar, svars, Collections.emptyList());
 	}
 
-	public AssrtFormalLContinue continu(RecVar recvar, AssrtVar svar, Multiplicity multip,
-										AssrtAFormula init, List<AssrtMsg> silents) {
-		return new AssrtFormalLContinue(recvar, svar, multip, init, silents);
+	public AssrtFormalLContinue continu(RecVar recvar,
+										//AssrtVar svar, Multiplicity multip, AssrtAFormula init,
+										Map<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars,
+										List<AssrtMsg> silents) {
+		//return new AssrtFormalLContinue(recvar, svar, multip, init, silents);
+		return new AssrtFormalLContinue(recvar, svars, silents);
 	}
 
 	public AssrtFormalLEpsilon epsilon(AssrtMsg m) {

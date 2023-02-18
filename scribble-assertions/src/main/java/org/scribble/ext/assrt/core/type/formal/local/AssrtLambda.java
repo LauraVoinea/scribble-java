@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AssrtLambda {
+
     public final Map<AssrtVar, Pair<Multiplicity, DataName>> map;
 
     public AssrtLambda() {

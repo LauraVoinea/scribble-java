@@ -1,5 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.global;
 
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
@@ -7,13 +8,13 @@ import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.util.Quadple;
+import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssrtFormalGRecVar extends AssrtFormalTypeBase
@@ -35,13 +36,18 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
 			throw new RuntimeException("Shouldn't get here: " + this + " ,, " + phi.map);
 		}
 		LinkedHashMap<AssrtVar, Pair<Multiplicity, AssrtAFormula>> svars = new LinkedHashMap<>();
+
+		Map<AssrtVar, Triple<Set<Role>, DataName, AssrtBFormula>> qs = phi.map.get(this.recvar);
+
 		for (Map.Entry<AssrtVar, AssrtAFormula> e : this.statevars.entrySet()) {
-			if (phi.map.get(this.recvar).snd.contains(r)) {
-				svars.put(e.getKey(), new Pair<>(Multiplicity.OMEGA, e.getValue()));
+			AssrtVar v = e.getKey();
+			if (qs.get(v).left.contains(r)) {
+				svars.put(v, new Pair<>(Multiplicity.OMEGA, e.getValue()));
 			} else {
-				svars.put(e.getKey(), new Pair<>(Multiplicity.ZERO, null));
+				svars.put(v, new Pair<>(Multiplicity.ZERO, null));  // !!! just omit?
 			}
 		}
+
 		return lf.recvar(this.recvar, svars);
 	}
 

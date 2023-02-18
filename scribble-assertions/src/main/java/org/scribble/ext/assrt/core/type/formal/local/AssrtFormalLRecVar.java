@@ -44,19 +44,22 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 	public Set<AssrtFormalLAction> getIntermedSteppable(
 			AssrtLambda lambda, AssrtRho rho) {
 		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
-		if (this.statevars.size() != 1) {
+
+		/*if (this.statevars.size() != 1) {
 			throw new RuntimeException("TODO " + this);
 		}
 		AssrtVar svar = this.statevars.keySet().iterator().next();
 		/*if (lambda.map.containsKey(svar)) {  // !!! Lambda , Lambda -- comma is disjoint
 			return Collections.emptySet();
-		}*/
+		}* /
+		*/
+
 		if (!rho.map.containsKey(this.recvar)) {
 			return Collections.emptySet();
 		}
-		Pair<Multiplicity, AssrtAFormula> p = this.statevars.get(svar);
+
 		HashSet<AssrtFormalLAction> res = new HashSet<>();
-		res.add(lf.continu(this.recvar, svar, p.left, p.right));
+		res.add(lf.continu(this.recvar, this.statevars));
 		return res;
 	}
 
@@ -70,21 +73,35 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 			return Optional.empty();
 		}
 		AssrtFormalLContinue cast = (AssrtFormalLContinue) a;
-		if (this.statevars.size() != 1) {
+
+		/*if (this.statevars.size() != 1) {
 			throw new RuntimeException("TODO " + this);
 		}
 		AssrtVar svar = this.statevars.keySet().iterator().next();
 		/*if (!lambda.map.containsKey(svar)) {  // Redundant?
 			return Optional.empty();
-		}*/
+		}* /
 		Pair<Multiplicity, AssrtAFormula> p = this.statevars.get(svar);
-		if (!this.recvar.equals(cast.recvar) || !svar.equals(cast.svar)
+		/*if (!this.recvar.equals(cast.recvar) || !svar.equals(cast.svar)
 				|| p.left != cast.multip || !Objects.equals(p.right, cast.init)) {
 			return Optional.empty();
-		} else {
-			Pair<AssrtLambda, AssrtFormalLType> q = rho.map.get(this.recvar);
-			return Optional.of(new Triple<>(q.left, q.right, rho));
+		} else {*/
+
+		if (this.statevars.keySet().stream().anyMatch(x -> !lambda.map.containsKey(x))) {
+			return Optional.empty();
 		}
+		if (this.statevars.entrySet().stream().anyMatch(e -> {
+					AssrtVar k = e.getKey();
+					if (!cast.svars.containsKey(k) || !e.getValue().equals(cast.svars.get(k))) {
+						return true;
+					}
+					return false;
+				})) {
+			return Optional.empty();
+		}
+
+		Pair<AssrtLambda, AssrtFormalLType> q = rho.map.get(this.recvar);
+		return Optional.of(new Triple<>(q.left, q.right, rho));
 	}
 
 	@Override

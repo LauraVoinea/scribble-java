@@ -10,6 +10,7 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 
 import java.util.*;
@@ -36,9 +37,12 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase
 
 	@Override
 	public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
-		if (this.statevars.size() != 1) {
+		/*if (this.statevars.size() != 1) {
 			throw new RuntimeException("TODO: " + this);
-		}
+		}*/
+
+		Map<AssrtVar, Triple<Set<Role>, DataName, AssrtBFormula>> qs = new LinkedHashMap<>();
+
 		LinkedHashMap<AssrtVar, Triple<Multiplicity, DataName, AssrtAFormula>> svars = new LinkedHashMap<>();
 		for (Map.Entry<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> e : this.statevars.entrySet()) {
 			AssrtVar k = e.getKey();
@@ -46,10 +50,17 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase
 			Set<Role> rs = this.body.getRoles();
 			Multiplicity multip = p.left.contains(r) && rs.contains(r) ? Multiplicity.OMEGA : Multiplicity.ZERO;
 			svars.put(k, new Triple<>(multip, p.middle, p.right));
+
+			AssrtVar svar = k;
+			//Triple<Set<Role>, DataName, AssrtAFormula> p = this.statevars.get(svar);
+
+			qs.put(svar, new Triple<>(p.left, p.middle, this.assertion));  // !!! maybe only put assertion on "last" var?
 		}
-		AssrtVar svar = this.statevars.keySet().iterator().next();
-		Triple<Set<Role>, DataName, AssrtAFormula> p = this.statevars.get(svar);
-		Optional<AssrtPhi> comma = phi.comma(this.recvar, svar, p.left, p.middle, this.assertion);// init expr not used
+
+		Optional<AssrtPhi> comma = phi.comma(this.recvar, qs);
+
+		//AssrtVar svar = this.statevars.keySet().iterator().next();
+
 		if (!comma.isPresent()) {
 			throw new RuntimeException("Shouldn't get here? " + this + " ,, " + r);
 		}
