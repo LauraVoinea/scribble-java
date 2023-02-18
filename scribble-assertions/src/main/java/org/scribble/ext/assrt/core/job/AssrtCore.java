@@ -170,6 +170,8 @@ public class AssrtCore extends Core
 						System.out.println(ee.getValue().entrySet().stream().map(x -> x.getKey() + "=" + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(", ")));
 					}
 					System.out.println("fff2: " + rca);
+
+					// HERE HERE more testing of derived LTS and RCA building (w.r.t. entry FF) -- improve interpreter (interactive steps, pretty print)
 				}
 			}
 		}
@@ -229,6 +231,9 @@ public class AssrtCore extends Core
 			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph,
 					 Pair<AssrtLambda, AssrtFormalLType> n,
 					 RCAState s1, AssrtFormalLComm a, RCAState s2, RCA res) {
+
+		System.out.println("ggggg: " + s1 + " ,, " + a);
+
 		if (res.S.contains(s2)) {
 			return;
 		}
@@ -273,7 +278,10 @@ public class AssrtCore extends Core
 					res.delta.put(s1, tmp);
 				}
 				AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+				System.out.println("\n---------: " + k.recvar + " ,, " + P + " ,, " + P.get(k.recvar));
 				tmp.put(a1, P.get(k.recvar));
+	 		} else {
+				throw new RuntimeException("SFSDFSS: " + k);
 			}
 
 		} else {  // AssrtFormalLComm only

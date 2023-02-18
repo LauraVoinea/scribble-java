@@ -30,11 +30,15 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet<>();
 		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
-			if (pay.size() != 1) {
+			int size = pay.size();
+			if (size > 1) {
 				throw new RuntimeException("Shouldn't get here: " + pay);
-			}
-			AssrtAnnotDataName d = pay.get(0);
-			if (lambda.canAdd(d.var, Multiplicity.ZERO, d.data)) {
+			} else if (size == 1) {
+				AssrtAnnotDataName d = pay.get(0);
+				if (lambda.canAdd(d.var, Multiplicity.ZERO, d.data)) {
+					res.add(new AssrtFormalLEpsilon(x.left));
+				}
+			} else { // size == 0
 				res.add(new AssrtFormalLEpsilon(x.left));
 			}
 		}
@@ -52,15 +56,23 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 			return Optional.empty();
 		}
 		List<AssrtAnnotDataName> pay = cast.msg.pay;
-		if (pay.size() != 1) {
+		int size = pay.size();
+		if (size > 1) {
 			throw new RuntimeException("TODO " + this + " ,, " + a);
+		} else {
+			AssrtLambda next;
+			if (size == 1) {
+				AssrtAnnotDataName d = pay.get(0);
+				Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.ZERO, d.data);
+				if (!add.isPresent()) {
+					return Optional.empty();
+				}
+				next = add.get();
+			} else {
+				next = lambda;
+			}
+			return Optional.of(new Pair<>(next, this.cases.get(cast.msg.op).right));
 		}
-		AssrtAnnotDataName d = pay.get(0);
-		Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.ZERO, d.data);
-		if (!add.isPresent()) {
-			return Optional.empty();
-		}
-		return Optional.of(new Pair<>(add.get(), this.cases.get(cast.msg.op).right));
 	}
 
 	@Override

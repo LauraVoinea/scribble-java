@@ -47,6 +47,14 @@ public class AssrtFormalGTranslator {
         return this.gf.branch(g.src, g.dst, collect);
     }
 
+    /*protected AssrtMsg insertUnit(AssrtMsg m) {
+        switch (m.pay.size()) {
+            case 0: return new AssrtMsg(m.op, ...unit..., m.ass, m.phantAss);
+            case 1: return m;
+            default: throw new RuntimeException("TODO: " + m);
+        }
+    }*/
+
     protected AssrtFormalGRec translate(Map<RecVar, List<AssrtVar>> m, AssrtGRec g) {
         LinkedHashMap<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> svars
                 = new LinkedHashMap<>();

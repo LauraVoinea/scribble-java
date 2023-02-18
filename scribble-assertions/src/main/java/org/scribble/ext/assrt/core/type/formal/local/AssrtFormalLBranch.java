@@ -4,6 +4,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
+import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEpsilon;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLReceive;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
@@ -25,11 +26,16 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 		LinkedHashSet<AssrtFormalLAction> res = new LinkedHashSet<>();
 		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
-			if (pay.size() != 1) {
-				throw new RuntimeException("Shouldn't get here: " + pay);
+			int size = pay.size();
+			if (size > 1) {
+				throw new RuntimeException("Shouldn't get here: " + x.left);
 			}
-			AssrtAnnotDataName d = pay.get(0);
-			if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {
+			else if (size == 1) {
+				AssrtAnnotDataName d = pay.get(0);
+				if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {
+					res.add(lf.receive(this.peer, x.left));
+				}
+			} else { // size == 0
 				res.add(lf.receive(this.peer, x.left));
 			}
 		}
@@ -51,15 +57,23 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 			return Optional.empty();
 		}
 		List<AssrtAnnotDataName> pay = cast.msg.pay;
-		if (pay.size() != 1) {
+		int size = pay.size();
+		if (size > 1) {
 			throw new RuntimeException("TODO " + this + " ,, " + a);
+		} else {
+			AssrtLambda next;
+			if (size == 1) {
+				AssrtAnnotDataName d = pay.get(0);
+				Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.OMEGA, d.data);
+				if (!add.isPresent()) {
+					return Optional.empty();
+				}
+				next = add.get();
+			} else {
+				next = lambda;
+			}
+			return Optional.of(new Pair<>(next, this.cases.get(cast.msg.op).right));
 		}
-		AssrtAnnotDataName d = pay.get(0);
-		Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.OMEGA, d.data);
-		if (!add.isPresent()) {
-			return Optional.empty();
-		}
-		return Optional.of(new Pair<>(add.get(), this.cases.get(cast.msg.op).right));
 	}
 
 	@Override
