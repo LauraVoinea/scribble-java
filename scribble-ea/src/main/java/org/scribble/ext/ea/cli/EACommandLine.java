@@ -71,32 +71,59 @@ public class EACommandLine extends CommandLine
 %%   print("still alive")*/
 
 		//CommandLine.main(args);  // !!! base CommandLine fully bypassed -- No main module used
-		//eamain();
+		eamain();
+		//testParser();
+	}
 
+	static void testParser() {
 		EAPFactory pf = EAPFactory.factory;
 		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
 		EATypeFactory tf = EATypeFactory.factory;
 
 		//String input = "(A ! a((())))";
-		String input = "A ! a(handler A {"
-				+ "b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),"
-				+ "c(y: 1) : end -> return ()"
-				+ "})";
+		String input = "let x: 1 <= A ! a((())) in suspend "
+				+ "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
+		EAPTerm res = parse(input);
+		System.out.println("bbb: " + res);
+	}
+
+	static EAPExpr parse(String input) {
 		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
 		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
 		try {
 			//par.setTreeAdaptor(new EATreeAdaptor());  // XXX this requires nodes to be CommonTree to add children -- adaptor only constructs each node individualy without children
-			CommonTree tree = (CommonTree) par.nM().getTree();
-			System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
+			CommonTree tree = (CommonTree) par.start().getTree();
+			//System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
 
-			EAPTerm res = new ASTBuilder().visit(tree);
-			System.out.println("bbb: " + res);
+			EAPExpr res = new ASTBuilder().visitM((CommonTree) tree.getChild(0));
+			return res;
 
 			//tree.token;
 		} catch (RecognitionException x) {
-			x.printStackTrace();
+			throw new RuntimeException(x);
 		}
+	}
 
+	static EAPVal parseV(String input) {
+		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+		try {
+			CommonTree tree = (CommonTree) par.nV().getTree();
+			return new ASTBuilder().visitV(tree);
+		} catch (RecognitionException x) {
+			throw new RuntimeException(x);
+		}
+	}
+
+	static EALType parseSessionType(String input) {
+		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+		try {
+			CommonTree tree = (CommonTree) par.session_type().getTree();
+			return new ASTBuilder().visitSessionType(tree);
+		} catch (RecognitionException x) {
+			throw new RuntimeException(x);
+		}
 	}
 
 
@@ -129,10 +156,10 @@ public class EACommandLine extends CommandLine
 		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
 		EATypeFactory tf = EATypeFactory.factory;
 
-		//ex1(lf, pf, rf, tf);
+		ex1(lf, pf, rf, tf);
 		//ex2(lf, pf, rf, tf);
 		//ex4(lf, pf, rf, tf);
-		ex5(lf, pf, rf, tf);
+		//ex5(lf, pf, rf, tf);
 
 		//new EACommandLine(args).run();
 	}
@@ -1135,37 +1162,43 @@ public class EACommandLine extends CommandLine
 	}
 	//*/
 
+	//*
 	private static void ex1(
 			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+
 		Role A = new Role("A");
 		Role B = new Role("B");
-		Op l1 = new Op("l1");
-		EAPUnit unit = pf.unit();
 		EAPSid s = rf.sid("s");
 		EAPPid p1 = rf.pid("p1");
 		EAPPid p2 = rf.pid("p2");
+		/*Op l1 = new Op("l1");
+		EAPUnit unit = pf.unit();*/
 
-		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+		/*LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALOutType out1 = tf.local.out(B, cases);
+		EALOutType out1 = tf.local.out(B, cases);*/
+		EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).end}");
 
-		cases = new LinkedHashMap<>();
+		/*cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALInType in1 = tf.local.in(B, cases);
+		EALInType in1 = tf.local.in(B, cases);*/
+		EALInType in1 = (EALInType) parseSessionType("B?{l1(1).end}");  // !!! B->A
 
 		// A: B!l1(unit)
-		EAPSend sendAB = pf.send(B, l1, unit);
+		//EAPSend sendAB = pf.send(B, l1, unit);
+		EAPSend sendAB = (EAPSend) parse("B!l1(())");
 		EAPActiveThread tA = rf.activeThread(sendAB, s, A);
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
 		EAPConfig cA = rf.config(p1, tA, sigmaA);
 
-		// idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
-		LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
 		EAPVar x = pf.var("x");
+		// idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
+		/*LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
 		EAPReturn ret = pf.returnn(unit);
 		EAPHandler hB = pf.handler(l1, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l1, hB);
-		EAPHandlers hsB = pf.handlers(B, Hs);
+		EAPHandlers hsB = pf.handlers(B, Hs);*/
+		EAPHandlers hsB = (EAPHandlers) parseV("handler B { l1(x: 1) : end -> return () }");  // !!! B or A ?
 		EAPIdle idle = rf.idle();
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
 		sigmaB.put(new EAPPair<>(s, B), hsB);

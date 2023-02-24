@@ -15,7 +15,10 @@ options
 tokens
 {
     HANDLER_KW = 'handler';
+    LET_KW = 'let';
+    IN_KW = 'in';
     RETURN_KW = 'return';
+    SUSPEND_KW = 'suspend';
 
     END_KW = 'end';
 
@@ -38,8 +41,10 @@ tokens
    HANDLER;  // H ... not a V or M
 
    // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
-   M_SEND;
+   M_LET;
    M_RETURN;
+   M_SEND;
+   M_SUSPEND;
 
    S_SELECT;
    S_BRANCH;
@@ -228,6 +233,10 @@ type: ID;
 
 // Parser rule non-terms must be lower case
 nV:
+    '(' nV ')'
+->
+    nV
+|
     '(' ')'
 ->
     ^(V_UNIT)
@@ -250,6 +259,10 @@ nM:
 ->
     nM
 |
+    LET_KW var ':' type '<=' nM IN_KW nM
+->
+    ^(M_LET var type nM nM)
+|
     role '!' op '(' nV ')'
 ->
     ^(M_SEND role op nV)
@@ -257,6 +270,10 @@ nM:
     RETURN_KW nV
 ->
     ^(M_RETURN nV)  // Initial tree rewriting, no longer pure CST -- "node label tokens" needed or else "node value" is null (apart from children)
+|
+    SUSPEND_KW nV
+->
+    ^(M_SUSPEND nV)
 ;
 
 session_type:

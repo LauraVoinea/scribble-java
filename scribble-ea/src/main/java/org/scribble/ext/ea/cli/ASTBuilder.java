@@ -23,16 +23,26 @@ class ASTBuilder {
     static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
     static EATypeFactory tf = EATypeFactory.factory;
 
-    public EAPTerm visit(CommonTree n) {  // Entry
+    /*public EAPTerm visit(CommonTree n) {  // Entry
         return visitM(n);
-    }
+    }*/
 
     public EAPExpr visitM(CommonTree n) {
         switch (n.getText()) {
+            case "M_LET": return visitLet(n);
             case "M_SEND": return visitSend(n);
+            case "M_SUSPEND": return visitSuspend(n);
             case "M_RETURN": return visitReturn(n);
         }
         throw new RuntimeException("Unknown node kind: " + n.getText());
+    }
+
+    public EAPLet visitLet(CommonTree n) {
+        EAPVar var = visitVar((CommonTree) n.getChild(0));
+        EAValType varType = visitValType((CommonTree) n.getChild(1));
+        EAPExpr e1 = visitM((CommonTree) n.getChild(2));
+        EAPExpr e2 = visitM((CommonTree) n.getChild(3));
+        return pf.let(var, varType, e1, e2);
     }
 
     public EAPSend visitSend(CommonTree n) {
@@ -40,6 +50,11 @@ class ASTBuilder {
         Op op = visitOp((CommonTree) n.getChild(1));
         EAPVal V = visitV((CommonTree) n.getChild(2));
         return pf.send(dst, op, V);
+    }
+
+    public EAPSuspend visitSuspend(CommonTree n) {
+        EAPVal V = visitV((CommonTree) n.getChild(0));
+        return pf.suspend(V);
     }
 
     public EAPReturn visitReturn(CommonTree n) {
@@ -58,7 +73,7 @@ class ASTBuilder {
                 return pf.handlers(r, hs);
             }
             case "V_UNIT": return pf.unit();
-            default: return pf.var(txt);
+            default: return visitVar(n);
         }
     }
 
@@ -73,7 +88,7 @@ class ASTBuilder {
 
     public EAPHandler visitHandler(CommonTree n) {
         Op op = visitOp((CommonTree) n.getChild(0));
-        EAPVar var = (EAPVar) visitV((CommonTree) n.getChild(1));
+        EAPVar var = visitVar((CommonTree) n.getChild(1));
         EAValType varType = visitValType((CommonTree) n.getChild(2));
         EALType stype = visitSessionType((CommonTree) n.getChild(3));
         EAPExpr expr = visitM((CommonTree) n.getChild(4));
@@ -90,6 +105,10 @@ class ASTBuilder {
             }
             default: throw new RuntimeException("Unknown val type: " + n);
         }
+    }
+
+    public EAPVar visitVar(CommonTree n) {
+        return pf.var(n.getText());
     }
 
     public Role visitRole(CommonTree n) {
