@@ -90,6 +90,13 @@ public class EAPSystem {
         if (!t.expr.isGround()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
+
+        // HERE HERE
+        // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
+        // maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
+        // step annots
+
+
         EAPExpr foo = t.expr.getFoo();
         if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn
                 || foo instanceof EAPSend || foo instanceof EAPApp || foo instanceof EAPLet)) {
@@ -152,9 +159,10 @@ public class EAPSystem {
 
         } else if (foo instanceof EAPSuspend || foo instanceof EAPReturn) {
             if (t.expr.equals(foo)) {  // top level
-                t1 = EAPIdle.IDLE;
+                t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
             } else {
-                t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+                //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+                throw new RuntimeException("Shouldn't get in here");
             }
         } else if (foo instanceof EAPApp || foo instanceof EAPLet){
             t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
