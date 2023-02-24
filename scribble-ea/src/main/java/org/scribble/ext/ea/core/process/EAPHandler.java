@@ -76,8 +76,8 @@ public class EAPHandler {
 
     @Override
     public String toString() {
-        return this.op + "(" + this.var + " "
-                + ConsoleColors.toAnnotString(this.varType.toString())
+        return this.op + "(" + this.var
+                + ConsoleColors.toAnnotString( ": " + this.varType.toString())
                 + ") "
                 + ConsoleColors.toAnnotString(": " + this.pre)
                 + " |-> " + this.expr;

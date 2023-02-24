@@ -17,6 +17,8 @@ tokens
     HANDLER_KW = 'handler';
     RETURN_KW = 'return';
 
+    END_KW = 'end';
+
   /* Scribble AST token types (corresponding to the Scribble BNF).
    * These token types are used by ScribTreeAdaptor to create the output nodes
    * using the org.scribble.ast classes.
@@ -33,11 +35,15 @@ tokens
    V_UNIT;
    V_HANDLERS;
 
-   HANDLER;
+   HANDLER;  // H ... not a V or M
 
-   M_SEND;  // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
+   // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
+   M_SEND;
    M_RETURN;
 
+   S_SELECT;
+   S_BRANCH;
+   S_END;
 }
 
 
@@ -218,6 +224,7 @@ start:
 role: ID;
 op: ID;
 var: ID;
+type: ID;
 
 // Parser rule non-terms must be lower case
 nV:
@@ -225,17 +232,17 @@ nV:
 ->
     ^(V_UNIT)
 |
-    HANDLER_KW ID '{' handler+ '}'
+    HANDLER_KW role '{' handler (',' handler)* '}'
 ->
-    ^(V_HANDLERS ID handler+)
+    ^(V_HANDLERS role handler+)
 |
-    ID
+    var
 ;
 
 handler:
-    op '(' var ')' '-' '>' nM
+    op '(' var ':' type ')' ':' session_type '->' nM
 ->
-    ^(HANDLER op var nM)
+    ^(HANDLER op var type session_type nM)
 ;
 
 nM:
@@ -245,11 +252,27 @@ nM:
 |
     role '!' op '(' nV ')'
 ->
-    ^(M_SEND ID ID nV)
+    ^(M_SEND role op nV)
 |
     RETURN_KW nV
 ->
     ^(M_RETURN nV)  // Initial tree rewriting, no longer pure CST -- "node label tokens" needed or else "node value" is null (apart from children)
 ;
 
+session_type:
+    role '!' '{' session_type_case (',' session_type_case)* '}'
+->
+    ^(S_SELECT role session_type_case+)
+|
+    role '?' '{' session_type_case (',' session_type_case)* '}'
+->
+    ^(S_BRANCH role session_type_case+)
+|
+    END_KW
+->
+    ^(S_END)
+;
 
+session_type_case:
+   op '(' type ')' '.' session_type
+;

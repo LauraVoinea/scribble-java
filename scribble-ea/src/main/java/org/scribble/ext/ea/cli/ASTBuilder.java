@@ -2,17 +2,21 @@ package org.scribble.ext.ea.cli;
 
 
 import org.antlr.runtime.tree.CommonTree;
+import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
+import org.scribble.ext.ea.core.type.session.local.EALOutType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class ASTBuilder {
     static EAPFactory pf = EAPFactory.factory;
@@ -70,8 +74,22 @@ class ASTBuilder {
     public EAPHandler visitHandler(CommonTree n) {
         Op op = visitOp((CommonTree) n.getChild(0));
         EAPVar var = (EAPVar) visitV((CommonTree) n.getChild(1));
-        EAPExpr expr = visitM((CommonTree) n.getChild(2));
-        return pf.handler(op, var, tf.val.unit(), expr, tf.local.end());
+        EAValType varType = visitValType((CommonTree) n.getChild(2));
+        EALType stype = visitSessionType((CommonTree) n.getChild(3));
+        EAPExpr expr = visitM((CommonTree) n.getChild(4));
+        return pf.handler(op, var, varType, expr, stype);
+
+        // HERE HERE fix "end" session type placeholder
+    }
+
+    public EAValType visitValType(CommonTree n) {
+        String txt = n.getText();
+        switch (txt) {
+            case "1": {
+                return tf.val.unit();
+            }
+            default: throw new RuntimeException("Unknown val type: " + n);
+        }
     }
 
     public Role visitRole(CommonTree n) {
@@ -80,5 +98,41 @@ class ASTBuilder {
 
     public Op visitOp(CommonTree n) {
         return new Op(n.getText());
+    }
+
+    public EALType visitSessionType(CommonTree n) {
+        String txt = n.getText();
+        switch (txt) {
+            case "S_END": return tf.local.end();
+            case "S_BRANCH": return visitBranch(n);
+            case "S_SELECT": return visitSelect(n);
+            default: throw new RuntimeException("Unknown session type: " + n);
+        }
+    }
+
+    public EALInType visitBranch(CommonTree n) {
+        Role r = visitRole((CommonTree) n.getChild(0));
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = visitCases(n);
+        return tf.local.in(r, cases);
+    }
+
+    public EALOutType visitSelect(CommonTree n) {
+        Role r = visitRole((CommonTree) n.getChild(0));
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = visitCases(n);
+        return tf.local.out(r, cases);
+    }
+
+    // n is whole branch/select node
+    @NotNull
+    private LinkedHashMap<Op, EAPPair<EAValType, EALType>> visitCases(CommonTree n) {
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        for (int j = 1; j < n.getChildCount(); ) {
+            Op op = visitOp((CommonTree) n.getChild(j));
+            EAValType valType = visitValType((CommonTree) n.getChild(j+2));
+            EALType body = visitSessionType((CommonTree) n.getChild(j+5));
+            cases.put(op, new EAPPair<>(valType, body));
+            j = j+6;
+        }
+        return cases;
     }
 }

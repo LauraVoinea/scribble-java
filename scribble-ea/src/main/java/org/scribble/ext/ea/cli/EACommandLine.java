@@ -78,7 +78,10 @@ public class EACommandLine extends CommandLine
 		EATypeFactory tf = EATypeFactory.factory;
 
 		//String input = "(A ! a((())))";
-		String input = "A ! a(handler A { b(x) -> return () c(y) -> return () })";
+		String input = "A ! a(handler A {"
+				+ "b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),"
+				+ "c(y: 1) : end -> return ()"
+				+ "})";
 		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
 		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
 		try {
