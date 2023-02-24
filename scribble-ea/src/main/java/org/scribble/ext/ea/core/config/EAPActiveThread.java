@@ -43,10 +43,12 @@ public class EAPActiveThread implements EAPThreadState {
             Optional<Map.Entry<EAPPid, EAPConfig>> fst =
                     sys.configs.entrySet().stream().filter(x ->
                             x.getValue().sigma.keySet().stream().anyMatch(y ->
-                                    y.left.equals(this.sid) && y.right.equals(cast.dst))
+                                    y.left.equals(this.sid) && y.right.equals(cast.dst)
+                            && x.getValue().sigma.get(y).role.equals(this.role))
                     ).findFirst();
             if (fst.isPresent()) {
-               return new Pair<>(true, Set.of(fst.get().getKey()));
+                EAPPid key = fst.get().getKey();
+                return new Pair<>(true, Set.of(key));
             } else {
                 return new Pair<>(false, Collections.emptySet());
             }

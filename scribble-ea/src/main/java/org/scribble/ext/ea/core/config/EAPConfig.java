@@ -59,7 +59,6 @@ public class EAPConfig implements EAPRuntimeTerm {
     }
 
     public void type(Gamma gamma, Delta delta) {
-        //throw new RuntimeException("TODO");
         LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>();
         if (this.T instanceof EAPActiveThread) { // !!! CHECKME
             EAPActiveThread at = (EAPActiveThread)  this.T;
@@ -96,6 +95,9 @@ public class EAPConfig implements EAPRuntimeTerm {
                 throw new RuntimeException("Invalid handler type: " + e + " :\n\t" + T);
             }
             EALInType cast = (EALInType) T;
+            if (cast.peer.equals(k.right)) {
+                throw new RuntimeException("Self communication not allowed: " + k + " ,, " + cast);
+            }
             //EAPHandlers h = this.sigma.get(k);
             EAPHandlers h = e.getValue();
             if (!cast.peer.equals(h.role)) {

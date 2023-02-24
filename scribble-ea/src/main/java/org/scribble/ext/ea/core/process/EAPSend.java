@@ -35,6 +35,7 @@ public class EAPSend implements EAPExpr {
             throw new RuntimeException("Expected out type: " + pre + ", " + this);
         }
         EALOutType cast = (EALOutType) pre;
+        // XXX FIXME self comm
         if (!cast.peer.equals(this.dst)) {
             throw new RuntimeException("Incompatible peer: " + pre + ", " + this);
         }

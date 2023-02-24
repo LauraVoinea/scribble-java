@@ -1192,7 +1192,7 @@ public class EACommandLine extends CommandLine
 		/*cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALInType in1 = tf.local.in(B, cases);*/
-		EALInType in1 = (EALInType) parseSessionType("B?{l1(1).end}");  // !!! B->A
+		EALInType in1 = (EALInType) parseSessionType("A?{l1(1).end}");
 
 		// A: B!l1(unit)
 		//EAPSend sendAB = pf.send(B, l1, unit);
@@ -1208,7 +1208,7 @@ public class EACommandLine extends CommandLine
 		EAPHandler hB = pf.handler(l1, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l1, hB);
 		EAPHandlers hsB = pf.handlers(B, Hs);*/
-		EAPHandlers hsB = (EAPHandlers) parseV("handler B { l1(x: 1) : end -> return () }");  // !!! B or A ?
+		EAPHandlers hsB = (EAPHandlers) parseV("handler A { l1(x: 1) : end -> return () }");
 		EAPIdle idle = rf.idle();
 		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
 		sigmaB.put(new EAPPair<>(s, B), hsB);
