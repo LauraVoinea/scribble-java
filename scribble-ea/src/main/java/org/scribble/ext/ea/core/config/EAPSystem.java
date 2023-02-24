@@ -1,9 +1,6 @@
 package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.core.job.Core;
-import org.scribble.core.model.endpoint.actions.ERecv;
-import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.core.type.session.SigLit;
@@ -14,9 +11,7 @@ import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -79,6 +74,12 @@ public class EAPSystem {
         return collect;
     }*/
 
+    public Set<EAPPid> canStep() {
+        return this.configs.entrySet().stream()
+                .filter(x -> x.getValue().canStep(this).left)
+                .map(Map.Entry::getKey).collect(Collectors.toSet());
+    }
+
     // Pre: p \in getReady ?
     public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
         EAPConfig c = this.configs.get(p);
@@ -91,7 +92,7 @@ public class EAPSystem {
         }
         EAPExpr foo = t.expr.getFoo();
         if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn
-                || foo instanceof EAPSend || foo instanceof EAPApp)) {
+                || foo instanceof EAPSend || foo instanceof EAPApp || foo instanceof EAPLet)) {
             throw new RuntimeException("TODO: " + foo);
         }
 
@@ -104,7 +105,7 @@ public class EAPSystem {
         EAPThreadState t1;
         if (foo instanceof EAPSend) {
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
             EAPSend cast = (EAPSend) foo;
 
             Optional<Map.Entry<EAPPid, EAPConfig>> fst =
@@ -155,8 +156,8 @@ public class EAPSystem {
             } else {
                 t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
             }
-        } else if (foo instanceof EAPApp){
-            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+        } else if (foo instanceof EAPApp || foo instanceof EAPLet){
+            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
         } else {
             throw new RuntimeException("TODO: " + foo);
         }
@@ -165,7 +166,7 @@ public class EAPSystem {
         if (foo instanceof EAPSuspend) {
             EAPSuspend cast = (EAPSuspend) foo;
             sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
-        } else if (foo instanceof EAPSend || foo instanceof EAPReturn || foo instanceof EAPApp) {
+        } else if (foo instanceof EAPSend || foo instanceof EAPReturn || foo instanceof EAPApp || foo instanceof EAPLet) {
             // skip
         } else {
             throw new RuntimeException("TODO: " + foo);

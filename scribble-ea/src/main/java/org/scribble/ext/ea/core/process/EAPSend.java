@@ -59,13 +59,14 @@ public class EAPSend implements EAPExpr {
 
     @Override
     public boolean canBeta() {
-        return true;
+        //return true;
+        return false;
     }
 
     @Override
     public EAPExpr beta() {
-        //throw new RuntimeException("Stuck: " + this);
-        return EAPFactory.factory.returnn(EAPFactory.factory.unit());
+        throw new RuntimeException("Stuck: " + this);
+        //return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
 
     /* Aux */
@@ -80,9 +81,19 @@ public class EAPSend implements EAPExpr {
         return this.val.isGround();
     }
 
+    /*@Override
+    public boolean canFoo() {
+        return false;
+    }*/
+
     @Override
     public EAPExpr getFoo() {
         return this;
+    }
+
+    @Override
+    public EAPExpr foo() {
+        return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
 
     @Override

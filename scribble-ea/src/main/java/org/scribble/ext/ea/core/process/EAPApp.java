@@ -126,6 +126,11 @@ public class EAPApp implements EAPExpr {
     }
 
     @Override
+    public EAPExpr foo() {
+        return beta();
+    }
+
+    @Override
     public String toString() {
         return this.left + "(" + this.right + ")";
     }

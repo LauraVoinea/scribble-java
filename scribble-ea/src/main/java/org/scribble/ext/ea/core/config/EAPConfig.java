@@ -36,6 +36,14 @@ public class EAPConfig implements EAPRuntimeTerm {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    // Return set is (sync) "dependencies" needed to step if any
+    public Pair<Boolean, Set<EAPPid>> canStep(EAPSystem sys) {
+        if (!(this.T instanceof EAPActiveThread)) {
+            return new Pair<>(false, Collections.emptySet());
+        }
+        return ((EAPActiveThread) this.T).canStep(sys);
+    }
+
     public LinkedHashSet<Pair<EAPSid, Role>> getEndpoints() {
         LinkedHashSet<Pair<EAPSid, Role>> res = new LinkedHashSet<>();
         if (!this.T.isIdle()) {

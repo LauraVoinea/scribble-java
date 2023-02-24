@@ -5,7 +5,6 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +15,7 @@ public interface EAPExpr extends EAPTerm {
     EALType infer(Gamma gamma);
     EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre);
 
+    // ->_M -- config independent M eval
     boolean canBeta();
     EAPExpr beta();  // !!! CHECKME deterministic
 
@@ -27,7 +27,9 @@ public interface EAPExpr extends EAPTerm {
     Set<EAPVar> getFreeVars();
     boolean isGround();
 
-    // Extract the (nested) "reducible part"
+    // Extract the (nested) "reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo)
+    //boolean canFoo();
     EAPExpr getFoo();  // deterministic
+    EAPExpr foo();
 }
 

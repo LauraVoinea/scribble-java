@@ -107,9 +107,23 @@ public class EAPLet implements EAPExpr {
         return this.init.isGround();  // !!! bad naming
     }
 
+    // foo return corresponds with beta "subject"
     @Override
     public EAPExpr getFoo() {
-        return this.init.getFoo();
+        if (this.init instanceof EAPReturn && ((EAPReturn) this.init).val.isGround()) {
+            return this;
+        } else {
+            return this.init.getFoo();
+        }
+    }
+
+    @Override
+    public EAPExpr foo() {  // Not beta because, e.g., send in init cannot beta (must foo)
+        if (this.init instanceof EAPReturn && this.init.isGround()) {
+            return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
+        } else {
+            return EAPFactory.factory.let(this.var, this.varType, this.init.foo(), this.body);
+        }
     }
 
     @Override

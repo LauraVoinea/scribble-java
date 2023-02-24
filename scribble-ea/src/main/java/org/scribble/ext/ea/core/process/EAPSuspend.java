@@ -98,9 +98,19 @@ public class EAPSuspend implements EAPExpr {
         return this.val.isGround();
     }
 
+    /*@Override
+    public boolean canFoo() {
+        return true;
+    }*/
+
     @Override
     public EAPExpr getFoo() {
         return this;
+    }
+
+    @Override
+    public EAPExpr foo() {
+       throw new RuntimeException("Shouldn't get in here.");
     }
 
     @Override

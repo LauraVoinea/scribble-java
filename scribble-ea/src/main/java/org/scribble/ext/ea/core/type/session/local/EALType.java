@@ -17,6 +17,8 @@ public interface EALType extends EAType {
     int END_HASH = 11059;
     int RECVAR_HASH = 11069;
 
+    //boolean wellFormed();  // TODO bound rec labels, no self send -- operationally OK if async
+
     EALType concat(EALType t);
 
     EALType subs(Map<RecVar, EALRecType> map);

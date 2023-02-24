@@ -79,9 +79,20 @@ public class EAPReturn implements EAPExpr {
         return this.val.isGround();
     }
 
+    /*@Override
+    public boolean canFoo() {
+        return false;  // !!! look for top-level return () in config -- let x <= return V handled by let
+    }*/
+
     @Override
     public EAPExpr getFoo() {
-        return this;
+        //throw new RuntimeException("Shouldn't get here: " + this);
+        return this;  // foo is a candidate
+    }
+
+    @Override
+    public EAPExpr foo() {
+        throw new RuntimeException("Shouldn't get in here: " + this);
     }
 
     @Override

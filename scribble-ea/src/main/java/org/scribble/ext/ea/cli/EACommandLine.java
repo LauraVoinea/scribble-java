@@ -27,7 +27,7 @@ import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
-
+import java.util.Set;
 
 
 //- key point: only "relevant" handlers available at any one time -- cf. prev EDP works (all handlers all the time)
@@ -1133,13 +1133,15 @@ public class EACommandLine extends CommandLine
 		////sys.type(new Gamma(), new Delta(), new Delta(env));
 		sys.type(new Gamma(), new Delta());
 
+		run(sys);
+		/*
 		System.out.println();
 		sys = sys.reduce(p1);
 		System.out.println(sys);
 		/*env.put(new EAPPair<>(s, A), out2);
 		env.put(new EAPPair<>(s, B), in2);
 		System.out.println(env);
-		//sys.type(new Gamma(), new Delta(), new Delta(env));*/
+		//sys.type(new Gamma(), new Delta(), new Delta(env));* /
 		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p1);
@@ -1166,6 +1168,7 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
+		 */
 	}
 	//*/
 
@@ -1240,6 +1243,20 @@ public class EACommandLine extends CommandLine
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
 
+		run(sys);
+	}
+	//*/
+
+	static void run(EAPSystem sys) {
+		for (Set<EAPPid> pids = sys.canStep(); !pids.isEmpty(); pids = sys.canStep()) {
+			sys = sys.reduce(pids.iterator().next());
+			System.out.println();
+			System.out.println(sys);
+			sys.type(new Gamma(), new Delta());
+		}
+	}
+
+		/*
 		sys = sys.reduce(p1);
 		System.out.println();
 		System.out.println(sys);
@@ -1254,12 +1271,13 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
+		 */
 
 		/*sys = sys.reduce(p2);
 		System.out.println();
-		System.out.println(sys);*/
+		System.out.println(sys);* /
 	}
-	//*/
+	*/
 
 
 }
