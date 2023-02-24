@@ -156,8 +156,8 @@ public class EACommandLine extends CommandLine
 		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
 		EATypeFactory tf = EATypeFactory.factory;
 
-		ex1(lf, pf, rf, tf);
-		//ex2(lf, pf, rf, tf);
+		//ex1(lf, pf, rf, tf);
+		ex2(lf, pf, rf, tf);
 		//ex4(lf, pf, rf, tf);
 		//ex5(lf, pf, rf, tf);
 
@@ -1027,37 +1027,41 @@ public class EACommandLine extends CommandLine
 	//*
 	private static void ex2(
 			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+
 		Role A = new Role("A");
 		Role B = new Role("B");
-		Op l1 = new Op("l1");
-		Op l2 = new Op("l2");
-		EAPUnit unit = pf.unit();
 		EAPSid s = rf.sid("s");
 		EAPPid p1 = rf.pid("p1");
 		EAPPid p2 = rf.pid("p2");
 		EAPVar x = pf.var("x");
+		/*Op l1 = new Op("l1");
+		Op l2 = new Op("l2");
+		EAPUnit unit = pf.unit();*/
 
-		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+		/*LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out2 = tf.local.out(B, cases);
 		cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
-		EALOutType out1 = tf.local.out(B, cases);
+		EALOutType out1 = tf.local.out(B, cases);*/
+		EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).B!{l2(1).end}}");
 
-		cases = new LinkedHashMap<>();
+		/*cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALInType in2 = tf.local.in(A, cases);
 		cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), in2));
-		EALInType in1 = tf.local.in(A, cases);
+		EALInType in1 = tf.local.in(A, cases);*/
+		EALInType in1 = (EALInType) parseSessionType("A?{l1(1).A?{l2(1).end}}");
 
 		// ---
 
 		// let x = B!l1() in B!l2()
-		EAPSend sendAB1 = pf.send(B, l1, unit);
+		/*EAPSend sendAB1 = pf.send(B, l1, unit);
 		EAPSend sendAB2 = pf.send(B, l2, unit);
 
-		EAPLet let = pf.let(x, tf.val.unit(), sendAB1, sendAB2);
+		EAPLet let = pf.let(x, tf.val.unit(), sendAB1, sendAB2);*/
+		EAPLet let = (EAPLet) parse("let x: 1 <= B!l1(()) in B!l2(())");
 
 		System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
 
@@ -1072,9 +1076,9 @@ public class EACommandLine extends CommandLine
 
 		// ----
 
-		// idle, s[B] |-> handler A { l1(x) -> suspend(l2(x) -> return () ) }
-		LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
 		EAPIdle idle = rf.idle();
+		// idle, s[B] |-> handler A { l1(x) -> suspend(l2(x) -> return () ) }
+		/*LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
 		EAPReturn ret = pf.returnn(pf.unit());
 		EAPHandler hB2 = pf.handler(l2, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l2, hB2);
@@ -1085,7 +1089,10 @@ public class EACommandLine extends CommandLine
 		// l1 -> (x, continuation)
 		EAPHandler hB1 = pf.handler(l1, x, tf.val.unit(), sus, in2);
 		Hs.put(l1, hB1);
-		EAPHandlers hsB1 = pf.handlers(A, Hs);
+		EAPHandlers hsB1 = pf.handlers(A, Hs);*/
+		EAPHandlers hsB1 = (EAPHandlers) parseV(
+				"handler A { l1(x: 1): A?{l2(1).end} ->"
+						+ "suspend (handler A { l2(x: 1): end -> return ()) }) }");
 
 		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
 		map.put(x, tf.val.unit());
@@ -1129,10 +1136,10 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		sys = sys.reduce(p1);
 		System.out.println(sys);
-		env.put(new EAPPair<>(s, A), out2);
+		/*env.put(new EAPPair<>(s, A), out2);
 		env.put(new EAPPair<>(s, B), in2);
 		System.out.println(env);
-		//sys.type(new Gamma(), new Delta(), new Delta(env));
+		//sys.type(new Gamma(), new Delta(), new Delta(env));*/
 		sys.type(new Gamma(), new Delta());
 
 		sys = sys.reduce(p1);
@@ -1253,8 +1260,6 @@ public class EACommandLine extends CommandLine
 		System.out.println(sys);*/
 	}
 	//*/
-
-
 
 
 }

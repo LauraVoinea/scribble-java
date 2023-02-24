@@ -25,7 +25,7 @@ public class EAPHandler {
     @NotNull public final EAPVar var;
     @NotNull public final EAValType varType;  // !!! added type annots
     @NotNull public final EAPExpr expr;
-    @NotNull public final EALType pre;  // For the handler expr (i.e., excl. the handler input itself)
+    @NotNull public final EALType pre;  // For the handler expr (i.e., doesn't include the handler input itself)
 
     protected EAPHandler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
                          @NotNull EAPExpr expr, @NotNull EALType pre) {
