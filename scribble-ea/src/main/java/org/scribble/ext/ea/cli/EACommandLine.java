@@ -27,6 +27,7 @@ import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -1248,8 +1249,8 @@ public class EACommandLine extends CommandLine
 	//*/
 
 	static void run(EAPSystem sys) {
-		for (Set<EAPPid> pids = sys.canStep(); !pids.isEmpty(); pids = sys.canStep()) {
-			sys = sys.reduce(pids.iterator().next());
+		for (Map<EAPPid, Set<EAPPid>> pids = sys.canStep(); !pids.isEmpty(); pids = sys.canStep()) {
+			sys = sys.reduce(pids.keySet().iterator().next());
 			System.out.println();
 			System.out.println(sys);
 			sys.type(new Gamma(), new Delta());

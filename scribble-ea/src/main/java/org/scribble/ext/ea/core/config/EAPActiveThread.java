@@ -64,6 +64,13 @@ public class EAPActiveThread implements EAPThreadState {
         throw new RuntimeException("Unknown foo: "+ foo);
     }
 
+    // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
+    // Pre: getFoo + foo OK -- TODO optimise away getFoo
+    public Pair<Boolean, Set<EAPPid>> step(EAPSystem sys) {
+        EAPExpr foo = this.expr.getFoo();
+        return null;
+    }
+
     // [TT-Sess]
     @Override
     public void type(Gamma gamma, Delta delta) {

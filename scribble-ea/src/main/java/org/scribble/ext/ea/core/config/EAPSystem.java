@@ -74,10 +74,13 @@ public class EAPSystem {
         return collect;
     }*/
 
-    public Set<EAPPid> canStep() {
+    public Map<EAPPid, Set<EAPPid>> canStep() {
         return this.configs.entrySet().stream()
                 .filter(x -> x.getValue().canStep(this).left)
-                .map(Map.Entry::getKey).collect(Collectors.toSet());
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().canStep(this).right
+                ));
     }
 
     // Pre: p \in getReady ?
