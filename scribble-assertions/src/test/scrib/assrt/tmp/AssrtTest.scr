@@ -28,6 +28,17 @@ global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
 }
 //*/
 
+//HERE HERE more testing of sessionstar example RCAs -> tempRunSyncSat global validation (check status of global LTS)
+
+/*
+global protocol Proto1(role A, role B, role C, role D) {
+    // !!! A->B.C->D != C->D.A->B ? -- because of phantom knowledge
+    Fst(x: int) from A to B;
+    Snd(y: int) from B to C;   //@'x = y'
+    Trd(z : int) from C to D;  @'x = z'
+}
+//*/
+
 
 //*
 global protocol Proto1(role A, role B, role C) {
@@ -36,7 +47,8 @@ global protocol Proto1(role A, role B, role C) {
   do HLLimitAux(A, B, C);     @'B[n, t]'
 }
 
-aux global protocol HLLimitAux(role A, role B, role C) @'B[n1: int = 0, t1: int = 1] 0<=n1 && n1<100 && t1>0' {
+aux global protocol HLLimitAux(role A, role B, role C)
+        @'B[n1: int = 0, t1: int = 1] 0<=n1 && n1<100 && t1>0' {
   guess(x:int) from C to B;  @'0<=x && x<100'  // Added this refinement
   choice at B {
     higher() from B to C;    @'n1>x && t1>1'

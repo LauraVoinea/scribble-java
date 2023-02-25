@@ -16,6 +16,7 @@ package org.scribble.ext.assrt.core.job;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreContext;
@@ -120,7 +121,8 @@ public class AssrtCore extends Core
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
 
-		//tempRunSyncSat();  // XXX HERE global model building
+		//tempRunSyncSat();  // XXX HERE HERE global model building
+
 		foo();
 	}
 
@@ -147,6 +149,15 @@ public class AssrtCore extends Core
 					// make finite graph and do RCA translation
 
 					Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = new LinkedHashMap<>();
+
+					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs1 = p.fastforwardEnters(lam, new AssrtRho());
+					if (ffs1.size() != 1) {
+						throw new RuntimeException("FIXME: " + ffs1);
+					}
+					Pair<AssrtLambda, AssrtFormalLType> ff1 = ffs1.iterator().next();
+					lam = ff1.left;
+					p = ff1.right;
+
 					estepper(lam, rho, p, graph);
 
 					System.out.println("eee1: ");
@@ -160,7 +171,10 @@ public class AssrtCore extends Core
 					RCA rca = new RCA();
 					System.out.println("fff1: " + lam + " ,, " + p);
 					Pair<AssrtLambda, AssrtFormalLType> init = new Pair<>(lam, p);
-					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = init.right.fastforwardEnters(init.left, new AssrtRho());
+
+					//Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = init.right.fastforwardEnters(init.left, new AssrtRho());
+					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = Stream.of(init).collect(Collectors.toSet());  // !!! FIXME temporary patching
+
 					if (ffs.size() != 1) {
 						throw new RuntimeException("FIXME: " + ffs);
 					}
@@ -235,7 +249,7 @@ public class AssrtCore extends Core
 					 Pair<AssrtLambda, AssrtFormalLType> n,
 					 RCAState s1, AssrtFormalLComm a, RCAState s2, RCA res) {
 
-		System.out.println("ggggg: " + s1 + " ,, " + a);
+		System.out.println("ggggg: " + s1 + " ,, " + a + " ,, " + AssrtUtil.pairToString(n));
 
 		if (res.S.contains(s2)) {
 			return;
