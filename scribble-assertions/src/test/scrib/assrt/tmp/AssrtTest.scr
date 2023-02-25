@@ -31,6 +31,9 @@ global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
 //HERE HERE more testing of sessionstar example RCAs -> tempRunSyncSat global validation (check status of global LTS)
 
 
+// HERE HERE move all lambdas to silents on concretes and start from blank lambda
+//({x=(ZERO, int)}, B?{ 4(y1:int){True}.end, 5(y2:int){True}.end })
+//({z1=(ZERO, int)}, B?:3(z2:int){True}.end)
 
 global protocol Proto1(role A, role B, role C) {
     choice at A {

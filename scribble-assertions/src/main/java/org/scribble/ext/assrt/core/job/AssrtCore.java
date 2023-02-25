@@ -44,15 +44,14 @@ import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGType;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtPhi;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtLambda;
-import org.scribble.ext.assrt.core.type.formal.local.AssrtRho;
+import org.scribble.ext.assrt.core.type.formal.local.*;
 import org.scribble.ext.assrt.core.type.formal.local.action.*;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
 import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
 import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
@@ -152,7 +151,7 @@ public class AssrtCore extends Core
 
 					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs1 = p.fastforwardEnters(lam, new AssrtRho());
 					if (ffs1.size() != 1) {
-						throw new RuntimeException("FIXME: " + ffs1);
+						throw new RuntimeException("FIXME: " + ffs1.stream().map(x -> AssrtUtil.pairToString(x)).collect(Collectors.joining("\n")));
 					}
 					Pair<AssrtLambda, AssrtFormalLType> ff1 = ffs1.iterator().next();
 					lam = ff1.left;
@@ -193,6 +192,90 @@ public class AssrtCore extends Core
 			}
 		}
 	}
+
+	Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>
+	flattenInits(Set<Pair<Pair<AssrtLambda, AssrtFormalLType>,
+			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>> inits) {
+		Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>
+				res = new LinkedHashMap<>();
+
+		final boolean branch;
+		AssrtFormalLAction fst = inits.iterator().next().right.entrySet().iterator().next().getValue().keySet().iterator().next();
+		if (fst instanceof AssrtFormalLReceive) {
+			branch = true;
+		} else if (fst instanceof AssrtFormalLSend) {
+			branch = false;
+		} else {
+			throw new RuntimeException("Unexpected: " + fst);
+		}
+		if (inits.stream().anyMatch(x -> x.right.values().stream().anyMatch(y ->
+				y.keySet().stream().anyMatch(z -> branch ? !(z instanceof AssrtFormalLReceive) : !(z instanceof  AssrtFormalLSend))))) {
+			throw new RuntimeException("Cannot flatten: " + inits);
+		}
+
+		Op DUMMY = new Op("DUMMY");
+
+		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> flat = new LinkedHashMap<>();
+		for (Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>> init : inits) {
+
+			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = init.right;
+			Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = graph.get(init.left);
+
+			//AssrtLambda lam = succ.getKey().left;
+			AssrtLambda lam = init.left.left;
+
+			// remake each action with prepend graph.lambda -- FIXME loop over whole graph, fix init actions and copy over rest to master -- !!! need to also FIX recursive edges to init
+			for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> e : as.entrySet()) {
+				AssrtFormalLDerivedAction a = (AssrtFormalLDerivedAction) e.getKey();
+				for (Map.Entry<AssrtVar, Pair<Multiplicity, DataName>> p : lam.map.entrySet()) {  // FIXME: do in reverse order
+
+					AssrtVar v = p.getKey();
+					Pair<Multiplicity, DataName> q = p.getValue();
+
+					// HERE HERE lambda needs assertions...  CHECKME does AssrtLEpsilon put vars in AssrtMsg pay or phantoms?  (probably pay?)
+
+					List<AssrtAnnotDataName> pay = Stream.of(new AssrtAnnotDataName(v, q.right)).collect(Collectors.toList());
+					a = a.prependSilent(new AssrtMsg(DUMMY, pay, AssrtTrueFormula.TRUE, null, null));  // XXX !!! FIXME assertion
+				}
+
+				flat.put(a, e.getValue());
+			}
+		}
+
+		// build new init L from flat as
+		//...
+
+		// copy all non init graph edges to res master graph
+		//...
+
+		// return new common init (empty lam, new L) and new master graph
+		//...
+
+		return null;
+	}
+
+	/*// A kind of "merge"?  XXX cannot do syntactically, point of L is silent is explicitly distinguished from non-silent, so cannot "squash" syntactically -> build subgraphs for each init and join the graphs to a fresh init node with silents added to graph actions
+	private Pair<AssrtLambda, AssrtFormalLType> flattenInit(Set<Pair<AssrtLambda, AssrtFormalLType>> init) {
+		LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> tmp = new LinkedHashMap<>();
+		Boolean branch = null;
+		for (Pair<AssrtLambda, AssrtFormalLType> p : init) {
+			if (p.right instanceof AssrtFormalLBranch) {
+				if (branch == null) {
+					branch = true;
+				} else if (!branch) {
+					throw new RuntimeException("Couldn't flatten: " + init);
+				}
+				AssrtFormalLBranch cast = (AssrtFormalLBranch) p.right;
+				for (Map.Entry<Op, Pair<AssrtMsg, AssrtFormalLType>> e : cast.cases.entrySet()) {
+
+				}
+			} else if (p.right instanceof AssrtFormalLSelect) {
+
+			} else {
+				throw new RuntimeException("Shouldn't get in here: " + init);
+			}
+		}
+	}*/
 
 	private void stepper(AssrtLambda lam, AssrtFormalLType t) {
 		System.out.println("ccc: " + lam + " ,, " + t);
