@@ -31,13 +31,18 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
 			int size = pay.size();
-			if (size > 1) {
+			/*if (size > 1) {
 				throw new RuntimeException("Shouldn't get here: " + pay);
-			} else if (size == 1) {
-				AssrtAnnotDataName d = pay.get(0);
-				if (lambda.canAdd(d.var, Multiplicity.ZERO, d.data)) {
-					res.add(new AssrtFormalLEpsilon(x.left));
+			} else if (size == 1) {*/
+			if (size >= 1) {  // Now subsumes 0 case
+				Optional<AssrtLambda> tmp = Optional.of(lambda);
+				for (AssrtAnnotDataName d : pay) {
+					 tmp = tmp.get().add(d.var, Multiplicity.ZERO, d.data);
+					 if (!tmp.isPresent()) {
+						 return Collections.emptySet();
+					 }
 				}
+				res.add(new AssrtFormalLEpsilon(x.left));
 			} else { // size == 0
 				res.add(new AssrtFormalLEpsilon(x.left));
 			}
@@ -57,15 +62,21 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 		}
 		List<AssrtAnnotDataName> pay = cast.msg.pay;
 		int size = pay.size();
-		if (size > 1) {
+		/*if (size > 1) {
 			throw new RuntimeException("TODO " + this + " ,, " + a);
-		} else {
+		} else(*/ {
 			AssrtLambda next;
-			if (size == 1) {
-				AssrtAnnotDataName d = pay.get(0);
-				Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.ZERO, d.data);
-				if (!add.isPresent()) {
-					return Optional.empty();
+			//if (size == 1) {
+				if (size >= 1) {  // Now probably subsumes 0 case below
+				//AssrtAnnotDataName d = pay.get(0);
+				//Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.ZERO, d.data);
+				Optional<AssrtLambda> add = Optional.of(lambda);
+				for (AssrtAnnotDataName d1 : pay) {
+					add = add.get().add(d1.var, Multiplicity.ZERO, d1.data);
+					if (!add.isPresent()) {
+						//throw new RuntimeException("Precondition violated: " + a);
+						return Optional.empty();
+					}
 				}
 				next = add.get();
 			} else {

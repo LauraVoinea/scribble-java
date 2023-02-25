@@ -27,14 +27,23 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 		for (Pair<AssrtMsg, AssrtFormalLType> x : this.cases.values()) {
 			List<AssrtAnnotDataName> pay = x.left.pay;
 			int size = pay.size();
-			if (size > 1) {
+			/*if (size > 1) {
 				throw new RuntimeException("Shouldn't get here: " + x.left);
 			}
-			else if (size == 1) {
-				AssrtAnnotDataName d = pay.get(0);
-				if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {
+			else if (size == 1) {*/
+			if (size >= 1) {  // Now probably subsumes 0 case below
+				/*AssrtAnnotDataName d = pay.get(0);
+				if (lambda.canAdd(d.var, Multiplicity.OMEGA, d.data)) {  // !!! CHECKME OMEGA or ZERO ?
 					res.add(lf.receive(this.peer, x.left));
+				}*/
+				Optional<AssrtLambda> tmp = Optional.of(lambda);
+				for (AssrtAnnotDataName d : pay) {
+					tmp = tmp.get().add(d.var, Multiplicity.ZERO, d.data);
+					if (!tmp.isPresent()) {
+						return Collections.emptySet();
+					}
 				}
+				res.add(lf.receive(this.peer, x.left));
 			} else { // size == 0
 				res.add(lf.receive(this.peer, x.left));
 			}
@@ -58,22 +67,31 @@ public class AssrtFormalLBranch extends AssrtFormalLChoice {
 		}
 		List<AssrtAnnotDataName> pay = cast.msg.pay;
 		int size = pay.size();
-		if (size > 1) {
+		/*if (size > 1) {
 			throw new RuntimeException("TODO " + this + " ,, " + a);
-		} else {
-			AssrtLambda next;
-			if (size == 1) {
-				AssrtAnnotDataName d = pay.get(0);
+		} else {*/
+			AssrtLambda next = lambda;
+			//if (size == 1) {
+				/*AssrtAnnotDataName d = pay.get(0);
 				Optional<AssrtLambda> add = lambda.add(d.var, Multiplicity.OMEGA, d.data);
 				if (!add.isPresent()) {
 					return Optional.empty();
 				}
-				next = add.get();
+				next = add.get();*/
+			if (size >= 1) {  // Now probably subsumes 0 case below
+				//AssrtAnnotDataName d = pay.get(0);
+				for (AssrtAnnotDataName d : pay) {
+					Optional<AssrtLambda> add = next.add(d.var, Multiplicity.OMEGA, d.data);
+					if (!add.isPresent()) {
+						return Optional.empty();
+					}
+					next = add.get();
+				}
 			} else {
 				next = lambda;
 			}
 			return Optional.of(new Pair<>(next, this.cases.get(cast.msg.op).right));
-		}
+		//}
 	}
 
 	@Override
