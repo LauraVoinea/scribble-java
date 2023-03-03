@@ -29,6 +29,9 @@ public class EAPActiveThread implements EAPThreadState {
     }
 
     // Pid set for init later
+    //
+    // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
+    // Maybe refactor canStep to EAPConfig
     public Pair<Boolean, Set<EAPPid>> canStep(EAPSystem sys) {
         EAPExpr foo = this.expr.getFoo();
         // top-level return ()
@@ -44,7 +47,7 @@ public class EAPActiveThread implements EAPThreadState {
                     sys.configs.entrySet().stream().filter(x ->
                             x.getValue().sigma.keySet().stream().anyMatch(y ->
                                     y.left.equals(this.sid) && y.right.equals(cast.dst)
-                            && x.getValue().sigma.get(y).role.equals(this.role))
+                                            && x.getValue().sigma.get(y).role.equals(this.role))
                     ).findFirst();
             if (fst.isPresent()) {
                 EAPPid key = fst.get().getKey();
@@ -61,14 +64,7 @@ public class EAPActiveThread implements EAPThreadState {
         else if (foo instanceof EAPApp || foo instanceof EAPLet) {
             return new Pair<>(foo.canBeta(), Collections.emptySet());
         }
-        throw new RuntimeException("Unknown foo: "+ foo);
-    }
-
-    // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
-    // Pre: getFoo + foo OK -- TODO optimise away getFoo
-    public Pair<Boolean, Set<EAPPid>> step(EAPSystem sys) {
-        EAPExpr foo = this.expr.getFoo();
-        return null;
+        throw new RuntimeException("Unknown foo: " + foo);
     }
 
     // [TT-Sess]

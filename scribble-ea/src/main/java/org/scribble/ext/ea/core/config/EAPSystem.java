@@ -94,23 +94,28 @@ public class EAPSystem {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
 
-        // HERE HERE
-        // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
-        // maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
-        // step annots
-
-
         EAPExpr foo = t.expr.getFoo();
         if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn
                 || foo instanceof EAPSend || foo instanceof EAPApp || foo instanceof EAPLet)) {
             throw new RuntimeException("TODO: " + foo);
         }
 
+        System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
+
+        if (foo instanceof EAPSuspend || foo instanceof EAPReturn
+                || foo instanceof EAPApp || foo instanceof EAPLet) {  // TODO refactor EAPSend to config step also
+            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
+            return new EAPSystem(this.lf, this.annots, configs);
+        }
+
+        // HERE HERE -- refactor remaining EAPSend reduction to EAPConfig -> refactor config step to separate case by case actions
+        // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
+        // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
+        // step annots -- only for EAPSend
+
         //EAPSystem res = new EAPSystem(this.configs);
         LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(this.configs);
         LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
-
-        System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 
         EAPThreadState t1;
         if (foo instanceof EAPSend) {
@@ -160,28 +165,11 @@ public class EAPSystem {
             l1 = opt1.get();
             dmap.put(k1, l1);
 
-        } else if (foo instanceof EAPSuspend || foo instanceof EAPReturn) {
-            if (t.expr.equals(foo)) {  // top level
-                t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
-            } else {
-                //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
-                throw new RuntimeException("Shouldn't get in here");
-            }
-        } else if (foo instanceof EAPApp || foo instanceof EAPLet){
-            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
         } else {
             throw new RuntimeException("TODO: " + foo);
         }
 
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
-        if (foo instanceof EAPSuspend) {
-            EAPSuspend cast = (EAPSuspend) foo;
-            sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
-        } else if (foo instanceof EAPSend || foo instanceof EAPReturn || foo instanceof EAPApp || foo instanceof EAPLet) {
-            // skip
-        } else {
-            throw new RuntimeException("TODO: " + foo);
-        }
 
         EAPConfig c1 = EAPRuntimeFactory.factory.config(c.pid, t1, sigma1);
         //res.configs.put(p, c1);

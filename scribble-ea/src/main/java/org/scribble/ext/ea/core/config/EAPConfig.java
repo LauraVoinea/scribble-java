@@ -21,9 +21,12 @@ import java.util.stream.Collectors;
 // cf. T-Actor
 public class EAPConfig implements EAPRuntimeTerm {
 
-    @NotNull public final EAPPid pid;
-    @NotNull public final EAPThreadState T;
-    @NotNull public final Map<Pair<EAPSid, Role>, EAPHandlers> sigma;  // !!! handlers specifically
+    @NotNull
+    public final EAPPid pid;
+    @NotNull
+    public final EAPThreadState T;
+    @NotNull
+    public final Map<Pair<EAPSid, Role>, EAPHandlers> sigma;  // !!! handlers specifically
 
     protected EAPConfig(@NotNull EAPPid pid,
                         @NotNull EAPThreadState T,
@@ -44,6 +47,75 @@ public class EAPConfig implements EAPRuntimeTerm {
         return ((EAPActiveThread) this.T).canStep(sys);
     }
 
+    // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
+    // Pre: getFoo + foo OK -- cf. EAPActiveThread.canStep -- TODO optimise away getFoo
+    // cf. EAPActiveThread.canStep
+    public LinkedHashMap<EAPPid, EAPConfig> step(EAPSystem sys) {
+        if (!(this.T instanceof EAPActiveThread)) {
+            throw new RuntimeException("Shouldn't get here: ");
+        }
+        EAPActiveThread t = (EAPActiveThread) this.T;
+        EAPExpr foo = t.expr.getFoo();
+
+        // TODO refactor separate case by case (rather than grouping thread/sigma/config creation)
+
+        // top-level return ()
+        if (foo instanceof EAPReturn) {
+            if (t.expr.equals(foo)) {  // top level
+                LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+                LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+
+                EAPThreadState t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
+                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+                //res.configs.put(p, c1);
+                configs.put(this.pid, c1);
+                return configs;
+            } else {
+                //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+                throw new RuntimeException("Shouldn't get in here");
+            }
+        } else if (foo instanceof EAPSend) {
+            throw new RuntimeException("TODO");
+        }
+        // Other non-beta cases
+        else if (foo instanceof EAPSuspend) {
+            if (t.expr.equals(foo)) {  // top level
+                LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+                LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+
+                EAPThreadState t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
+                EAPSuspend cast = (EAPSuspend) foo;
+                sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
+                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+                configs.put(this.pid, c1);
+                return configs;
+            } else {
+                //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+                throw new RuntimeException("Shouldn't get in here");
+            }
+        }
+        // LiftM beta cases
+        else if (foo instanceof EAPApp || foo instanceof EAPLet) {
+            LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+
+            EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+            configs.put(this.pid, c1);
+            return configs;
+        } /*else if (foo instanceof EAPLet) {
+            LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+
+            EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+            configs.put(this.pid, c1);
+            return configs;
+        }*/ else {
+            throw new RuntimeException("TODO: " + foo);
+        }
+    }
+
     public LinkedHashSet<Pair<EAPSid, Role>> getEndpoints() {
         LinkedHashSet<Pair<EAPSid, Role>> res = new LinkedHashSet<>();
         if (!this.T.isIdle()) {
@@ -61,7 +133,7 @@ public class EAPConfig implements EAPRuntimeTerm {
     public void type(Gamma gamma, Delta delta) {
         LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>();
         if (this.T instanceof EAPActiveThread) { // !!! CHECKME
-            EAPActiveThread at = (EAPActiveThread)  this.T;
+            EAPActiveThread at = (EAPActiveThread) this.T;
             Pair<EAPSid, Role> k = new EAPPair<>(at.sid, at.role);
             if (!delta.map.containsKey(k)) {
                 throw new RuntimeException("Unknown endpoint: " + k + " ,, " + delta.map);

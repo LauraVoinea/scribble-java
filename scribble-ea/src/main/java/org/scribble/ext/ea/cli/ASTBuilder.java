@@ -93,8 +93,6 @@ class ASTBuilder {
         EALType stype = visitSessionType((CommonTree) n.getChild(3));
         EAPExpr expr = visitM((CommonTree) n.getChild(4));
         return pf.handler(op, var, varType, expr, stype);
-
-        // HERE HERE fix "end" session type placeholder
     }
 
     public EAValType visitValType(CommonTree n) {
