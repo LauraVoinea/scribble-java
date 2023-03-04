@@ -183,7 +183,12 @@ public class AssrtCore extends Core
 						throw new RuntimeException("FIXME: " + ffs);
 					}*/
 					Pair<AssrtLambda, AssrtFormalLType> ff = init; //ffs.iterator().next();
-					rca(new HashMap<>(), graph, ff, null, null, RCAState.fresh(), rca);
+
+					Map<RecVar, RCAState> P0 = new HashMap<>();
+					RCAState s0 = RCAState.fresh();
+					rhomap.keySet().forEach(x -> P0.put(x, s0));
+
+					rca(P0, graph, ff, null, null, s0, rca);
 
 					System.out.println("eee2: ");
 					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> ee : graph.entrySet()) {
@@ -198,7 +203,7 @@ public class AssrtCore extends Core
 		}
 	}
 
-	/*
+	//*
 	Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>
 	flattenInits(Set<Pair<Pair<AssrtLambda, AssrtFormalLType>,
 			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>> inits) {
@@ -261,15 +266,20 @@ public class AssrtCore extends Core
 			}
 		}
 
-		// build new init L from toFlat a's -> make new init for res "master"
-		//...
+		// build new init L from toFlat (concrete) a's -> make new init for res "master"
+		Set<AssrtFormalLAction> tmp = toFlat.keySet();
+		AssrtFormalLAction chk = tmp.iterator().next();
+		if (tmp.stream().anyMatch(x -> !x.getClass().equals(chk.getClass()))) {
+			throw new RuntimeException("Shouldn't get in here: " + tmp);
+		}
+
 
 		// return new common init (empty lam, new L) and new master graph
 		//...
 
 		return null;
 	}
-	 */
+	//*/
 
 	/*// A kind of "merge"?  XXX cannot do syntactically, point of L is silent is explicitly distinguished from non-silent, so cannot "squash" syntactically -> build subgraphs for each init and join the graphs to a fresh init node with silents added to graph actions
 	private Pair<AssrtLambda, AssrtFormalLType> flattenInit(Set<Pair<AssrtLambda, AssrtFormalLType>> init) {
