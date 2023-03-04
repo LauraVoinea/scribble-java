@@ -35,7 +35,7 @@ global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
 //({x=(ZERO, int)}, B?{ 4(y1:int){True}.end, 5(y2:int){True}.end })
 //({z1=(ZERO, int)}, B?:3(z2:int){True}.end)
 
-//*
+/*
 global protocol Proto1(role A, role B, role C) {
     choice at A {
         1(x: int) from A to B;
@@ -62,7 +62,7 @@ global protocol Proto1(role A, role B, role C, role D) {
 //*/
 
 
-/*
+//*
 global protocol Proto1(role A, role B, role C) {
   start(n:int) from A to B;  @'0<=n && n<100'
   limit(t:int) from A to B;  @'t>0'

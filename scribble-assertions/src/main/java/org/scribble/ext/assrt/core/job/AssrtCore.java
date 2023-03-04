@@ -149,46 +149,53 @@ public class AssrtCore extends Core
 					Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = new LinkedHashMap<>();
 
 					Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> ffs1 = p.fastforwardEnters(lam, new AssrtRho());
-					if (ffs1.size() != 1) {
+					/*if (ffs1.size() != 1) {
 						throw new RuntimeException("FIXME: " + ffs1.stream().map(x -> AssrtUtil.tripleToString(x)).collect(Collectors.joining("\n")));
 					}
-					Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>> ff1 = ffs1.iterator().next();
-					lam = ff1.left;
-					p = ff1.middle;
+					Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>> ff1 = ffs1.iterator().next();*/
+					Set<RCA> toFlatten = new HashSet<>();
+					for (Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>> ff1 : ffs1) {
+						lam = ff1.left;
+						p = ff1.middle;
 
-					LinkedHashMap<RecVar, Pair<AssrtLambda, AssrtFormalLType>> rhomap = new LinkedHashMap<>();
-					//ff1.right.forEach(x -> rhomap.put(x, new Pair<>(lam, p)));
-					for (RecVar rv : ff1.right) {
-						rhomap.put(rv, new Pair<>(lam, p));
-					}
-					AssrtRho rho = new AssrtRho(rhomap);
+						LinkedHashMap<RecVar, Pair<AssrtLambda, AssrtFormalLType>> rhomap = new LinkedHashMap<>();
+						//ff1.right.forEach(x -> rhomap.put(x, new Pair<>(lam, p)));
+						for (RecVar rv : ff1.right) {
+							rhomap.put(rv, new Pair<>(lam, p));
+						}
+						AssrtRho rho = new AssrtRho(rhomap);
 
-					estepper(lam, rho, p, graph);
+						estepper(lam, rho, p, graph);
 
-					System.out.println("eee1: ");
-					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> f : graph.entrySet()) {
-						Pair<AssrtLambda, AssrtFormalLType> k = f.getKey();
-						Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> v = f.getValue();
-						System.out.println(AssrtUtil.pairToString(k) + " ,, " +
-								v.entrySet().stream().map(x -> x.getKey() + " -> " + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(" ,, ")));
-					}
+						System.out.println("eee1: ");
+						for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> f : graph.entrySet()) {
+							Pair<AssrtLambda, AssrtFormalLType> k = f.getKey();
+							Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> v = f.getValue();
+							System.out.println(AssrtUtil.pairToString(k) + " ,, " +
+									v.entrySet().stream().map(x -> x.getKey() + " -> " + AssrtUtil.pairToString(x.getValue())).collect(Collectors.joining(" ,, ")));
+						}
 
-					RCA rca = new RCA();
-					System.out.println("fff1: " + lam + " ,, " + p);
-					Pair<AssrtLambda, AssrtFormalLType> init = new Pair<>(lam, p);
+						System.out.println("fff1: " + lam + " ,, " + p);
+						Pair<AssrtLambda, AssrtFormalLType> init = new Pair<>(lam, p);
 
 					/*Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = Stream.of(init).collect(Collectors.toSet());  // temp hack...
 
 					if (ffs.size() != 1) {
 						throw new RuntimeException("FIXME: " + ffs);
 					}*/
-					Pair<AssrtLambda, AssrtFormalLType> ff = init; //ffs.iterator().next();
+						Pair<AssrtLambda, AssrtFormalLType> ff = init; //ffs.iterator().next();
 
-					Map<RecVar, RCAState> P0 = new HashMap<>();
-					RCAState s0 = RCAState.fresh();
-					rhomap.keySet().forEach(x -> P0.put(x, s0));
+						RCAState s0 = RCAState.fresh();
+						RCA rca = new RCA(s0);
+						Map<RecVar, RCAState> P0 = new HashMap<>();
+						rhomap.keySet().forEach(x -> P0.put(x, s0));
 
-					rca(P0, graph, ff, null, null, s0, rca);
+						rca(P0, graph, ff, null, null, s0, rca);
+						toFlatten.add(rca);
+					}
+
+					//Set<RCA> res = Stream.of(rca).collect(Collectors.toSet());
+					RCA rca = flattenInits(toFlatten);
 
 					System.out.println("eee2: ");
 					for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> ee : graph.entrySet()) {
@@ -203,7 +210,90 @@ public class AssrtCore extends Core
 		}
 	}
 
-	//*
+	Op DUMMY = new Op("DUMMY");
+
+	RCA flattenInits(Set<RCA> graphs) {
+		// Copy all non-init edges to res "master" graph, apart from recursive "continue" edges to original inits...
+		// build new init L from toFlat (concrete) a's -> make new init for res "master"
+		// return new common init (empty lam, new L) and new master graph
+
+		//Map<RCAState, Map<AssrtFormalLAction, RCAState>> delta
+		//Map<RCAState, AssrtLambda> sigma
+
+		RCAState s0 = RCAState.fresh();
+		RCA res = new RCA(s0);
+
+		Map<AssrtFormalLDerivedAction, RCAState> toFlat = new LinkedHashMap<>();  // !!! single a key OK between all init graphs?
+		Set<AssrtFormalLDerivedAction> toFlatSelf = new LinkedHashSet<>();
+		Set<Pair<RCAState, AssrtFormalLAction>> toCont = new LinkedHashSet<>();  // !!! Set "merge" of
+
+		for (RCA g : graphs) {
+			for (Map.Entry<RCAState, Map<AssrtFormalLAction, RCAState>> e : g.delta.entrySet()) {
+				RCAState n = e.getKey();
+				Map<AssrtFormalLAction, RCAState> as = e.getValue();
+				if (n.equals(g.init)) {
+					for (Map.Entry<AssrtFormalLAction, RCAState> aSucc : as.entrySet()) {
+						AssrtFormalLAction a = aSucc.getKey();
+						RCAState succ = aSucc.getValue();
+						AssrtFormalLDerivedAction d = (AssrtFormalLDerivedAction) a;
+						for (Map.Entry<AssrtVar, Pair<Multiplicity, DataName>> ee : g.sigma.get(g.init).map.entrySet()) {
+							AssrtVar v = ee.getKey();
+							Pair<Multiplicity, DataName> q = ee.getValue();
+							List<AssrtAnnotDataName> pay = Stream.of(new AssrtAnnotDataName(v, q.right)).collect(Collectors.toList());
+							d = d.prependSilent(new AssrtMsg(DUMMY, pay, AssrtTrueFormula.TRUE, null, null));  // XXX !!! FIXME assertion
+							// HERE lambda needs assertions...  CHECKME does AssrtLEpsilon put vars in AssrtMsg pay or phantoms?  (probably pay?)
+						}
+						if (succ.equals(g.init)) {  // cf. AssrtTest3, AssrtTest5
+							//throw new RuntimeException("Shouldn't get in here? " + aSucc);  // Init cycle not possible because always some initial lambda entry step?
+							toFlatSelf.add(d);
+						} else {
+							res.S.add(succ);  // succ is not g.init
+							res.sigma.put(succ, g.sigma.get(succ));
+							toFlat.put(d, succ);
+						}
+					}
+				} else {
+					res.S.add(n);  // n is not g.init
+					res.sigma.put(n, g.sigma.get(n));
+					for (Map.Entry<AssrtFormalLAction, RCAState> aSucc : as.entrySet()) {
+						AssrtFormalLAction a = aSucc.getKey();
+						RCAState succ = aSucc.getValue();
+						if (succ.equals(g.init)) {
+							toCont.add(new Pair<>(n, a));
+						} else {
+							res.S.add(succ);  // succ is not g.init
+							res.sigma.put(succ, g.sigma.get(succ));
+							Map<AssrtFormalLAction, RCAState> tmp
+									= res.delta.computeIfAbsent(n, k -> new LinkedHashMap<>());
+							tmp.put(a, succ);
+						}
+					}
+				}
+			}
+		}
+
+		Map<AssrtFormalLAction, RCAState> initD
+				= res.delta.computeIfAbsent(res.init, k -> new LinkedHashMap<>());
+		for (Map.Entry<AssrtFormalLDerivedAction, RCAState> e : toFlat.entrySet()) {
+			initD.put(e.getKey(), e.getValue());
+		}
+
+		for (AssrtFormalLDerivedAction d : toFlatSelf) {
+			initD.put(d, res.init);
+		}
+
+		for (Pair<RCAState, AssrtFormalLAction> p : toCont) {
+			Map<AssrtFormalLAction, RCAState> tmp
+					= res.delta.computeIfAbsent(p.left, k -> new LinkedHashMap<>());
+			tmp.put(p.right, res.init);
+		}
+
+		res.S.add(res.init);
+		res.sigma.put(res.init, new AssrtLambda());  // !!! unnecessary if flattening not needed (init lambda can be ff'd one)
+		return res;
+	}
+
+	/*
 	Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>
 	flattenInits(Set<Pair<Pair<AssrtLambda, AssrtFormalLType>,
 			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>> inits) {
@@ -400,27 +490,30 @@ public class AssrtCore extends Core
 			res.sigma.put(s2, tmp);
 
 		} else if (as.stream().anyMatch(x -> x instanceof AssrtFormalLContinue)) {
-			if (as.size() != 1)	{
+			/*if (as.size() != 1)	{
 				throw new RuntimeException("Shouldn't get here: " + as);
 			}
-			AssrtFormalLContinue k = (AssrtFormalLContinue) as.iterator().next();
+			AssrtFormalLContinue k = (AssrtFormalLContinue) as.iterator().next();*/
+			for (AssrtFormalLAction ak : as) {
+				AssrtFormalLContinue k = (AssrtFormalLContinue) ak;
 
-			if (s1 != null) {  // bootstrapping check
-				Map<AssrtFormalLAction, RCAState> tmp = res.delta.get(s1);
-				if (tmp == null) {
-					tmp = new HashMap<>();
-					res.delta.put(s1, tmp);
-				}
+				if (s1 != null) {  // bootstrapping check
+					Map<AssrtFormalLAction, RCAState> tmp = res.delta.get(s1);
+					if (tmp == null) {
+						tmp = new HashMap<>();
+						res.delta.put(s1, tmp);
+					}
 
-				//AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
-				AssrtFormalLComm a1 = a;
-				for (Map.Entry<AssrtVar, Pair<Multiplicity, AssrtAFormula>> e
-						: k.svars.entrySet()) {
-					a1 = a1.addStateUpdate(e.getKey(), e.getValue().right);
+					//AssrtFormalLComm a1 = a.addStateUpdate(k.svar, k.init);
+					AssrtFormalLComm a1 = a;
+					for (Map.Entry<AssrtVar, Pair<Multiplicity, AssrtAFormula>> e
+							: k.svars.entrySet()) {
+						a1 = a1.addStateUpdate(e.getKey(), e.getValue().right);
+					}
+					tmp.put(a1, P.get(k.recvar));
+				} else {
+					throw new RuntimeException("Shouldn't get in here? " + k);
 				}
-				tmp.put(a1, P.get(k.recvar));
-	 		} else {
-				throw new RuntimeException("Shouldn't get in here? " + k);
 			}
 
 		} else {  // AssrtFormalLComm only

@@ -16,8 +16,11 @@ public class RCA {
     public final Map<RCAState, Map<AssrtFormalLAction, RCAState>> delta;
     public final Map<RCAState, AssrtLambda> sigma;
 
-    public RCA() {
-        this.S = new HashSet<>();
+    public final RCAState init;
+
+    public RCA(RCAState init) {
+        this.S = new HashSet<>();  // !!! ...this.S empty when building starts (init gets added after -- also sigma(init))
+        this.init = init;
         this.delta = new LinkedHashMap<>();
         this.sigma = new LinkedHashMap<>();
     }
