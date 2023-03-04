@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
@@ -47,6 +48,7 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 				res.add(new AssrtFormalLEpsilon(x.left));
 			}
 		}
+
 		return res;
 	}
 
@@ -121,8 +123,8 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
-		LinkedHashSet<Pair<AssrtLambda, AssrtFormalLType>> res = new LinkedHashSet();
+	public Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		LinkedHashSet<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> res = new LinkedHashSet();
 		for (AssrtFormalLAction a : getIntermedSteppable(lambda, rho)) {  // Basically FormalSteppable (rho ignored)
 			AssrtFormalLEpsilon cast = (AssrtFormalLEpsilon) a;
 			Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> istep =
@@ -131,10 +133,33 @@ public class AssrtFormalLSilent extends AssrtFormalTypeBase
 				throw new RuntimeException("Shouldn't get here " + cast);
 			}
 			Triple<AssrtLambda, AssrtFormalLType, AssrtRho> p = istep.get();
-			res.addAll(p.middle.fastforwardEnters(p.left, p.right));  // "silents" dropped, cf. getExplicitSteppable
+			res.addAll(p.middle.fastforwardEnters(p.left, p.right));  // "silents" dropped (but collected via lambda), cf. getExplicitSteppable
 		}
 		return res;
 	}
+
+	/*@Override
+	public Pair<AssrtLambda, AssrtFormalLChoice> bootstrap() {
+		// ...bootstrap each L_i case -> gives lam_i and choice_i with concrete a's
+		// ...prepend all of lam_i and op_i to each of a's
+		// ...put all new a's in one big concrete choice
+		// ...return empty lam and new big choice
+
+		Map<Op, Pair<AssrtLambda, AssrtFormalLChoice>> bs
+				= this.cases.entrySet().stream().collect(Collectors.toMap(
+						Map.Entry::getKey,
+						x -> x.getValue().right.bootstrap(),
+						(x, y) -> null,
+						LinkedHashMap::new));
+
+		Map<Op, Pair<AssrtMsg, AssrtFormalLType>> cases = new LinkedHashMap<>();
+
+		for (Map.Entry<Op, Pair<AssrtLambda, AssrtFormalLChoice>> e : bs.entrySet()) {
+			Op op = e.getKey();
+			Pair<AssrtLambda, AssrtFormalLChoice> v = e.getValue();
+			// XXX action prepending is not a syntax thing
+		}
+	}*/
 
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(

@@ -110,7 +110,7 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+	public Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
 		throw new RuntimeException("Shouldn't get here");
 	}
 
@@ -119,6 +119,11 @@ public class AssrtFormalLRecVar extends AssrtFormalTypeBase
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);
 	}
+
+	/*@Override
+	public Pair<AssrtLambda, AssrtFormalLChoice> bootstrap() {
+		throw new RuntimeException("Shouldn't get here: " + this);
+	}*/
 
 	@Override
 	public String toString() {

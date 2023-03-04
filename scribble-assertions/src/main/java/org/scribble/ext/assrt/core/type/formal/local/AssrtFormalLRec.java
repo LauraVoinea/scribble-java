@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
 import org.scribble.core.type.name.DataName;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
@@ -8,7 +9,10 @@ import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLEnter;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
+import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
+import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
@@ -16,6 +20,7 @@ import org.scribble.util.Pair;
 import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // !!! Don't really need to separate silent and non-silent rec and recvar constructors -- and multiple state vars can be done in one step (cf. comm pay vars), the step is the rec(var), not the svars
 public class AssrtFormalLRec extends AssrtFormalTypeBase
@@ -143,7 +148,7 @@ public class AssrtFormalLRec extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+	public Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
 		Set<AssrtFormalLAction> imeds = getIntermedSteppable(lambda, rho);
 		if (imeds.size() != 1) { // Cf. getIntermedSteppable returns singleton
 			throw new RuntimeException("Shouldn't get in here");
@@ -154,8 +159,28 @@ public class AssrtFormalLRec extends AssrtFormalTypeBase
 			throw new RuntimeException("Shouldn't get in here");
 		}
 		Triple<AssrtLambda, AssrtFormalLType, AssrtRho> succ = opt.get();
-		return succ.middle.fastforwardEnters(succ.left, succ.right);
+		Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> res
+				= succ.middle.fastforwardEnters(succ.left, succ.right);
+		return res.stream().map(x ->
+				new Triple<>(
+						x.left,
+						x.middle,
+						Stream.concat(x.right.stream(), Stream.of(this.recvar)).collect(Collectors.toSet())
+				)).collect(Collectors.toSet());
 	}
+
+	/*@Override
+	public Pair<AssrtLambda, AssrtFormalLChoice> bootstrap() {
+		Pair<AssrtLambda, AssrtFormalLChoice> b = this.body.bootstrap();
+		AssrtLambda lam = b.left;
+		for (Map.Entry<AssrtVar, Triple<Multiplicity, DataName, AssrtAFormula>>
+				e : this.statevars.entrySet()) {  // !!! TODO reverse order
+			Triple<Multiplicity, DataName, AssrtAFormula> v = e.getValue();
+			lam = lam.add(e.getKey(), v.left, v.middle).get();  // !!! FIXME add assertion to lam
+		}
+		...
+		return new Pair<>(lam, b.right);  // XXX rec prefix lost... rec(var) doesn't make sense any more
+	}*/
 
 	@Override
 	public Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(

@@ -142,20 +142,26 @@ public class AssrtCore extends Core
 					System.out.println("\nbbb: " + r + " ,, " + p);
 
 					AssrtLambda lam = new AssrtLambda();
-					AssrtRho rho = new AssrtRho();
 					//stepper(lam, p);
 
 					// make finite graph and do RCA translation
 
 					Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = new LinkedHashMap<>();
 
-					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs1 = p.fastforwardEnters(lam, new AssrtRho());
+					Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> ffs1 = p.fastforwardEnters(lam, new AssrtRho());
 					if (ffs1.size() != 1) {
-						throw new RuntimeException("FIXME: " + ffs1.stream().map(x -> AssrtUtil.pairToString(x)).collect(Collectors.joining("\n")));
+						throw new RuntimeException("FIXME: " + ffs1.stream().map(x -> AssrtUtil.tripleToString(x)).collect(Collectors.joining("\n")));
 					}
-					Pair<AssrtLambda, AssrtFormalLType> ff1 = ffs1.iterator().next();
+					Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>> ff1 = ffs1.iterator().next();
 					lam = ff1.left;
-					p = ff1.right;
+					p = ff1.middle;
+
+					LinkedHashMap<RecVar, Pair<AssrtLambda, AssrtFormalLType>> rhomap = new LinkedHashMap<>();
+					//ff1.right.forEach(x -> rhomap.put(x, new Pair<>(lam, p)));
+					for (RecVar rv : ff1.right) {
+						rhomap.put(rv, new Pair<>(lam, p));
+					}
+					AssrtRho rho = new AssrtRho(rhomap);
 
 					estepper(lam, rho, p, graph);
 
@@ -171,13 +177,12 @@ public class AssrtCore extends Core
 					System.out.println("fff1: " + lam + " ,, " + p);
 					Pair<AssrtLambda, AssrtFormalLType> init = new Pair<>(lam, p);
 
-					//Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = init.right.fastforwardEnters(init.left, new AssrtRho());
-					Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = Stream.of(init).collect(Collectors.toSet());  // !!! FIXME temporary patching
+					/*Set<Pair<AssrtLambda, AssrtFormalLType>> ffs = Stream.of(init).collect(Collectors.toSet());  // temp hack...
 
 					if (ffs.size() != 1) {
 						throw new RuntimeException("FIXME: " + ffs);
-					}
-					Pair<AssrtLambda, AssrtFormalLType> ff = ffs.iterator().next();
+					}*/
+					Pair<AssrtLambda, AssrtFormalLType> ff = init; //ffs.iterator().next();
 					rca(new HashMap<>(), graph, ff, null, null, RCAState.fresh(), rca);
 
 					System.out.println("eee2: ");
@@ -193,11 +198,10 @@ public class AssrtCore extends Core
 		}
 	}
 
+	/*
 	Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>
 	flattenInits(Set<Pair<Pair<AssrtLambda, AssrtFormalLType>,
 			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>>> inits) {
-		Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>
-				res = new LinkedHashMap<>();
 
 		final boolean branch;
 		AssrtFormalLAction fst = inits.iterator().next().right.entrySet().iterator().next().getValue().keySet().iterator().next();
@@ -215,37 +219,49 @@ public class AssrtCore extends Core
 
 		Op DUMMY = new Op("DUMMY");
 
-		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> flat = new LinkedHashMap<>();
-		for (Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>> init : inits) {
+		// CHECKME: res Map will "merge" equal lam-ltype pairs from separate init graphs... -- cf. basic graph building based on lam-ltype pairs is already "merging"
+		Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> res = new LinkedHashMap<>();
+		Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> toFlat = new LinkedHashMap<>();  // !!! single a key OK between all init graphs?
+		Set<Pair<Pair<AssrtLambda, AssrtFormalLType>, AssrtFormalLAction>> toCont = new LinkedHashSet<>();  // !!! Set "merge" of
+		for (Pair<Pair<AssrtLambda, AssrtFormalLType>, Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>>> igraph : inits) {
 
-			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = init.right;
-			Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = graph.get(init.left);
+			Pair<AssrtLambda, AssrtFormalLType> init = igraph.left;
+			Map<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> graph = igraph.right;
 
-			//AssrtLambda lam = succ.getKey().left;
-			AssrtLambda lam = init.left.left;
-
-			// remake each action with prepend graph.lambda -- FIXME loop over whole graph, fix init actions and copy over rest to master -- !!! need to also FIX recursive edges to init
-			for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> e : as.entrySet()) {
-				AssrtFormalLDerivedAction a = (AssrtFormalLDerivedAction) e.getKey();
-				for (Map.Entry<AssrtVar, Pair<Multiplicity, DataName>> p : lam.map.entrySet()) {  // FIXME: do in reverse order
-
-					AssrtVar v = p.getKey();
-					Pair<Multiplicity, DataName> q = p.getValue();
-
-					// HERE HERE lambda needs assertions...  CHECKME does AssrtLEpsilon put vars in AssrtMsg pay or phantoms?  (probably pay?)
-
-					List<AssrtAnnotDataName> pay = Stream.of(new AssrtAnnotDataName(v, q.right)).collect(Collectors.toList());
-					a = a.prependSilent(new AssrtMsg(DUMMY, pay, AssrtTrueFormula.TRUE, null, null));  // XXX !!! FIXME assertion
+			for (Map.Entry<Pair<AssrtLambda, AssrtFormalLType>, Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>>> e : graph.entrySet()) {
+				Pair<AssrtLambda, AssrtFormalLType> n = e.getKey();
+				Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> as = e.getValue();
+				if (n.equals(init))	{
+					AssrtLambda iLam = n.left;
+					for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> aSucc : as.entrySet()) {
+						AssrtFormalLDerivedAction a = (AssrtFormalLDerivedAction) aSucc.getKey();
+						for (Map.Entry<AssrtVar, Pair<Multiplicity, DataName>> lamVar : iLam.map.entrySet()) {  // FIXME: do in reverse order
+							AssrtVar v = lamVar.getKey();
+							Pair<Multiplicity, DataName> q = lamVar.getValue();
+							List<AssrtAnnotDataName> pay = Stream.of(new AssrtAnnotDataName(v, q.right)).collect(Collectors.toList());
+							a = a.prependSilent(new AssrtMsg(DUMMY, pay, AssrtTrueFormula.TRUE, null, null));  // XXX !!! FIXME assertion
+								// HERE HERE lambda needs assertions...  CHECKME does AssrtLEpsilon put vars in AssrtMsg pay or phantoms?  (probably pay?)
+						}
+						toFlat.put(a, aSucc.getValue());
+					}
+				} else {
+					// Copy all non-init graph edges to res "master" graph, apart from recursive "continue" edges to original inits...
+					for (Map.Entry<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> aSucc : as.entrySet()) {
+						AssrtFormalLAction a = aSucc.getKey();
+						Pair<AssrtLambda, AssrtFormalLType> succ = aSucc.getValue();
+						if (succ.equals(init)) {
+							toCont.add(new Pair<>(n, a));
+						} else {
+							Map<AssrtFormalLAction, Pair<AssrtLambda, AssrtFormalLType>> tmp
+									= res.computeIfAbsent(n, k -> new LinkedHashMap<>());
+							tmp.put(a, succ);
+						}
+					}
 				}
-
-				flat.put(a, e.getValue());
 			}
 		}
 
-		// build new init L from flat as
-		//...
-
-		// copy all non init graph edges to res master graph
+		// build new init L from toFlat a's -> make new init for res "master"
 		//...
 
 		// return new common init (empty lam, new L) and new master graph
@@ -253,6 +269,7 @@ public class AssrtCore extends Core
 
 		return null;
 	}
+	 */
 
 	/*// A kind of "merge"?  XXX cannot do syntactically, point of L is silent is explicitly distinguished from non-silent, so cannot "squash" syntactically -> build subgraphs for each init and join the graphs to a fresh init node with silents added to graph actions
 	private Pair<AssrtLambda, AssrtFormalLType> flattenInit(Set<Pair<AssrtLambda, AssrtFormalLType>> init) {

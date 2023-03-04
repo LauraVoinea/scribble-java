@@ -1,5 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
+import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalType;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.util.Triple;
@@ -40,7 +41,9 @@ public interface AssrtFormalLType extends AssrtFormalType
     // TODO should be LDerivedAction
     // With epsilons squashed (called "intermed LTS" in draft -- cf. NOT the `intermed` above) -- all below AssrtLActions are concrete, i.e., not silent
     Set<AssrtFormalLAction> getExplicitSteppable(AssrtLambda lambda, AssrtRho rho);
-    Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho);  // CHECKME rho redundant?
+    //Pair<AssrtLambda, AssrtFormalLChoice> bootstrap();  // Fastforwards both eps and rec-enters
+
+    Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho);  // CHECKME rho redundant? (yes, should not be taking any recvars, guarded by concretes...)
 
     // FIXME a should be derived action -- cf. above comment
     Optional<Triple<AssrtLambda, AssrtFormalLType, AssrtRho>> estep(AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a);

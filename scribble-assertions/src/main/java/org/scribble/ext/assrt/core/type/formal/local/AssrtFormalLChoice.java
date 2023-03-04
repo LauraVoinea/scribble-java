@@ -1,6 +1,7 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
@@ -49,8 +50,8 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 	}
 
 	@Override
-	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
-		return Stream.of(new Pair<>(lambda, (AssrtFormalLType) this)).collect(Collectors.toSet());
+	public Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+		return Stream.of(new Triple<>(lambda, (AssrtFormalLType) this, Collections.<RecVar>emptySet())).collect(Collectors.toSet());
 	}
 
 	@Override
@@ -58,6 +59,11 @@ public abstract class AssrtFormalLChoice extends AssrtFormalTypeBase
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);
 	}
+
+	/*@Override
+	public Pair<AssrtLambda, AssrtFormalLChoice> bootstrap() {
+		return new Pair<>(new AssrtLambda(), this);
+	}*/
 
 	/*@Override
 	public Optional<Pair<AssrtLambda, AssrtLFormal>> step(

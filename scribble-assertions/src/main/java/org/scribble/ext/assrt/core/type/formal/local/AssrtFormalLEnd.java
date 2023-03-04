@@ -1,5 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.local;
 
+import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.assrt.core.type.formal.local.action.AssrtFormalLAction;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
@@ -48,7 +49,7 @@ public class AssrtFormalLEnd implements AssrtFormalLType
 	}
 
 	@Override
-	public Set<Pair<AssrtLambda, AssrtFormalLType>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
+	public Set<Triple<AssrtLambda, AssrtFormalLType, Set<RecVar>>> fastforwardEnters(AssrtLambda lambda, AssrtRho rho) {
 		//return Collections.emptySet();
 		throw new RuntimeException("Shouldn't get here");
 	}
@@ -58,6 +59,11 @@ public class AssrtFormalLEnd implements AssrtFormalLType
 			AssrtLambda lambda, AssrtRho rho, AssrtFormalLAction a) {
 		return istep(lambda, a, rho);
 	}
+
+	/*@Override
+	public Pair<AssrtLambda, AssrtFormalLChoice> bootstrap() {
+		throw new RuntimeException("Shouldn't get here");
+	}*/
 
 	@Override
 	public String toString() {
