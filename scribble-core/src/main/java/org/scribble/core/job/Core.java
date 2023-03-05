@@ -48,6 +48,7 @@ import org.scribble.util.ScribException;
 
 // A "compiler job" front-end that supports operations comprising visitor passes over the AST and/or local/global models
 public class Core {
+   
     public final CoreConfig config;  // Immutable
 
     private final CoreContext context;  // Mutable (Visitor passes replace modules)
@@ -353,7 +354,7 @@ public class Core {
         SGraph graph = fair
                 ? this.context.getSGraph(fullname)
                 : this.context.getUnfairSGraph(fullname);
-        if (this.config.hasFlag(CoreArgs.VERBOSE)) {
+        if (isVerbose()) {
             String dot = graph.init.toDot();
             String[] lines = dot.split("\\R");
             verbosePrintPass(

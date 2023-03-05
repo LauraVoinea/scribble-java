@@ -27,6 +27,7 @@ import org.scribble.util.RuntimeScribException;
 
 // The "static" (constant) info for Jobs -- cf. JobContext "dynamic" state
 public class CoreConfig {
+   
     public final ModuleName main;  // Full name
 
     private final Map<CoreArgs, Boolean> args;  // CHECKME: verbose/debug printing parameter ?

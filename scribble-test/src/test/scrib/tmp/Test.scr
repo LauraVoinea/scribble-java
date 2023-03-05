@@ -136,9 +136,11 @@ module tmp.Test;
 
 
 //HERE
+//- redo factories with type params, e.g., ModelFactory<LF, GF> -- ? extends Bound for "out" params, ? super for "in" params
+//- refactor all core ST visitors to STypeVisitorFactory -- cf. overriding accept methods in node (sub)classes
 //- move checking methods out of Protocol to visitors
 //- redo passes as a DS instead of method
-//- basicinteraction etc interfaces
+//- basicinteraction etc interfaces (open up type params -- concrete subtypes instantiate params -- XXX consider overriding by scrib extensions... probably better to use getters with covar returns...) -- also E/SAction interfaces with Base abstract classes, etc. -- similarly, Factories (Type, Model, ...)
 // XXX redo G/LType with composition and interfaces instead of inheritance -- XXX too much boiler, use composition when needed for extensions (e.g., L/GProtocol, EState/Action)
 //- check interfaces, e.g., proto, protoname, etc.
 //- hash code constants
