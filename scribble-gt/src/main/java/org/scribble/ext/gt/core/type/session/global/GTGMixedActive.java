@@ -64,6 +64,7 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public Optional<? extends GTLType> project(Role r) {
+        // Same as MixedChoice except with n
         if (!this.committedRight.contains(r) &&
                 (this.committedLeft.contains(r) || this.observer.equals(r))) {  // XXX p.equals(r) ???
             return this.left.project(r);
@@ -84,7 +85,7 @@ public class GTGMixedActive implements GTGType {
                     return Optional.empty();
                 }
             }
-            return Optional.of(lf.mixedChoice(getl, getr));
+            return Optional.of(lf.mixedActive(this.c, this.n, getl, getr));
         }
         return Optional.empty();  // !!! CHECKME: or error
     }

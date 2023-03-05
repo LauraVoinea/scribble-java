@@ -1,5 +1,7 @@
 package org.scribble.ext.gt.core.model.global;
 
+import org.scribble.core.type.name.Role;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,11 @@ public class Theta {
         Map<Integer, Integer> tmp = new HashMap<>(this.map);
         tmp.put(c, tmp.get(c) + 1);
         return new Theta(tmp);
+    }
+
+    // HERE HERE global vs. local modelling of Theta (sync vs async w.r.t Theta) -- projection of global Theta to local Thetas
+    public Theta project(Role r) {
+        throw new RuntimeException("TODO");
     }
 
     /* hashCode, equals */

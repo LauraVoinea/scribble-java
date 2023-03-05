@@ -116,7 +116,7 @@ public class GTLSelect implements GTLType {
 
     @Override
     public int hashCode() {
-        int hash = GTLType.BRANCH_HASH;
+        int hash = GTLType.SELECT_HASH;
         hash = 31 * hash + this.dst.hashCode();
         hash = 31 * hash + this.cases.hashCode();
         return hash;

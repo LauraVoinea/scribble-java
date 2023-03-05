@@ -15,8 +15,9 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int BRANCH_HASH = 9857;
     int SELECT_HASH = 9859;
     int MIXED_CHOICE_HASH = 9871;
-    int REC_HASH = 9883;
-    int RECVAR_HASH = 9887;
+    int MIXED_CHOICE_ACTIVE_HASH = 9883;
+    int REC_HASH = 9887;
+    int RECVAR_HASH = 9901;
 
     @Override
     default GTLType unfold() {
