@@ -28,6 +28,7 @@ import org.scribble.core.type.session.Payload;
 import java.util.Map;
 
 public interface SModelFactory {
+
     SGraphBuilderUtil SGraphBuilderUtil();
 
     // protected constructors (MState mutable)

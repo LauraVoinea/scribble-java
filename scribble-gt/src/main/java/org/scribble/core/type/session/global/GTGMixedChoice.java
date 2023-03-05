@@ -65,7 +65,7 @@ public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType
     @Override
     public <T> T acceptNoThrow(STypeAggNoThrow<Global, GSeq, T> v) {
 
-        // HERE HERE
+        // HERE HERE adding base visitor overrids for this new AST node on demand
 
         if (v instanceof Substitutor<?, ?>) {
             Substitutor<Global, GSeq> cast = (Substitutor<Global, GSeq>) v;

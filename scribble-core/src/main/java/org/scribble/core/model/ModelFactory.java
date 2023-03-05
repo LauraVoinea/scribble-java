@@ -20,17 +20,16 @@ import java.util.function.Function;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.global.SModelFactory;
 
-public class ModelFactory
-{
-	public final EModelFactory local;
-	public final SModelFactory global;
-	
-	// Args should be constructor refs that that ModelFactory single arg
-	// (Workaround to set mutually referential ModelFactory and E/SModelFactory final fields)
-	public ModelFactory(Function<ModelFactory, EModelFactory> ef,
-			Function<ModelFactory, SModelFactory> sf)
-	{
-		this.local = ef.apply(this);
-		this.global = sf.apply(this);
-	}
+public class ModelFactory<E extends EModelFactory, S extends SModelFactory> {
+
+    public final E local;
+    public final S global;
+
+    // Args should be constructor refs that that ModelFactory single arg
+    // (Workaround to set mutually referential ModelFactory and E/SModelFactory final fields)
+    public ModelFactory(Function<ModelFactory<E, S>, E> ef,
+                        Function<ModelFactory<E, S>, S> sf) {
+        this.local = ef.apply(this);
+        this.global = sf.apply(this);
+    }
 }
