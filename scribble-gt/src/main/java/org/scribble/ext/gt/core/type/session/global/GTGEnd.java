@@ -6,7 +6,9 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLEnd;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
 
@@ -25,8 +27,8 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public Optional<GTLEnd> project(Role r) {
-        return Optional.of(GTLTypeFactory.FACTORY.end());
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
+        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma()));
     }
 
     @Override

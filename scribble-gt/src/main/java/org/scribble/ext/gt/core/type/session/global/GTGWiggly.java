@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.Op;
@@ -8,6 +9,8 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -55,39 +58,47 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public Optional<? extends GTLType> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        if (this.src.equals(r)) {
+        if (r.equals(this.src)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
-            /*for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<? extends GTLType> p = e.getValue().project(r);
-                if (p.isEmpty()) {
-                    return Optional.empty();
-                }
-                cases.put(e.getKey(), p.get());
-            }
-            return Optional.of(lf.select(this.dst, cases));*/  // !!!
-            Optional<? extends GTLType> p = this.cases.get(this.op).project(r);
-            if (p.isEmpty()) {
-                return Optional.empty();
-            }
-            cases.put(this.op, p.get());
-            return Optional.of(lf.select(this.dst, cases));  // !!! CHECKME
-        } else if (this.dst.equals(r)) {
+            return this.cases.get(this.op).project(r);
+        } else if (r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            Sigma sigma = null;
+            Sigma sigma_k = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<? extends GTLType> p = e.getValue().project(r);
-                if (p.isEmpty()) {
+                Op op = e.getKey();
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(r);
+                if (opt.isEmpty()) {
                     return Optional.empty();
                 }
-                cases.put(e.getKey(), p.get());
+                Pair<? extends GTLType, Sigma> p = opt.get();
+                if (op.equals(this.op)) {
+                    sigma_k = p.right;
+                } else {
+                    if (sigma == null) {
+                        sigma = p.right;
+                    } else if (!sigma.equals(p.right)) {
+                        return Optional.empty();
+                    }
+                }
+                cases.put(op, p.left);
             }
-            return Optional.of(lf.branch(this.src, cases));
+            Map<Role, List<GTESend<DynamicActionKind>>> tmp = new LinkedHashMap<>(sigma_k.map);
+            List<GTESend<DynamicActionKind>> as = new LinkedList<>(tmp.get(this.src));
+            as.add(0, null); // !!! HERE HERE FIXME new GTESend<>();
+            tmp.put(this.src, as);
+            sigma_k = new Sigma(tmp);
+            return Optional.of(new Pair<>(lf.branch(this.src, cases), sigma_k));
         } else {
-            Stream<Optional<? extends GTLType>> str =
+            Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(r));
-            Optional<? extends GTLType> fst = str.findFirst().get();  // Non-empty
-            return str.skip(1).reduce(fst, GTGInteraction::merge);
+            Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
+
+            // FIXME stream made twice... -- duplicated from GTGInteraction
+            str = this.cases.values().stream().map(x -> x.project(r));  // !!! XXX
+            return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }
 

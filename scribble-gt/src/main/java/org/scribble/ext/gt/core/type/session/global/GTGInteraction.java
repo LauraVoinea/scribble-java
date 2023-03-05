@@ -8,6 +8,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -53,38 +54,58 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public Optional<? extends GTLType> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        if (this.src.equals(r)) {
+        if (r.equals(this.src) || r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            Sigma sigma = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<? extends GTLType> p = e.getValue().project(r);
-                if (p.isEmpty()) {
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(r);
+                if (opt.isEmpty()) {
                     return Optional.empty();
                 }
-                cases.put(e.getKey(), p.get());
-            }
-            return Optional.of(lf.select(this.dst, cases));
-        } else if (this.dst.equals(r)) {
-            LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
-            for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<? extends GTLType> p = e.getValue().project(r);
-                if (p.isEmpty()) {
+                Pair<? extends GTLType, Sigma> p = opt.get();
+                if (sigma == null) {
+                    sigma = p.right;
+                } else if (!sigma.equals(p.right)) {
                     return Optional.empty();
                 }
-                cases.put(e.getKey(), p.get());
+                cases.put(e.getKey(), p.left);
             }
-            return Optional.of(lf.branch(this.src, cases));
+            return r.equals(this.src)
+                    ? Optional.of(new Pair<>(lf.select(this.dst, cases), sigma))
+                    : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
         } else {
-            Stream<Optional<? extends GTLType>> str =
+            Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(r));
-            Optional<? extends GTLType> fst = str.findFirst().get();  // Non-empty
+            Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
+            // FIXME stream made twice... -- refactor with GTGWiggly
             str = this.cases.values().stream().map(x -> x.project(r));  // !!! XXX
-            return str.skip(1).reduce(fst, GTGInteraction::merge);
+            return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }
 
+    protected static Optional<Pair<? extends GTLType, Sigma>> mergePair(
+            Optional<Pair<? extends GTLType, Sigma>> left,
+            Optional<Pair<? extends GTLType, Sigma>> right) {
+        /*if (left.isEmpty() || right.isEmpty()) {
+            return Optional.empty();
+        }*/
+        Optional<? extends GTLType> merge = merge(left.map(x -> x.left), right.map(x -> x.left));
+        Optional<Sigma> sigma = mergeSigma(left.map(x -> x.right), right.map(x -> x.right));
+        return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));
+
+    }
+
+    protected static Optional<Sigma> mergeSigma(
+            Optional<Sigma> left, Optional<Sigma> right) {
+        return left.flatMap(x ->
+                right.flatMap(y ->
+                        x.equals(y) ? Optional.of(x) : Optional.empty()));
+    }
+
+    // !!! TODO refactor with GTLType.merge
     protected static Optional<? extends GTLType> merge(
             Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
         if (left.isEmpty() || right.isEmpty()) {
