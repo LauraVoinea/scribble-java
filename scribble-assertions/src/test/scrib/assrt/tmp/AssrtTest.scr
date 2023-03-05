@@ -13,6 +13,7 @@ type <fstar> "string" from "..." as String;
 
 
 // HERE
+// 0. merge rhu1-refactorinterfaces
 // 1. test examples and unit tests
 // 2. integrate with artifact
 // 3. do global type LTS and validation
@@ -28,10 +29,10 @@ global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
 }
 //*/
 
-//HERE HERE more testing of sessionstar example RCAs -> tempRunSyncSat global validation (check status of global LTS)
 
+// HERE HERE more testing of sessionstar example RCAs -> tempRunSyncSat global validation (check status of global LTS)
 
-// HERE HERE move all lambdas to silents on concretes and start from blank lambda
+// HERE HERE move all lambdas to silents on concretes and start from blank lambda -- cf. ff and flatten?
 //({x=(ZERO, int)}, B?{ 4(y1:int){True}.end, 5(y2:int){True}.end })
 //({z1=(ZERO, int)}, B?:3(z2:int){True}.end)
 
