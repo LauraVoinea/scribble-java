@@ -15,11 +15,15 @@ import java.util.Set;
 
 public class EAPLet implements EAPExpr {
 
-    @NotNull public final EAPVar var;
-    @NotNull public final EAValType varType;  // vars x have ValTypes A -- !!! added type annot
+    @NotNull
+    public final EAPVar var;
+    @NotNull
+    public final EAValType varType;  // vars x have ValTypes A -- !!! added type annot
     //@NotNull public final EAPExpr init;  // !!! value?  not expr
-    @NotNull public final EAPExpr init;
-    @NotNull public final EAPExpr body;
+    @NotNull
+    public final EAPExpr init;
+    @NotNull
+    public final EAPExpr body;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
     public EAPLet(@NotNull EAPVar var, @NotNull EAValType varType,
@@ -129,7 +133,8 @@ public class EAPLet implements EAPExpr {
     @Override
     public String toString() {
         return "let " + this.var + " "
-                + ConsoleColors.BLACK_UNDERLINED + ":" + this.varType + ConsoleColors.RESET
+                //+ ConsoleColors.BLACK_UNDERLINED + ":" + this.varType + ConsoleColors.RESET
+                + ConsoleColors.toAnnotString(":" + this.varType)
                 + " <= " + this.init + " in " + this.body;
     }
 

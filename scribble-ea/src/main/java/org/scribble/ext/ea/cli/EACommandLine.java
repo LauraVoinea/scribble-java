@@ -158,8 +158,8 @@ public class EACommandLine extends CommandLine {
         // HERE HERE merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
         //ex1(lf, pf, rf, tf);
-        ex2(lf, pf, rf, tf);
-        //ex4(lf, pf, rf, tf);
+        //ex2(lf, pf, rf, tf);
+        ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
 
         //new EACommandLine(args).run();
@@ -503,7 +503,8 @@ public class EACommandLine extends CommandLine {
         // ----
 
         // XXX mu X . p+{ l1(unit) . p&{ l2(unit) . X) } } XXX
-        // mu X . p&{ l2(unit) . p+{ l1(unit) . X) }
+        // mu X . p&{ l2(unit) . p+{ l1(unit) . X } }
+
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
         EALOutType out1 = tf.local.out(B, cases);
@@ -511,6 +512,8 @@ public class EACommandLine extends CommandLine {
         cases.put(l2, new EAPPair<>(tf.val.unit(), out1));
         EALInType in2 = tf.local.in(B, cases);
         EALRecType recXA = tf.local.rec(X, in2);
+
+        EALRecType recXA_ = (EALRecType) parseSessionType("mu X.p?{l2(1).p!{l1(1).X}}");
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), recXA));
@@ -656,7 +659,7 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tB = rf.activeThread(leth, s, B);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-        EAPConfig cB = rf.config(p1, tB, sigmaB);
+        EAPConfig cB = rf.config(p2, tB, sigmaB);
 
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
@@ -671,8 +674,8 @@ public class EACommandLine extends CommandLine {
         System.out.println("cB = " + cB);
 
         LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
-        cs.put(p1, cA);
-        cs.put(p2, cB);
+        cs.put(cA.pid, cA);
+        cs.put(cB.pid, cB);
 
         env.put(new EAPPair<>(s, A), out1u);
         //env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
@@ -690,8 +693,8 @@ public class EACommandLine extends CommandLine {
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
         sys.type(new Gamma(), new Delta());
 
-        System.out.println();
         sys = sys.reduce(p1);
+        System.out.println("[1]");
         System.out.println(sys);
         env.put(new EAPPair<>(s, A), out1u);
         env.put(new EAPPair<>(s, B), recXB);
@@ -700,78 +703,80 @@ public class EACommandLine extends CommandLine {
         sys.type(new Gamma(), new Delta());
 
         sys = sys.reduce(p2);
-        System.out.println();
+        System.out.println("[2]");
         System.out.println(sys);
         sys.type(new Gamma(), new Delta());
 
         sys = sys.reduce(p2);
-        System.out.println();
+        System.out.println("[3]");
         System.out.println(sys);
         sys.type(new Gamma(), new Delta());
 
         sys = sys.reduce(p2);
-        System.out.println();
+        System.out.println("[4]");
         System.out.println(sys);
         sys.type(new Gamma(), new Delta());
 
         sys = sys.reduce(p2);
-        System.out.println();
+        System.out.println("[5]");
         System.out.println(sys);
         sys.type(new Gamma(), new Delta());
 
         for (int i = 0; i < 10; i++) {
+            //for (int i = 0; i < 1; i++) {
 
             sys = sys.reduce(p1);  // p1 send B1!l1
-            System.out.println();
+            System.out.println("[6]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p1);
-            System.out.println();
+            System.out.println("[7]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p1);
-            System.out.println();
+            System.out.println("[8]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p1);
-            System.out.println();
+            System.out.println("[9]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p1);  // p1 now idle and installed l2 handler
-            System.out.println();
+            System.out.println("[10]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p2);  // p2 send A!l2
-            System.out.println();
+            System.out.println("[11]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p2);
-            System.out.println();
+            System.out.println("[12]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p2);
-            System.out.println();
+            System.out.println("[13]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p2);
-            System.out.println();
+            System.out.println("[14]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
             sys = sys.reduce(p2);  // p2 now idle with installed l1 handler
-            System.out.println();
+            System.out.println("[15]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
             //*/
         }
+
     }
 
 	/*private static void ex4i(

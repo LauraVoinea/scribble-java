@@ -3,7 +3,8 @@ package org.scribble.ext.ea.util;
 public class ConsoleColors {
 
     public static final String toAnnotString(String m) {
-        return ConsoleColors.BLACK_UNDERLINED + m + ConsoleColors.RESET;
+        //return ConsoleColors.BLACK_UNDERLINED + m + ConsoleColors.RESET;
+        return "";
     }
 
     // Reset

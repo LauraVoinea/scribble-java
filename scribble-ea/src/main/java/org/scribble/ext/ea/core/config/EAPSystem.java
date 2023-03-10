@@ -32,11 +32,14 @@ public class EAPSystem {
     public EAPSystem(@NotNull LTypeFactory lf,
                      @NotNull Delta annots,
                      @NotNull LinkedHashMap<EAPPid, EAPConfig> configs) {
+        if (configs.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
+            throw new RuntimeException("Invalid pid/config mapping: " + configs);
+        }
         this.lf = lf;
         this.annots = annots;
         this.configs = configs.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (x, y) -> x, LinkedHashMap::new));
+                        (x, y) -> null, LinkedHashMap::new));
     }
 
     // !!! TODO safety
@@ -88,10 +91,10 @@ public class EAPSystem {
 
     // Pre: p \in getReady ?
     public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
-        EAPConfig c = this.configs.get(p);
-        /*if (!c.isActive()) {
+        EAPConfig c = this.configs.get(p); // p.equals(c.pid)
+        if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
-        }*/
+        }
         EAPActiveThread t = (EAPActiveThread) c.T;
         if (!t.expr.isGround()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
