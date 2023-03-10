@@ -106,33 +106,36 @@ public class EAPSystem {
 
         System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 
+        // !!! Delta (annots) unchanged
         if (foo instanceof EAPSuspend || foo instanceof EAPReturn
-                || foo instanceof EAPApp || foo instanceof EAPLet) {  // !!! Delta (annots) unchanged
+                || foo instanceof EAPApp || foo instanceof EAPLet) {
             LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
             return new EAPSystem(this.lf, this.annots, configs);
-        } else if (foo instanceof EAPSend) {  // !!! Delta (annots) change
+        }
+        // !!! Delta (annots) change
+        else if (foo instanceof EAPSend) {
             EAPSend cast = (EAPSend) foo;
             LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
 
-            Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
-            EALType l2 = this.annots.map.get(k2);
-            LRecv lr = this.lf.LRecv(null, t.role, new SigLit(cast.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY
-            Optional<EALType> opt2 = l2.step(lr);
-            if (!opt2.isPresent()) {
-                throw new RuntimeException("TODO");
-            }
-            l2 = opt2.get();
-            dmap.put(k2, l2);
-
             EAPPair k1 = new EAPPair(t.sid, t.role);
             EALType l1 = this.annots.map.get(k1);
-            LSend ls = this.lf.LSend(null, new SigLit(cast.op, Payload.EMPTY_PAYLOAD), cast.dst);  // from foo  // FIXME EMPTY
+            LSend ls = this.lf.LSend(null, new SigLit(cast.op, Payload.EMPTY_PAYLOAD), cast.dst);  // from foo  // FIXME EMPTY_PAY
             Optional<EALType> opt1 = l1.step(ls);
             if (!opt1.isPresent()) {
                 throw new RuntimeException("TODO");
             }
             l1 = opt1.get();
             dmap.put(k1, l1);
+
+            Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
+            EALType l2 = this.annots.map.get(k2);
+            LRecv lr = this.lf.LRecv(null, t.role, new SigLit(cast.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
+            Optional<EALType> opt2 = l2.step(lr);
+            if (!opt2.isPresent()) {
+                throw new RuntimeException("TODO");
+            }
+            l2 = opt2.get();
+            dmap.put(k2, l2);
 
             Delta d1 = new Delta(dmap);
             LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);

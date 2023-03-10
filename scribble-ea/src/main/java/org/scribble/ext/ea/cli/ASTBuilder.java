@@ -4,13 +4,12 @@ package org.scribble.ext.ea.cli;
 import org.antlr.runtime.tree.CommonTree;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.session.local.EALInType;
-import org.scribble.ext.ea.core.type.session.local.EALOutType;
-import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
 
@@ -29,10 +28,14 @@ class ASTBuilder {
 
     public EAPExpr visitM(CommonTree n) {
         switch (n.getText()) {
-            case "M_LET": return visitLet(n);
-            case "M_SEND": return visitSend(n);
-            case "M_SUSPEND": return visitSuspend(n);
-            case "M_RETURN": return visitReturn(n);
+            case "M_LET":
+                return visitLet(n);
+            case "M_SEND":
+                return visitSend(n);
+            case "M_SUSPEND":
+                return visitSuspend(n);
+            case "M_RETURN":
+                return visitReturn(n);
         }
         throw new RuntimeException("Unknown node kind: " + n.getText());
     }
@@ -72,8 +75,10 @@ class ASTBuilder {
                 LinkedHashMap<Op, EAPHandler> hs = visitHandlers(cs.subList(1, cs.size()));
                 return pf.handlers(r, hs);
             }
-            case "V_UNIT": return pf.unit();
-            default: return visitVar(n);
+            case "V_UNIT":
+                return pf.unit();
+            default:
+                return visitVar(n);
         }
     }
 
@@ -101,7 +106,8 @@ class ASTBuilder {
             case "1": {
                 return tf.val.unit();
             }
-            default: throw new RuntimeException("Unknown val type: " + n);
+            default:
+                throw new RuntimeException("Unknown val type: " + n);
         }
     }
 
@@ -120,10 +126,18 @@ class ASTBuilder {
     public EALType visitSessionType(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
-            case "S_END": return tf.local.end();
-            case "S_BRANCH": return visitBranch(n);
-            case "S_SELECT": return visitSelect(n);
-            default: throw new RuntimeException("Unknown session type: " + n);
+            case "S_END":
+                return tf.local.end();
+            case "S_BRANCH":
+                return visitBranch(n);
+            case "S_SELECT":
+                return visitSelect(n);
+            case "S_REC":
+                return visitRecursion(n);
+            case "S_RECVAR":
+                return visitRecVarType(n);
+            default:
+                throw new RuntimeException("Unknown session type: " + n);
         }
     }
 
@@ -139,16 +153,31 @@ class ASTBuilder {
         return tf.local.out(r, cases);
     }
 
+    public EALRecType visitRecursion(CommonTree n) {
+        RecVar rv = visitRecVar((CommonTree) n.getChild(0));
+        EALType body = visitSessionType((CommonTree) n.getChild(1));
+        return tf.local.rec(rv, body);
+    }
+
+    public EALRecVarType visitRecVarType(CommonTree n) {  // cf. visitRecVar
+        RecVar rv = visitRecVar((CommonTree) n.getChild(0));
+        return tf.local.recvar(rv);
+    }
+
+    public RecVar visitRecVar(CommonTree n) {  // cf. visitRecVarType
+        return new RecVar(n.getText());
+    }
+
     // n is whole branch/select node
     @NotNull
     private LinkedHashMap<Op, EAPPair<EAValType, EALType>> visitCases(CommonTree n) {
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         for (int j = 1; j < n.getChildCount(); ) {
             Op op = visitOp((CommonTree) n.getChild(j));
-            EAValType valType = visitValType((CommonTree) n.getChild(j+2));
-            EALType body = visitSessionType((CommonTree) n.getChild(j+5));
+            EAValType valType = visitValType((CommonTree) n.getChild(j + 2));
+            EALType body = visitSessionType((CommonTree) n.getChild(j + 5));
             cases.put(op, new EAPPair<>(valType, body));
-            j = j+6;
+            j = j + 6;
         }
         return cases;
     }

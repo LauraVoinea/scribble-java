@@ -935,6 +935,7 @@ public class EACommandLine extends CommandLine {
 	}
 	*/
 
+    @Deprecated
     private static void ex3(
             LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
         Role A = new Role("A");

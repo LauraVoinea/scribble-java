@@ -19,6 +19,7 @@ tokens
     IN_KW = 'in';
     RETURN_KW = 'return';
     SUSPEND_KW = 'suspend';
+    MU_KW = 'mu';
 
     END_KW = 'end';
 
@@ -48,6 +49,8 @@ tokens
 
    S_SELECT;
    S_BRANCH;
+   S_REC;
+   S_RECVAR;
    S_END;
 }
 
@@ -161,7 +164,7 @@ LINE_COMMENT:
  * Section 2.3 Identifiers
  */
 ID:
-	(LETTER | DIGIT | UNDERSCORE)*
+	(LETTER | DIGIT | UNDERSCORE)+
       /* Underscore currently can cause ambiguities in the API generation naming
        * scheme But maybe only consecutive underscores are the problem -- cannot
        * completely disallow underscores as needed for projection naming scheme
@@ -185,13 +188,13 @@ fragment SYMBOL_DOUBLE:
  SYMBOL | '\"'
  ;
 
-// Comes after SYMBOL due to an ANTLR syntax highlighting issue involving quotes.
+/*// Comes after SYMBOL due to an ANTLR syntax highlighting issue involving quotes.
 // CHECKME: parser doesn't work without locating the quotes here? (e.g., if inlined into parser rules)
 EXTID:
 	'\"' (LETTER | DIGIT | SYMBOL_SINGLE | WHITESPACE)* '\"'  // N.B. WHITESPACE, for assertions white space
 |
 	'\'' (LETTER | DIGIT | SYMBOL_DOUBLE | WHITESPACE)* '\''  // N.B. WHITESPACE, for assertions white space
-;
+;*/
 
 fragment LETTER:
 	'a'..'z' | 'A'..'Z'
@@ -210,6 +213,12 @@ fragment UNDERSCORE:
  * Chapter 3 Syntax (Parser rules)
  ***************************************************************************/
 
+role: ID;
+op: ID;
+var: ID;
+type: ID;
+recvar: ID;
+
 /*
 module:
   // Assrt
@@ -225,11 +234,6 @@ module:
 start:
     nM EOF
 ;
-
-role: ID;
-op: ID;
-var: ID;
-type: ID;
 
 // Parser rule non-terms must be lower case
 nV:
@@ -285,9 +289,17 @@ session_type:
 ->
     ^(S_BRANCH role session_type_case+)
 |
+    MU_KW recvar '.' session_type
+->
+    ^(S_REC recvar session_type)
+|
     END_KW
 ->
     ^(S_END)
+|
+    ID
+->
+    ^(S_RECVAR ID)
 ;
 
 session_type_case:
