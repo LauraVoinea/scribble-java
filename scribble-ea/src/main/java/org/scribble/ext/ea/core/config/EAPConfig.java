@@ -3,6 +3,10 @@ package org.scribble.ext.ea.core.config;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
+import org.scribble.core.type.session.SigLit;
+import org.scribble.core.type.session.local.LRecv;
+import org.scribble.core.type.session.local.LSend;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
@@ -75,7 +79,45 @@ public class EAPConfig implements EAPRuntimeTerm {
                 throw new RuntimeException("Shouldn't get in here");
             }
         } else if (foo instanceof EAPSend) {
-            throw new RuntimeException("TODO");
+
+            LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+
+            EAPThreadState t1;
+            //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
+            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+            EAPSend cast = (EAPSend) foo;
+
+            Optional<Map.Entry<EAPPid, EAPConfig>> fst =
+                    sys.configs.entrySet().stream().filter(x ->
+                            x.getValue().sigma.keySet().stream().anyMatch(y ->
+                                    y.left.equals(t.sid) && y.right.equals(cast.dst))
+                    ).findFirst();
+            if (fst.isEmpty()) {
+                throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo gets "potenitally reducible parts", such as sends -- but receive may not be ready yet (e.g., handler not installed yet)
+                // Currently PRE: `p` must have reducible step (i.e., send must have matching receive ready)
+            }
+            Map.Entry<EAPPid, EAPConfig> get = fst.get();
+            EAPPid p2 = get.getKey();
+            EAPConfig c2 = get.getValue();
+            Map<Pair<EAPSid, Role>, EAPHandlers> sigma2 = c2.sigma;
+            Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
+            EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
+            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val));
+            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
+                    new LinkedHashMap<>(c2.sigma);
+            newsigma2.remove(k2);
+            EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
+            //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+            configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+
+            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+
+            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+            //res.configs.put(p, c1);
+            configs.put(this.pid, c1);
+
+            return configs;
+
         }
         // Other non-beta cases
         else if (foo instanceof EAPSuspend) {

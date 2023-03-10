@@ -51,15 +51,13 @@ import java.util.Set;
 
 
 // Includes assrt-core functionality (all extra args are currently for assrt-core)
-public class EACommandLine extends CommandLine
-{
-	public EACommandLine(String... args)
-	{
-		super(args);
-	}
+public class EACommandLine extends CommandLine {
+    public EACommandLine(String... args) {
+        super(args);
+    }
 
-	public static void main(String[] args)
-			throws CommandLineException, AntlrSourceException {
+    public static void main(String[] args)
+            throws CommandLineException, AntlrSourceException {
 		/*%%   p (+) { l1(A) -> p & { ... }, l2(B) -> p (+) { l3(C) -> End } }
 %%   let () <=
 %%       if rand () then
@@ -71,61 +69,61 @@ public class EACommandLine extends CommandLine
 %%   -- p (+) { l3(C) -> End }
 %%   print("still alive")*/
 
-		//CommandLine.main(args);  // !!! base CommandLine fully bypassed -- No main module used
-		eamain();
-		//testParser();
-	}
+        //CommandLine.main(args);  // !!! base CommandLine fully bypassed -- No main module used
+        eamain();
+        //testParser();
+    }
 
-	static void testParser() {
-		EAPFactory pf = EAPFactory.factory;
-		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
-		EATypeFactory tf = EATypeFactory.factory;
+    static void testParser() {
+        EAPFactory pf = EAPFactory.factory;
+        EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+        EATypeFactory tf = EATypeFactory.factory;
 
-		//String input = "(A ! a((())))";
-		String input = "let x: 1 <= A ! a((())) in suspend "
-				+ "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
-		EAPTerm res = parse(input);
-		System.out.println("bbb: " + res);
-	}
+        //String input = "(A ! a((())))";
+        String input = "let x: 1 <= A ! a((())) in suspend "
+                + "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
+        EAPTerm res = parse(input);
+        System.out.println("bbb: " + res);
+    }
 
-	static EAPExpr parse(String input) {
-		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-		try {
-			//par.setTreeAdaptor(new EATreeAdaptor());  // XXX this requires nodes to be CommonTree to add children -- adaptor only constructs each node individualy without children
-			CommonTree tree = (CommonTree) par.start().getTree();
-			//System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
+    static EAPExpr parse(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            //par.setTreeAdaptor(new EATreeAdaptor());  // XXX this requires nodes to be CommonTree to add children -- adaptor only constructs each node individualy without children
+            CommonTree tree = (CommonTree) par.start().getTree();
+            //System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
 
-			EAPExpr res = new ASTBuilder().visitM((CommonTree) tree.getChild(0));
-			return res;
+            EAPExpr res = new ASTBuilder().visitM((CommonTree) tree.getChild(0));
+            return res;
 
-			//tree.token;
-		} catch (RecognitionException x) {
-			throw new RuntimeException(x);
-		}
-	}
+            //tree.token;
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
 
-	static EAPVal parseV(String input) {
-		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-		try {
-			CommonTree tree = (CommonTree) par.nV().getTree();
-			return new ASTBuilder().visitV(tree);
-		} catch (RecognitionException x) {
-			throw new RuntimeException(x);
-		}
-	}
+    static EAPVal parseV(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            CommonTree tree = (CommonTree) par.nV().getTree();
+            return new ASTBuilder().visitV(tree);
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
 
-	static EALType parseSessionType(String input) {
-		Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-		EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-		try {
-			CommonTree tree = (CommonTree) par.session_type().getTree();
-			return new ASTBuilder().visitSessionType(tree);
-		} catch (RecognitionException x) {
-			throw new RuntimeException(x);
-		}
-	}
+    static EALType parseSessionType(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            CommonTree tree = (CommonTree) par.session_type().getTree();
+            return new ASTBuilder().visitSessionType(tree);
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
 
 
 	/*static class EATreeAdaptor extends CommonTreeAdaptor {
@@ -150,203 +148,205 @@ public class EACommandLine extends CommandLine
 		}
 	}*/
 
-	private static void eamain() {
-		LTypeFactoryImpl lf = new LTypeFactoryImpl();
+    private static void eamain() {
+        LTypeFactoryImpl lf = new LTypeFactoryImpl();
 
-		EAPFactory pf = EAPFactory.factory;
-		EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
-		EATypeFactory tf = EATypeFactory.factory;
+        EAPFactory pf = EAPFactory.factory;
+        EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+        EATypeFactory tf = EATypeFactory.factory;
 
-		//ex1(lf, pf, rf, tf);
-		ex2(lf, pf, rf, tf);
-		//ex4(lf, pf, rf, tf);
-		//ex5(lf, pf, rf, tf);
+        // HERE HERE merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
-		//new EACommandLine(args).run();
-	}
+        //ex1(lf, pf, rf, tf);
+        ex2(lf, pf, rf, tf);
+        //ex4(lf, pf, rf, tf);
+        //ex5(lf, pf, rf, tf);
 
-	private static void ex5(
-			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
-		Role A = new Role("A");
-		Role B = new Role("B");
-		Op l1 = new Op("l1");
-		Op l2 = new Op("l2");
-		Op l3 = new Op("l3");
-		//EAPUnit unit = pf.unit();
-		EAPSid s = rf.sid("s");
-		EAPPid p1 = rf.pid("p1");
-		EAPPid p2 = rf.pid("p2");
-		EAPVar h = pf.var("h");
-		EAPVar hh = pf.var("hh");
-		EAPVar x = pf.var("x");
-		EAPVar y = pf.var("y");
-		EAPVar z = pf.var("z");
-		EAPVar zz = pf.var("zz");
-		EAPVar w1 = pf.var("w1");
-		EAPVar w2 = pf.var("w2");
-		EAPFuncName f = new EAPFuncName("f");
-		RecVar X = new RecVar("X");
+        //new EACommandLine(args).run();
+    }
 
-		// ----
+    private static void ex5(
+            LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+        Role A = new Role("A");
+        Role B = new Role("B");
+        Op l1 = new Op("l1");
+        Op l2 = new Op("l2");
+        Op l3 = new Op("l3");
+        //EAPUnit unit = pf.unit();
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+        EAPVar h = pf.var("h");
+        EAPVar hh = pf.var("hh");
+        EAPVar x = pf.var("x");
+        EAPVar y = pf.var("y");
+        EAPVar z = pf.var("z");
+        EAPVar zz = pf.var("zz");
+        EAPVar w1 = pf.var("w1");
+        EAPVar w2 = pf.var("w2");
+        EAPFuncName f = new EAPFuncName("f");
+        RecVar X = new RecVar("X");
 
-		// mu X . p&{ l2(unit) . p+{ l1(unit) . X) }, l3(unit) . end }
-		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
-		EALOutType out1 = tf.local.out(B, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), out1));
-		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALInType in2 = tf.local.in(B, cases);
-		EALRecType recXA = tf.local.rec(X, in2);
+        // ----
 
-		// p+{ l1(unit) . [mu X . p&{ l2(unit) . p+{ l1(unit) . X) }, l3(unit) . end }] }
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), recXA));
-		EALOutType out1u = tf.local.out(B, cases);
+        // mu X . p&{ l2(unit) . p+{ l1(unit) . X) }, l3(unit) . end }
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
+        EALOutType out1 = tf.local.out(B, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), out1));
+        cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
+        EALInType in2 = tf.local.in(B, cases);
+        EALRecType recXA = tf.local.rec(X, in2);
 
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), out1u));
-		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALInType in2u = tf.local.in(B, cases);
-		EAHandlersType h2 = tf.val.handlers(in2u);
+        // p+{ l1(unit) . [mu X . p&{ l2(unit) . p+{ l1(unit) . X) }, l3(unit) . end }] }
+        cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), recXA));
+        EALOutType out1u = tf.local.out(B, cases);
 
-		// ----
-		// let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z,
-		// 										l3(_) |-> return () }
-		// in [ let _ = B!l1() in let hh = h() in suspend hh ]
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), out1u));
+        cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
+        EALInType in2u = tf.local.in(B, cases);
+        EAHandlersType h2 = tf.val.handlers(in2u);
 
-		//let z = f() in suspend z
-		EAPSuspend suszA = pf.suspend(z);
-		EAPApp appfA = pf.app(f, pf.unit());
-		EAPLet letzA = pf.let(z, h2, appfA, suszA);
-		System.out.println(letzA);
-		//letz.type(new Gamma(), in1);  // Gamma need f
+        // ----
+        // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z,
+        // 										l3(_) |-> return () }
+        // in [ let _ = B!l1() in let hh = h() in suspend hh ]
 
-		// return rec f(_). return handler B { l2(_) |-> let y = B!l1() in ... }
-		EAPSend sendAB1 = pf.send(B, l1, pf.unit());
-		EAPLet letyA = pf.let(y, tf.val.unit(), sendAB1, letzA);
-		LinkedHashMap<Op, EAPHandler> HsA = new LinkedHashMap<>();
-		EAPHandler hA1 = pf.handler(l2, w2, tf.val.unit(), letyA, out1u);
-		HsA.put(l2, hA1);
-		EAPReturn retend = pf.returnn(pf.unit());
-		EAPHandler hA2 = pf.handler(l3, w2, tf.val.unit(), retend, tf.local.end());
-		HsA.put(l3, hA2);
-		EAPHandlers hsA2 = pf.handlers(B, HsA);
-		EAPReturn rethA2 = pf.returnn(hsA2);
-		EAPRec recfA = pf.rec(f, w1, tf.val.unit(), rethA2, in2u, recXA, h2);
-		EAPReturn retfA = pf.returnn(recfA);
-		System.out.println(retfA);
-		retfA.type(new Gamma(), in2);
+        //let z = f() in suspend z
+        EAPSuspend suszA = pf.suspend(z);
+        EAPApp appfA = pf.app(f, pf.unit());
+        EAPLet letzA = pf.let(z, h2, appfA, suszA);
+        System.out.println(letzA);
+        //letz.type(new Gamma(), in1);  // Gamma need f
 
-		// let _ = B!l1() in let hh = h() in suspend hh
-		EAPSuspend sushhA = pf.suspend(hh);
-		EAPApp apphA = pf.app(h, pf.unit());
-		EAPLet lethhA = pf.let(hh, h2, apphA, sushhA);
-		EAPLet wA = pf.let(w1, tf.val.unit(), sendAB1, lethhA);
-		System.out.println(wA);
+        // return rec f(_). return handler B { l2(_) |-> let y = B!l1() in ... }
+        EAPSend sendAB1 = pf.send(B, l1, pf.unit());
+        EAPLet letyA = pf.let(y, tf.val.unit(), sendAB1, letzA);
+        LinkedHashMap<Op, EAPHandler> HsA = new LinkedHashMap<>();
+        EAPHandler hA1 = pf.handler(l2, w2, tf.val.unit(), letyA, out1u);
+        HsA.put(l2, hA1);
+        EAPReturn retend = pf.returnn(pf.unit());
+        EAPHandler hA2 = pf.handler(l3, w2, tf.val.unit(), retend, tf.local.end());
+        HsA.put(l3, hA2);
+        EAPHandlers hsA2 = pf.handlers(B, HsA);
+        EAPReturn rethA2 = pf.returnn(hsA2);
+        EAPRec recfA = pf.rec(f, w1, tf.val.unit(), rethA2, in2u, recXA, h2);
+        EAPReturn retfA = pf.returnn(recfA);
+        System.out.println(retfA);
+        retfA.type(new Gamma(), in2);
 
-		// let h = return rec f(_). ... in [ let _ ... ]
-		EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-		EAPLet lethA = pf.let(h, ftA, retfA, wA);
-		System.out.println(lethA);
-		lethA.type(new Gamma(), out1u);
+        // let _ = B!l1() in let hh = h() in suspend hh
+        EAPSuspend sushhA = pf.suspend(hh);
+        EAPApp apphA = pf.app(h, pf.unit());
+        EAPLet lethhA = pf.let(hh, h2, apphA, sushhA);
+        EAPLet wA = pf.let(w1, tf.val.unit(), sendAB1, lethhA);
+        System.out.println(wA);
 
-		//---------------
-		// config < A, idle, c[A] |-> let h = ... in ... >
-		System.out.println();
+        // let h = return rec f(_). ... in [ let _ ... ]
+        EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
+        EAPLet lethA = pf.let(h, ftA, retfA, wA);
+        System.out.println(lethA);
+        lethA.type(new Gamma(), out1u);
 
-		EAPActiveThread tA = rf.activeThread(lethA, s, A);
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-		EAPConfig cA = rf.config(p1, tA, sigmaA);
+        //---------------
+        // config < A, idle, c[A] |-> let h = ... in ... >
+        System.out.println();
 
-		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
-		//env.put(new EAPPair<>(s, A), recXA);
-		env.put(new EAPPair<>(s, A), out1u);
-		System.out.println("Typing cA: " + cA + " ,, " + env);
-		cA.type(new Gamma(), new Delta(env));
+        EAPActiveThread tA = rf.activeThread(lethA, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig cA = rf.config(p1, tA, sigmaA);
 
-		// ----
-		System.out.println();
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        //env.put(new EAPPair<>(s, A), recXA);
+        env.put(new EAPPair<>(s, A), out1u);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
 
-		// !!! no branch/select subtyping
-		// mu X . p&{ l1(unit) . p+{ l2(unit) . X, l3(unit).end ) } }
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
-		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALOutType out2 = tf.local.out(A, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
-		EALInType in1 = tf.local.in(A, cases);
-		EALRecType recXB = tf.local.rec(X, in1);
+        // ----
+        System.out.println();
 
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
-		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALOutType out2mu = tf.local.out(A, cases);
+        // !!! no branch/select subtyping
+        // mu X . p&{ l1(unit) . p+{ l2(unit) . X, l3(unit).end ) } }
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
+        cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
+        EALOutType out2 = tf.local.out(A, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
+        EALInType in1 = tf.local.in(A, cases);
+        EALRecType recXB = tf.local.rec(X, in1);
 
-		// p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X, l3(unit).end ) } }], l3(unit).end } }
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
-		cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
-		EALOutType out2u = tf.local.out(A, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), out2u));
-		EALInType in1u = tf.local.in(A, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
+        cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
+        EALOutType out2mu = tf.local.out(A, cases);
 
-		EAHandlersType h1 = tf.val.handlers(in1u);
-		//EAHandlersType h1fold = tf.val.handlers(recXB);
+        // p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X, l3(unit).end ) } }], l3(unit).end } }
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
+        cases.put(l3, new EAPPair<>(tf.val.unit(), tf.local.end()));
+        EALOutType out2u = tf.local.out(A, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), out2u));
+        EALInType in1u = tf.local.in(A, cases);
 
-		// ---
-		// let h = return rec f(_). handler A { l1(_) |-> let y = A!l2() in let z = f() in suspend z }
-		// in [ let hh = h() in suspend hh ]
+        EAHandlersType h1 = tf.val.handlers(in1u);
+        //EAHandlersType h1fold = tf.val.handlers(recXB);
 
-		//let z = f() in suspend z
-		EAPSuspend susz = pf.suspend(z);
-		EAPApp appf = pf.app(f, pf.unit());
-		EAPLet letz = pf.let(z, h1, appf, susz);
-		System.out.println(letz);
-		//letz.type(new Gamma(), in1);  // Gamma need f
+        // ---
+        // let h = return rec f(_). handler A { l1(_) |-> let y = A!l2() in let z = f() in suspend z }
+        // in [ let hh = h() in suspend hh ]
 
-		// return rec f(_). return handler A { l1(_) |-> let y = A!l2() in ... }
-		EAPSend sendBA2 = pf.send(A, l2, pf.unit());
-		EAPLet lety = pf.let(y, tf.val.unit(), sendBA2, letz);
-		LinkedHashMap<Op, EAPHandler> HsB = new LinkedHashMap<>();
+        //let z = f() in suspend z
+        EAPSuspend susz = pf.suspend(z);
+        EAPApp appf = pf.app(f, pf.unit());
+        EAPLet letz = pf.let(z, h1, appf, susz);
+        System.out.println(letz);
+        //letz.type(new Gamma(), in1);  // Gamma need f
 
-		// !!! TODO if-else
-		// return rec f(_). return handler A { l1(_) |-> let y = A!l3() in return () }
-		EAPSend sendBA3 = pf.send(A, l3, pf.unit());
-		EAPReturn retendB = pf.returnn(pf.unit());
-		EAPLet lety3 = pf.let(y, tf.val.unit(), sendBA3, retendB);
+        // return rec f(_). return handler A { l1(_) |-> let y = A!l2() in ... }
+        EAPSend sendBA2 = pf.send(A, l2, pf.unit());
+        EAPLet lety = pf.let(y, tf.val.unit(), sendBA2, letz);
+        LinkedHashMap<Op, EAPHandler> HsB = new LinkedHashMap<>();
 
-		// !!!
-		//EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety, out2mu);
-		EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety3, out2mu);
+        // !!! TODO if-else
+        // return rec f(_). return handler A { l1(_) |-> let y = A!l3() in return () }
+        EAPSend sendBA3 = pf.send(A, l3, pf.unit());
+        EAPReturn retendB = pf.returnn(pf.unit());
+        EAPLet lety3 = pf.let(y, tf.val.unit(), sendBA3, retendB);
 
-		HsB.put(l1, hB1);
-		EAPHandlers hsB1 = pf.handlers(A, HsB);
-		EAPReturn rethB1 = pf.returnn(hsB1);
-		EAPRec recfB = pf.rec(f, w1, tf.val.unit(), rethB1, in1u, recXB, h1);
-		EAPReturn retfB = pf.returnn(recfB);
-		System.out.println(retfB);
-		retfB.type(new Gamma(), in1);
+        // !!!
+        //EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety, out2mu);
+        EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety3, out2mu);
 
-		//let hh = h() in suspend hh
-		EAPSuspend sushh = pf.suspend(hh);
-		EAPApp apph = pf.app(h, pf.unit());
-		EAPLet lethh = pf.let(hh, h1, apph, sushh);
-		System.out.println(lethh);
+        HsB.put(l1, hB1);
+        EAPHandlers hsB1 = pf.handlers(A, HsB);
+        EAPReturn rethB1 = pf.returnn(hsB1);
+        EAPRec recfB = pf.rec(f, w1, tf.val.unit(), rethB1, in1u, recXB, h1);
+        EAPReturn retfB = pf.returnn(recfB);
+        System.out.println(retfB);
+        retfB.type(new Gamma(), in1);
 
-		// let h = return rec f(_). ... in let hh ...
-		EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
+        //let hh = h() in suspend hh
+        EAPSuspend sushh = pf.suspend(hh);
+        EAPApp apph = pf.app(h, pf.unit());
+        EAPLet lethh = pf.let(hh, h1, apph, sushh);
+        System.out.println(lethh);
 
-		EAPLet leth = pf.let(h, ft, retfB, lethh);
+        // let h = return rec f(_). ... in let hh ...
+        EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
 
-		System.out.println(leth);
-		leth.type(new Gamma(), recXB);
+        EAPLet leth = pf.let(h, ft, retfB, lethh);
 
-		//--------------
-		// config < B, idle, c[B] |-> let h = ... in ... >
-		System.out.println();
+        System.out.println(leth);
+        leth.type(new Gamma(), recXB);
+
+        //--------------
+        // config < B, idle, c[B] |-> let h = ... in ... >
+        System.out.println();
 
 		/*LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
 		map.put(x, tf.val.unit());
@@ -357,293 +357,293 @@ public class EACommandLine extends CommandLine
 		sigmaB.put(new EAPPair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
 		EAPConfig cB = rf.config(p2, rf.idle(), sigmaB);*/
 
-		EAPActiveThread tB = rf.activeThread(leth, s, B);
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		EAPConfig cB = rf.config(p1, tB, sigmaB);
+        EAPActiveThread tB = rf.activeThread(leth, s, B);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        EAPConfig cB = rf.config(p1, tB, sigmaB);
 
-		env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, B), recXB);
-		System.out.println("Typing cB: " + cB + " ,, " + env);
-		cB.type(new Gamma(), new Delta(env));
-		//*/
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
+        //*/
 
-		// ----
+        // ----
 
-		System.out.println("\n---");
-		System.out.println("cA = " + cA);
-		System.out.println("cB = " + cB);
+        System.out.println("\n---");
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
 
-		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
-		cs.put(p1, cA);
-		cs.put(p2, cB);
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+        cs.put(p1, cA);
+        cs.put(p2, cB);
 
-		env.put(new EAPPair<>(s, A), out1u);
-		//env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
-		env.put(new EAPPair<>(s, B), recXB);
-		System.out.println(env);
-		EAPSystem sys = rf.system(lf, new Delta(env), cs);
-		System.out.println(sys);
+        env.put(new EAPPair<>(s, A), out1u);
+        //env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println(env);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
 		/*Map<EAPPid, EAPConfig> cfgs = sys.getConfigs();
 		//System.out.println("Typing p1/A: " + cfgs.get(p1));
 		//cfgs.get(p1).type(new Gamma(), new Delta(env));  // TODO env for p1/A
 		System.out.println("Typing p2/B: " + cfgs.get(p2));
 		cfgs.get(p2).type(new Gamma(), new Delta(env));*/
-		//env.put(new EAPPair<>(s, A), out1);
-		//System.out.println(env);
-		////sys.type(new Gamma(), new Delta(), new Delta(env));
-		sys.type(new Gamma(), new Delta());
+        //env.put(new EAPPair<>(s, A), out1);
+        //System.out.println(env);
+        ////sys.type(new Gamma(), new Delta(), new Delta(env));
+        sys.type(new Gamma(), new Delta());
 
-		System.out.println();
-		sys = sys.reduce(p1);
-		System.out.println(sys);
-		env.put(new EAPPair<>(s, A), out1u);
-		env.put(new EAPPair<>(s, B), recXB);
-		System.out.println(env);
-		//sys.type(new Gamma(), new Delta(), new Delta(env));
-		sys.type(new Gamma(), new Delta());
+        System.out.println();
+        sys = sys.reduce(p1);
+        System.out.println(sys);
+        env.put(new EAPPair<>(s, A), out1u);
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println(env);
+        //sys.type(new Gamma(), new Delta(), new Delta(env));
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		for (int i = 0; i < 2; i ++) {
+        for (int i = 0; i < 2; i++) {
 
-			sys = sys.reduce(p1);  // p1 send B1!l1
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);  // p1 send B1!l1
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);  // p1 now idle and installed l2 handler
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);  // p1 now idle and installed l2 handler
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);  // p2 send A!l2
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);  // p2 send A!l2
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			// !!! l3 stops here
+            // !!! l3 stops here
 
-			sys = sys.reduce(p2);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);  // p2 now idle with installed l1 handler
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
-			//*/
-		}
-	}
+            sys = sys.reduce(p2);  // p2 now idle with installed l1 handler
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
+            //*/
+        }
+    }
 
-	private static void ex4(
-			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
-		Role A = new Role("A");
-		Role B = new Role("B");
-		Op l1 = new Op("l1");
-		Op l2 = new Op("l2");
-		//EAPUnit unit = pf.unit();
-		EAPSid s = rf.sid("s");
-		EAPPid p1 = rf.pid("p1");
-		EAPPid p2 = rf.pid("p2");
-		EAPVar h = pf.var("h");
-		EAPVar hh = pf.var("hh");
-		EAPVar x = pf.var("x");
-		EAPVar y = pf.var("y");
-		EAPVar z = pf.var("z");
-		EAPVar zz = pf.var("zz");
-		EAPVar w1 = pf.var("w1");
-		EAPVar w2 = pf.var("w2");
-		EAPFuncName f = new EAPFuncName("f");
-		RecVar X = new RecVar("X");
+    private static void ex4(
+            LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+        Role A = new Role("A");
+        Role B = new Role("B");
+        Op l1 = new Op("l1");
+        Op l2 = new Op("l2");
+        //EAPUnit unit = pf.unit();
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+        EAPVar h = pf.var("h");
+        EAPVar hh = pf.var("hh");
+        EAPVar x = pf.var("x");
+        EAPVar y = pf.var("y");
+        EAPVar z = pf.var("z");
+        EAPVar zz = pf.var("zz");
+        EAPVar w1 = pf.var("w1");
+        EAPVar w2 = pf.var("w2");
+        EAPFuncName f = new EAPFuncName("f");
+        RecVar X = new RecVar("X");
 
-		// ----
+        // ----
 
-		// XXX mu X . p+{ l1(unit) . p&{ l2(unit) . X) } } XXX
-		// mu X . p&{ l2(unit) . p+{ l1(unit) . X) }
-		LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
-		EALOutType out1 = tf.local.out(B, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), out1));
-		EALInType in2 = tf.local.in(B, cases);
-		EALRecType recXA = tf.local.rec(X, in2);
+        // XXX mu X . p+{ l1(unit) . p&{ l2(unit) . X) } } XXX
+        // mu X . p&{ l2(unit) . p+{ l1(unit) . X) }
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
+        EALOutType out1 = tf.local.out(B, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), out1));
+        EALInType in2 = tf.local.in(B, cases);
+        EALRecType recXA = tf.local.rec(X, in2);
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), recXA));
 		EALInType in2mu = tf.local.in(B, cases);*/
 
-		// XXX p+{ l1(unit) . p&{ l2(unit) . [mu X . p+{ l1(unit) . p&{ l2(unit) . X) } }] } } XXX
-		// p+{ l1(unit) . [mu X . p&{ l2(unit) . p+{ l1(unit) . X) } }] }
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), recXA));
-		EALOutType out1u = tf.local.out(B, cases);
+        // XXX p+{ l1(unit) . p&{ l2(unit) . [mu X . p+{ l1(unit) . p&{ l2(unit) . X) } }] } } XXX
+        // p+{ l1(unit) . [mu X . p&{ l2(unit) . p+{ l1(unit) . X) } }] }
+        cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), recXA));
+        EALOutType out1u = tf.local.out(B, cases);
 
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), out1u));
-		EALInType in2u = tf.local.in(B, cases);
-		EAHandlersType h2 = tf.val.handlers(in2u);
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), out1u));
+        EALInType in2u = tf.local.in(B, cases);
+        EAHandlersType h2 = tf.val.handlers(in2u);
 
-		// ----
-		// let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z }
-		// in [ let _ = B!l1() in let hh = h() in suspend hh ]
+        // ----
+        // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z }
+        // in [ let _ = B!l1() in let hh = h() in suspend hh ]
 
-		//let z = f() in suspend z
-		EAPSuspend suszA = pf.suspend(z);
-		EAPApp appfA = pf.app(f, pf.unit());
-		EAPLet letzA = pf.let(z, h2, appfA, suszA);
-		System.out.println(letzA);
-		//letz.type(new Gamma(), in1);  // Gamma need f
+        //let z = f() in suspend z
+        EAPSuspend suszA = pf.suspend(z);
+        EAPApp appfA = pf.app(f, pf.unit());
+        EAPLet letzA = pf.let(z, h2, appfA, suszA);
+        System.out.println(letzA);
+        //letz.type(new Gamma(), in1);  // Gamma need f
 
-		// return rec f(_). return handler B { l2(_) |-> let y = B!l1() in ... }
-		EAPSend sendAB1 = pf.send(B, l1, pf.unit());
-		EAPLet letyA = pf.let(y, tf.val.unit(), sendAB1, letzA);
-		LinkedHashMap<Op, EAPHandler> HsA = new LinkedHashMap<>();
-		EAPHandler hA1 = pf.handler(l2, w2, tf.val.unit(), letyA, out1u);
-		HsA.put(l2, hA1);
-		EAPHandlers hsA2 = pf.handlers(B, HsA);
-		EAPReturn rethA2 = pf.returnn(hsA2);
-		EAPRec recfA = pf.rec(f, w1, tf.val.unit(), rethA2, in2u, recXA, h2);
-		EAPReturn retfA = pf.returnn(recfA);
-		System.out.println(retfA);
-		retfA.type(new Gamma(), in2);
+        // return rec f(_). return handler B { l2(_) |-> let y = B!l1() in ... }
+        EAPSend sendAB1 = pf.send(B, l1, pf.unit());
+        EAPLet letyA = pf.let(y, tf.val.unit(), sendAB1, letzA);
+        LinkedHashMap<Op, EAPHandler> HsA = new LinkedHashMap<>();
+        EAPHandler hA1 = pf.handler(l2, w2, tf.val.unit(), letyA, out1u);
+        HsA.put(l2, hA1);
+        EAPHandlers hsA2 = pf.handlers(B, HsA);
+        EAPReturn rethA2 = pf.returnn(hsA2);
+        EAPRec recfA = pf.rec(f, w1, tf.val.unit(), rethA2, in2u, recXA, h2);
+        EAPReturn retfA = pf.returnn(recfA);
+        System.out.println(retfA);
+        retfA.type(new Gamma(), in2);
 
-		// let _ = B!l1() in let hh = h() in suspend hh
-		EAPSuspend sushhA = pf.suspend(hh);
-		EAPApp apphA = pf.app(h, pf.unit());
-		EAPLet lethhA = pf.let(hh, h2, apphA, sushhA);
-		EAPLet wA = pf.let(w1, tf.val.unit(), sendAB1, lethhA);
-		System.out.println(wA);
+        // let _ = B!l1() in let hh = h() in suspend hh
+        EAPSuspend sushhA = pf.suspend(hh);
+        EAPApp apphA = pf.app(h, pf.unit());
+        EAPLet lethhA = pf.let(hh, h2, apphA, sushhA);
+        EAPLet wA = pf.let(w1, tf.val.unit(), sendAB1, lethhA);
+        System.out.println(wA);
 
-		// let h = return rec f(_). ... in [ let _ ... ]
-		EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-		EAPLet lethA = pf.let(h, ftA, retfA, wA);
-		System.out.println(lethA);
-		lethA.type(new Gamma(), out1u);
+        // let h = return rec f(_). ... in [ let _ ... ]
+        EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
+        EAPLet lethA = pf.let(h, ftA, retfA, wA);
+        System.out.println(lethA);
+        lethA.type(new Gamma(), out1u);
 
-		//---------------
-		// config < A, idle, c[A] |-> let h = ... in ... >
-		System.out.println();
+        //---------------
+        // config < A, idle, c[A] |-> let h = ... in ... >
+        System.out.println();
 
-		EAPActiveThread tA = rf.activeThread(lethA, s, A);
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-		EAPConfig cA = rf.config(p1, tA, sigmaA);
+        EAPActiveThread tA = rf.activeThread(lethA, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig cA = rf.config(p1, tA, sigmaA);
 
-		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
-		//env.put(new EAPPair<>(s, A), recXA);
-		env.put(new EAPPair<>(s, A), out1u);
-		System.out.println("Typing cA: " + cA + " ,, " + env);
-		cA.type(new Gamma(), new Delta(env));
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        //env.put(new EAPPair<>(s, A), recXA);
+        env.put(new EAPPair<>(s, A), out1u);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
 
-		// ----
-		System.out.println();
+        // ----
+        System.out.println();
 
-		// mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
-		EALOutType out2 = tf.local.out(A, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
-		EALInType in1 = tf.local.in(A, cases);
-		EALRecType recXB = tf.local.rec(X, in1);
+        // mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
+        EALOutType out2 = tf.local.out(A, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
+        EALInType in1 = tf.local.in(A, cases);
+        EALRecType recXB = tf.local.rec(X, in1);
 
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
-		EALOutType out2mu = tf.local.out(A, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
+        EALOutType out2mu = tf.local.out(A, cases);
 
-		// p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }] } }
-		cases = new LinkedHashMap<>();
-		cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
-		EALOutType out2u = tf.local.out(A, cases);
-		cases = new LinkedHashMap<>();
-		cases.put(l1, new EAPPair<>(tf.val.unit(), out2u));
-		EALInType in1u = tf.local.in(A, cases);
+        // p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }] } }
+        cases = new LinkedHashMap<>();
+        cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
+        EALOutType out2u = tf.local.out(A, cases);
+        cases = new LinkedHashMap<>();
+        cases.put(l1, new EAPPair<>(tf.val.unit(), out2u));
+        EALInType in1u = tf.local.in(A, cases);
 
-		EAHandlersType h1 = tf.val.handlers(in1u);
-		//EAHandlersType h1fold = tf.val.handlers(recXB);
+        EAHandlersType h1 = tf.val.handlers(in1u);
+        //EAHandlersType h1fold = tf.val.handlers(recXB);
 
-		// ---
-		// let h = return rec f(_). handler A { l1(_) |-> let y = A!l2() in let z = f() in suspend z }
-		// in [ let hh = h() in suspend hh ]
+        // ---
+        // let h = return rec f(_). handler A { l1(_) |-> let y = A!l2() in let z = f() in suspend z }
+        // in [ let hh = h() in suspend hh ]
 
-		//let z = f() in suspend z
-		EAPSuspend susz = pf.suspend(z);
-		EAPApp appf = pf.app(f, pf.unit());
-		EAPLet letz = pf.let(z, h1, appf, susz);
-		System.out.println(letz);
-		//letz.type(new Gamma(), in1);  // Gamma need f
+        //let z = f() in suspend z
+        EAPSuspend susz = pf.suspend(z);
+        EAPApp appf = pf.app(f, pf.unit());
+        EAPLet letz = pf.let(z, h1, appf, susz);
+        System.out.println(letz);
+        //letz.type(new Gamma(), in1);  // Gamma need f
 
-		// return rec f(_). return handler A { l1(_) |-> let y = A!l2() in ... }
-		EAPSend sendBA2 = pf.send(A, l2, pf.unit());
-		EAPLet lety = pf.let(y, tf.val.unit(), sendBA2, letz);
-		LinkedHashMap<Op, EAPHandler> HsB = new LinkedHashMap<>();
-		EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety, out2mu);
-		HsB.put(l1, hB1);
-		EAPHandlers hsB1 = pf.handlers(A, HsB);
-		EAPReturn rethB1 = pf.returnn(hsB1);
-		EAPRec recfB = pf.rec(f, w1, tf.val.unit(), rethB1, in1u, recXB, h1);
-		EAPReturn retfB = pf.returnn(recfB);
-		System.out.println(retfB);
-		retfB.type(new Gamma(), in1);
+        // return rec f(_). return handler A { l1(_) |-> let y = A!l2() in ... }
+        EAPSend sendBA2 = pf.send(A, l2, pf.unit());
+        EAPLet lety = pf.let(y, tf.val.unit(), sendBA2, letz);
+        LinkedHashMap<Op, EAPHandler> HsB = new LinkedHashMap<>();
+        EAPHandler hB1 = pf.handler(l1, w2, tf.val.unit(), lety, out2mu);
+        HsB.put(l1, hB1);
+        EAPHandlers hsB1 = pf.handlers(A, HsB);
+        EAPReturn rethB1 = pf.returnn(hsB1);
+        EAPRec recfB = pf.rec(f, w1, tf.val.unit(), rethB1, in1u, recXB, h1);
+        EAPReturn retfB = pf.returnn(recfB);
+        System.out.println(retfB);
+        retfB.type(new Gamma(), in1);
 
-		//let hh = h() in suspend hh
-		EAPSuspend sushh = pf.suspend(hh);
-		EAPApp apph = pf.app(h, pf.unit());
-		EAPLet lethh = pf.let(hh, h1, apph, sushh);
-		System.out.println(lethh);
+        //let hh = h() in suspend hh
+        EAPSuspend sushh = pf.suspend(hh);
+        EAPApp apph = pf.app(h, pf.unit());
+        EAPLet lethh = pf.let(hh, h1, apph, sushh);
+        System.out.println(lethh);
 
-		// let h = return rec f(_). ... in let hh ...
-		EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
-		EAPLet leth = pf.let(h, ft, retfB, lethh);
-		System.out.println(leth);
-		leth.type(new Gamma(), recXB);
+        // let h = return rec f(_). ... in let hh ...
+        EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
+        EAPLet leth = pf.let(h, ft, retfB, lethh);
+        System.out.println(leth);
+        leth.type(new Gamma(), recXB);
 
-		//--------------
-		// config < B, idle, c[B] |-> let h = ... in ... } >
-		System.out.println();
+        //--------------
+        // config < B, idle, c[B] |-> let h = ... in ... } >
+        System.out.println();
 
 		/*LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
 		map.put(x, tf.val.unit());
@@ -654,125 +654,125 @@ public class EACommandLine extends CommandLine
 		sigmaB.put(new EAPPair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
 		EAPConfig cB = rf.config(p2, rf.idle(), sigmaB);*/
 
-		EAPActiveThread tB = rf.activeThread(leth, s, B);
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		EAPConfig cB = rf.config(p1, tB, sigmaB);
+        EAPActiveThread tB = rf.activeThread(leth, s, B);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        EAPConfig cB = rf.config(p1, tB, sigmaB);
 
-		env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, B), recXB);
-		System.out.println("Typing cB: " + cB + " ,, " + env);
-		cB.type(new Gamma(), new Delta(env));
-		//*/
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
+        //*/
 
-		// ----
+        // ----
 
-		System.out.println("\n---");
-		System.out.println("cA = " + cA);
-		System.out.println("cB = " + cB);
+        System.out.println("\n---");
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
 
-		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
-		cs.put(p1, cA);
-		cs.put(p2, cB);
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+        cs.put(p1, cA);
+        cs.put(p2, cB);
 
-		env.put(new EAPPair<>(s, A), out1u);
-		//env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
-		env.put(new EAPPair<>(s, B), recXB);
-		System.out.println(env);
-		EAPSystem sys = rf.system(lf, new Delta(env), cs);
-		System.out.println(sys);
+        env.put(new EAPPair<>(s, A), out1u);
+        //env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println(env);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
 		/*Map<EAPPid, EAPConfig> cfgs = sys.getConfigs();
 		//System.out.println("Typing p1/A: " + cfgs.get(p1));
 		//cfgs.get(p1).type(new Gamma(), new Delta(env));  // TODO env for p1/A
 		System.out.println("Typing p2/B: " + cfgs.get(p2));
 		cfgs.get(p2).type(new Gamma(), new Delta(env));*/
-		//env.put(new EAPPair<>(s, A), out1);
-		//System.out.println(env);
-		////sys.type(new Gamma(), new Delta(), new Delta(env));
-		sys.type(new Gamma(), new Delta());
+        //env.put(new EAPPair<>(s, A), out1);
+        //System.out.println(env);
+        ////sys.type(new Gamma(), new Delta(), new Delta(env));
+        sys.type(new Gamma(), new Delta());
 
-		System.out.println();
-		sys = sys.reduce(p1);
-		System.out.println(sys);
-		env.put(new EAPPair<>(s, A), out1u);
-		env.put(new EAPPair<>(s, B), recXB);
-		System.out.println(env);
-		//sys.type(new Gamma(), new Delta(), new Delta(env));
-		sys.type(new Gamma(), new Delta());
+        System.out.println();
+        sys = sys.reduce(p1);
+        System.out.println(sys);
+        env.put(new EAPPair<>(s, A), out1u);
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println(env);
+        //sys.type(new Gamma(), new Delta(), new Delta(env));
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		sys = sys.reduce(p2);
-		System.out.println();
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        sys = sys.reduce(p2);
+        System.out.println();
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		for (int i = 0; i < 10; i ++) {
+        for (int i = 0; i < 10; i++) {
 
-			sys = sys.reduce(p1);  // p1 send B1!l1
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);  // p1 send B1!l1
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p1);  // p1 now idle and installed l2 handler
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p1);  // p1 now idle and installed l2 handler
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);  // p2 send A!l2
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);  // p2 send A!l2
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
+            sys = sys.reduce(p2);
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
 
-			sys = sys.reduce(p2);  // p2 now idle with installed l1 handler
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
-			//*/
-		}
-	}
+            sys = sys.reduce(p2);  // p2 now idle with installed l1 handler
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
+            //*/
+        }
+    }
 
 	/*private static void ex4i(
 			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
@@ -935,19 +935,19 @@ public class EACommandLine extends CommandLine
 	}
 	*/
 
-	private static void ex3(
-			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
-		Role A = new Role("A");
-		Role B = new Role("B");
-		Op l1 = new Op("l1");
-		//EAPUnit unit = pf.unit();
-		EAPSid s = rf.sid("s");
-		EAPPid p1 = rf.pid("p1");
-		EAPPid p2 = rf.pid("p2");
-		EAPVar x = pf.var("x");
+    private static void ex3(
+            LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+        Role A = new Role("A");
+        Role B = new Role("B");
+        Op l1 = new Op("l1");
+        //EAPUnit unit = pf.unit();
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+        EAPVar x = pf.var("x");
 
-		// A: mu X . B!l1(unit) . X
-		EAPSend sendAB = pf.send(B, l1, pf.unit());
+        // A: mu X . B!l1(unit) . X
+        EAPSend sendAB = pf.send(B, l1, pf.unit());
 
 		/*EAPSuspend sus = pf.suspend()  // HERE: recursion example -- or need to suspend an output handler?
 
@@ -1023,18 +1023,18 @@ public class EACommandLine extends CommandLine
 		System.out.println();
 		System.out.println(sys);* /
 		*/
-	}
+    }
 
-	//*
-	private static void ex2(
-			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+    //*
+    private static void ex2(
+            LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
 
-		Role A = new Role("A");
-		Role B = new Role("B");
-		EAPSid s = rf.sid("s");
-		EAPPid p1 = rf.pid("p1");
-		EAPPid p2 = rf.pid("p2");
-		EAPVar x = pf.var("x");
+        Role A = new Role("A");
+        Role B = new Role("B");
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+        EAPVar x = pf.var("x");
 		/*Op l1 = new Op("l1");
 		Op l2 = new Op("l2");
 		EAPUnit unit = pf.unit();*/
@@ -1045,7 +1045,7 @@ public class EACommandLine extends CommandLine
 		cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
 		EALOutType out1 = tf.local.out(B, cases);*/
-		EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).B!{l2(1).end}}");
+        EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).B!{l2(1).end}}");
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.end()));
@@ -1053,32 +1053,32 @@ public class EACommandLine extends CommandLine
 		cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), in2));
 		EALInType in1 = tf.local.in(A, cases);*/
-		EALInType in1 = (EALInType) parseSessionType("A?{l1(1).A?{l2(1).end}}");
+        EALInType in1 = (EALInType) parseSessionType("A?{l1(1).A?{l2(1).end}}");
 
-		// ---
+        // ---
 
-		// let x = B!l1() in B!l2()
+        // let x = B!l1() in B!l2()
 		/*EAPSend sendAB1 = pf.send(B, l1, unit);
 		EAPSend sendAB2 = pf.send(B, l2, unit);
 
 		EAPLet let = pf.let(x, tf.val.unit(), sendAB1, sendAB2);*/
-		EAPLet let = (EAPLet) parse("let x: 1 <= B!l1(()) in B!l2(())");
+        EAPLet let = (EAPLet) parse("let x: 1 <= B!l1(()) in B!l2(())");
 
-		System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
+        System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
 
-		EAPActiveThread tA = rf.activeThread(let, s, A);
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-		EAPConfig cA = rf.config(p1, tA, sigmaA);
+        EAPActiveThread tA = rf.activeThread(let, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig cA = rf.config(p1, tA, sigmaA);
 
-		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, A), out1);
-		System.out.println("Typing cA: " + cA + " ,, " + env);
-		cA.type(new Gamma(), new Delta(env));
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, A), out1);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
 
-		// ----
+        // ----
 
-		EAPIdle idle = rf.idle();
-		// idle, s[B] |-> handler A { l1(x) -> suspend(l2(x) -> return () ) }
+        EAPIdle idle = rf.idle();
+        // idle, s[B] |-> handler A { l1(x) -> suspend(l2(x) -> return () ) }
 		/*LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
 		EAPReturn ret = pf.returnn(pf.unit());
 		EAPHandler hB2 = pf.handler(l2, x, tf.val.unit(), ret, tf.local.end());
@@ -1091,50 +1091,50 @@ public class EACommandLine extends CommandLine
 		EAPHandler hB1 = pf.handler(l1, x, tf.val.unit(), sus, in2);
 		Hs.put(l1, hB1);
 		EAPHandlers hsB1 = pf.handlers(A, Hs);*/
-		EAPHandlers hsB1 = (EAPHandlers) parseV(
-				"handler A { l1(x: 1): A?{l2(1).end} ->"
-						+ "suspend (handler A { l2(x: 1): end -> return ()) }) }");
+        EAPHandlers hsB1 = (EAPHandlers) parseV(
+                "handler A { l1(x: 1): A?{l2(1).end} ->"
+                        + "suspend (handler A { l2(x: 1): end -> return () }) }");
 
-		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
-		map.put(x, tf.val.unit());
-		Gamma gamma = new Gamma(map, new LinkedHashMap<>());
-		System.out.println("Typing hB: " + hsB1.type(gamma));
+        LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
+        map.put(x, tf.val.unit());
+        Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+        System.out.println("Typing hB: " + hsB1.type(gamma));
 
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		sigmaB.put(new EAPPair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
-		EAPConfig cB = rf.config(p2, idle, sigmaB);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        sigmaB.put(new EAPPair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
+        EAPConfig cB = rf.config(p2, idle, sigmaB);
 
-		env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, B), in1);
-		System.out.println("Typing cB: " + cB + " ,, " + env);
-		cB.type(new Gamma(), new Delta(env));
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), in1);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
 
-		// ----
+        // ----
 
-		System.out.println("\n---");
-		System.out.println("cA = " + cA);
-		System.out.println("cB = " + cB);
+        System.out.println("\n---");
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
 
-		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
-		cs.put(p1, cA);
-		cs.put(p2, cB);
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+        cs.put(p1, cA);
+        cs.put(p2, cB);
 
-		env.put(new EAPPair<>(s, A), out1);
-		env.put(new EAPPair<>(s, B), in1);
-		System.out.println(env);
-		EAPSystem sys = rf.system(lf, new Delta(env), cs);
-		System.out.println(sys);
+        env.put(new EAPPair<>(s, A), out1);
+        env.put(new EAPPair<>(s, B), in1);
+        System.out.println(env);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
 		/*Map<EAPPid, EAPConfig> cfgs = sys.getConfigs();
 		//System.out.println("Typing p1/A: " + cfgs.get(p1));
 		//cfgs.get(p1).type(new Gamma(), new Delta(env));  // TODO env for p1/A
 		System.out.println("Typing p2/B: " + cfgs.get(p2));
 		cfgs.get(p2).type(new Gamma(), new Delta(env));*/
-		//env.put(new EAPPair<>(s, A), out1);
-		//System.out.println(env);
-		////sys.type(new Gamma(), new Delta(), new Delta(env));
-		sys.type(new Gamma(), new Delta());
+        //env.put(new EAPPair<>(s, A), out1);
+        //System.out.println(env);
+        ////sys.type(new Gamma(), new Delta(), new Delta(env));
+        sys.type(new Gamma(), new Delta());
 
-		run(sys);
+        run(sys);
 		/*
 		System.out.println();
 		sys = sys.reduce(p1);
@@ -1170,92 +1170,92 @@ public class EACommandLine extends CommandLine
 		System.out.println(sys);
 		sys.type(new Gamma(), new Delta());
 		 */
-	}
-	//*/
+    }
+    //*/
 
-	//*
-	private static void ex1(
-			LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+    //*
+    private static void ex1(
+            LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
 
-		Role A = new Role("A");
-		Role B = new Role("B");
-		EAPSid s = rf.sid("s");
-		EAPPid p1 = rf.pid("p1");
-		EAPPid p2 = rf.pid("p2");
+        Role A = new Role("A");
+        Role B = new Role("B");
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
 		/*Op l1 = new Op("l1");
 		EAPUnit unit = pf.unit();*/
 
 		/*LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out1 = tf.local.out(B, cases);*/
-		EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).end}");
+        EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).end}");
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALInType in1 = tf.local.in(B, cases);*/
-		EALInType in1 = (EALInType) parseSessionType("A?{l1(1).end}");
+        EALInType in1 = (EALInType) parseSessionType("A?{l1(1).end}");
 
-		// A: B!l1(unit)
-		//EAPSend sendAB = pf.send(B, l1, unit);
-		EAPSend sendAB = (EAPSend) parse("B!l1(())");
-		EAPActiveThread tA = rf.activeThread(sendAB, s, A);
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-		EAPConfig cA = rf.config(p1, tA, sigmaA);
+        // A: B!l1(unit)
+        //EAPSend sendAB = pf.send(B, l1, unit);
+        EAPSend sendAB = (EAPSend) parse("B!l1(())");
+        EAPActiveThread tA = rf.activeThread(sendAB, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig cA = rf.config(p1, tA, sigmaA);
 
-		EAPVar x = pf.var("x");
-		// idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
+        EAPVar x = pf.var("x");
+        // idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
 		/*LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
 		EAPReturn ret = pf.returnn(unit);
 		EAPHandler hB = pf.handler(l1, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l1, hB);
 		EAPHandlers hsB = pf.handlers(B, Hs);*/
-		EAPHandlers hsB = (EAPHandlers) parseV("handler A { l1(x: 1) : end -> return () }");
-		EAPIdle idle = rf.idle();
-		LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-		sigmaB.put(new EAPPair<>(s, B), hsB);
-		EAPConfig cB = rf.config(p2, idle, sigmaB);
+        EAPHandlers hsB = (EAPHandlers) parseV("handler A { l1(x: 1) : end -> return () }");
+        EAPIdle idle = rf.idle();
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        sigmaB.put(new EAPPair<>(s, B), hsB);
+        EAPConfig cB = rf.config(p2, idle, sigmaB);
 
-		System.out.println(cA);
-		System.out.println(cB);
+        System.out.println(cA);
+        System.out.println(cB);
 
-		System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(), out1));
+        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(), out1));
 
-		LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, A), out1);
-		System.out.println("Typing cA: " + cA + " ,, " + env);
-		cA.type(new Gamma(), new Delta(env));
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, A), out1);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
 
-		LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
-		map.put(x, tf.val.unit());
-		Gamma gamma = new Gamma(map, new LinkedHashMap<>());
-		System.out.println("Typing hB: " + hsB.type(gamma));
+        LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
+        map.put(x, tf.val.unit());
+        Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+        System.out.println("Typing hB: " + hsB.type(gamma));
 
-		env = new LinkedHashMap<>();
-		env.put(new EAPPair<>(s, B), in1);
-		System.out.println("Typing cB: " + cB + " ,, " + env);
-		cB.type(new Gamma(), new Delta(env));
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), in1);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
 
-		LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
-		cs.put(p1, cA);
-		cs.put(p2, cB);
-		//EAPSystem sys = rf.system(cs);
-		env.put(new EAPPair<>(s, A), out1);
-		EAPSystem sys = rf.system(lf, new Delta(env), cs);
-		System.out.println(sys);
-		sys.type(new Gamma(), new Delta());
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+        cs.put(p1, cA);
+        cs.put(p2, cB);
+        //EAPSystem sys = rf.system(cs);
+        env.put(new EAPPair<>(s, A), out1);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
 
-		run(sys);
-	}
-	//*/
+        run(sys);
+    }
+    //*/
 
-	static void run(EAPSystem sys) {
-		for (Map<EAPPid, Set<EAPPid>> pids = sys.canStep(); !pids.isEmpty(); pids = sys.canStep()) {
-			sys = sys.reduce(pids.keySet().iterator().next());
-			System.out.println();
-			System.out.println(sys);
-			sys.type(new Gamma(), new Delta());
-		}
-	}
+    static void run(EAPSystem sys) {
+        for (Map<EAPPid, Set<EAPPid>> pids = sys.canStep(); !pids.isEmpty(); pids = sys.canStep()) {
+            sys = sys.reduce(pids.keySet().iterator().next());
+            System.out.println();
+            System.out.println(sys);
+            sys.type(new Gamma(), new Delta());
+        }
+    }
 
 		/*
 		sys = sys.reduce(p1);

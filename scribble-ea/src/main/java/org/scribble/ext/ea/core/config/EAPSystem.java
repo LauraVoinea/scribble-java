@@ -21,10 +21,13 @@ import java.util.stream.Collectors;
 // CHECKME: equiv to normal form with all \nu s at top?  sufficiently general?
 public class EAPSystem {
 
-    @NotNull public final Delta annots;
-    @NotNull public final LinkedHashMap<EAPPid, EAPConfig> configs;
+    @NotNull
+    public final Delta annots;
+    @NotNull
+    public final LinkedHashMap<EAPPid, EAPConfig> configs;
 
-    @NotNull protected final LTypeFactory lf;
+    @NotNull
+    protected final LTypeFactory lf;
 
     public EAPSystem(@NotNull LTypeFactory lf,
                      @NotNull Delta annots,
@@ -86,66 +89,32 @@ public class EAPSystem {
     // Pre: p \in getReady ?
     public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
         EAPConfig c = this.configs.get(p);
-        if (!c.isActive()) {
+        /*if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
-        }
+        }*/
         EAPActiveThread t = (EAPActiveThread) c.T;
         if (!t.expr.isGround()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
 
-        EAPExpr foo = t.expr.getFoo();
-        if (!(foo instanceof EAPSuspend || foo instanceof EAPReturn
-                || foo instanceof EAPSend || foo instanceof EAPApp || foo instanceof EAPLet)) {
-            throw new RuntimeException("TODO: " + foo);
-        }
-
-        System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
-
-        if (foo instanceof EAPSuspend || foo instanceof EAPReturn
-                || foo instanceof EAPApp || foo instanceof EAPLet) {  // TODO refactor EAPSend to config step also
-            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
-            return new EAPSystem(this.lf, this.annots, configs);
-        }
-
-        // HERE HERE -- refactor remaining EAPSend reduction to EAPConfig -> refactor config step to separate case by case actions
+        // HERE HERE -- refactor remaining EAPSend reduction (below) to EAPConfig -> refactor config step to separate case by case actions
         // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
         // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
         // step annots -- only for EAPSend
 
-        //EAPSystem res = new EAPSystem(this.configs);
-        LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(this.configs);
-        LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
+        EAPExpr foo = t.expr.getFoo();
 
-        EAPThreadState t1;
-        if (foo instanceof EAPSend) {
-            //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+        System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
+
+        if (foo instanceof EAPSuspend || foo instanceof EAPReturn
+                || foo instanceof EAPApp || foo instanceof EAPLet) {  // !!! Delta (annots) unchanged
+            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
+            return new EAPSystem(this.lf, this.annots, configs);
+        } else if (foo instanceof EAPSend) {  // !!! Delta (annots) change
             EAPSend cast = (EAPSend) foo;
+            LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
 
-            Optional<Map.Entry<EAPPid, EAPConfig>> fst =
-                    this.configs.entrySet().stream().filter(x ->
-                            x.getValue().sigma.keySet().stream().anyMatch(y ->
-                                    y.left.equals(t.sid) && y.right.equals(cast.dst))
-                    ).findFirst();
-            if (fst.isEmpty()) {
-                throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo gets "potenitally reducible parts", such as sends -- but receive may not be ready yet (e.g., handler not installed yet)
-                // Currently PRE: `p` must have reducible step (i.e., send must have matching receive ready)
-            }
-            Map.Entry<EAPPid, EAPConfig> get = fst.get();
-            EAPPid p2 = get.getKey();
-            EAPConfig c2 = get.getValue();
-            Map<Pair<EAPSid, Role>, EAPHandlers> sigma2 = c2.sigma;
             Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
-            EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
-            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val));
-            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
-                    new LinkedHashMap<>(c2.sigma);
-            newsigma2.remove(k2);
-            EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
-            //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
-            configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
-
             EALType l2 = this.annots.map.get(k2);
             LRecv lr = this.lf.LRecv(null, t.role, new SigLit(cast.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY
             Optional<EALType> opt2 = l2.step(lr);
@@ -165,19 +134,12 @@ public class EAPSystem {
             l1 = opt1.get();
             dmap.put(k1, l1);
 
+            Delta d1 = new Delta(dmap);
+            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
+            return new EAPSystem(this.lf, d1, configs);
         } else {
-            throw new RuntimeException("TODO: " + foo);
+            throw new RuntimeException("TODO " + foo);
         }
-
-        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(c.sigma);
-
-        EAPConfig c1 = EAPRuntimeFactory.factory.config(c.pid, t1, sigma1);
-        //res.configs.put(p, c1);
-        configs.put(p, c1);
-
-        Delta d1 = new Delta(dmap);
-
-        return new EAPSystem(this.lf, d1, configs);
     }
 
     public Map<EAPPid, EAPConfig> getConfigs() {
