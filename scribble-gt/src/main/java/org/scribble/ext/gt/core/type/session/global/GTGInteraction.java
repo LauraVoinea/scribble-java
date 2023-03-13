@@ -109,7 +109,7 @@ public class GTGInteraction implements GTGType {
     // !!! TODO refactor with GTLType.merge
     public static Optional<? extends GTLType> merge(
             Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
-        if (left.isEmpty() || right.isEmpty()) {
+        /*if (left.isEmpty() || right.isEmpty()) {
             return Optional.empty();
         }
         GTLType l = left.get();
@@ -118,7 +118,8 @@ public class GTGInteraction implements GTGType {
             return left;
         } else {
             throw new RuntimeException("TODO");
-        }
+        }*/
+        return left.flatMap(x -> right.flatMap(y -> x.merge(y)));
     }
 
     @Override

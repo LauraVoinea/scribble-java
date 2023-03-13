@@ -2,15 +2,8 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
-import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.core.type.session.global.GTGTypeFactory;
-import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -27,13 +20,27 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public GTLType unfoldContext(Map<RecVar, GTLType> c) {
-        if (c.containsKey(this.var)) {
+    public GTLType unfoldContext(Map<RecVar, GTLType> env) {
+        if (env.containsKey(this.var)) {
             return this;
         }
-        Map<RecVar, GTLType> nested = new HashMap<>(c);
+        Map<RecVar, GTLType> nested = new HashMap<>(env);
         nested.put(this.var, this);
         return this.body.unfoldContext(nested);
+    }
+
+    @Override
+    public Optional<? extends GTLType> merge(GTLType t) {
+        if (!(t instanceof GTLRecursion)) {
+            return Optional.empty();
+        }
+        GTLRecursion cast = (GTLRecursion) t;
+        if (this.var.equals(cast.var)) {
+            Optional<? extends GTLType> merge = this.body.merge(cast.body);
+            return merge.map(x -> this.fact.recursion(this.var, x));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override

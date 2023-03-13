@@ -2,14 +2,9 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
-import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -28,13 +23,12 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
         return unfoldContext(Collections.emptyMap());
     }
 
-    GTLType unfoldContext(Map<RecVar, GTLType> c);
+    GTLType unfoldContext(Map<RecVar, GTLType> env);
 
     // this merge g  -- should be symmetric
-    default Optional<? extends GTLType> merge(GTLType t) {
-        //return this.equals(t) ? Optional.of(this) : Optional.empty();
-        return GTGInteraction.merge(Optional.of(this), Optional.of(t));
-    }
+    Optional<? extends GTLType> merge(GTLType t);
+    //return this.equals(t) ? Optional.of(this) : Optional.empty();
+    //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
     // a is deterministic (including "nested" steps)
     Optional<GTLType> step(EAction a);

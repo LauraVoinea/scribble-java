@@ -20,10 +20,14 @@ public class GTLEnd implements GTLType {
     protected GTLEnd() { }
 
     @Override
-    public GTLEnd unfoldContext(Map<RecVar, GTLType> c) {
+    public GTLEnd unfoldContext(Map<RecVar, GTLType> env) {
         return this;
     }
 
+    @Override
+    public Optional<? extends GTLType> merge(GTLType t) {
+        return t.equals(END) ? Optional.of(END) : Optional.empty();
+    }
 
     @Override
     public Optional<GTLType> step(EAction a) {

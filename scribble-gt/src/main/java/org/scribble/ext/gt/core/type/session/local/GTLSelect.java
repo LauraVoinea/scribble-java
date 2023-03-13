@@ -25,15 +25,20 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public GTLSelect unfoldContext(Map<RecVar, GTLType> c) {
+    public GTLSelect unfoldContext(Map<RecVar, GTLType> env) {
         LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(c),
+                        x -> x.getValue().unfoldContext(env),
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));
-        return new GTLSelect(this.dst, cases);
+        return this.fact.select(this.dst, cases);
+    }
+
+    @Override
+    public Optional<? extends GTLType> merge(GTLType t) {
+        return this.equals(t) ? Optional.of(this) : Optional.empty();
     }
 
     @Override

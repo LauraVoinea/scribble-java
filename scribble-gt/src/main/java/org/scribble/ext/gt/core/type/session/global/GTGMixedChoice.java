@@ -65,7 +65,7 @@ public class GTGMixedChoice implements GTGType {
         }
         return !r.equals(this.other) && !r.equals(this.observer)
                 ? get_l.left.merge(get_r.left).map(x -> new Pair<>(x, s0))  // !!! refactor with GTGInteraction.merge
-                : Optional.of(new Pair<>(lf.mixedChoice(get_l.left, get_r.left), s0));
+                : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
     }
 
     @Override

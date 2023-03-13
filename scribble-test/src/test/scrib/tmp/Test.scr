@@ -194,7 +194,7 @@ global protocol Proto1(role A, role B, role C) {
 }
 //*/
 
-//*
+/*
 global protocol Proto1(role A, role B, role C) {
     1(Int) from A to B;
     choice at B {
@@ -209,14 +209,110 @@ global protocol Proto1(role A, role B, role C) {
 
 /*
 global protocol Proto1(role A, role B) {
+    rec X {
+        1(Int) from A to B;
+        2(Int) from B to A;
+        continue X;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    rec X {
+        choice at A {
+            1(Int) from A to B;
+            continue X;
+        } or {
+            2(Int) from A to B;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    rec X {
+        choice at A {
+            1(Int) from A to B;
+            2(Int) from B to C;
+            continue X;
+        } or {
+            3(Int) from A to B;
+            4(Int) from B to C;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
     mixed {
         1() from A to B;
-        3()
     } () or A->B () {
         2() from B to A;
     }
 }
 //*/
+
+/* !!! CHECKME not single pointed?
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        //3() from A to A;  // !!! HERE FIXME self comm check
+        3() from A to C;
+    } () or A->B () {
+        2() from B to A;
+        4() from A to C;
+    }
+}
+//*/
+
+/* !!! CHECKME not single pointed?
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        3() from C to A;
+    } () or A->B () {
+        2() from B to A;
+        3() from C to A;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        3() from A to C;
+    } () or A->B () {
+        2() from B to A;
+        4() from A to C;
+    }
+}
+//*/
+
+//*
+global protocol Proto1(role A, role B) {
+    rec X {
+        mixed {
+            1() from A to B;
+            continue X;
+        } () or A->B () {
+            2() from B to A;
+        }
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
 
 
 /*
@@ -244,6 +340,33 @@ global protocol Proto1(role A, role B) {
     }* /
 }
 //*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
