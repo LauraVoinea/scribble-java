@@ -1,15 +1,13 @@
 package org.scribble.ext.gt.cli;
 
 import org.scribble.ast.Module;
-import org.scribble.ast.global.GInteractionSeq;
 import org.scribble.ast.global.GProtoDecl;
-import org.scribble.ast.global.GProtoDef;
+import org.scribble.cli.CLFlags;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
-import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
@@ -17,17 +15,13 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator2;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
-import org.scribble.util.AntlrSourceException;
-import org.scribble.util.Pair;
-import org.scribble.util.ScribException;
-import org.scribble.util.ScribParserException;
+import org.scribble.util.*;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -74,31 +68,43 @@ public class GTCommandLine extends CommandLine {
 		}
 	}*/
 
-    protected GTMain main;
+    private boolean hasFlag(String flag) {
+        return this.args.stream().anyMatch(x -> x.left.equals(flag));
+    }
+
+    private String[] getUniqueFlagArgs(String flag) {
+        return this.args.stream().filter(x -> x.left.equals(flag)).findAny()
+                .get().right;
+    }
+
+    protected GTMain main;  // Hack for parsed modules, should use Job instead
 
     // Duplicated from AssrtCommandLine
     // Based on CommandLine.newMainContext
     @Override
     protected Main newMain() throws ScribParserException, ScribException {
-		/*if (!hasFlag(AssrtCLFlags.ASSRT_CORE_FLAG))
-		{
-			return super.newMain();
-		}*/
-        //AssrtCoreArgs args = newCoreArgs();
-        CoreArgs args = newCoreArgs();
-        List<Path> impaths = parseImportPaths();
-        ResourceLocator locator = new DirectoryResourceLocator(impaths);
-        Path mainpath = parseMainPath();
-        this.main = new GTMain(locator, mainpath, args);
-        return main;
+        Map<CoreArgs, Boolean> args = Collections.unmodifiableMap(parseCoreArgs());
+        if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG)) {
+            String inline = getUniqueFlagArgs(CLFlags.INLINE_MAIN_MOD_FLAG)[0];
+            return new Main(inline, args);
+        } else {
+            List<Path> impaths = hasFlag(CLFlags.IMPORT_PATH_FLAG)
+                    ? CommandLine
+                    .parseImportPaths(getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
+                    : Collections.emptyList();
+            ResourceLocator locator = new DirectoryResourceLocator(impaths);
+            Path mainpath = CommandLine
+                    .parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
+            this.main = new GTMain(locator, mainpath, args);
+            return this.main;
+        }
     }
 
     protected void gtRun() {
         Core core = this.job.getCore();
-        CoreContext c = core.getContext();
+        //CoreContext c = core.getContext();
 
-
-        Map<ModuleName, Module> parsed = this.main.getParsedModules();
+        Map<ModuleName, Module> parsed = this.main.getParsedModules();  // !!! Using main rather than job
         System.out.println("\n----- GT -----\n");
         System.out.println(parsed.keySet());
 
@@ -114,7 +120,7 @@ public class GTCommandLine extends CommandLine {
                 System.out.println("---");
 
                 for (Role r : g.getRoles()) {
-                    System.out.println("project onto " + r + ": " + translate.project(r));
+                    System.out.println("project onto " + r + ": " + translate.project(r).get());
                 }
 
                 System.out.println("---");
@@ -125,7 +131,8 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("Initial g = " + translate);
 
                     Theta theta = new Theta(translate.getTimeoutIds());
-                    foo(core, "", theta, translate, 0);
+                    ////foo(core, "", theta, translate, 0);
+                    bar(core, "", theta, translate, 0);
                 }
             }
         }
@@ -142,8 +149,53 @@ public class GTCommandLine extends CommandLine {
 
     private static final Scanner KB = new Scanner(System.in);
 
+    private void bar(Core core, String indent, Theta theta, GTGType g, int count) {
+        if (!g.isGood()) {
+            System.err.println("Not good: " + g);
+            System.exit(0);
+        }
+        if (!g.isCoherent()) {
+            System.err.println("Not coherent: " + g);
+            System.exit(0);
+        }
+        GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+
+        List<Integer> tmp = new LinkedList<>();
+        tmp.add(1);
+        Map<Integer, SAction> as = g.getActs(mf, theta).stream().collect(Collectors.toMap(
+                x -> {
+                    int i = tmp.remove(0);
+                    tmp.add(i + 1);
+                    return i;
+                },
+                x -> x,
+                (x, y) -> null,
+                LinkedHashMap::new
+        ));
+
+        if (!as.isEmpty()) {
+            System.out.println("Actions: " + as.entrySet().stream().map(
+                    x -> x.getKey() + "=" + x.getValue()).collect(Collectors.joining(", ")));
+            System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
+            String read = KB.nextLine();
+            SAction a = null;
+            try {
+                a = as.get(Integer.parseInt(read));
+            } catch (NumberFormatException x) {
+                System.exit(0);
+            }
+
+            Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty
+            System.out.println(indent + "a = " + a);
+            System.out.println(indent + "g = " + p.right);
+            if (!p.right.equals(GTGEnd.END)) {
+                bar(core, indent + "    ", p.left, p.right, count++);
+            }
+        }
+    }
+
     private void foo(Core core, String indent, Theta theta, GTGType g, int count) {
-        System.out.print("Press [Enter]: ");
+        System.out.print("Press [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
         KB.nextLine();
 
         if (!g.isGood()) {

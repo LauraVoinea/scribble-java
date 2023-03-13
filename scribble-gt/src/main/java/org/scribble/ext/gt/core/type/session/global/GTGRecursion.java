@@ -6,6 +6,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -40,9 +41,11 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public Optional<? extends GTLType> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return this.body.project(r).map(x -> lf.recursion(this.var, x));
+        return this.body.project(r).map(x -> new Pair<>(
+                x.left.equals(this.var) ? lf.end() : lf.recursion(this.var, x.left),
+                x.right));
     }
 
     @Override

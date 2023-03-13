@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.type.session;
 
-import java.util.function.Function;
-import java.util.stream.Stream;
+package org.scribble.core.type.session;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.ProtoKind;
@@ -25,71 +23,33 @@ import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
-public abstract class Continue<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeBase<K, B>
-{
-	public final RecVar recvar;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-	public Continue(//org.scribble.ast.Continue<K> source,
-			CommonTree source,  // Due to inlining, do -> continue
-			RecVar recvar)
-	{
-		super(source);
-		this.recvar = recvar;
-	}
+public interface Continue<K extends ProtoKind, B extends Seq<K, B>>
+        extends SType<K, B> {
 
-	public abstract Continue<K, B> reconstruct(
-			CommonTree source, RecVar recvar);
+    RecVar getRecVar();
 
-	@Override
-	public <T> T visitWith(STypeAgg<K, B, T> v) throws ScribException
-	{
-		return v.visitContinue(this);
-	}
-	
-	@Override
-	public <T> T visitWithNoThrow(STypeAggNoThrow<K, B, T> v)
-	{
-		return v.visitContinue(this);
-	}
-	
-	@Override
-	public <T> Stream<T> gather(Function<SType<K, B>, Stream<T>> f)
-	{
-		return f.apply(this);
-	}
+    // Corresponds to all getters (incl. super)
+    Continue<K, B> reconstruct(CommonTree source, RecVar recvar);
 
-	@Override
-	public String toString()
-	{
-		return "continue " + this.recvar + ";";
-	}
+    @Override
+    default <T> T accept(STypeAgg<K, B, T> v) throws ScribException {
+        return v.visitContinue(this);
+    }
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 3217;
-		hash = 31 * hash + super.hashCode();
-		hash = 31 * hash + this.recvar.hashCode();
-		return hash;
-	}
+    @Override
+    default <T> T acceptNoThrow(STypeAggNoThrow<K, B, T> v) {
+        return v.visitContinue(this);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof Continue))
-		{
-			return false;
-		}
-		Continue<?, ?> them = (Continue<?, ?>) o;
-		return super.equals(this)  // Does canEquals
-				&& this.recvar.equals(them.recvar);
-	}
-	
+    /*@Override
+    default <T> Stream<T> gather(Function<SVisitable<K, B>, Stream<T>> f) {
+        return f.apply(this);
+    }*/
+}
+
 	
 	
 	
@@ -164,4 +124,3 @@ public abstract class Continue<K extends ProtoKind, B extends Seq<K, B>>
 		return this;
 	}
 	*/
-}

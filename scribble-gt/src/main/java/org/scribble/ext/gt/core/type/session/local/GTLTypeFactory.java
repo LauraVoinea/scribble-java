@@ -33,8 +33,12 @@ public class GTLTypeFactory {
     }
 
 
-    public GTLMixedChoice mixedChoice(GTLType left, GTLType right) {
-        return new GTLMixedChoice(left, right);
+    public GTLMixedChoice mixedChoice(int c, GTLType left, GTLType right) {
+        return new GTLMixedChoice(c, left, right);
+    }
+
+    public GTLMixedActive mixedActive(int c, int n, GTLType left, GTLType right) {
+        return new GTLMixedActive(c, n, left, right);
     }
 
     public GTLEnd end() {

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session.global;
 
 import org.scribble.core.lang.global.GNode;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.session.SType;
+import org.scribble.core.type.session.SVisitable;
 
-public interface GType extends SType<Global, GSeq>, GNode
-{
-	
-}	
+public interface GType extends SType<Global, GSeq>, GNode {
+
+}
 	
 	
 	

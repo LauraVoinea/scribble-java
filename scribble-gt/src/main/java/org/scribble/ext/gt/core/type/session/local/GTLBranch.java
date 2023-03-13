@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGType;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // !!! FIXME naming "interaction" vs. "choice" (in other places)
 public class GTLBranch implements GTLType {
@@ -27,15 +28,45 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public GTLBranch unfoldContext(Map<RecVar, GTLType> c) {
+    public GTLBranch unfoldContext(Map<RecVar, GTLType> env) {
         LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(c),
+                        x -> x.getValue().unfoldContext(env),
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));
-        return new GTLBranch(this.src, cases);
+        return this.fact.branch(this.src, cases);
+    }
+
+    @Override
+    public Optional<? extends GTLType> merge(GTLType t) {
+        if (!(t instanceof GTLBranch)) {
+            return Optional.empty();
+        }
+        GTLBranch cast = (GTLBranch) t;
+        if (!this.src.equals(cast.src)) {
+            return Optional.empty();
+        }
+        LinkedHashMap<Op, GTLType> tmp = new LinkedHashMap<>();
+        Iterator<Op> it = Stream.of(this.cases.keySet(), cast.cases.keySet()).flatMap(Collection::stream).iterator();
+        while (it.hasNext()) {
+            Op x = it.next();
+            if (this.cases.keySet().contains(x)) {  // Would be nice if get returned Optional... can map empty directly
+                if (cast.cases.keySet().contains(x)) {
+                    Optional<? extends GTLType> opt = this.cases.get(x).merge(cast.cases.get(x));
+                    if (!opt.isPresent()) {
+                        return Optional.empty();
+                    }
+                    tmp.put(x, opt.get());
+                } else {
+                    tmp.put(x, this.cases.get(x));
+                }
+            } else { //if (cast.cases.keySet().contains(x)) {
+                tmp.put(x, cast.cases.get(x));
+            }
+        }
+        return Optional.of(this.fact.branch(this.src, tmp));
     }
 
     @Override

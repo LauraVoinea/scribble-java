@@ -11,11 +11,12 @@ import org.scribble.core.type.session.STypeFactory;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.ext.gt.core.model.global.GTSModelFactoryImpl;
 
+import java.util.Map;
 import java.util.Set;
 
 public class GTCore extends Core {
 
-    public GTCore(ModuleName mainFullname, CoreArgs args,
+    public GTCore(ModuleName mainFullname, Map<CoreArgs, Boolean> args,
                   Set<GProtocol> imeds, STypeFactory tf) {
         super(mainFullname, args, imeds, tf);
     }

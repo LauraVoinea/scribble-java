@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.visit.local;
 
 import org.scribble.core.job.Core;
 import org.scribble.core.type.kind.Local;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.Continue;
 import org.scribble.core.type.session.local.LSeq;
 import org.scribble.core.type.session.local.LType;
 import org.scribble.core.visit.STypeUnfolder;
 
-public class LTypeUnfolder extends STypeUnfolder<Local, LSeq>
-{
-	
-	protected LTypeUnfolder(Core core)
-	{
-		super(core);
-	}
+public class LTypeUnfolder extends STypeUnfolder<Local, LSeq> {
 
-	@Override
-	public LType visitContinue(Continue<Local, LSeq> n)
-	{
-		return this.core.config.tf.local.LRecursion(n.getSource(), n.recvar,
-				(LSeq) getRec(n.recvar));
-	}
+    protected LTypeUnfolder(Core core) {
+        super(core);
+    }
+
+    @Override
+    public LType visitContinue(Continue<Local, LSeq> n) {
+        RecVar recvar = n.getRecVar();
+        return this.core.config.tf.local.LRecursion(n.getSource(), recvar,
+                (LSeq) getRec(recvar));
+    }
 }

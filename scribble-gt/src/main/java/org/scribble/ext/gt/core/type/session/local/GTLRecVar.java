@@ -19,10 +19,15 @@ public class GTLRecVar implements GTLType {
     }
 
     @Override
-    public GTLType unfoldContext(Map<RecVar, GTLType> c) {
-        return c.containsKey(this.var)
-                ? c.get(this.var)
+    public GTLType unfoldContext(Map<RecVar, GTLType> env) {
+        return env.containsKey(this.var)
+                ? env.get(this.var)
                 : this;  // CHECKME
+    }
+
+    @Override
+    public Optional<? extends GTLType> merge(GTLType t) {
+        return this.equals(t) ? Optional.of(this) : Optional.empty();
     }
 
     @Override

@@ -28,9 +28,9 @@ public class GTGTypeTranslator3 {
             return translateGMessageTransfer((GMsgTransfer) g, fact.end());
         } else if (g instanceof GChoice) {
             return translateGChoice((GChoice) g);
-        } /*else if (g instanceof GProtoBlock) {  // XXX CHECKME why needed?
+        } else if (g instanceof GProtoBlock) {  // For choice with multiple blocks
             return translateGSeq(((GProtoBlock) g).getInteractSeqChild());
-        }*/ else {
+        } else {
             throw new RuntimeException("TODO: " + g.getClass() + "\n" + g);
         }
     }

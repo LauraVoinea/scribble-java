@@ -100,25 +100,25 @@ fixpath() {
     fi
 }
 
-CLASSPATH=$SCRIBHOME'/scribble-ast/target/classes'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/scribble-cli/target/classes'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/scribble-codegen/target/classes'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/scribble-core/target/classes'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/scribble-main/target/classes'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/scribble-parser/target/classes'
+CLASSPATH="$SCRIBHOME/scribble-ast/target/classes"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/scribble-cli/target/classes"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/scribble-codegen/target/classes"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/scribble-core/target/classes"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/scribble-main/target/classes"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/scribble-parser/target/classes"
 if test -f "$ANTLR_RUNTIME_JAR"; then
-    CLASSPATH=$CLASSPATH':'$ANTLR_RUNTIME_JAR
+    CLASSPATH="$CLASSPATH:$ANTLR_RUNTIME_JAR"
 fi
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/antlr.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/antlr-runtime.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/commons-io.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/scribble-ast.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/scribble-cli.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/scribble-codegen.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/scribble-core.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/scribble-main.jar'
-CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/scribble-parser.jar'
-#CLASSPATH=$CLASSPATH':'$SCRIBHOME'/lib/stringtemplate.jar'
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr-runtime.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/commons-io.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-ast.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-cli.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-codegen.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-core.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-main.jar"
+CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-parser.jar"
+#CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/stringtemplate.jar"
 CLASSPATH=\'"$(fixpath "$CLASSPATH")"\'
 
 usage=0
@@ -155,7 +155,7 @@ if [ "$usage" = 1 ]; then
     exit 0
 fi
 
-CMD='java -cp '$CLASSPATH' org.scribble.cli.CommandLine'
+CMD="java -cp $CLASSPATH org.scribble.cli.CommandLine"
 
 scribblec() {
     eval "$CMD" "$@"

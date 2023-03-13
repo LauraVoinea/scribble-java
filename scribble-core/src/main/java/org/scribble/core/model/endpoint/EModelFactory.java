@@ -17,6 +17,9 @@ package org.scribble.core.model.endpoint;
 
 import java.util.Set;
 
+import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.EAcc;
 import org.scribble.core.model.endpoint.actions.EClientWrap;
 import org.scribble.core.model.endpoint.actions.EDisconnect;
@@ -29,20 +32,45 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public interface EModelFactory
-{
-	EGraphBuilderUtil EGraphBuilderUtil();
+public interface EModelFactory {
 
-	// protected constructors (MState mutable)
-	EState EState(Set<RecVar> labs);
-	//EFsm new EFsm(...)
+    EGraphBuilderUtil EGraphBuilderUtil();
 
-	// public constructors (subpackage, immutable)
-	ESend ESend(Role peer, MsgId<?> mid, Payload pay);
-	ERecv ERecv(Role peer, MsgId<?> mid, Payload pay);
-	EReq EReq(Role peer, MsgId<?> mid, Payload pay);
-	EAcc EAcc(Role peer, MsgId<?> mid, Payload pay);
-	EDisconnect EDisconnect(Role peer);
-	EClientWrap EClientWrap(Role peer);
-	EServerWrap EServerWrap(Role peer);
+    // protected constructors (MState mutable)
+    EState EState(Set<RecVar> labs);
+    //EFsm new EFsm(...)
+
+
+    /*  public constructors (subpackage, immutable) */
+
+    ESend<StaticActionKind> StaticESend(Role peer, MsgId<?> mid, Payload pay);
+
+    ERecv<StaticActionKind> StaticERecv(Role peer, MsgId<?> mid, Payload pay);
+
+    EReq<StaticActionKind> StaticEReq(Role peer, MsgId<?> mid, Payload pay);
+
+    EAcc<StaticActionKind> StaticEAcc(Role peer, MsgId<?> mid, Payload pay);
+
+    EDisconnect<StaticActionKind> StaticEDisconnect(Role peer);
+
+    EClientWrap<StaticActionKind> StaticEClientWrap(Role peer);
+
+    EServerWrap<StaticActionKind> StaticEServerWrap(Role peer);
+
+
+    /* Used by toDynamic, toDynamicDual */
+
+    ESend<DynamicActionKind> DynamicESend(Role peer, MsgId<?> mid, Payload pay);
+
+    ERecv<DynamicActionKind> DynamicERecv(Role peer, MsgId<?> mid, Payload pay);
+
+    EReq<DynamicActionKind> DynamicEReq(Role peer, MsgId<?> mid, Payload pay);
+
+    EAcc<DynamicActionKind> DynamicEAcc(Role peer, MsgId<?> mid, Payload pay);
+
+    EDisconnect<DynamicActionKind> DynamicEDisconnect(Role peer);
+
+    EClientWrap<DynamicActionKind> DynamicEClientWrap(Role peer);
+
+    EServerWrap<DynamicActionKind> DynamicEServerWrap(Role peer);
 }

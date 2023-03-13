@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.core.type.session.local;
 
-import java.util.List;
+package org.scribble.core.type.session.local;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.job.Core;
@@ -25,58 +24,53 @@ import org.scribble.core.type.kind.NonRoleParamKind;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Arg;
-import org.scribble.core.type.session.Do;
+import org.scribble.core.type.session.base.DoBase;
 
-public class LDo extends Do<Local, LSeq> implements LType
-{
-	protected LDo(CommonTree source, ProtoName<Local> proto,
-			List<Role> roles, List<Arg<? extends NonRoleParamKind>> args)
-	{
-		super(source, proto, roles, args);
-	}
-	
-	@Override
-	public LProtocol getTarget(Core core)
-	{
-		return core.getContext().getProjection(this.proto);  // CHECKME: hardcoded to projections -- factor out "getLocal" (parsed or projected)
-	}
+import java.util.List;
 
-	@Override
-	public LDo reconstruct(CommonTree source,
-			ProtoName<Local> proto, List<Role> roles,
-			List<Arg<? extends NonRoleParamKind>> args)
-	{
-		return new LDo(source, proto, roles, args);
-	}
+public class LDo extends DoBase<Local, LSeq> implements LType {
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 1303;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    protected LDo(CommonTree source, ProtoName<Local> proto,
+                  List<Role> roles, List<Arg<? extends NonRoleParamKind>> args) {
+        super(source, proto, roles, args);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof LDo))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public LProtocol getTarget(Core core) {
+        return core.getContext().getProjection(getProto());  // CHECK: hardcoded to projections -- factor out "getLocal" (parsed or projected)
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof LDo;
-	}
-	
+    @Override
+    public LDo reconstruct(
+            CommonTree source, ProtoName<Local> proto,
+            List<Role> roles, List<Arg<? extends NonRoleParamKind>> args) {
+        return new LDo(source, proto, roles, args);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1303;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LDo)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof LDo;
+    }
+}
+
 	
 	
 	
@@ -134,6 +128,5 @@ public class LDo extends Do<Local, LSeq> implements LType
 		throw new RuntimeException("Unsupported for LDo: " + this);
 	}
 	*/
-}
 
 

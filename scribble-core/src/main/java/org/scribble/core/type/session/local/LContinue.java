@@ -13,56 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session.local;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.session.Continue;
+import org.scribble.core.type.session.base.ContinueBase;
 
-public class LContinue extends Continue<Local, LSeq> implements LType
-{
-	// N.B. source changes from do to continue after inlining
-	protected LContinue(CommonTree source, RecVar recvar)
-	{
-		super(source, recvar);
-	}
-	
-	@Override
-	public LContinue reconstruct(CommonTree source,
-			RecVar recvar)
-	{
-		return new LContinue(source, recvar);
-	}
- 
-	@Override
-	public int hashCode()
-	{
-		int hash = 3457;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+public class LContinue extends ContinueBase<Local, LSeq> implements LType {
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof LContinue))
-		{
-			return false;
-		}
-		return super.equals(o);
-	}
+    // N.B. source changes from do to local continue after inlining
+    protected LContinue(CommonTree source, RecVar recvar) {
+        super(source, recvar);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof LContinue;
-	}
-	
+    @Override
+    public LContinue reconstruct(CommonTree source, RecVar recvar) {
+        return new LContinue(source, recvar);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3457;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LContinue)) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof LContinue;
+    }
+}
+
 	
 	
 	
@@ -129,5 +123,4 @@ public class LContinue extends Continue<Local, LSeq> implements LType
 		}
 	}
 	*/
-}
 

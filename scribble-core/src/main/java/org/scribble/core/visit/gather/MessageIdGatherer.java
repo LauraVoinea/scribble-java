@@ -23,13 +23,11 @@ import org.scribble.core.type.session.DirectedInteraction;
 import org.scribble.core.type.session.Seq;
 
 public class MessageIdGatherer<K extends ProtoKind, B extends Seq<K, B>>
-		extends STypeGatherer<K, B, MsgId<?>>
-{
+        extends STypeGatherer<K, B, MsgId<?>> {
 
-	@Override
-	public Stream<MsgId<?>> visitDirectedInteraction(
-			DirectedInteraction<K, B> n)
-	{
-		return Stream.of(n.msg.getId());
-	}
+    @Override
+    public Stream<MsgId<?>> visitDirectedInteraction(
+            DirectedInteraction<K, B> n) {
+        return Stream.of(n.msg.getId());
+    }
 }

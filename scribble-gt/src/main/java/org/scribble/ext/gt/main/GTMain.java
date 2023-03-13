@@ -18,10 +18,9 @@ import org.scribble.util.ScribParserException;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class GTMain extends Main
-{
-	//public final Solver solver; //= Solver.NATIVE_Z3;
-	//public final boolean batching;
+public class GTMain extends Main {
+    //public final Solver solver; //= Solver.NATIVE_Z3;
+    //public final boolean batching;
 
 	/*// Load main module from file system
 	public GTMain(ResourceLocator locator, Path mainpath,
@@ -31,39 +30,35 @@ public class GTMain extends Main
 		super(locator, mainpath, args);
 	}*/
 
-	// Duplicated from AssrtMain
-	// Load main module from file system
-	public GTMain(ResourceLocator locator, Path mainpath, CoreArgs args)
-			throws ScribException, ScribParserException
-	{
-		super(locator, mainpath, args);
-	}
+    // Duplicated from AssrtMain
+    // Load main module from file system
+    public GTMain(ResourceLocator locator, Path mainpath, Map<CoreArgs, Boolean> args)
+            throws ScribException, ScribParserException {
+        super(locator, mainpath, args);
+    }
 
-	@Override
-	protected GTJob newJob(Map<ModuleName, Module> parsed, CoreArgs args,
-						   ModuleName mainFullname, AstFactory af, DelFactory df)
-			throws ScribException
-	{
-		return new GTJob(mainFullname, args, parsed, af, df);
-	}
+    @Override
+    protected GTJob newJob(Map<ModuleName, Module> parsed, Map<CoreArgs, Boolean> args,
+                           ModuleName mainFullname, AstFactory af, DelFactory df)
+            throws ScribException {
+        return new GTJob(mainFullname, args, parsed, af, df);
+    }
 
-	@Override
-	protected ScribAntlrWrapper newAntlr(DelFactory df)
-	{
-		return new GTScribAntlrWrapper(df);
-	}
+    @Override
+    protected ScribAntlrWrapper newAntlr(DelFactory df) {
+        return new GTScribAntlrWrapper(df);
+    }
 	
 	/*@Override
 	protected AstFactory newAstFactory(ScribAntlrWrapper antlr)
 	{
 		return new AssrtAstFactoryImpl(antlr.tokens, antlr.df);
 	}*/
-	
-	@Override
-	protected DelFactory newDelFactory()
-	{
-		return new GTDelFactoryImpl();
-	}
+
+    @Override
+    protected DelFactory newDelFactory() {
+        return new GTDelFactoryImpl();
+    }
 
 	/*@Override
 	public AssrtJob newJob(Map<ModuleName, Module> parsed, CoreArgs args,

@@ -19,25 +19,23 @@ import java.util.Map;
 
 import org.scribble.codegen.java.statechanapi.StateChannelApiGenerator;
 import org.scribble.codegen.java.util.InterfaceBuilder;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EState;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.util.ScribException;
 
-public class SelectIfaceGen extends IOStateIfaceGen
-{
-	public SelectIfaceGen(StateChannelApiGenerator apigen, Map<EAction, InterfaceBuilder> actions, EState curr)
-	{
-		super(apigen, actions, curr);
-	}
-	
-	@Override
-	public InterfaceBuilder generateType() throws ScribException
-	{
-		if (this.curr.getActions().stream().anyMatch((a) -> !a.isSend())) // TODO (connect/disconnect)
-		{
-			//return null;
-			throw new RuntimeException("TODO: " + this.curr);
-		}
-		return super.generateType();
-	}
+public class SelectIfaceGen extends IOStateIfaceGen {
+    public SelectIfaceGen(StateChannelApiGenerator apigen, Map<EAction<StaticActionKind>, InterfaceBuilder> actions, EState curr) {
+        super(apigen, actions, curr);
+    }
+
+    @Override
+    public InterfaceBuilder generateType() throws ScribException {
+        if (this.curr.getActions().stream().anyMatch((a) -> !a.isSend())) // TODO (connect/disconnect)
+        {
+            //return null;
+            throw new RuntimeException("TODO: " + this.curr);
+        }
+        return super.generateType();
+    }
 }

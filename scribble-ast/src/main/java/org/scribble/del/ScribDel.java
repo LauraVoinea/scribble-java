@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.del;
 
 import org.scribble.ast.ScribNode;
@@ -20,17 +21,15 @@ import org.scribble.util.ScribException;
 import org.scribble.visit.NameDisambiguator;
 
 // Parameterise by AstNode type?  Would inhibit del sharing between types (but that's not currently needed)
-public interface ScribDel
-{
-	default void enterDisambiguation(ScribNode child, NameDisambiguator disamb)
-			throws ScribException
-	{
+public interface ScribDel {
+    default void enterDisambiguation(ScribNode child, NameDisambiguator disamb)
+            throws ScribException {
 
-	}
+    }
 
-	default ScribNode leaveDisambiguation(ScribNode child,
-			NameDisambiguator disamb, ScribNode visited) throws ScribException
-	{
-		return visited;
-	}
+    default ScribNode leaveDisambiguation(
+            ScribNode child, NameDisambiguator disamb, ScribNode visited
+    ) throws ScribException {
+        return visited;
+    }
 }

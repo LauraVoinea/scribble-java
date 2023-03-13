@@ -6,6 +6,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -33,9 +34,9 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public Optional<? extends GTLType> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return Optional.of(lf.recVar(this.var));
+        return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma()));
     }
 
     @Override

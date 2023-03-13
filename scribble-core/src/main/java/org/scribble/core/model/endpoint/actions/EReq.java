@@ -15,68 +15,66 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
+import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SReq;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class EReq extends EAction
-{
-	public EReq(ModelFactory ef, Role peer, MsgId<?> mid, Payload pay)
-	{
-		super(ef, peer, mid, pay);
-	}
-	
-	@Override
-	public EAcc toDual(Role self)
-	{
-		return this.mf.local.EAcc(self, this.mid, this.payload);
-	}
+public class EReq<A extends ActionKind> extends EAction<A> {
 
-	@Override
-	public SReq toGlobal(Role self)
-	{
-		return this.mf.global.SReq(self, this.peer, this.mid, this.payload);
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 929;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
-	
-	@Override
-	public boolean isRequest()
-	{
-		return true;
-	}
+    public EReq(int id, ModelFactory ef, Role peer, MsgId<?> mid, Payload pay) {
+        super(id, ef, peer, mid, pay);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof EReq))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public EReq<DynamicActionKind> toDynamic() {
+        return this.mf.local.DynamicEReq(this.peer, this.mid, this.payload);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof EReq;
-	}
+    @Override
+    public EAcc<DynamicActionKind> toDynamicDual(Role self) {
+        return this.mf.local.DynamicEAcc(self, this.mid, this.payload);
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		return "!!";
-	}
+    @Override
+    public SReq<StaticActionKind> toStaticGlobal(Role self) {
+        return this.mf.global.SReq(self, this.peer, this.mid, this.payload);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 929;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean isRequest() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EReq)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof EReq;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "!!";
+    }
 }

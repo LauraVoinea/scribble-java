@@ -15,90 +15,107 @@
  */
 package org.scribble.core.model.global;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 import org.scribble.core.model.MPrettyState;
 import org.scribble.core.model.MState;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.kind.Global;
 
 // CHECKME: make a WFModel front-end class? (cf. EGraph)
 // N.B. only uses MState.id cosmetically, cf. MState equals/hashCode -- overrides equals/hashCode based on this.config (maybe extending MState is a bit misleading)
-public class SState extends MPrettyState<Void, SAction, SState, Global>
-{
-	public final SConfig config;
-	
-	protected SState(SConfig config)  // CHECKME? now publically mutable (for mf imple), same for EState
-	{
-		super(Collections.emptySet());
-		this.config = config;
-	}
-	
-  // For access from SGraphBuilderUtil
-	@Override
-	protected void addEdge(SAction a, SState s)
-	{
-		super.addEdge(a, s);
-	}
-	
-	public SStateErrors getErrors()  // Means safety (i.e., individual state) errors
-	{
-		return new SStateErrors(this);
-	}
-	
-	@Override
-	protected String getNodeLabel()
-	{
-		String labs = this.config.toString();
-		return "label=\"" + this.id + ":" + labs.substring(1, labs.length() - 1)
-				+ "\"";
-	}
+public class SState extends MPrettyState<Void, SAction<StaticActionKind>, SState, Global> {
+    public final SConfig config;
 
-	@Override
-	public Set<SState> getReachableStates()
-	{
-		return getReachableStatesAux(this);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return this.id + ":" + this.config.toString();
-	}
-	
-	// N.B. does not use super.hashCode, need "semantic" equality of configs for model construction
-	@Override
-	public int hashCode()
-	{
-		int hash = 79;
-		hash = 31 * hash + this.config.hashCode();
-		return hash;
-	}
+    protected SState(SConfig config)  // CHECKME? now publically mutable (for mf imple), same for EState
+    {
+        super(Collections.emptySet());
+        this.config = config;
+    }
 
-	// FIXME? doesn't use this.id, cf. super.equals
-	// Not using id, cf. ModelState -- FIXME? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
-	// Care is needed if hashing, since mutable (OK to use immutable config -- cf., ModelState.id)
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof SState))
-		{
-			return false;
-		}
-		SState them = (SState) o;
-		return them.canEquals(this) && this.config.equals(them.config);  // N.B. does not do super.equals (cf. hashCode)
-	}
+    // For access from SGraphBuilderUtil
+    @Override
+    protected void addEdge(SAction<StaticActionKind> a, SState s) {
+        super.addEdge(a, s);
+    }
 
-	@Override
-	protected boolean canEquals(MState<?, ?, ?, ?> s)
-	{
-		return s instanceof SState;
-	}
+    public SStateErrors getErrors()  // Means safety (i.e., individual state) errors
+    {
+        return new SStateErrors(this);
+    }
+
+    @Override
+    protected String getNodeLabel() {
+        String labs = this.config.toString();
+        return "label=\"" + this.id + ":" + labs.substring(1, labs.length() - 1)
+                + "\"";
+    }
+
+    @Override
+    //public Set<SState> getReachableStates() {
+    public Map<Integer, SState> getReachableStates() {
+        return getReachableStatesAux(this);
+    }
+
+    /*// N.B. does not use super.hashCode, need "semantic" equality of configs for model construction
+    // ie.., no id -- e.g., for SGraphBuilder
+    public int semanticHash() {
+        int hash = 79;
+        hash = 31 * hash + this.config.hashCode();
+        return hash;
+    }*/
+
+    // !!! Not using id (cf. super.equals), cf. MState -- TODO? use a factory pattern that associates unique states and ids? -- use id for hash, and make a separate "semantic equals"
+    // Care is needed if hashing, since mutable (OK to use immutable config -- cf., ModelState.id)
+    public boolean semanticEquals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SState)) {
+            return false;
+        }
+        SState them = (SState) o;
+        return them.canEquals(this) && this.config.equals(them.config);  // N.B. does not do super.equals, i.e., ignore id (cf. semanticHash)
+    }
+
+    @Override
+    public String toString() {
+        return this.id + ":" + this.config.toString();
+    }
+
+    //public static Set<Integer> traces = new HashSet<>();
+
+    @Override
+    public int hashCode() {
+        int hash = 79;
+        hash = 31 * hash + super.hashCode();
+        hash = 31 * hash + this.config.hashCode();
+        /*System.out.println("+++++++++++++++++++++++");
+        int size = traces.size();
+        traces.add(Arrays.hashCode(new RuntimeException().getStackTrace()));
+        if (traces.size() != size) {
+            new RuntimeException().printStackTrace();
+        }*/
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SState)) {
+            return false;
+        }
+        SState them = (SState) o;
+        return super.equals(o) && this.config.equals(them.config);
+    }
+
+    @Override
+    protected boolean canEquals(MState<?, ?, ?, ?> s) {
+        return s instanceof SState;
+    }
 }
 
 

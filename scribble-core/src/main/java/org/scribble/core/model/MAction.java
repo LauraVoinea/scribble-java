@@ -20,65 +20,52 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public abstract class MAction<K extends ProtoKind>
-{
-	/*private static int count = 0;
-	
-	public final int id;  // Was using for trace enumeration, but breaks isAcceptable -- but would be better for non-det models?*/
-	
-	public final Role obj;
-	public final MsgId<?> mid;
-	public final Payload payload;  // Payload.EMPTY_PAYLOAD for SigName mid
-	
-	protected MAction(Role obj, MsgId<?> mid, Payload payload)
-	{
-		//this.id = ModelAction.count++;
+// SAction never Dynamic
+public interface MAction<K extends ProtoKind, A extends ActionKind> {
 
-		this.obj = obj;
-		this.mid = mid;
-		this.payload = payload;
-	}
-	
-	@Override
-	public String toString()
-	{
-		return this.obj + getCommSymbol() + this.mid + this.payload;
-	}
+    int getId();
 
-	// Used by toAut
-	public String toStringWithMsgIdHack()
-	{
-		String m = this.mid.isSigName() ? "^" + this.mid : this.mid.toString();  // HACK
-		return this.obj + getCommSymbol() + m + this.payload;
-	}
-	
-	protected abstract String getCommSymbol();
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 919;
-		hash = 31 * hash + this.obj.hashCode();
-		hash = 31 * hash + this.mid.hashCode();
-		hash = 31 * hash + this.payload.hashCode();
-		return hash;
-	}
+    MAction<K, DynamicActionKind> toDynamic();
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof MAction))
-		{
-			return false;
-		}
-		MAction<?> them = (MAction<?>) o;  // Refactor as "compatible"
-		return them.canEquals(this) && this.obj.equals(them.obj)
-				&& this.mid.equals(them.mid) && this.payload.equals(them.payload);
-	}
-	
-	public abstract boolean canEquals(Object o);
+    Role getObject();
+
+    MsgId<?> getMid();
+
+    Payload getPayload();
+
+    // Used by toAut
+    String toStringWithMsgIdHack();
+
+    // Maybem move protected to MActionBase
+    String getCommSymbol();
+
+    default boolean isSend() {
+        return false;
+    }
+
+    default boolean isReceive() {
+        return false;
+    }
+
+    default boolean isRequest() {
+        return false;
+    }
+
+    default boolean isDisconnect() {
+        return false;
+    }
+
+    default boolean isAccept() {
+        return false;
+    }
+
+    default boolean isClientWrap() {
+        return false;
+    }
+
+    default boolean isServerWrap() {
+        return false;
+    }
+
+    boolean canEquals(Object o);
 }

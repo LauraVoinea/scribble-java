@@ -13,57 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.visit;
+
+import org.scribble.core.type.kind.ProtoKind;
+import org.scribble.core.type.session.Choice;
+import org.scribble.core.type.session.Recursion;
+import org.scribble.core.type.session.SVisitable;
+import org.scribble.core.type.session.Seq;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.scribble.core.type.kind.ProtoKind;
-import org.scribble.core.type.session.Choice;
-import org.scribble.core.type.session.Recursion;
-import org.scribble.core.type.session.SType;
-import org.scribble.core.type.session.Seq;
-
 // For comments, see STypeVisitor
 public abstract class STypeVisitorNoThrow<K extends ProtoKind, B extends Seq<K, B>>
-	extends STypeAggNoThrow<K, B, SType<K, B>>
-{
-	@Override
-	protected final SType<K, B> unit(SType<K, B> n)
-	{
-		return n;
-	}
+        extends STypeAggNoThrow<K, B, SVisitable<K, B>> {
 
-	// Should disregard agg for STypeVisitors -- the STypeVisitor pattern is instead to manually reconstruct within each visit[Node]
-	@Override
-	protected final SType<K, B> agg(SType<K, B> n, Stream<SType<K, B>> ns)
-	{
-		throw new RuntimeException("Disregarded for STypeVisitorNoEx: " + n + " ,, " + ns);
-	}
+    @Override
+    protected final SVisitable<K, B> unit(SVisitable<K, B> n) {
+        return n;
+    }
 
-	@Override
-	public SType<K, B> visitChoice(Choice<K, B> n)
-	{
-		List<B> blocks = n.blocks.stream().map(x -> visitSeq(x))
-				.collect(Collectors.toList());
-		return n.reconstruct(n.getSource(), n.subj, blocks);  // Disregarding agg (reconstruction done here)
-	}
+    // Should disregard agg for STypeVisitors -- the STypeVisitor pattern is instead to manually reconstruct within each visit[Node]
+    @Override
+    protected final SVisitable<K, B> agg(SVisitable<K, B> n, Stream<SVisitable<K, B>> ns) {
+        throw new RuntimeException("Disregarded for STypeVisitorNoEx: " + n + " ,, " + ns);
+    }
 
-	@Override
-	public SType<K, B> visitRecursion(Recursion<K, B> n)
-	{
-		B body = visitSeq(n.body);
-		return n.reconstruct(n.getSource(), n.recvar, body);  // Disregarding agg (reconstruction done here)
-	}
-	
-	@Override
-	public B visitSeq(B n)
-	{
-		List<SType<K, B>> elems = n.elems.stream().map(x -> x.visitWithNoThrow(this))
-				.collect(Collectors.toList());
-		return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
-	}
+    @Override
+    public SVisitable<K, B> visitChoice(Choice<K, B> n) {
+        //List<B> blocks = n.getBlocks().stream().map(x -> visitSeq(x))
+        List<B> blocks = n.getBlocks().stream().map(x -> (B) (Seq<K, B>) x.acceptNoThrow(this))  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
+                .collect(Collectors.toList());
+        return n.reconstruct(n.getSource(), n.getSubject(), blocks);  // Disregarding agg (reconstruction done here)
+    }
+
+    @Override
+    public SVisitable<K, B> visitRecursion(Recursion<K, B> n) {
+        //B body = visitSeq(n.getBody());
+        B body = (B) (Seq<K, B>) n.getBody().acceptNoThrow(this);  // FIXME unchecked cast -- B cast falsely subsumes Seq
+
+        return n.reconstruct(n.getSource(), n.getRecVar(), body);  // Disregarding agg (reconstruction done here)
+    }
+
+    @Override
+    public B visitSeq(B n) {
+        List<SVisitable<K, B>> elems = n.getElements().stream()
+                .map(x -> x.acceptNoThrow(this))
+                .collect(Collectors.toList());
+        return n.reconstruct(n.getSource(), elems);  // Disregarding agg (reconstruction done here)
+    }
 
 }
 

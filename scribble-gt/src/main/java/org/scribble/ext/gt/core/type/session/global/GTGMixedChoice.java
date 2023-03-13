@@ -7,6 +7,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -49,18 +50,22 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public Optional<? extends GTLType> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        Optional<? extends GTLType> optl = this.left.project(r);
-        Optional<? extends GTLType> optr = this.right.project(r);
+        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(r);
+        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(r);
         if (optl.isEmpty() || optr.isEmpty()) {
             return Optional.empty();
         }
-        GTLType getl = optl.get();
-        GTLType getr = optr.get();
-        return !r.equals(this.observer) && !r.equals(this.other)
-                ? getl.merge(getr)
-                : Optional.of(lf.mixedChoice(getl, getr));
+        Sigma s0 = new Sigma();
+        Pair<? extends GTLType, Sigma> get_l = optl.get();
+        Pair<? extends GTLType, Sigma> get_r = optr.get();
+        if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
+            return Optional.empty();
+        }
+        return !r.equals(this.other) && !r.equals(this.observer)
+                ? get_l.left.merge(get_r.left).map(x -> new Pair<>(x, s0))  // !!! refactor with GTGInteraction.merge
+                : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
     }
 
     @Override

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.visit.global;
 
 import org.scribble.core.job.Core;
@@ -22,18 +23,15 @@ import org.scribble.core.type.session.global.GSeq;
 import org.scribble.core.type.session.global.GType;
 import org.scribble.core.visit.STypeUnfolder;
 
-public class GTypeUnfolder extends STypeUnfolder<Global, GSeq>
-{
-	
-	protected GTypeUnfolder(Core core)
-	{
-		super(core);
-	}
+public class GTypeUnfolder extends STypeUnfolder<Global, GSeq> {
 
-	@Override
-	public GType visitContinue(Continue<Global, GSeq> n)
-	{
-		return this.core.config.tf.global.GRecursion(n.getSource(), n.recvar,
-				(GSeq) getRec(n.recvar));
-	}
+    protected GTypeUnfolder(Core core) {
+        super(core);
+    }
+
+    @Override
+    public GType visitContinue(Continue<Global, GSeq> n) {
+        return this.core.config.tf.global.GRecursion(n.getSource(),
+                n.getRecVar(), (GSeq) getRec(n.getRecVar()));
+    }
 }

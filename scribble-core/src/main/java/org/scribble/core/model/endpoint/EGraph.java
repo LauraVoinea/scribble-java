@@ -17,62 +17,73 @@ package org.scribble.core.model.endpoint;
 
 import org.scribble.core.model.MPrettyPrint;
 
-public class EGraph implements MPrettyPrint
-{
-	public final EState init;
-	public final EState term;
+import java.util.Collections;
+import java.util.Map;
 
-	//protected EGraph(EState init, EState term)  // Use factory?
-	public EGraph(EState init, EState term)
-	{
-		this.init = init;
-		this.term = term;
-	}
+public class EGraph implements MPrettyPrint {
 
-	public EFsm toFsm()  // CHECKME: refactor to mf?
-	{
-		return new EFsm(this);
-	}
+    // Pre: states are "finalised"
+    public final EState init;
+    public final EState term;  // null for no term -- cf. EGraphBuilderUtil
 
-	@Override
-	public String toDot()
-	{
-		return this.init.toDot();
-	}
+    // Not used in hashCode/equals -- all states should be immut, so reachable constant
+    protected Map<Integer, EState> cachedReachable = null;
 
-	@Override
-	public String toAut()
-	{
-		return this.init.toAut();
-	}
+    //protected EGraph(EState init, EState term)  // Use factory?
+    public EGraph(EState init, EState term) {
+        this.init = init;
+        this.term = term;
+    }
 
-	@Override
-	public String toString()
-	{
-		return this.init.toString();
-	}
-	
-	@Override
-	public final int hashCode()
-	{
-		int hash = 1051;
-		hash = 31 * hash + this.init.hashCode();  // Use init state only, OK since state IDs globally unique
-		return hash;
-	}
+    public EFsm toFsm()  // CHECKME: refactor to mf?
+    {
+        return new EFsm(this);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof EGraph))
-		{
-			return false;
-		}
-		EGraph them = (EGraph) o;
-		return this.init.equals(them.init);
-				// && this.term.equals(them.term);  // N.B. EState.equals checks state ID only, but OK because EStates have globally unique IDs -- any need to do a proper graph equality?
-	}
+    // TODO replace any this.init.getReachable(+ added init) by this method
+    public Map<Integer, EState> getReachable() {
+        if (this.cachedReachable == null) {
+            Map<Integer, EState> tmp = this.init.getReachableStates();
+            tmp.put(this.init.id, this.init);
+            this.cachedReachable = Collections.unmodifiableMap(tmp);
+        }
+        return this.cachedReachable;
+
+    }
+
+    @Override
+    public String toDot() {
+        return this.init.toDot();
+    }
+
+    @Override
+    public String toAut() {
+        return this.init.toAut();
+    }
+
+    @Override
+    public String toString() {
+        return this.init.toString();
+    }
+
+    @Override
+    public final int hashCode() {
+        int hash = 1051;
+        //hash = 31 * hash + this.init.hashCode();  // Use init state only, OK since state IDs globally unique
+        hash = 31 * hash + this.init.id;  // Use init state only, OK since state IDs globally unique
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EGraph)) {
+            return false;
+        }
+        EGraph them = (EGraph) o;
+        return this.init.equals(them.init);
+        // && this.term.equals(them.term);  // N.B. EState.equals checks state ID only, but OK because EStates have globally unique IDs -- any need to do a proper graph equality?
+    }
 }

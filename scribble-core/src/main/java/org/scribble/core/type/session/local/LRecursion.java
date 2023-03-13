@@ -13,56 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.scribble.core.type.session.local;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.session.Recursion;
+import org.scribble.core.type.session.base.RecursionBase;
 
-public class LRecursion extends Recursion<Local, LSeq> implements LType
-{
-	protected LRecursion(//org.scribble.ast.Recursion<Local> source, 
-			CommonTree source,  // Due to inlining, protocoldecl -> rec
-			RecVar recvar, LSeq body)
-	{
-		super(source, recvar, body);
-	}
-	
-	@Override
-	public LRecursion reconstruct(CommonTree source,
-			RecVar recvar, LSeq block)
-	{
-		return new LRecursion(source, recvar, block);
-	}
+public class LRecursion extends RecursionBase<Local, LSeq> implements LType {
 
-	@Override
-	public int hashCode()
-	{
-		int hash = 2309;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    protected LRecursion(CommonTree source, RecVar recvar, LSeq body) {
+        super(source, recvar, body);
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof LRecursion))
-		{
-			return false;
-		}
-		return super.equals(o);
-	}
+    @Override
+    public LRecursion reconstruct(CommonTree source, RecVar recvar, LSeq block) {
+        return new LRecursion(source, recvar, block);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof LRecursion;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 2309;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof LRecursion)) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof LRecursion;
+    }
 }
 
 

@@ -15,69 +15,67 @@
  */
 package org.scribble.core.model.endpoint.actions;
 
+import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.global.actions.SDisconnect;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class EDisconnect extends EAction
-{
-	public EDisconnect(ModelFactory ef, Role peer)
-	{
-		super(ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GDisconnect.UNIT_MESSAGE_SIG_NODE
-	}
-	
-	@Override
-	public EDisconnect toDual(Role self)
-	{
-		return this;
-	}
+public class EDisconnect<A extends ActionKind> extends EAction<A> {
 
-	@Override
-	public SDisconnect toGlobal(Role self)
-	{
-		return this.mf.global.SDisconnect(self, this.peer);
-	}
-	
-	@Override
-	public boolean isDisconnect()
-	{
-		return true;
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 1009;
-		hash = 31 * hash + super.hashCode();
-		return hash;
-	}
+    public EDisconnect(int id, ModelFactory ef, Role peer) {
+        super(id, ef, peer, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // Must correspond with GDisconnect.UNIT_MESSAGE_SIG_NODE
+    }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof EDisconnect))
-		{
-			return false;
-		}
-		return super.equals(o);  // Does canEquals
-	}
+    @Override
+    public EDisconnect<DynamicActionKind> toDynamic() {
+        return this.mf.local.DynamicEDisconnect(this.peer);
+    }
 
-	@Override
-	public boolean canEquals(Object o)
-	{
-		return o instanceof EDisconnect;
-	}
+    @Override
+    public EDisconnect<DynamicActionKind> toDynamicDual(Role self) {
+        return this.mf.local.DynamicEDisconnect(this.peer);
+    }
 
-	@Override
-	protected String getCommSymbol()
-	{
-		//return "\u00A1\u00A1";
-		return "-/-";
-	}
+    @Override
+    public SDisconnect<StaticActionKind> toStaticGlobal(Role self) {
+        return this.mf.global.SDisconnect(self, this.peer);
+    }
+
+    @Override
+    public boolean isDisconnect() {
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1009;
+        hash = 31 * hash + super.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EDisconnect)) {
+            return false;
+        }
+        return super.equals(o);  // Does canEquals
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof EDisconnect;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        //return "\u00A1\u00A1";
+        return "-/-";
+    }
 }

@@ -37,6 +37,7 @@ module tmp.Test;
 
 
 
+/* HERE FIXME: intellij scribble-java-core jdk1.8 is actually 11 (broken naming) */
 
 
 
@@ -146,13 +147,178 @@ module tmp.Test;
 
 // A->B .... |> B->A
 
+//HERE
+//- move checking methods out of Protocol to visitors
+//- redo passes as a DS instead of method
+//- basicinteraction etc interfaces
+// XXX redo G/LType with composition and interfaces instead of inheritance -- XXX too much boiler, use composition when needed for extensions (e.g., L/GProtocol, EState/Action)
+//- check interfaces, e.g., proto, protoname, etc.
+//- hash code constants
+//- unmodifiable lists/maps
+//- runtime flags in test suite
+//- exceptions -> optional -- also warnings
+//- proto/type pretty printing
+//- possibly consolidate some of newCore, newJob, newMain -- or some of the other "factory factories"
+//- organise fair and unfair tests
+
+
+
+
 
 data <java> "..." from "..." as T;
+type <java> "java.lang.Integer" from "rt.jar" as Int;
 
 
+/*
+global protocol Proto1(role A, role B) {
+    1(Int) from A to B;
+    choice at B {
+        2(Int) from B to A;
+    } or {
+        3(Int) from B to A;
+        4(Int) from B to A;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    1(Int) from A to B;
+    choice at B {
+        2(Int) from B to A;
+        3(Int) from B to C;
+    } or {
+        4(Int) from B to A;
+        3(Int) from B to C;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    1(Int) from A to B;
+    choice at B {
+        2(Int) from B to A;
+        3(Int) from B to C;
+    } or {
+        4(Int) from B to A;
+        5(Int) from B to C;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    rec X {
+        1(Int) from A to B;
+        2(Int) from B to A;
+        continue X;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    rec X {
+        choice at A {
+            1(Int) from A to B;
+            continue X;
+        } or {
+            2(Int) from A to B;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    rec X {
+        choice at A {
+            1(Int) from A to B;
+            2(Int) from B to C;
+            continue X;
+        } or {
+            3(Int) from A to B;
+            4(Int) from B to C;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+    } () or A->B () {
+        2() from B to A;
+    }
+}
+//*/
+
+/* !!! CHECKME not single pointed?
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        //3() from A to A;  // !!! HERE FIXME self comm check
+        3() from A to C;
+    } () or A->B () {
+        2() from B to A;
+        4() from A to C;
+    }
+}
+//*/
+
+/* !!! CHECKME not single pointed?
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        3() from C to A;
+    } () or A->B () {
+        2() from B to A;
+        3() from C to A;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        3() from A to C;
+    } () or A->B () {
+        2() from B to A;
+        4() from A to C;
+    }
+}
+//*/
+
+//*
+global protocol Proto1(role A, role B) {
+    rec X {
+        mixed {
+            1() from A to B;
+            continue X;
+        } () or A->B () {
+            2() from B to A;
+        }
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+/*
 global protocol Proto1(role A, role B) {
     /*1(T) from A to B;
-    2(T) from B to A;*/
+    2(T) from B to A;* /
 
     rec X {
         mixed {
@@ -171,8 +337,36 @@ global protocol Proto1(role A, role B) {
         } () or A->B () {
             3(T) from B to A;
         }
-    }*/
+    }* /
 }
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -377,8 +571,6 @@ mixed
      {fail(T) from A to B; end}
     }
 * /
-
-
 }
 //*/
 

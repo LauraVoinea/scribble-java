@@ -17,42 +17,45 @@ package org.scribble.core.visit.local;
 
 import org.scribble.core.job.Core;
 
-public class LTypeVisitorFactoryImpl implements LTypeVisitorFactory
-{
+public class LTypeVisitorFactoryImpl implements LTypeVisitorFactory {
 
-	@Override
-	public InlinedExtChoiceSubjFixer InlinedExtChoiceSubjFixer()
-	{
-		return new InlinedExtChoiceSubjFixer();
-	}
+    @Override
+    public InlinedExtChoiceSubjFixer InlinedExtChoiceSubjFixer() {
+        return new InlinedExtChoiceSubjFixer();
+    }
 
-	@Override
-	public ReachabilityChecker ReachabilityChecker()
-	{
-		return new ReachabilityChecker();
-	}
+    @Override
+    public ReachabilityChecker ReachabilityChecker() {
+        return new ReachabilityChecker();
+    }
 
-	@Override
-	public EGraphBuilder EGraphBuilder(Core core)
-	{
-		return new EGraphBuilder(core);
-	}
+    @Override
+    public UnboundedRecursionChecker UnboundedRecursionChecker() {
+        return new UnboundedRecursionChecker();
+    }
 
-	@Override
-	public LRoleDeclAndDoArgPruner LDoArgPruner(Core core)
-	{
-		return new LRoleDeclAndDoArgPruner(core);
-	}
+    @Override
+    public OutputSequenceCounter OutputSequenceCounter() {
+        return new OutputSequenceCounter();
+    }
 
-	@Override
-	public LDoPruner LDoPruner(Core core)
-	{
-		return new LDoPruner(core);
-	}
+    @Override
+    public EGraphBuilder EGraphBuilder(Core core) {
+        return new EGraphBuilder(core);
+    }
 
-	@Override
-	public SubprotoExtChoiceSubjFixer SubprotoExtChoiceSubjFixer(Core core)
-	{
-		return new SubprotoExtChoiceSubjFixer(core);
-	}
+    @Override
+    public LRoleDeclAndDoArgPruner LDoArgPruner(Core core) {
+        return new LRoleDeclAndDoArgPruner(core);
+    }
+
+    @Override
+    public LDoPruner LDoPruner(Core core) {
+        return new LDoPruner(core);
+    }
+
+    @Override
+    public SubprotoExtChoiceSubjFixer SubprotoExtChoiceSubjFixer(Core core) {
+        return new SubprotoExtChoiceSubjFixer(core);
+    }
 }

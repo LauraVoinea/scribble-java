@@ -6,6 +6,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.util.Pair;
@@ -29,7 +30,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     GTGType unfoldContext(Map<RecVar, GTGType> c);
 
-    Optional<? extends GTLType> project(Role r);
+    Optional<Pair<? extends GTLType, Sigma>> project(Role r);
 
     boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
 

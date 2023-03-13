@@ -22,47 +22,42 @@ import java.util.Set;
 
 import org.scribble.core.model.MAction;
 import org.scribble.core.model.MState;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.type.kind.ProtoKind;
 
 public abstract class EdgeVisitor
-<
-		L,
-		A extends MAction<K>,
-		S extends MState<L, A, S, K>,
-		K extends ProtoKind
->
-{
-	// "One-time" traveral (visitor no for reuse)
-	private final Map<S, Map<A, Set<S>>> seen = new HashMap<>();
-	
-	public boolean hasSeen(S s, A a, S succ)
-	{
-		if (!this.seen.containsKey(s))
-		{
-			return false;
-		}
-		Map<A, Set<S>> tmp = this.seen.get(s);
-		return tmp.containsKey(a) && tmp.get(a).contains(succ);
-	}
-	
-	protected void setSeen(S s, A a, S succ)
-	{
-		Map<A, Set<S>> tmp1 = this.seen.get(s);
-		if (tmp1 == null)
-		{
-			tmp1 = new HashMap<>();
-			this.seen.put(s, tmp1);
-		}
-		Set<S> tmp2 = tmp1.get(a);
-		if (tmp2 == null)
-		{
-			tmp2 = new HashSet<>();
-			tmp1.put(a, tmp2);
-		}
-		if (!tmp2.contains(succ))  // Worth?  Or just do add
-		{
-			tmp2.add(succ);
-		}
-	}
+        <
+                L,
+                A extends MAction<K, StaticActionKind>,
+                S extends MState<L, A, S, K>,
+                K extends ProtoKind
+                > {
+    // "One-time" traveral (visitor no for reuse)
+    private final Map<S, Map<A, Set<S>>> seen = new HashMap<>();
+
+    public boolean hasSeen(S s, A a, S succ) {
+        if (!this.seen.containsKey(s)) {
+            return false;
+        }
+        Map<A, Set<S>> tmp = this.seen.get(s);
+        return tmp.containsKey(a) && tmp.get(a).contains(succ);
+    }
+
+    protected void setSeen(S s, A a, S succ) {
+        Map<A, Set<S>> tmp1 = this.seen.get(s);
+        if (tmp1 == null) {
+            tmp1 = new HashMap<>();
+            this.seen.put(s, tmp1);
+        }
+        Set<S> tmp2 = tmp1.get(a);
+        if (tmp2 == null) {
+            tmp2 = new HashSet<>();
+            tmp1.put(a, tmp2);
+        }
+        if (!tmp2.contains(succ))  // Worth?  Or just do add
+        {
+            tmp2.add(succ);
+        }
+    }
 }
 	

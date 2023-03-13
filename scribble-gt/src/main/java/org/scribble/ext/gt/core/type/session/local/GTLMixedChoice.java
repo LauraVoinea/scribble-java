@@ -19,20 +19,37 @@ public class GTLMixedChoice implements GTLType {
 
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
 
+    public final int c;
     public final GTLType left;
     public final GTLType right;
 
     protected GTLMixedChoice(
-            GTLType left, GTLType right) {
+            int c, GTLType left, GTLType right) {
+        this.c = c;
         this.left = left;
         this.right = right;
     }
 
     @Override
-    public GTLMixedChoice unfoldContext(Map<RecVar, GTLType> c) {
-        GTLType left = this.left.unfoldContext(c);
-        GTLType right = this.right.unfoldContext(c);
-        return new GTLMixedChoice(left, right);
+    public GTLMixedChoice unfoldContext(Map<RecVar, GTLType> env) {
+        GTLType left = this.left.unfoldContext(env);
+        GTLType right = this.right.unfoldContext(env);
+        return this.fact.mixedChoice(this.c, left, right);
+    }
+
+    @Override
+    public Optional<? extends GTLType> merge(GTLType t) {
+        if (!(t instanceof GTLMixedChoice)) {
+            return Optional.empty();
+        }
+        GTLMixedChoice cast = (GTLMixedChoice) t;
+        if (this.c != cast.c || !this.left.equals(cast.left)
+                || !this.right.equals(cast.right)) {
+            return Optional.empty();
+        }
+        Optional<? extends GTLType> opt_l = this.left.merge(cast.left);
+        Optional<? extends GTLType> opt_r = this.right.merge(cast.right);
+        return opt_l.flatMap(x -> opt_r.map(y -> this.fact.mixedChoice(this.c, x, y)));
     }
 
     // Pre: a in getActs
@@ -83,7 +100,7 @@ public class GTLMixedChoice implements GTLType {
 
     @Override
     public String toString() {
-        return this.left + " |> " + this.right;
+        return this.left + " |>" + this.c + " " + this.right;
     }
 
     /* hashCode, equals, canEquals */
@@ -91,6 +108,7 @@ public class GTLMixedChoice implements GTLType {
     @Override
     public int hashCode() {
         int hash = GTLType.MIXED_CHOICE_HASH;
+        hash = 31 * hash + this.c;
         hash = 31 * hash + this.left.hashCode();
         hash = 31 * hash + this.right.hashCode();
         return hash;
@@ -102,6 +120,7 @@ public class GTLMixedChoice implements GTLType {
         if (obj == null || !(obj instanceof GTLMixedChoice)) return false;
         GTLMixedChoice them = (GTLMixedChoice) obj;
         return them.canEquals(this)
+                && this.c == them.c
                 && this.left.equals(them.left)
                 && this.right.equals(them.right);
     }
