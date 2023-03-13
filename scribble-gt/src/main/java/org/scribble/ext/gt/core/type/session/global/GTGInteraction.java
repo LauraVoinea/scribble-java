@@ -156,18 +156,19 @@ public class GTGInteraction implements GTGType {
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
                 : Optional.empty();*/
-            Optional<LinkedHashMap<Op, GTGType>> nestedCases =
+            Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> nestedCases =
                     stepNested(this.cases, theta, a);
             return nestedCases.map(x -> new Pair<>(
-                    theta,
-                    this.fact.choice(this.src, this.dst, x)));
+                    x.left,
+                    this.fact.choice(this.src, this.dst, x.right)));
         }
         return Optional.empty();
     }
 
-    protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
+    protected Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> stepNested(
             Map<Op, GTGType> cases, Theta theta, SAction a) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
+        Theta fst = null;
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
@@ -176,9 +177,15 @@ public class GTGInteraction implements GTGType {
             if (step.isEmpty()) {
                 return Optional.empty();
             }
-            cs.put(op, step.get().right);
+            Pair<Theta, GTGType> p = step.get();
+            if (fst == null) {
+                fst = p.left;
+            } else if (!p.left.equals(fst)) {
+                return Optional.empty();
+            }
+            cs.put(op, p.right);
         }
-        return Optional.of(cs);
+        return Optional.of(new Pair<>(fst, cs));
         /*boolean done = false;
         for (Map.Entry<Op, GTGType> e : es) {
             Op k = e.getKey();
@@ -199,22 +206,37 @@ public class GTGInteraction implements GTGType {
         //throw new RuntimeException("Shouldn't get here: " + cases + " ,, " + a);  // cases non-empty
     }
 
+    // HERE HERE HERE SAction generics -> need GT SAction with
+
     @Override
     public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);
         tmp.add(this.dst);
-        //this.cases.values().stream().flatMap(x -> x.getActs(tmp).stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-        LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        ////this.cases.values().stream().flatMap(x -> x.getActs(tmp).stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+        //LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        LinkedHashSet<SAction> res = new LinkedHashSet<>();
+
+        Map<Op, LinkedHashSet<SAction>> coll = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             if (!blocked.contains(this.src)) {
                 SSend a = mf.SSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
-                collect.add(a);
+                res.add(a);
             }
-            collect.addAll(e.getValue().getActs(mf, theta, tmp));
+            //collect.addAll(e.getValue().getActs(mf, theta, tmp));
+            coll.put(e.getKey(), e.getValue().getActs(mf, theta, tmp));
         }
-        return collect;
+
+        // !!!
+        Collection<LinkedHashSet<SAction>> vs = coll.values();
+        for (SAction a : vs.iterator().next()) {
+            if (vs.stream().allMatch(x -> x.contains(a))) {
+                res.add(a);
+            }
+        }
+
+        return res;
     }
 
     @Override

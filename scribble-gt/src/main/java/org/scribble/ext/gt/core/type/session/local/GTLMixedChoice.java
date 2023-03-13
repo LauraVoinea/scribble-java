@@ -9,6 +9,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
+import org.scribble.ext.gt.util.ConsoleColors;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -100,7 +101,7 @@ public class GTLMixedChoice implements GTLType {
 
     @Override
     public String toString() {
-        return this.left + " |>" + this.c + " " + this.right;
+        return ConsoleColors.toMixedChoiceString(this.left + " |>" + this.c + " " + this.right);
     }
 
     /* hashCode, equals, canEquals */

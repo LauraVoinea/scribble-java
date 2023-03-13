@@ -129,13 +129,17 @@ public class GTGMixedActive implements GTGType {
     public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-        Optional<Pair<Theta, GTGType>> optl = this.left.step(theta, a);
-        Optional<Pair<Theta, GTGType>> optr = this.right.step(theta, a);
+        Optional<Pair<Theta, GTGType>> optl = this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
+                ? Optional.empty()
+                : this.left.step(theta, a);
+        Optional<Pair<Theta, GTGType>> optr = this.committedLeft.contains(a.subj)
+                ? Optional.empty()
+                : this.right.step(theta, a);
         if (optl.isPresent() && optr.isPresent()) {
             // [RTAct]
             // !!! CHECKME: check something re. this.p/q and a ?
             return Optional.of(new Pair<>(
-                    theta,
+                    theta,  // XXX FIXME wrong in rule
                     this.fact.activeMixedChoice(this.c, this.n,
                             optl.get().right,
                             optr.get().right,
@@ -153,18 +157,17 @@ public class GTGMixedActive implements GTGType {
                     // [LRcv2]
                 }
                 return Optional.of(new Pair<>(
-                        theta,
+                        get.left,
                         this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
             } else if (a.isSend()) {  // [LSnd]
                 return Optional.of(new Pair<>(
-                        theta,
+                        get.left,
                         this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
 
             } else if (a instanceof GTSNewTimeout) {  // Hack
                 return Optional.of(new Pair<>(
                         get.left,
                         this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
-
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
@@ -177,7 +180,7 @@ public class GTGMixedActive implements GTGType {
                 }
                 cr.add(a.subj);
                 return Optional.of(new Pair<>(
-                        theta,
+                        get.left,
                         this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
             } else if (a.isReceive()) {
                 // [RRcv]
@@ -187,7 +190,7 @@ public class GTGMixedActive implements GTGType {
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
                 return Optional.of(new Pair<>(
-                        theta,
+                        get.left,
                         this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
 
             } else if (a instanceof GTSNewTimeout) {  // Hack

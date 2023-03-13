@@ -173,16 +173,34 @@ public class GTGWiggly implements GTGType {
     public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.dst);
-        LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        LinkedHashSet<SAction> res = new LinkedHashSet<>();
+
+        Map<Op, LinkedHashSet<SAction>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-            if (!blocked.contains(this.dst)) {
-                // N.B. SRecv subj is this.dst
-                SRecv a = mf.SRecv(this.dst, this.src, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
-                collect.add(a);
-            }
-            collect.addAll(e.getValue().getActs(mf, theta, tmp));
+            Op op = e.getKey();
+            LinkedHashSet<SAction> as = e.getValue().getActs(mf, theta, tmp);
+            coll.put(op, new LinkedHashSet<>(
+                    as.stream().filter(x -> !x.subj.equals(this.src)).collect(Collectors.toSet())));
         }
-        return collect;
+
+        if (!blocked.contains(this.dst)) {
+            // N.B. SRecv subj is this.dst
+            SRecv a = mf.SRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD);  // FIXME empty
+            res.add(a);
+        }
+        this.cases.get(this.op).getActs(mf, theta, blocked).stream()
+                .filter(x -> x.subj.equals(this.src)).forEach(x -> res.add(x));
+
+        // !!!
+        Collection<LinkedHashSet<SAction>> vs = coll.values();
+        for (SAction a : vs.iterator().next()) {
+            if (vs.stream().allMatch(x -> x.contains(a))) {
+                res.add(a);
+            }
+        }
+
+        return res;
+
     }
 
     @Override

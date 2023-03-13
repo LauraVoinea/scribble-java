@@ -9,6 +9,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -82,7 +83,7 @@ public class GTGRecursion implements GTGType {
 
     @Override
     public String toString() {
-        return "mu " + this.var + "." + this.body;
+        return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }
 
     /* hashCode, equals, canEquals */

@@ -187,6 +187,7 @@ public class GTCommandLine extends CommandLine {
 
             Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty
             System.out.println(indent + "a = " + a);
+            System.out.println(indent + "theta = " + p.left);
             System.out.println(indent + "g = " + p.right);
             if (!p.right.equals(GTGEnd.END)) {
                 bar(core, indent + "    ", p.left, p.right, count++);

@@ -10,8 +10,10 @@ import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.util.Pair;
 
+import java.io.Console;
 import java.util.*;
 
 public class GTGMixedChoice implements GTGType {
@@ -100,10 +102,11 @@ public class GTGMixedChoice implements GTGType {
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
     public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
-        Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         GTSNewTimeout nu = (GTSNewTimeout) a;
+        /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
-        Theta theta1 = new Theta(tmp);
+        Theta theta1 = new Theta(tmp);*/
+        Theta theta1 = theta.inc(this.c);
 
         // FIXME use factory?
         GTGMixedActive active = new GTGMixedActive(nu.c, nu.n,
@@ -118,7 +121,8 @@ public class GTGMixedChoice implements GTGType {
             GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         LinkedHashSet<SAction> res = new LinkedHashSet<>();
         if (theta.map.containsKey(this.c)) {
-            res.add(mf.SNewTimeout(this.c, theta.map.get(this.c)));
+            Integer n = theta.map.get(this.c);
+            res.add(mf.SNewTimeout(this.c, n));
         }
         return res;
     }
@@ -134,9 +138,9 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public String toString() {
-        return "(" + this.left + " |>"
+        return ConsoleColors.toMixedChoiceString("(" + this.left + " |>"
                 + this.c + ":" + this.other + "->" + this.observer
-                + " " + this.right + ")";
+                + " " + this.right + ")");
     }
 
     /* hashCode, equals, canEquals */

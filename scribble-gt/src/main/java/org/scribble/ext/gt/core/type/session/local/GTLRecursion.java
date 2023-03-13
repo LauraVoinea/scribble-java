@@ -4,6 +4,7 @@ import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.util.ConsoleColors;
 
 import java.util.*;
 
@@ -57,7 +58,7 @@ public class GTLRecursion implements GTLType {
 
     @Override
     public String toString() {
-        return "mu " + this.var + "." + this.body;
+        return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }
 
     /* hashCode, equals, canEquals */

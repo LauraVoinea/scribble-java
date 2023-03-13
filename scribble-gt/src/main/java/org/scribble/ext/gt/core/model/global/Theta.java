@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class Theta {
 
-    public final Map<Integer, Integer> map;
+    public final Map<Integer, Integer> map;  // "next" -- the id for the next active instance
 
     public Theta(Set<Integer> init) {
         this.map = init.stream().collect(Collectors.toMap(x -> x, x -> 1));
@@ -30,6 +30,11 @@ public class Theta {
     // HERE HERE global vs. local modelling of Theta (sync vs async w.r.t Theta) -- projection of global Theta to local Thetas
     public Theta project(Role r) {
         throw new RuntimeException("TODO");
+    }
+
+    @Override
+    public String toString() {
+        return this.map.toString();
     }
 
     /* hashCode, equals */
