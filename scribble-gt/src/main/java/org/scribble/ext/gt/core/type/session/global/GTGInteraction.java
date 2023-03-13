@@ -86,7 +86,8 @@ public class GTGInteraction implements GTGType {
         }
     }
 
-    protected static Optional<Pair<? extends GTLType, Sigma>> mergePair(
+    // TODO refactor with GTMixedActive
+    public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
             Optional<Pair<? extends GTLType, Sigma>> right) {
         /*if (left.isEmpty() || right.isEmpty()) {
@@ -94,19 +95,19 @@ public class GTGInteraction implements GTGType {
         }*/
         Optional<? extends GTLType> merge = merge(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = mergeSigma(left.map(x -> x.right), right.map(x -> x.right));
-        return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));
+        return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
 
     }
 
-    protected static Optional<Sigma> mergeSigma(
+    public static Optional<Sigma> mergeSigma(
             Optional<Sigma> left, Optional<Sigma> right) {
         return left.flatMap(x ->
                 right.flatMap(y ->
-                        x.equals(y) ? Optional.of(x) : Optional.empty()));
+                        x.equals(y) ? Optional.of(x) : Optional.empty()));  // nested `flatMap`, result may be empty even if Opt not empty
     }
 
     // !!! TODO refactor with GTLType.merge
-    protected static Optional<? extends GTLType> merge(
+    public static Optional<? extends GTLType> merge(
             Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
         if (left.isEmpty() || right.isEmpty()) {
             return Optional.empty();

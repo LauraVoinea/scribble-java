@@ -7,7 +7,6 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.GTSType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.util.Pair;

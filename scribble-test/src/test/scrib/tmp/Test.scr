@@ -170,17 +170,59 @@ type <java> "java.lang.Integer" from "rt.jar" as Int;
 
 
 /*
-global protocol Proto1(role A, role B)
-{
+global protocol Proto1(role A, role B) {
     1(Int) from A to B;
-    2(Int) from B to A;
+    choice at B {
+        2(Int) from B to A;
+    } or {
+        3(Int) from B to A;
+        4(Int) from B to A;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    1(Int) from A to B;
+    choice at B {
+        2(Int) from B to A;
+        3(Int) from B to C;
+    } or {
+        4(Int) from B to A;
+        3(Int) from B to C;
+    }
+}
+//*/
+
+//*
+global protocol Proto1(role A, role B, role C) {
+    1(Int) from A to B;
+    choice at B {
+        2(Int) from B to A;
+        3(Int) from B to C;
+    } or {
+        4(Int) from B to A;
+        5(Int) from B to C;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        3()
+    } () or A->B () {
+        2() from B to A;
+    }
 }
 //*/
 
 
+/*
 global protocol Proto1(role A, role B) {
     /*1(T) from A to B;
-    2(T) from B to A;*/
+    2(T) from B to A;* /
 
     rec X {
         mixed {
@@ -199,8 +241,9 @@ global protocol Proto1(role A, role B) {
         } () or A->B () {
             3(T) from B to A;
         }
-    }*/
+    }* /
 }
+//*/
 
 
 

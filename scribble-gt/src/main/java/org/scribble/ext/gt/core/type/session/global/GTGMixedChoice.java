@@ -60,7 +60,7 @@ public class GTGMixedChoice implements GTGType {
         Sigma s0 = new Sigma();
         Pair<? extends GTLType, Sigma> get_l = optl.get();
         Pair<? extends GTLType, Sigma> get_r = optr.get();
-        if (!s0.equals(get_l.left) || !s0.equals(get_r.left)) {
+        if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
             return Optional.empty();
         }
         return !r.equals(this.other) && !r.equals(this.observer)

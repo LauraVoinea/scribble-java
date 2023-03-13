@@ -7,6 +7,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -63,31 +64,30 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public Optional<? extends GTLType> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
         // Same as MixedChoice except with n
-        if (!this.committedRight.contains(r) &&
-                (this.committedLeft.contains(r) || this.observer.equals(r))) {  // XXX p.equals(r) ???
+        if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
             return this.left.project(r);
-        } else if (!this.committedLeft.contains(r) && this.committedRight.contains(r)) {
+        } else if (this.committedRight.contains(r) && !this.committedLeft.contains(r)) {
             return this.right.project(r);
-        } else if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
+        } else { //if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
             //throw new RuntimeException("TODO: ");  // p,q ??
             GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-            Optional<? extends GTLType> optl = this.left.project(r);
-            Optional<? extends GTLType> optr = this.right.project(r);
-            if (optl.isEmpty() || optr.isEmpty()) {
-                return Optional.empty();
-            }
-            GTLType getl = optl.get();
-            GTLType getr = optr.get();
-            if (!r.equals(this.observer) && !r.equals(this.other)) {
-                if (!getl.equals(getr)) {  // !!! TODO merge -- !!! maybe don't need merge here to start
+            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(r);
+            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(r);
+            if (r.equals(this.other) || r.equals(this.observer)) {
+                Optional<Pair<? extends GTLType, Sigma>> merged =
+                        GTGInteraction.mergePair(opt_l, opt_r);
+                if (!merged.isPresent()) { //optl.isEmpty() || optr.isEmpty()) {
                     return Optional.empty();
                 }
             }
-            return Optional.of(lf.mixedActive(this.c, this.n, getl, getr));
+            Pair<? extends GTLType, Sigma> get_l = opt_l.get();
+            Pair<? extends GTLType, Sigma> get_r = opt_r.get();
+            return Optional.of(new Pair<>(
+                    lf.mixedActive(this.c, this.n, get_l.left, get_r.left),
+                    get_l.right.circ(get_r.right)));
         }
-        return Optional.empty();  // !!! CHECKME: or error
     }
 
     @Override

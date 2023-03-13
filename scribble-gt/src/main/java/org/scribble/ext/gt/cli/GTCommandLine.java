@@ -21,10 +21,7 @@ import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
-import org.scribble.util.AntlrSourceException;
-import org.scribble.util.Pair;
-import org.scribble.util.ScribException;
-import org.scribble.util.ScribParserException;
+import org.scribble.util.*;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -123,7 +120,7 @@ public class GTCommandLine extends CommandLine {
                 System.out.println("---");
 
                 for (Role r : g.getRoles()) {
-                    System.out.println("project onto " + r + ": " + translate.project(r));
+                    System.out.println("project onto " + r + ": " + translate.project(r).get());
                 }
 
                 System.out.println("---");
@@ -134,8 +131,8 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("Initial g = " + translate);
 
                     Theta theta = new Theta(translate.getTimeoutIds());
-                    //foo(core, "", theta, translate, 0);
-                    bar(core, "", theta, translate, 0);
+                    ////foo(core, "", theta, translate, 0);
+                    //bar(core, "", theta, translate, 0);
                 }
             }
         }
