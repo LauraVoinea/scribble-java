@@ -132,7 +132,7 @@ public class GTCommandLine extends CommandLine {
 
                     Theta theta = new Theta(translate.getTimeoutIds());
                     ////foo(core, "", theta, translate, 0);
-                    //bar(core, "", theta, translate, 0);
+                    bar(core, "", theta, translate, 0);
                 }
             }
         }
