@@ -44,8 +44,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
                     tmp = tmp.flatMap(x -> x.addNohat(d.var, rs, d.data));
                 }
                 if (tmp.isPresent()) {
-                    AssrtMsg msg = new AssrtMsg(op, p.left.pay, p.left.ass,
-                            Collections.emptyList(), AssrtTrueFormula.TRUE);
+                    AssrtMsg msg = new AssrtMsg(op, p.left.pay, p.left.ass, null, null);  // !!! null phantoms
                     res.add(new AssrtFormalGComm(this.sender, this.receiver, msg));// FIXME use factory
                 }
             }
@@ -69,8 +68,11 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 
     @Override
     public Optional<Pair<AssrtGamma, AssrtFormalGType>> step(AssrtGamma gamma, AssrtFormalGComm a) {
+        System.out.println("2222222: " + this + " ,, " + a);
         if (a.src.equals(this.sender)) {
-            if (a.dst.equals(this.receiver) && Objects.equals(a.msg, this.cases.get(a.msg.op))) {
+            System.out.println("333333: " + a.msg + " ,, " + this.cases.get(a.msg.op).left);
+            if (a.dst.equals(this.receiver) && Objects.equals(a.msg, this.cases.get(a.msg.op).left)) {
+                System.out.println("444444444");
                 Set<Role> rs = Stream.of(this.sender, this.receiver).collect(Collectors.toSet());
                 Optional<AssrtGamma> tmp = Optional.of(gamma);
                 for (AssrtAnnotDataName d : a.msg.pay) {
