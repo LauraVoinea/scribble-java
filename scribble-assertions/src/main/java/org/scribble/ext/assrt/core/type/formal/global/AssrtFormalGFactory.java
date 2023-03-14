@@ -4,6 +4,7 @@ import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
@@ -14,32 +15,36 @@ import org.scribble.util.Pair;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-public class AssrtFormalGFactory
-{
+public class AssrtFormalGFactory {
 
-	public static final AssrtFormalGFactory factory = new AssrtFormalGFactory();
+    public static final AssrtFormalGFactory factory = new AssrtFormalGFactory();
 
-	public AssrtFormalGFactory() {
+    public AssrtFormalGFactory() {
 
-	}
+    }
 
-	public AssrtFormalGChoice branch(Role sender, Role receiver,
-									 LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGType>> cases) {
-		return new AssrtFormalGChoice(sender, receiver, cases);
-	}
+    public AssrtFormalGChoice branch(Role sender, Role receiver,
+                                     LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGType>> cases) {
+        return new AssrtFormalGChoice(sender, receiver, cases);
+    }
 
-	public AssrtFormalGRec rec(RecVar recvar, AssrtFormalGType body,
-							   LinkedHashMap<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> svars,
-							   AssrtBFormula ass) {
-		return new AssrtFormalGRec(recvar, body, svars, ass);
-	}
+    public AssrtFormalGRec rec(RecVar recvar, AssrtFormalGType body,
+                               LinkedHashMap<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> svars,
+                               AssrtBFormula ass) {
+        return new AssrtFormalGRec(recvar, body, svars, ass);
+    }
 
-	public AssrtFormalGRecVar recvar(RecVar recvar, LinkedHashMap<AssrtVar, AssrtAFormula> svars) {
-		return new AssrtFormalGRecVar(recvar, svars);
-	}
+    public AssrtFormalGRecVar recvar(RecVar recvar, LinkedHashMap<AssrtVar, AssrtAFormula> svars) {
+        return new AssrtFormalGRecVar(recvar, svars);
+    }
 
-	public AssrtFormalGEnd end() {
-		return AssrtFormalGEnd.END;
-	}
+    public AssrtFormalGEnd end() {
+        return AssrtFormalGEnd.END;
+    }
 
+    /* ... */
+
+    public AssrtFormalGComm comm(Role src, Role dst, AssrtMsg msg) {
+        return new AssrtFormalGComm(src, dst, msg);
+    }
 }

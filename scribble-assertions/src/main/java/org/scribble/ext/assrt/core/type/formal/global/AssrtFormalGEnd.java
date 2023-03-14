@@ -1,30 +1,41 @@
 package org.scribble.ext.assrt.core.type.formal.global;
 
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.*;
+import org.scribble.util.Pair;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 
-public class AssrtFormalGEnd implements AssrtFormalGType
-{
-	public static final AssrtFormalGEnd END = new AssrtFormalGEnd();
+public class AssrtFormalGEnd implements AssrtFormalGType {
+    public static final AssrtFormalGEnd END = new AssrtFormalGEnd();
 
-	private AssrtFormalGEnd()
-	{
-		
-	}
+    private AssrtFormalGEnd() {
 
-	@Override
-	public AssrtFormalLEnd project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
-		return lf.end();
-	}
+    }
 
-	@Override
-	public Set<Role> getRoles() {
-		return Collections.emptySet();
-	}
+    @Override
+    public Set<AssrtFormalGComm> getActions(AssrtGamma gamma, Set<Role> blocked) {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<Pair<AssrtGamma, AssrtFormalGType>> step(AssrtGamma gamma, AssrtFormalGComm a) {
+        return Optional.empty();
+    }
+
+    @Override
+    public AssrtFormalLEnd project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
+        return lf.end();
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return Collections.emptySet();
+    }
 
 	/*
 	@Override
@@ -48,30 +59,30 @@ public class AssrtFormalGEnd implements AssrtFormalGType
 	}
 	 */
 
-	@Override
-	public String toString() {
-		return "end";
-	}
+    @Override
+    public String toString() {
+        return "end";
+    }
 
-	/* Aux */
+    /* Aux */
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof AssrtFormalGEnd)) {
-			return false;
-		}
-		return super.equals(obj);  // Checks canEquals
-	}
-	
-	@Override
-	public boolean canEquals(Object o) {
-		return o instanceof AssrtFormalGEnd;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof AssrtFormalGEnd)) {
+            return false;
+        }
+        return super.equals(obj);  // Checks canEquals
+    }
 
-	@Override
-	public int hashCode() {
-		int hash = AssrtFormalGType.END_HASH;
-		hash =  31 * hash;
-		return hash;
-	}
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof AssrtFormalGEnd;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = AssrtFormalGType.END_HASH;
+        hash = 31 * hash;
+        return hash;
+    }
 }
