@@ -1,4 +1,5 @@
 package org.scribble.ext.assrt.core.type.formal.local;
+
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
@@ -56,7 +57,7 @@ public class AssrtLambda {
     }
 
     public Optional<AssrtLambda> addAll(AssrtLambda lam) {
-        AssrtLambda tmp = this;
+        AssrtLambda tmp = this;  // refactor Optional<AssrtLambda>, flatMap
         for (Map.Entry<AssrtVar, Pair<Multiplicity, DataName>> e : lam.map.entrySet()) {
             AssrtVar k = e.getKey();
             Pair<Multiplicity, DataName> v = e.getValue();
@@ -131,7 +132,7 @@ public class AssrtLambda {
     @Override
     public int hashCode() {
         int hash = 7639;
-        hash = 31*hash + this.map.hashCode();
+        hash = 31 * hash + this.map.hashCode();
         return hash;
     }
 }

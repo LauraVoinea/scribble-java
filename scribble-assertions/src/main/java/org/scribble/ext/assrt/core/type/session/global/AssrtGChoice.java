@@ -296,11 +296,7 @@ public class AssrtGChoice extends AssrtChoice<Global, AssrtGType>
 	}
 
 	private static void addMaybeNull(Map<Role, Set<AssrtSSend>> env, Role r, AssrtSSend action) {
-		Set<AssrtSSend> acts = env.get(r);
-		if (acts == null) {
-			acts = new HashSet<>();
-			env.put(r, acts);
-		}
+		Set<AssrtSSend> acts = env.computeIfAbsent(r, k -> new HashSet<>());
 		acts.add(action);
 	}
 

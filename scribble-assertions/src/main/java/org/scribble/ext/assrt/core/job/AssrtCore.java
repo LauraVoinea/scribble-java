@@ -32,6 +32,7 @@ import org.scribble.core.type.name.*;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
+import org.scribble.ext.assrt.core.lang.AssrtProtocol;
 import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtEModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.formal.endpoint.RCA;
@@ -88,9 +89,7 @@ public class AssrtCore extends Core
 	@Override
 	protected ModelFactory newModelFactory()
 	{
-		return new ModelFactory(
-				(Function<ModelFactory, EModelFactory>) AssrtEModelFactoryImpl::new,  // Explicit cast necessary (CHECKME, why?)
-				(Function<ModelFactory, SModelFactory>) AssrtSModelFactoryImpl::new);
+		return new ModelFactory(AssrtEModelFactoryImpl::new, AssrtSModelFactoryImpl::new);
 	}
 
 	/*// A Scribble extension should override newCoreConfig/Context/etc as appropriate
@@ -120,9 +119,9 @@ public class AssrtCore extends Core
 		runLocalModelCheckingPasses();
 		runGlobalModelCheckingPasses();
 
-		//tempRunSyncSat();  // XXX HERE HERE global model building
+		tempRunSyncSat();  // XXX HERE HERE global model building
 
-		foo();
+		//foo();  // RCA construction
 	}
 
 	private void foo() {
@@ -136,6 +135,7 @@ public class AssrtCore extends Core
 			if (!g.mods.contains(ProtoMod.AUX)) {
 				AssrtFormalGType g1 = tr.translate(g.type);
 				System.out.println("aaa: " + g.fullname + " ,, " + g1);
+
 				Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());
 				for (Role r : rs) {
 					AssrtFormalLType p = g1.project(lf, r, new AssrtPhi());
@@ -540,19 +540,41 @@ public class AssrtCore extends Core
 		}
 	}
 
+	// FIXME refactor with foo (RCA construction)
 	private void tempRunSyncSat() throws ScribException {
+		System.out.println("\n--------------------\n");
+		AssrtFormalLFactory lf = AssrtFormalLFactory.factory;
+		AssrtFormalGTranslator tr = new AssrtFormalGTranslator();
+		AssrtCoreContext c = (AssrtCoreContext) this.context;
+		Map<ProtoName<Global>, GProtocol> inlined = c.getInlined();
+		for (Map.Entry<ProtoName<Global>, GProtocol> e : inlined.entrySet()) {
+			AssrtGProtocol g = (AssrtGProtocol) e.getValue();
+			if (!g.mods.contains(ProtoMod.AUX)) {
+				AssrtFormalGType g1 = tr.translate(g.type);
+				System.out.println("1111: " + g.fullname + " ,, " + g1);
+				tempRunSyncSat(g1);
+
+				//Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());
+			}
+		}
+	}
+
+	private void tempRunSyncSat(AssrtFormalGType g) throws ScribException {
+	}
+
+	private void tempRunSyncSatOrig() throws ScribException {
 		System.out.println("\n--------------------\n");
 		AssrtCoreContext c = (AssrtCoreContext) this.context;
 		Map<ProtoName<Global>, GProtocol> inlined = c.getInlined();
 		for (Map.Entry<ProtoName<Global>, GProtocol> e : inlined.entrySet()) {
 			AssrtGProtocol g = (AssrtGProtocol) e.getValue();
 			if (!g.mods.contains(ProtoMod.AUX)) {
-				tempRunSyncSat(g);
+				tempRunSyncSatOrig(g);
 			}
 		}
 	}
 
-	private void tempRunSyncSat(AssrtGProtocol g) throws ScribException {
+	private void tempRunSyncSatOrig(AssrtGProtocol g) throws ScribException {
 		AssrtSModelFactory sf = (AssrtSModelFactory) this.config.mf.global;
 		AssrtGTypeFactory gf = (AssrtGTypeFactory) this.config.tf.global;
 
