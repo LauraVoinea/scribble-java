@@ -6,6 +6,7 @@ import org.scribble.ext.assrt.core.type.formal.AssrtFormalType;
 import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -42,6 +43,8 @@ public interface AssrtFormalGType extends AssrtFormalType {
     AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi);
 
     Set<Role> getRoles();
+
+    Set<AssrtVar> getVars();
 
     /*
     Set<AssrtLAction> getSteppable(AssrtLambda lambda);

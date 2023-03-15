@@ -16,6 +16,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // !!! Don't really need to separate silent and non-silent rec and recvar constructors -- and multiple state vars can be done in one step (cf. comm pay vars), the step is the rec(var), not the svars
 public class AssrtFormalGRec extends AssrtFormalTypeBase implements AssrtFormalGType {
@@ -44,7 +45,7 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase implements AssrtFormalG
 
     @Override
     public Set<AssrtFormalGComm> getActions(AssrtGamma gamma, Set<Role> blocked) {
-        Optional<AssrtGamma> tmp = Optional.of(gamma);
+        Optional<AssrtGamma> tmp = makeGamma(gamma, this.body);
         for (Map.Entry<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> e : this.statevars.entrySet()) {
             AssrtVar v = e.getKey();
             Triple<Set<Role>, DataName, AssrtAFormula> p = e.getValue();
@@ -53,9 +54,29 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase implements AssrtFormalG
         return tmp.map(x -> this.body.getActions(x, blocked)).get();  // unfold puts this.recvar in env
     }
 
+    public static Optional<AssrtGamma> makeGamma(AssrtGamma gamma, AssrtFormalGType body) {
+        Set<AssrtVar> vs = body.getVars();
+        Optional<AssrtGamma> tmp = Optional.of(new AssrtGamma());
+        for (Map.Entry<AssrtVar, Pair<Set<Role>, DataName>> e : gamma.nohat.entrySet()) {
+            AssrtVar v = e.getKey();
+            Pair<Set<Role>, DataName> p = e.getValue();
+            if (!vs.contains(v)) {
+                tmp = tmp.flatMap(x -> x.addNohat(v, p.left, p.right));
+            }
+        }
+        for (Map.Entry<AssrtVar, Pair<Set<Role>, DataName>> e : gamma.hat.entrySet()) {
+            AssrtVar v = e.getKey();
+            Pair<Set<Role>, DataName> p = e.getValue();
+            if (!vs.contains(v)) {
+                tmp = tmp.flatMap(x -> x.addHat(v, p.left, p.right));
+            }
+        }
+        return tmp;
+    }
+
     @Override
     public Optional<Pair<AssrtGamma, AssrtFormalGType>> step(AssrtGamma gamma, AssrtFormalGComm a) {
-        Optional<AssrtGamma> tmp = Optional.of(gamma);
+        Optional<AssrtGamma> tmp = makeGamma(gamma, this.body);
         for (Map.Entry<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> e : this.statevars.entrySet()) {
             AssrtVar v = e.getKey();
             Triple<Set<Role>, DataName, AssrtAFormula> p = e.getValue();
@@ -101,6 +122,14 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase implements AssrtFormalG
     @Override
     public Set<Role> getRoles() {
         return this.body.getRoles();
+    }
+
+    @Override
+    public Set<AssrtVar> getVars() {
+        return Stream.concat(
+                this.statevars.keySet().stream(),
+                this.body.getVars().stream()
+        ).collect(Collectors.toSet());
     }
 
     @Override

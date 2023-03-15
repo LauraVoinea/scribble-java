@@ -556,10 +556,48 @@ public class AssrtCore extends Core {
         }
     }
 
-    private void tempRunSyncSat(AssrtFormalGType g) throws ScribException {
+    private void tempRunSyncSat(AssrtFormalGType g) {
         AssrtGamma gamma = new AssrtGamma();
+        Pair<AssrtGamma, AssrtFormalGType> step = new Pair<>(gamma, g);
+        //Set<Pair<AssrtGamma, AssrtFormalGType>> graph = new HashSet<>();
+        Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>> graph = new HashMap<>();
+        tempRunSyncSat(Collections.emptySet(), step, graph);
+        System.out.println("global graph:");
+        //graph.forEach(x -> System.out.println(AssrtUtil.pairToString(x)));
+        graph.entrySet().stream().forEach(x ->
+                System.out.println(AssrtUtil.pairToString(x.getKey())
+                        + " -> " + AssrtUtil.pairToString(x.getValue())));
+    }
 
-        Set<AssrtFormalGComm> as = g.getActions(gamma);
+    // HERE HERE check unique mu recvars in WF
+    // ...running up to seen globals (i.e., mu's) -- effectively GC of recursion refinement vars? (assuming above) -- XXX old
+    // HERE HERE also check unique refine vars overall (to avoid "false merging" of graph states)
+    // ...with rec-entry GC, have static finite global LTS
+    private void tempRunSyncSat(
+            Set<AssrtFormalGType> seen,
+            Pair<AssrtGamma, AssrtFormalGType> curr,
+            Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>> graph
+    ) {
+        //if (seen.contains(curr.right)) {
+        //if (graph.contains(curr)) {
+        if (graph.keySet().stream().anyMatch(x -> x.left.equals(curr))) {
+            return;
+        }
+        Set<AssrtFormalGType> tmp = new HashSet<>(seen);
+        tmp.add(curr.right);
+        //graph.add(curr);
+        System.out.println("[: " + AssrtUtil.pairToString(curr));
+        Set<AssrtFormalGComm> as = curr.right.getActions(curr.left);
+        for (AssrtFormalGComm a : as) {
+            System.out.println("[[: " + a);
+            Pair<AssrtGamma, AssrtFormalGType> step =
+                    curr.right.step(curr.left, a).get();
+            graph.put(new Pair<>(curr, a), step);
+            System.out.println("[[[: " + AssrtUtil.pairToString(step));
+            tempRunSyncSat(tmp, step, graph);
+        }
+
+        /*Set<AssrtFormalGComm> as = g.getActions(gamma);
         System.out.println("[: " + as);
         Optional<Pair<AssrtGamma, AssrtFormalGType>> step = g.step(gamma, as.iterator().next());
         System.out.println("[[: " + AssrtUtil.pairToString(step.get()));
@@ -569,7 +607,7 @@ public class AssrtCore extends Core {
         as = g.getActions(gamma);
         System.out.println("[: " + as);
         step = g.step(gamma, as.iterator().next());
-        System.out.println("[[: " + AssrtUtil.pairToString(step.get()));
+        System.out.println("[[: " + AssrtUtil.pairToString(step.get()));*/
     }
 
     private void tempRunSyncSatOrig() throws ScribException {

@@ -4,8 +4,14 @@ import org.scribble.util.Pair;
 
 public class AssrtUtil {
 
+    public static String pairToString1(Object p) {
+        return p instanceof Pair<?, ?>
+                ? pairToString((Pair<?, ?>) p)
+                : p.toString();
+    }
+
     public static String pairToString(Pair<?, ?> p) {
-       return "(" + p.left + ", " + p.right + ")";
+        return "(" + pairToString1(p.left) + ", " + pairToString1(p.right) + ")";
     }
 
     public static String tripleToString(Triple<?, ?, ?> p) {

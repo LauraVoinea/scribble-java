@@ -4,6 +4,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.*;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -41,6 +42,11 @@ public class AssrtFormalGEnd implements AssrtFormalGType {
 
     @Override
     public Set<Role> getRoles() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Set<AssrtVar> getVars() {
         return Collections.emptySet();
     }
 

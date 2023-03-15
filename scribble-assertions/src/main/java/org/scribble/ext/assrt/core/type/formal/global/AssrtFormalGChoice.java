@@ -8,6 +8,7 @@ import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
+import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.util.Pair;
 
@@ -91,7 +92,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
                 Set<Role> rs = Stream.of(this.sender, this.receiver).collect(Collectors.toSet());
                 Optional<AssrtGamma> tmp = Optional.of(gamma);
                 for (AssrtAnnotDataName d : a.msg.pay) {
-                    tmp = tmp.flatMap(x -> x.addHat(d.var, rs, d.data));
+                    tmp = tmp.flatMap(x -> x.addNohat(d.var, rs, d.data));
                 }
                 return tmp.map(x -> new Pair<>(x, this.cases.get(a.msg.op).right));
             } else {
@@ -103,7 +104,16 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
             Map.Entry<Op, Pair<AssrtMsg, AssrtFormalGType>> e = this.cases.entrySet().iterator().next();
             Op op = e.getKey();
             Pair<AssrtMsg, AssrtFormalGType> p = e.getValue();
-            Optional<Pair<AssrtGamma, AssrtFormalGType>> opt = p.right.step(gamma, a);
+
+            //Optional<Pair<AssrtGamma, AssrtFormalGType>> opt = p.right.step(gamma, a);
+
+            Set<Role> rs = Stream.of(this.sender, this.receiver).collect(Collectors.toSet());
+            Optional<AssrtGamma> g = Optional.of(gamma);
+            for (AssrtAnnotDataName d : a.msg.pay) {
+                g = g.flatMap(x -> x.addHat(d.var, rs, d.data));
+            }
+            Optional<Pair<AssrtGamma, AssrtFormalGType>> opt = g.flatMap(x -> p.right.step(x, a));
+
             if (!opt.isPresent()) {
                 return Optional.empty();
             }
@@ -146,6 +156,13 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
         rs.addAll(this.cases.values().stream()
                 .flatMap(x -> x.right.getRoles().stream()).collect(Collectors.toSet()));
         return rs;
+    }
+
+    @Override
+    public Set<AssrtVar> getVars() {
+        return this.cases.values().stream().flatMap(x -> Stream.concat(
+                x.left.pay.stream().map(y -> y.var),
+                x.right.getVars().stream())).collect(Collectors.toSet());
     }
 
 	/*@Override

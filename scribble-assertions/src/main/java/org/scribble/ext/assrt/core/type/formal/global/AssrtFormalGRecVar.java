@@ -73,6 +73,11 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
     }
 
     @Override
+    public Set<AssrtVar> getVars() {
+        return Collections.emptySet();
+    }
+   
+    @Override
     public String toString() {
         return this.recvar + "<"
                 + this.statevars.entrySet().stream()
