@@ -1,12 +1,12 @@
 package org.scribble.ext.assrt.core.type.formal.global;
 
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalTypeBase;
 import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLFactory;
 import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
-import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.util.Pair;
@@ -28,6 +28,21 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
         this.sender = sender;
         this.receiver = receiver;
         this.cases = Collections.unmodifiableMap(new LinkedHashMap<>(cases));
+    }
+
+    @Override
+    public AssrtFormalGType unfoldEnv(Map<RecVar, AssrtFormalGRec> env) {
+        LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalGType>> cases =
+                this.cases.entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> {
+                            Pair<AssrtMsg, AssrtFormalGType> p = x.getValue();
+                            return new Pair<>(p.left, p.right.unfoldEnv(env));
+                        },
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new AssrtFormalGChoice(this.sender, this.receiver, cases);  // FIXME factory
     }
 
     @Override

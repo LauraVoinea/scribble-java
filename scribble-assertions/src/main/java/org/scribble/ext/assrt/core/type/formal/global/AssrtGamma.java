@@ -13,7 +13,7 @@ public class AssrtGamma {
 
     // Invar: nohat.keySet(), hat.keySet() disjoint
     public final Map<AssrtVar, Pair<Set<Role>, DataName>> nohat;  // TODO assertions -- cf. AssrtLambda
-    public final Map<AssrtVar, Pair<Set<Role>, DataName>> hat;
+    public final Map<AssrtVar, Pair<Set<Role>, DataName>> hat;  // "Future" knowledge, due to global context reduction when no causal ordering
 
     public AssrtGamma() {
         this(new LinkedHashMap<>(), new LinkedHashMap<>());

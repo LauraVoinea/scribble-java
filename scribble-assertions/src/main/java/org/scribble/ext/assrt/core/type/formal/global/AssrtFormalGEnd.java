@@ -1,11 +1,13 @@
 package org.scribble.ext.assrt.core.type.formal.global;
 
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.*;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,6 +17,11 @@ public class AssrtFormalGEnd implements AssrtFormalGType {
 
     private AssrtFormalGEnd() {
 
+    }
+
+    @Override
+    public AssrtFormalGType unfoldEnv(Map<RecVar, AssrtFormalGRec> env) {
+        return this;
     }
 
     @Override

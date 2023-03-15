@@ -560,16 +560,16 @@ public class AssrtCore extends Core {
         AssrtGamma gamma = new AssrtGamma();
 
         Set<AssrtFormalGComm> as = g.getActions(gamma);
-        System.out.println("[[[[[[[[[: " + as);
+        System.out.println("[: " + as);
         Optional<Pair<AssrtGamma, AssrtFormalGType>> step = g.step(gamma, as.iterator().next());
-        System.out.println("[[[[[[[[[: " + AssrtUtil.pairToString(step.get()));
+        System.out.println("[[: " + AssrtUtil.pairToString(step.get()));
         gamma = step.get().left;
         g = step.get().right;
 
         as = g.getActions(gamma);
-        System.out.println("[[[[[[[[[: " + as);
+        System.out.println("[: " + as);
         step = g.step(gamma, as.iterator().next());
-        System.out.println("[[[[[[[[[: " + AssrtUtil.pairToString(step.get()));
+        System.out.println("[[: " + AssrtUtil.pairToString(step.get()));
     }
 
     private void tempRunSyncSatOrig() throws ScribException {

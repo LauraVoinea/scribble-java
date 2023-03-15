@@ -1,5 +1,6 @@
 package org.scribble.ext.assrt.core.type.formal.global;
 
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.assrt.core.type.formal.AssrtFormalType;
 import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
@@ -8,6 +9,7 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,6 +24,12 @@ public interface AssrtFormalGType extends AssrtFormalType {
 
     // HERE HERE TODO
     //boolean isWellFormed(AssrtPsi psi, AssrtGamma gamma);
+
+    default AssrtFormalGType unfold() {
+        return unfoldEnv(Collections.emptyMap());
+    }
+
+    AssrtFormalGType unfoldEnv(Map<RecVar, AssrtFormalGRec> env);
 
     default Set<AssrtFormalGComm> getActions(AssrtGamma gamma) {
         return getActions(gamma, Collections.emptySet());

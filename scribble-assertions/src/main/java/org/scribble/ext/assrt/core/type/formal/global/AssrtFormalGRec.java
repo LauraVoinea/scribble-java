@@ -11,7 +11,6 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -19,8 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 // !!! Don't really need to separate silent and non-silent rec and recvar constructors -- and multiple state vars can be done in one step (cf. comm pay vars), the step is the rec(var), not the svars
-public class AssrtFormalGRec extends AssrtFormalTypeBase
-        implements AssrtFormalGType {
+public class AssrtFormalGRec extends AssrtFormalTypeBase implements AssrtFormalGType {
+
     public final RecVar recvar;
     public final AssrtFormalGType body;
 
@@ -37,14 +36,32 @@ public class AssrtFormalGRec extends AssrtFormalTypeBase
     }
 
     @Override
+    public AssrtFormalGType unfoldEnv(Map<RecVar, AssrtFormalGRec> env) {
+        Map<RecVar, AssrtFormalGRec> tmp = new HashMap<>(env);
+        tmp.put(this.recvar, this);
+        return this.body.unfoldEnv(tmp);
+    }
+
+    @Override
     public Set<AssrtFormalGComm> getActions(AssrtGamma gamma, Set<Role> blocked) {
-        throw new RuntimeException("TODO: " + this);
+        Optional<AssrtGamma> tmp = Optional.of(gamma);
+        for (Map.Entry<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> e : this.statevars.entrySet()) {
+            AssrtVar v = e.getKey();
+            Triple<Set<Role>, DataName, AssrtAFormula> p = e.getValue();
+            tmp = tmp.flatMap(x -> x.addNohat(v, p.left, p.middle));
+        }
+        return tmp.map(x -> this.body.getActions(x, blocked)).get();  // unfold puts this.recvar in env
     }
 
     @Override
     public Optional<Pair<AssrtGamma, AssrtFormalGType>> step(AssrtGamma gamma, AssrtFormalGComm a) {
-
-        throw new RuntimeException("TODO: " + this);
+        Optional<AssrtGamma> tmp = Optional.of(gamma);
+        for (Map.Entry<AssrtVar, Triple<Set<Role>, DataName, AssrtAFormula>> e : this.statevars.entrySet()) {
+            AssrtVar v = e.getKey();
+            Triple<Set<Role>, DataName, AssrtAFormula> p = e.getValue();
+            tmp = tmp.flatMap(x -> x.addNohat(v, p.left, p.middle));
+        }
+        return tmp.flatMap(x -> unfold().step(x, a));
     }
 
     @Override

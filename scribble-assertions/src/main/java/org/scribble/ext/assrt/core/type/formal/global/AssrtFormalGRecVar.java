@@ -11,7 +11,6 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
 import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
-import org.scribble.ext.assrt.util.Quadple;
 import org.scribble.ext.assrt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -27,6 +26,14 @@ public class AssrtFormalGRecVar extends AssrtFormalTypeBase
     protected AssrtFormalGRecVar(RecVar recvar, LinkedHashMap<AssrtVar, AssrtAFormula> svars) {
         this.recvar = recvar;
         this.statevars = Collections.unmodifiableMap(new LinkedHashMap<>(svars));
+    }
+
+    @Override
+    public AssrtFormalGType unfoldEnv(Map<RecVar, AssrtFormalGRec> env) {
+        if (!env.containsKey(this.recvar)) {
+            throw new RuntimeException("Bad unfold: " + this.recvar + " ,, " + env);
+        }
+        return env.get(this.recvar);
     }
 
     @Override
