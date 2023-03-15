@@ -4,7 +4,7 @@ import org.scribble.util.Pair;
 
 public class AssrtUtil {
 
-    public static String pairToString1(Object p) {
+    private static String pairToString1(Object p) {
         return p instanceof Pair<?, ?>
                 ? pairToString((Pair<?, ?>) p)
                 : p.toString();

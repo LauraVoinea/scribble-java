@@ -573,6 +573,7 @@ public class AssrtCore extends Core {
     // ...running up to seen globals (i.e., mu's) -- effectively GC of recursion refinement vars? (assuming above) -- XXX old
     // HERE HERE also check unique refine vars overall (to avoid "false merging" of graph states)
     // ...with rec-entry GC, have static finite global LTS
+    // TODO deprecate seen
     private void tempRunSyncSat(
             Set<AssrtFormalGType> seen,
             Pair<AssrtGamma, AssrtFormalGType> curr,
@@ -589,7 +590,7 @@ public class AssrtCore extends Core {
         System.out.println("[: " + AssrtUtil.pairToString(curr));
         Set<AssrtFormalGComm> as = curr.right.getActions(curr.left);
         for (AssrtFormalGComm a : as) {
-            System.out.println("[[: " + a);
+            System.out.println("[[: " + curr.right + " ,, " + a);
             Pair<AssrtGamma, AssrtFormalGType> step =
                     curr.right.step(curr.left, a).get();
             graph.put(new Pair<>(curr, a), step);

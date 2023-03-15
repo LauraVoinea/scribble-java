@@ -10,6 +10,7 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
+import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -109,7 +110,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
 
             Set<Role> rs = Stream.of(this.sender, this.receiver).collect(Collectors.toSet());
             Optional<AssrtGamma> g = Optional.of(gamma);
-            for (AssrtAnnotDataName d : a.msg.pay) {
+            for (AssrtAnnotDataName d : p.left.pay) {
                 g = g.flatMap(x -> x.addHat(d.var, rs, d.data));
             }
             Optional<Pair<AssrtGamma, AssrtFormalGType>> opt = g.flatMap(x -> p.right.step(x, a));
