@@ -107,8 +107,9 @@ public class EAPLet implements EAPExpr {
     }
 
     @Override
-    public boolean isGround() {
-        return this.init.isGround();  // !!! bad naming
+    public boolean isGround(Set<EAPFuncName> fnames) {
+        System.out.println("aaaaaa: " + this.init);
+        return this.init.isGround(fnames);  // !!! bad naming
     }
 
     // foo return corresponds with beta "subject"

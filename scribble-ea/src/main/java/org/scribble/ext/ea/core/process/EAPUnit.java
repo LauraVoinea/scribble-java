@@ -7,6 +7,7 @@ import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,12 +27,13 @@ public class EAPUnit implements EAPVal {
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        return Collections.emptySet();
+        //return Collections.emptySet();
+        return new HashSet<>();
     }
 
     @Override
     public EAPUnit subs(@NotNull Map<EAPVar, EAPVal> m) {
-         return this;
+        return this;
     }
 
     @Override

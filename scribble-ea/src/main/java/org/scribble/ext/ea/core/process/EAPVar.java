@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -21,10 +22,20 @@ public class EAPVar implements EAPVal, EAName {
 
     @Override
     public EAValType type(Gamma gamma) {
-        if (!gamma.map.containsKey(this)) {
-            throw new RuntimeException("Unknown var: " + this + ", " + gamma);
+        if (gamma.map.containsKey(this)) {
+            return gamma.map.get(this);
+        } else {
+            EAPFuncName fhack = new EAPFuncName(this.id);
+            if (gamma.fmap.containsKey(fhack)) {  // HERE FIXME fnames parsed as vars...
+                return gamma.fmap.get(fhack);
+            }
         }
-        return gamma.map.get(this);
+        throw new RuntimeException("Unknown var: " + this + ", " + gamma);
+    }
+
+    @Override
+    public boolean isGround(Set<EAPFuncName> fnames) {
+        return fnames.contains(new EAPFuncName(this.id));
     }
 
     @Override
@@ -37,7 +48,8 @@ public class EAPVar implements EAPVal, EAName {
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        return Set.of(this);
+        //return Set.of(this);
+        return new HashSet<>(Set.of(this));
     }
 
     @Override

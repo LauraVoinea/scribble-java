@@ -13,8 +13,10 @@ import java.util.*;
 public class EAPApp implements EAPExpr {
 
     // !!! vals -- use let for computation
-    @NotNull public final EAPVal left;  // Not just rec/lam, could be a var
-    @NotNull public final EAPVal right;
+    @NotNull
+    public final EAPVal left;  // Not just rec/lam, could be a var
+    @NotNull
+    public final EAPVal right;
 
     public EAPApp(@NotNull EAPVal left, @NotNull EAPVal right) {
         this.left = left;
@@ -69,7 +71,7 @@ public class EAPApp implements EAPExpr {
     @Override
     public boolean canBeta() {
         return this.left instanceof EAPRec  // TODO lambda
-            && this.left.isGround() && this.right.isGround();  // Redundant?
+                && this.left.isGround() && this.right.isGround();  // Redundant?
     }
 
     @Override
@@ -116,8 +118,8 @@ public class EAPApp implements EAPExpr {
     }
 
     @Override
-    public boolean isGround() {
-        return this.left.isGround() && this.right.isGround();  // !!! bad naming
+    public boolean isGround(Set<EAPFuncName> fnames) {
+        return this.left.isGround(fnames) && this.right.isGround(fnames);  // !!! bad naming
     }
 
     @Override

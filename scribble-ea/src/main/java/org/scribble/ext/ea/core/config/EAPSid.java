@@ -7,13 +7,15 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 // s, s', ...
 public class EAPSid implements EAPVal, EARuntimeName {
 
-    @NotNull public final String id;
+    @NotNull
+    public final String id;
 
     protected EAPSid(@NotNull String id) {
         this.id = id;
@@ -36,7 +38,8 @@ public class EAPSid implements EAPVal, EARuntimeName {
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        return Collections.emptySet();
+        //return Collections.emptySet();
+        return new HashSet<>();
     }
 
     @Override

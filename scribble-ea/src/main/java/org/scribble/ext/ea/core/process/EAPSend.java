@@ -19,9 +19,12 @@ import java.util.Set;
 
 public class EAPSend implements EAPExpr {
 
-    @NotNull public final Role dst;
-    @NotNull public final Op op;
-    @NotNull public final EAPVal val;  // value, not expr
+    @NotNull
+    public final Role dst;
+    @NotNull
+    public final Op op;
+    @NotNull
+    public final EAPVal val;  // value, not expr
 
     public EAPSend(@NotNull Role dst, @NotNull Op op, @NotNull EAPVal val) {
         this.dst = dst;
@@ -78,8 +81,8 @@ public class EAPSend implements EAPExpr {
     }
 
     @Override
-    public boolean isGround() {
-        return this.val.isGround();
+    public boolean isGround(Set<EAPFuncName> fnames) {
+        return this.val.isGround(fnames);
     }
 
     /*@Override

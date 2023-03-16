@@ -19,14 +19,21 @@ import java.util.Set;
 
 public class EAPRec implements EAPVal {
 
-    @NotNull public final EAPFuncName f;
-    @NotNull public final EAPVar var;  // hardcoded single param
-    @NotNull public final EAValType varType;  // A -- hardcode single param
-    @NotNull public final EAPExpr body;
+    @NotNull
+    public final EAPFuncName f;
+    @NotNull
+    public final EAPVar var;  // hardcoded single param
+    @NotNull
+    public final EAValType varType;  // A -- hardcode single param
+    @NotNull
+    public final EAPExpr body;
 
-    @NotNull public final EALType S;
-    @NotNull public final EALType T;
-    @NotNull public final EAValType B;
+    @NotNull
+    public final EALType S;
+    @NotNull
+    public final EALType T;
+    @NotNull
+    public final EAValType B;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
     public EAPRec(@NotNull EAPFuncName f, @NotNull EAPVar var,
@@ -88,8 +95,9 @@ public class EAPRec implements EAPVal {
     }
 
     @Override
-    public boolean isGround() {
-        return this.body.isGround();
+    public boolean isGround(Set<EAPFuncName> fnames) {
+        System.out.println("bbbbbb: " + this.body);
+        return this.body.isGround(fnames);
     }
 
     @Override

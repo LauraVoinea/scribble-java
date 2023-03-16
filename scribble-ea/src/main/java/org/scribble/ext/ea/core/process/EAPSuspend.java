@@ -94,8 +94,8 @@ public class EAPSuspend implements EAPExpr {
     }
 
     @Override
-    public boolean isGround() {
-        return this.val.isGround();
+    public boolean isGround(Set<EAPFuncName> fnames) {
+        return this.val.isGround(fnames);
     }
 
     /*@Override
@@ -110,7 +110,7 @@ public class EAPSuspend implements EAPExpr {
 
     @Override
     public EAPExpr foo() {
-       throw new RuntimeException("Shouldn't get in here.");
+        throw new RuntimeException("Shouldn't get in here.");
     }
 
     @Override

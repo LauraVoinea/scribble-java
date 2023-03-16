@@ -24,9 +24,11 @@ import java.util.stream.Collectors;
 
 public class EAPHandlers implements EAPVal {
 
-    @NotNull public final Role role;
+    @NotNull
+    public final Role role;
     //@NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;  // !!! var is part of value, not key
-    @NotNull public final Map<Op, EAPHandler> Hs;  // Invariant: Op equals EAPHandler.op
+    @NotNull
+    public final Map<Op, EAPHandler> Hs;  // Invariant: Op equals EAPHandler.op
 
     protected EAPHandlers(
             @NotNull Role role, @NotNull LinkedHashMap<Op, EAPHandler> Hbar) {
@@ -40,11 +42,11 @@ public class EAPHandlers implements EAPVal {
     public EAValType type(Gamma gamma) {
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         for (Map.Entry<Op, EAPHandler> e : Hs.entrySet()) {
-           Op k = e.getKey();
-           EAPHandler v = e.getValue();
-           v.type(gamma);
-           cases.put(k, new EAPPair<>(v.varType, v.pre));
-       }
+            Op k = e.getKey();
+            EAPHandler v = e.getValue();
+            v.type(gamma);
+            cases.put(k, new EAPPair<>(v.varType, v.pre));
+        }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
         return EAValTypeFactory.factory.handlers(in);
     }
@@ -78,7 +80,7 @@ public class EAPHandlers implements EAPVal {
         Set<EAPVar> res = this.Hs.values().stream()
                 .flatMap(x -> x.getFreeVars().stream())
                 .collect(Collectors.toSet());
-        return res;
+        return new HashSet<>(res);
     }
 
     @Override

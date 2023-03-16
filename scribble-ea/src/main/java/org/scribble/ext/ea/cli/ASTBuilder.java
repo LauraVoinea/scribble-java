@@ -8,6 +8,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
 import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.type.EAType;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -36,6 +37,8 @@ class ASTBuilder {
                 return visitSuspend(n);
             case "M_RETURN":
                 return visitReturn(n);
+            case "M_APP":
+                return visitApp(n);
         }
         throw new RuntimeException("Unknown node kind: " + n.getText());
     }
@@ -65,6 +68,12 @@ class ASTBuilder {
         return pf.returnn(V);
     }
 
+    public EAPApp visitApp(CommonTree n) {
+        EAPVal left = visitV((CommonTree) n.getChild(0));
+        EAPVal right = visitV((CommonTree) n.getChild(1));
+        return pf.app(left, right);
+    }
+
     public EAPVal visitV(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
@@ -77,6 +86,16 @@ class ASTBuilder {
             }
             case "V_UNIT":
                 return pf.unit();
+            case "V_REC": {
+                EAPFuncName f = visitfname((CommonTree) n.getChild(0));
+                EAPVar var = visitVar((CommonTree) n.getChild(1));
+                EAValType varType = visitValType((CommonTree) n.getChild(2));
+                EALType S = visitSessionType((CommonTree) n.getChild(3));
+                EALType T = visitSessionType((CommonTree) n.getChild(4));
+                EAValType B = visitValType((CommonTree) n.getChild(5));
+                EAPExpr body = visitM((CommonTree) n.getChild(6));
+                return pf.rec(f, var, varType, body, S, T, B);
+            }
             default:
                 return visitVar(n);
         }
@@ -103,8 +122,18 @@ class ASTBuilder {
     public EAValType visitValType(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
-            case "1": {
+            case "A_HANDLER": {
+                return tf.val.handlers((EALInType) visitSessionType((CommonTree) n.getChild(0)));
+            }
+            case "A_UNIT": {
                 return tf.val.unit();
+            }
+            case "A_FUN": {
+                EAValType A = visitValType((CommonTree) n.getChild(0));
+                EALType S = visitSessionType((CommonTree) n.getChild(1));
+                EALType T = visitSessionType((CommonTree) n.getChild(2));
+                EAValType B = visitValType((CommonTree) n.getChild(3));
+                return tf.val.func(A, S, T, B);
             }
             default:
                 throw new RuntimeException("Unknown val type: " + n);
@@ -117,6 +146,11 @@ class ASTBuilder {
 
     public Role visitRole(CommonTree n) {
         return new Role(n.getText());
+    }
+
+    // FIXME only used by rec -- other occurrences of fnames come out as var...
+    public EAPFuncName visitfname(CommonTree n) {
+        return new EAPFuncName(n.getText());
     }
 
     public Op visitOp(CommonTree n) {

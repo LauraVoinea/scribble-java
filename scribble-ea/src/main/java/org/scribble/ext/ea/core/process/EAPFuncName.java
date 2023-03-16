@@ -5,6 +5,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,6 +57,7 @@ public class EAPFuncName extends Id implements EAPVal {
 
     @Override
     public Set<EAPVar> getFreeVars() {
-        return Set.of();
+        //return Set.of();
+        return new HashSet<>();
     }
 }

@@ -15,11 +15,13 @@ options
 tokens
 {
     HANDLER_KW = 'handler';
+    HANDLER_KW_A = 'Handler';
     LET_KW = 'let';
     IN_KW = 'in';
     RETURN_KW = 'return';
     SUSPEND_KW = 'suspend';
     MU_KW = 'mu';
+    REC_KW = 'rec';
 
     END_KW = 'end';
 
@@ -38,14 +40,20 @@ tokens
 
    V_UNIT;
    V_HANDLERS;
+   V_REC;
 
    HANDLER;  // H ... not a V or M
+
+   A_HANDLER;
+   A_UNIT;
+   A_FUN;
 
    // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
    M_LET;
    M_RETURN;
    M_SEND;
    M_SUSPEND;
+   M_APP;
 
    S_SELECT;
    S_BRANCH;
@@ -216,8 +224,9 @@ fragment UNDERSCORE:
 role: ID;
 op: ID;
 var: ID;
-type: ID;
+//type: ID;
 recvar: ID;
+fname: ID;  // FIXME only used in rec (not in general expr -- parsed as var...)
 
 /*
 module:
@@ -237,17 +246,21 @@ start:
 
 // Parser rule non-terms must be lower case
 nV:
-    '(' nV ')'
-->
-    nV
-|
     '(' ')'
 ->
     ^(V_UNIT)
 |
+    '(' nV ')'
+->
+    nV
+|
     HANDLER_KW role '{' handler (',' handler)* '}'
 ->
     ^(V_HANDLERS role handler+)
+|
+    REC_KW fname '(' var ':' type '{' session_type '}' '{' session_type '}' type ')' '.' nM
+->
+    ^(V_REC fname var type session_type session_type type nM)
 |
     var
 ;
@@ -256,6 +269,20 @@ handler:
     op '(' var ':' type ')' ':' session_type '->' nM
 ->
     ^(HANDLER op var type session_type nM)
+;
+
+type:
+    HANDLER_KW_A '(' in_session_type ')'
+->
+    ^(A_HANDLER in_session_type)
+|
+    '1'
+->
+    ^(A_UNIT)
+|
+    '[' type '{' session_type '}' '->' '{' session_type '}' type ']'
+->
+    ^(A_FUN type session_type session_type type)
 ;
 
 nM:
@@ -278,6 +305,10 @@ nM:
     SUSPEND_KW nV
 ->
     ^(M_SUSPEND nV)
+|
+    '[' nV nV ']'
+->
+    ^(M_APP nV nV)
 ;
 
 session_type:
@@ -285,9 +316,7 @@ session_type:
 ->
     ^(S_SELECT role session_type_case+)
 |
-    role '?' '{' session_type_case (',' session_type_case)* '}'
-->
-    ^(S_BRANCH role session_type_case+)
+    in_session_type
 |
     MU_KW recvar '.' session_type
 ->
@@ -300,6 +329,12 @@ session_type:
     ID
 ->
     ^(S_RECVAR ID)
+;
+
+in_session_type:
+    role '?' '{' session_type_case (',' session_type_case)* '}'
+->
+    ^(S_BRANCH role session_type_case+)
 ;
 
 session_type_case:

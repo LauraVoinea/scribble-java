@@ -13,12 +13,13 @@ public interface EAPVal extends EAPTerm {
     EAValType type(Gamma gamma);
 
     EAPVal subs(Map<EAPVar, EAPVal> m);
+
     EAPVal fsubs(Map<EAPFuncName, EAPRec> m);
 
     Set<EAPVar> getFreeVars();
 
     // !!! cf. "value"
-    default boolean isGround() {
+    default boolean isGround(Set<EAPFuncName> fnames) {  // FIXME override hack for var when it's actually an fname
         return getFreeVars().isEmpty();
     }
 }

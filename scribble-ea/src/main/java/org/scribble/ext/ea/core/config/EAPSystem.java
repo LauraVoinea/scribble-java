@@ -97,13 +97,11 @@ public class EAPSystem {
         }
         EAPActiveThread t = (EAPActiveThread) c.T;
         if (!t.expr.isGround()) {
-            throw new RuntimeException("Stuck: " + p + " " + c);
+            throw new RuntimeException("Stuck: " + t.expr + " ,, " + p + " " + c);
         }
 
-        // HERE HERE -- refactor remaining EAPSend reduction (below) to EAPConfig -> refactor config step to separate case by case actions
         // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
         // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
-        // step annots -- only for EAPSend
 
         EAPExpr foo = t.expr.getFoo();
 
@@ -117,6 +115,8 @@ public class EAPSystem {
         }
         // !!! Delta (annots) change
         else if (foo instanceof EAPSend) {
+            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
+
             EAPSend cast = (EAPSend) foo;
             LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
 
@@ -141,7 +141,6 @@ public class EAPSystem {
             dmap.put(k2, l2);
 
             Delta d1 = new Delta(dmap);
-            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
             return new EAPSystem(this.lf, d1, configs);
         } else {
             throw new RuntimeException("TODO " + foo);

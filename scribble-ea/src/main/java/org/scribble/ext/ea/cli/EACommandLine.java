@@ -82,11 +82,11 @@ public class EACommandLine extends CommandLine {
         //String input = "(A ! a((())))";
         String input = "let x: 1 <= A ! a((())) in suspend "
                 + "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
-        EAPTerm res = parse(input);
+        EAPTerm res = parseM(input);
         System.out.println("bbb: " + res);
     }
 
-    static EAPExpr parse(String input) {
+    static EAPExpr parseM(String input) {
         Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {
@@ -98,6 +98,17 @@ public class EACommandLine extends CommandLine {
             return res;
 
             //tree.token;
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
+
+    static EAValType parseA(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            CommonTree tree = (CommonTree) par.type().getTree();
+            return new ASTBuilder().visitValType(tree);
         } catch (RecognitionException x) {
             throw new RuntimeException(x);
         }
@@ -506,14 +517,23 @@ public class EACommandLine extends CommandLine {
         // mu X . p&{ l2(unit) . p+{ l1(unit) . X } }
 
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
-        cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
+
+        /*cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
         EALOutType out1 = tf.local.out(B, cases);
         cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), out1));
         EALInType in2 = tf.local.in(B, cases);
-        EALRecType recXA = tf.local.rec(X, in2);
+        EALRecType recXA = tf.local.rec(X, in2);*/
 
-        EALRecType recXA_ = (EALRecType) parseSessionType("mu X.p?{l2(1).p!{l1(1).X}}");
+        String out1s = "B!{l1(1).X}";
+        String in2s = "B?{l2(1)." + out1s + "}";
+        EALInType in2 = (EALInType) parseSessionType(in2s);
+        String recXAs = "mu X." + in2s;
+        EALRecType recXA = (EALRecType) parseSessionType(recXAs);
+
+        //HERE HERE redo rec examples using parser
+
+        //System.out.println("1111111: " + in2 + "\n" + in2_);
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), recXA));
@@ -523,16 +543,32 @@ public class EACommandLine extends CommandLine {
         // p+{ l1(unit) . [mu X . p&{ l2(unit) . p+{ l1(unit) . X) } }] }
         cases = new LinkedHashMap<>();
         cases.put(l1, new EAPPair<>(tf.val.unit(), recXA));
-        EALOutType out1u = tf.local.out(B, cases);
+        //EALOutType out1u = tf.local.out(B, cases);
+        String out1us = "B!{l1(1)." + recXAs + "}";
+        EALOutType out1u = (EALOutType) parseSessionType(out1us);
 
         cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), out1u));
-        EALInType in2u = tf.local.in(B, cases);
-        EAHandlersType h2 = tf.val.handlers(in2u);
+        //EALInType in2u = tf.local.in(B, cases);
+        String in2us = "B?{l2(1)." + out1us + "}";  // unfolding of recXA
+        EALInType in2u = (EALInType) parseSessionType(in2us);
+        //EAHandlersType h2 = tf.val.handlers(in2u);
+        String h2s = "Handler (" + in2us + ")";
+        EAHandlersType h2 = (EAHandlersType) parseA(h2s);
 
         // ----
-        // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z }
+        // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z }  XXX typos
         // in [ let _ = B!l1() in let hh = h() in suspend hh ]
+
+        // h type ... EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
+        String hts = "[1 {" + in2us + "} -> {" + recXAs + "}" + h2s + "]";
+        //EAFuncType ht = (EAFuncType) parseA();
+        // z type EAHandlersType h2 = tf.val.handlers(in2u);
+        // ..., in2u, recXA, h2
+        EAPLet lethA = (EAPLet) parseM(
+                "let h: " + hts + " <= return (rec f(w1: 1 {" + in2us + "}{" + recXAs + "}" + h2s + " ) . return handler B { l2(w2: 1): " + out1us
+                        + " -> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z })"
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh");
 
         //let z = f() in suspend z
         EAPSuspend suszA = pf.suspend(z);
@@ -563,7 +599,7 @@ public class EACommandLine extends CommandLine {
 
         // let h = return rec f(_). ... in [ let _ ... ]
         EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-        EAPLet lethA = pf.let(h, ftA, retfA, wA);
+        //EAPLet lethA = pf.let(h, ftA, retfA, wA);
         System.out.println(lethA);
         lethA.type(new Gamma(), out1u);
 
@@ -1068,7 +1104,7 @@ public class EACommandLine extends CommandLine {
 		EAPSend sendAB2 = pf.send(B, l2, unit);
 
 		EAPLet let = pf.let(x, tf.val.unit(), sendAB1, sendAB2);*/
-        EAPLet let = (EAPLet) parse("let x: 1 <= B!l1(()) in B!l2(())");
+        EAPLet let = (EAPLet) parseM("let x: 1 <= B!l1(()) in B!l2(())");
 
         System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
 
@@ -1203,7 +1239,7 @@ public class EACommandLine extends CommandLine {
 
         // A: B!l1(unit)
         //EAPSend sendAB = pf.send(B, l1, unit);
-        EAPSend sendAB = (EAPSend) parse("B!l1(())");
+        EAPSend sendAB = (EAPSend) parseM("B!l1(())");
         EAPActiveThread tA = rf.activeThread(sendAB, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
         EAPConfig cA = rf.config(p1, tA, sigmaA);
