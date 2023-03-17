@@ -258,7 +258,11 @@ public class EACommandLine extends CommandLine {
 
         // let h = return rec f(_). ... in [ let _ ... ]
         EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-        EAPLet lethA = pf.let(h, ftA, retfA, wA);
+        //EAPLet lethA = pf.let(h, ftA, retfA, wA);
+        EAPLet lethA = (EAPLet) parseM(
+                "let h : {B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}}1 -> Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) {mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}} <= return rec f { B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}} (w1 :1) :Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) {mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}} . return handler B { l2(w2: 1) : B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}} |-> let y :1 <= B!l1(()) in let z :Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) <= [f ()] in suspend z, l3(w2: 1) : end |-> return () } in let w1 :1 <= B!l1(()) in let hh :Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) <= [h ()] in suspend hh");
+
+
         System.out.println(lethA);
         lethA.type(new Gamma(), out1u);
 

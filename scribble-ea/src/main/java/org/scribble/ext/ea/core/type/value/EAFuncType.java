@@ -27,7 +27,7 @@ public class EAFuncType implements EAValType {
 
     @Override
     public String toString() {
-        return " {" + this.S + "}" + this.A + " -> " + this.B + " {" + this.T + "}";
+        return " {" + this.S + "} " + this.A + " -> " + this.B + " {" + this.T + "}";
     }
 
     /* equals/canEquals, hashCode */
