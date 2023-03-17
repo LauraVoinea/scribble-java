@@ -95,9 +95,8 @@ public class EAPRec implements EAPVal {
     }
 
     @Override
-    public boolean isGround(Set<EAPFuncName> fnames) {
-        System.out.println("bbbbbb: " + this.body);
-        return this.body.isGround(fnames);
+    public boolean isGround() {
+        return this.body.isGround();
     }
 
     @Override

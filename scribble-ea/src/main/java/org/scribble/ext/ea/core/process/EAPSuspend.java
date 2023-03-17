@@ -94,8 +94,8 @@ public class EAPSuspend implements EAPExpr {
     }
 
     @Override
-    public boolean isGround(Set<EAPFuncName> fnames) {
-        return this.val.isGround(fnames);
+    public boolean isGround() {
+        return this.val.isGround();
     }
 
     /*@Override

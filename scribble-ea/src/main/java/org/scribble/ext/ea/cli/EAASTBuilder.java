@@ -18,7 +18,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class ASTBuilder {
+// Move to parsing
+class EAASTBuilder {
     static EAPFactory pf = EAPFactory.factory;
     static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
     static EATypeFactory tf = EATypeFactory.factory;

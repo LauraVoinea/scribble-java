@@ -75,10 +75,8 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
-    public boolean isGround(Set<EAPFuncName> fnames) {
-
-        System.out.println("cccccccc: " + this.val);
-        return this.val.isGround(fnames);
+    public boolean isGround() {
+        return this.val.isGround();
     }
 
     /*@Override

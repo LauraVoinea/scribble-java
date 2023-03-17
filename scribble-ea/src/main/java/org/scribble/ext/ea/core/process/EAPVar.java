@@ -24,18 +24,13 @@ public class EAPVar implements EAPVal, EAName {
     public EAValType type(Gamma gamma) {
         if (gamma.map.containsKey(this)) {
             return gamma.map.get(this);
-        } else {
-            EAPFuncName fhack = new EAPFuncName(this.id);
-            if (gamma.fmap.containsKey(fhack)) {  // HERE FIXME fnames parsed as vars...
-                return gamma.fmap.get(fhack);
-            }
         }
         throw new RuntimeException("Unknown var: " + this + ", " + gamma);
     }
 
     @Override
-    public boolean isGround(Set<EAPFuncName> fnames) {
-        return fnames.contains(new EAPFuncName(this.id));
+    public boolean isGround() {
+        return false;
     }
 
     @Override

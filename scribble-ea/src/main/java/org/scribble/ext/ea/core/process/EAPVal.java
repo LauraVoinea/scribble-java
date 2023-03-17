@@ -19,7 +19,7 @@ public interface EAPVal extends EAPTerm {
     Set<EAPVar> getFreeVars();
 
     // !!! cf. "value"
-    default boolean isGround(Set<EAPFuncName> fnames) {  // FIXME override hack for var when it's actually an fname
+    default boolean isGround() {  // FIXME override hack for var when it's actually an fname
         return getFreeVars().isEmpty();
     }
 }

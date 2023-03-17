@@ -118,8 +118,8 @@ public class EAPApp implements EAPExpr {
     }
 
     @Override
-    public boolean isGround(Set<EAPFuncName> fnames) {
-        return this.left.isGround(fnames) && this.right.isGround(fnames);  // !!! bad naming
+    public boolean isGround() {
+        return this.left.isGround() && this.right.isGround();  // !!! bad naming
     }
 
     @Override

@@ -266,7 +266,7 @@ nV:
 ;
 
 handler:
-    op '(' var ':' type ')' ':' session_type '->' nM
+    op '(' var ':' type ')' ':' session_type '|->' nM
 ->
     ^(HANDLER op var type session_type nM)
 ;

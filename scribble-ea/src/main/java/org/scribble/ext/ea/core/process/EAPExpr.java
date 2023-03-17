@@ -29,7 +29,7 @@ public interface EAPExpr extends EAPTerm {
 
     Set<EAPVar> getFreeVars();
 
-    boolean isGround(Set<EAPFuncName> fnames);
+    boolean isGround();
 
     // Extract the (nested) "reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo)
     //boolean canFoo();

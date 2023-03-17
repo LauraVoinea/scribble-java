@@ -94,7 +94,7 @@ public class EACommandLine extends CommandLine {
             CommonTree tree = (CommonTree) par.start().getTree();
             //System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
 
-            EAPExpr res = new ASTBuilder().visitM((CommonTree) tree.getChild(0));
+            EAPExpr res = new EAFuncNamesFixer().parse(new EAASTBuilder().visitM((CommonTree) tree.getChild(0)));
             return res;
 
             //tree.token;
@@ -108,7 +108,7 @@ public class EACommandLine extends CommandLine {
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {
             CommonTree tree = (CommonTree) par.type().getTree();
-            return new ASTBuilder().visitValType(tree);
+            return new EAASTBuilder().visitValType(tree);
         } catch (RecognitionException x) {
             throw new RuntimeException(x);
         }
@@ -119,7 +119,7 @@ public class EACommandLine extends CommandLine {
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {
             CommonTree tree = (CommonTree) par.nV().getTree();
-            return new ASTBuilder().visitV(tree);
+            return new EAFuncNamesFixer().parse(new EAASTBuilder().visitV(tree));
         } catch (RecognitionException x) {
             throw new RuntimeException(x);
         }
@@ -130,7 +130,7 @@ public class EACommandLine extends CommandLine {
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {
             CommonTree tree = (CommonTree) par.session_type().getTree();
-            return new ASTBuilder().visitSessionType(tree);
+            return new EAASTBuilder().visitSessionType(tree);
         } catch (RecognitionException x) {
             throw new RuntimeException(x);
         }
@@ -567,7 +567,7 @@ public class EACommandLine extends CommandLine {
         // ..., in2u, recXA, h2
         EAPLet lethA = (EAPLet) parseM(
                 "let h: " + hts + " <= return (rec f(w1: 1 {" + in2us + "}{" + recXAs + "}" + h2s + " ) . return handler B { l2(w2: 1): " + out1us
-                        + " -> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z })"
+                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z })"
                         + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh");
 
         //let z = f() in suspend z
@@ -1134,8 +1134,8 @@ public class EACommandLine extends CommandLine {
 		Hs.put(l1, hB1);
 		EAPHandlers hsB1 = pf.handlers(A, Hs);*/
         EAPHandlers hsB1 = (EAPHandlers) parseV(
-                "handler A { l1(x: 1): A?{l2(1).end} ->"
-                        + "suspend (handler A { l2(x: 1): end -> return () }) }");
+                "handler A { l1(x: 1): A?{l2(1).end} |->"
+                        + "suspend (handler A { l2(x: 1): end |-> return () }) }");
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());
@@ -1251,7 +1251,7 @@ public class EACommandLine extends CommandLine {
 		EAPHandler hB = pf.handler(l1, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l1, hB);
 		EAPHandlers hsB = pf.handlers(B, Hs);*/
-        EAPHandlers hsB = (EAPHandlers) parseV("handler A { l1(x: 1) : end -> return () }");
+        EAPHandlers hsB = (EAPHandlers) parseV("handler A { l1(x: 1) : end |-> return () }");
         EAPIdle idle = rf.idle();
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB);
