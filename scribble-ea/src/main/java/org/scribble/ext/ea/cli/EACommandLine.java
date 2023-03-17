@@ -170,8 +170,8 @@ public class EACommandLine extends CommandLine {
 
         //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
-        ex4(lf, pf, rf, tf);
-        //ex5(lf, pf, rf, tf);
+        //ex4(lf, pf, rf, tf);
+        ex5(lf, pf, rf, tf);
 
         //new EACommandLine(args).run();
     }
@@ -370,7 +370,7 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tB = rf.activeThread(leth, s, B);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-        EAPConfig cB = rf.config(p1, tB, sigmaB);
+        EAPConfig cB = rf.config(p2, tB, sigmaB);
 
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
@@ -475,7 +475,7 @@ public class EACommandLine extends CommandLine {
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
 
-            // !!! l3 stops here
+            // !!! l3 stops here -- below, and outer loop, are left over from ex4
 
             sys = sys.reduce(p2);
             System.out.println();
@@ -527,13 +527,9 @@ public class EACommandLine extends CommandLine {
 
         String out1s = "B!{l1(1).X}";
         String in2s = "B?{l2(1)." + out1s + "}";
-        EALInType in2 = (EALInType) parseSessionType(in2s);
+        //EALInType in2 = (EALInType) parseSessionType(in2s);
         String recXAs = "mu X." + in2s;
-        EALRecType recXA = (EALRecType) parseSessionType(recXAs);
-
-        //HERE HERE redo rec examples using parser
-
-        //System.out.println("1111111: " + in2 + "\n" + in2_);
+        //EALRecType recXA = (EALRecType) parseSessionType(recXAs);
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l2, new EAPPair<>(tf.val.unit(), recXA));
@@ -541,36 +537,36 @@ public class EACommandLine extends CommandLine {
 
         // XXX p+{ l1(unit) . p&{ l2(unit) . [mu X . p+{ l1(unit) . p&{ l2(unit) . X) } }] } } XXX
         // p+{ l1(unit) . [mu X . p&{ l2(unit) . p+{ l1(unit) . X) } }] }
-        cases = new LinkedHashMap<>();
+        /*cases = new LinkedHashMap<>();
         cases.put(l1, new EAPPair<>(tf.val.unit(), recXA));
-        //EALOutType out1u = tf.local.out(B, cases);
+        //EALOutType out1u = tf.local.out(B, cases);*/
         String out1us = "B!{l1(1)." + recXAs + "}";
         EALOutType out1u = (EALOutType) parseSessionType(out1us);
 
-        cases = new LinkedHashMap<>();
+        /*cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), out1u));
-        //EALInType in2u = tf.local.in(B, cases);
+        //EALInType in2u = tf.local.in(B, cases);*/
         String in2us = "B?{l2(1)." + out1us + "}";  // unfolding of recXA
-        EALInType in2u = (EALInType) parseSessionType(in2us);
-        //EAHandlersType h2 = tf.val.handlers(in2u);
+        //EALInType in2u = (EALInType) parseSessionType(in2us);
+        ////EAHandlersType h2 = tf.val.handlers(in2u);
         String h2s = "Handler (" + in2us + ")";
-        EAHandlersType h2 = (EAHandlersType) parseA(h2s);
+        //EAHandlersType h2 = (EAHandlersType) parseA(h2s);
 
         // ----
         // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z }  XXX typos
         // in [ let _ = B!l1() in let hh = h() in suspend hh ]
 
         // h type ... EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-        String hts = "[1 {" + in2us + "} -> {" + recXAs + "}" + h2s + "]";
+        String hts = "{" + in2us + "} 1-> " + h2s + "{" + recXAs + "}";
         //EAFuncType ht = (EAFuncType) parseA();
         // z type EAHandlersType h2 = tf.val.handlers(in2u);
         // ..., in2u, recXA, h2
         EAPLet lethA = (EAPLet) parseM(
-                "let h: " + hts + " <= return (rec f(w1: 1 {" + in2us + "}{" + recXAs + "}" + h2s + " ) . return handler B { l2(w2: 1): " + out1us
+                "let h: " + hts + " <= return (rec f{ " + in2us + "} (w1: 1 ):" + h2s + "{" + recXAs + "} . return handler B { l2(w2: 1): " + out1us
                         + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z })"
                         + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh");
 
-        //let z = f() in suspend z
+        /*//let z = f() in suspend z
         EAPSuspend suszA = pf.suspend(z);
         EAPApp appfA = pf.app(f, pf.unit());
         EAPLet letzA = pf.let(z, h2, appfA, suszA);
@@ -599,7 +595,7 @@ public class EACommandLine extends CommandLine {
 
         // let h = return rec f(_). ... in [ let _ ... ]
         EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
-        //EAPLet lethA = pf.let(h, ftA, retfA, wA);
+        //EAPLet lethA = pf.let(h, ftA, retfA, wA);*/
         System.out.println(lethA);
         lethA.type(new Gamma(), out1u);
 
@@ -617,38 +613,57 @@ public class EACommandLine extends CommandLine {
         System.out.println("Typing cA: " + cA + " ,, " + env);
         cA.type(new Gamma(), new Delta(env));
 
+
         // ----
         System.out.println();
 
         // mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }
-        cases = new LinkedHashMap<>();
+        /*cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), tf.local.recvar(X)));
         EALOutType out2 = tf.local.out(A, cases);
         cases = new LinkedHashMap<>();
         cases.put(l1, new EAPPair<>(tf.val.unit(), out2));
         EALInType in1 = tf.local.in(A, cases);
-        EALRecType recXB = tf.local.rec(X, in1);
+        EALRecType recXB = tf.local.rec(X, in1);*/
+        String out2s = "A!{l2(1).X}";
+        String in1s = "A?{l1(1)." + out2s + "}";
+        //EALInType in1 = (EALInType) parseSessionType(in1s);
+        String recXBs = "mu X." + in1s;
+        EALRecType recXB = (EALRecType) parseSessionType(recXBs);
 
-        cases = new LinkedHashMap<>();
+        /*cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
-        EALOutType out2mu = tf.local.out(A, cases);
+        EALOutType out2mu = tf.local.out(A, cases);*/
+        String out2mus = "A!{l2(1)." + recXBs;
+        //EALOutType out2mu = (EALOutType) parseSessionType(out2mus);
 
         // p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }] } }
-        cases = new LinkedHashMap<>();
+        /*cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
         EALOutType out2u = tf.local.out(A, cases);
         cases = new LinkedHashMap<>();
         cases.put(l1, new EAPPair<>(tf.val.unit(), out2u));
-        EALInType in1u = tf.local.in(A, cases);
+        EALInType in1u = tf.local.in(A, cases);*/
+        String in1us = "A?{l1(1)." + out2mus + "}";
+        //EALInType in1u = (EALInType) parseSessionType(in1us);
 
-        EAHandlersType h1 = tf.val.handlers(in1u);
-        //EAHandlersType h1fold = tf.val.handlers(recXB);
+        String h1s = "Handler (" + in1us + ")";
+        ////EAHandlersType h1 = tf.val.handlers(in1u);
+        //EAHandlersType h1 = (EAHandlersType) parseA(h1s);
+        ////EAHandlersType h1fold = tf.val.handlers(recXB);
 
         // ---
         // let h = return rec f(_). handler A { l1(_) |-> let y = A!l2() in let z = f() in suspend z }
         // in [ let hh = h() in suspend hh ]
 
-        //let z = f() in suspend z
+        String htsB = "{" + in1us + "} 1->" + h1s + "{" + recXBs + "}";
+        EAPLet leth = (EAPLet) parseM(
+                "let h: " + htsB + " <= return (rec f{  " + in1us + "}(w1: 1):" + h1s + "{" + recXBs + "} ."
+                        + "return handler A { l1(w2: 1): " + out2mus
+                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z })"
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh");
+
+        /*//let z = f() in suspend z
         EAPSuspend susz = pf.suspend(z);
         EAPApp appf = pf.app(f, pf.unit());
         EAPLet letz = pf.let(z, h1, appf, susz);
@@ -675,8 +690,8 @@ public class EACommandLine extends CommandLine {
         System.out.println(lethh);
 
         // let h = return rec f(_). ... in let hh ...
-        EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
-        EAPLet leth = pf.let(h, ft, retfB, lethh);
+        EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);*/
+        //EAPLet leth = pf.let(h, ft, retfB, lethh);
         System.out.println(leth);
         leth.type(new Gamma(), recXB);
 

@@ -102,7 +102,7 @@ public class EAPRec implements EAPVal {
     @Override
     public String toString() {
         return "rec " + this.f + " "
-                + ConsoleColors.toAnnotString(this.S + " -> " + this.T)
+                + ConsoleColors.toAnnotString(": " + this.S + " -> " + this.T)
                 + " (" + this.var + " "
                 + ConsoleColors.toAnnotString(":" + this.varType)
                 + ") "

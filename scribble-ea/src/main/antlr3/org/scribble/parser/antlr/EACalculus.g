@@ -258,7 +258,7 @@ nV:
 ->
     ^(V_HANDLERS role handler+)
 |
-    REC_KW fname '(' var ':' type '{' session_type '}' '{' session_type '}' type ')' '.' nM
+    REC_KW fname '{' session_type '}' '(' var ':' type ')' ':'  type '{' session_type'}' '.' nM
 ->
     ^(V_REC fname var type session_type session_type type nM)
 |
@@ -280,7 +280,7 @@ type:
 ->
     ^(A_UNIT)
 |
-    '[' type '{' session_type '}' '->' '{' session_type '}' type ']'
+    '{' session_type '}' type '->' type  '{' session_type '}'
 ->
     ^(A_FUN type session_type session_type type)
 ;

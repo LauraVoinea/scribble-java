@@ -6,10 +6,14 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 
 public class EAFuncType implements EAValType {
 
-    @NotNull public final EAValType A;
-    @NotNull public final EAValType B;
-    @NotNull public final EALType S;
-    @NotNull public final EALType T;
+    @NotNull
+    public final EAValType A;
+    @NotNull
+    public final EAValType B;
+    @NotNull
+    public final EALType S;
+    @NotNull
+    public final EALType T;
 
     protected EAFuncType(@NotNull EAValType A, @NotNull EALType S,
                          @NotNull EALType T, @NotNull EAValType B) {
@@ -23,7 +27,7 @@ public class EAFuncType implements EAValType {
 
     @Override
     public String toString() {
-        return this.A + " " + this.S + " -> " + this.T + " " + this.B;
+        return " {" + this.S + "}" + this.A + " -> " + this.B + " {" + this.T + "}";
     }
 
     /* equals/canEquals, hashCode */

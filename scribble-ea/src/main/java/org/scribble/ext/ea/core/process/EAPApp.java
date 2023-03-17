@@ -134,7 +134,7 @@ public class EAPApp implements EAPExpr {
 
     @Override
     public String toString() {
-        return this.left + "(" + this.right + ")";
+        return "[" + this.left + " " + this.right + "]";
     }
 
     /* equals/canEquals, hashCode */
