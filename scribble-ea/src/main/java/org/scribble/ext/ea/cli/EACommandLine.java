@@ -404,7 +404,9 @@ public class EACommandLine extends CommandLine {
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
         sys.type(new Gamma(), new Delta());
 
-        System.out.println();
+        run(sys, -1);
+
+        /*System.out.println();
         sys = sys.reduce(p1);
         System.out.println(sys);
         env.put(new EAPPair<>(s, A), out1u);
@@ -486,8 +488,8 @@ public class EACommandLine extends CommandLine {
             System.out.println();
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
-            //*/
-        }
+            //* /
+        }*/
     }
 
     private static void ex4(
@@ -634,7 +636,7 @@ public class EACommandLine extends CommandLine {
         /*cases = new LinkedHashMap<>();
         cases.put(l2, new EAPPair<>(tf.val.unit(), recXB));
         EALOutType out2mu = tf.local.out(A, cases);*/
-        String out2mus = "A!{l2(1)." + recXBs;
+        String out2mus = "A!{l2(1)." + recXBs + "}";
         //EALOutType out2mu = (EALOutType) parseSessionType(out2mus);
 
         // p&{ l1(unit) . p+{ l2(unit) . [mu X . p&{ l1(unit) . p+{ l2(unit) . X) } }] } }
@@ -744,7 +746,9 @@ public class EACommandLine extends CommandLine {
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
         sys.type(new Gamma(), new Delta());
 
-        sys = sys.reduce(p1);
+        run(sys, 100);
+
+        /*sys = sys.reduce(p1);
         System.out.println("[1]");
         System.out.println(sys);
         env.put(new EAPPair<>(s, A), out1u);
@@ -825,8 +829,8 @@ public class EACommandLine extends CommandLine {
             System.out.println("[15]");
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
-            //*/
-        }
+            //* /
+        }*/
 
     }
 
@@ -1191,7 +1195,7 @@ public class EACommandLine extends CommandLine {
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
         sys.type(new Gamma(), new Delta());
 
-        run(sys);
+        run(sys, -1);
 		/*
 		System.out.println();
 		sys = sys.reduce(p1);
@@ -1301,16 +1305,19 @@ public class EACommandLine extends CommandLine {
         System.out.println(sys);
         sys.type(new Gamma(), new Delta());
 
-        run(sys);
+        run(sys, -1);
     }
     //*/
 
-    static void run(EAPSystem sys) {
-        for (Map<EAPPid, Set<EAPPid>> pids = sys.canStep(); !pids.isEmpty(); pids = sys.canStep()) {
-            sys = sys.reduce(pids.keySet().iterator().next());
+    // steps -1 for unbounded
+    static void run(EAPSystem sys, int steps) {
+        Map<EAPPid, Set<EAPPid>> pids = sys.canStep();
+        for (; !pids.isEmpty() && steps != 0; steps--) {
+            sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act
             System.out.println();
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
+            pids = sys.canStep();
         }
     }
 
