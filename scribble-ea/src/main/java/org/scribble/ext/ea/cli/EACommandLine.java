@@ -262,7 +262,6 @@ public class EACommandLine extends CommandLine {
         EAPLet lethA = (EAPLet) parseM(
                 "let h : {B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}}1 -> Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) {mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}} <= return rec f { B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}} (w1 :1) :Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) {mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}} . return handler B { l2(w2: 1) : B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}} |-> let y :1 <= B!l1(()) in let z :Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) <= [f ()] in suspend z, l3(w2: 1) : end |-> return () } in let w1 :1 <= B!l1(()) in let hh :Handler(B?{l2(1).B!{l1(1).mu X.B?{l2(1).B!{l1(1).X}, l3(1).end}}, l3(1).end}) <= [h ()] in suspend hh");
 
-
         System.out.println(lethA);
         lethA.type(new Gamma(), out1u);
 
@@ -354,7 +353,9 @@ public class EACommandLine extends CommandLine {
         // let h = return rec f(_). ... in let hh ...
         EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);
 
-        EAPLet leth = pf.let(h, ft, retfB, lethh);
+        //EAPLet leth = pf.let(h, ft, retfB, lethh);
+        EAPLet leth = (EAPLet) parseM(
+                "let h : {A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}}1 -> Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) {mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}} <= return rec f { A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}} (w1 :1) :Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) {mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}} . return handler A { l1(w2: 1) : A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end} |-> let y :1 <= A!l3(()) in return () } in let hh :Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) <= [h ()] in suspend hh");
 
         System.out.println(leth);
         leth.type(new Gamma(), recXB);
