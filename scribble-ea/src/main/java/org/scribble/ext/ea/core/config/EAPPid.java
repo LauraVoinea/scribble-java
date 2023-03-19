@@ -22,6 +22,16 @@ public class EAPPid implements EAPVal, EARuntimeName {
     }
 
     @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
+    @Override
     public EAValType type(Gamma gamma) {
         return EATypeFactory.factory.val.pid();
     }

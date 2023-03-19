@@ -19,6 +19,16 @@ public class EAPUnit implements EAPVal {
     }
 
     @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
+    @Override
     public EAUnitType type(Gamma gamma) {
         return EATypeFactory.factory.val.unit();
     }

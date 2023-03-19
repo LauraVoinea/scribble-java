@@ -50,6 +50,16 @@ public class EAPRec implements EAPVal {
     }
 
     @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
+    @Override
     public EAValType type(Gamma gamma) {
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);

@@ -45,7 +45,7 @@ public class EAPFactory {
         return new EAPVar(id);
     }
 
-    public EAPIntVal intval(@NotNull int id) {
+    public EAPIntVal intt(@NotNull int id) {
         return new EAPIntVal(id);
     }
 

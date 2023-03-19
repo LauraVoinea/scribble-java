@@ -2,7 +2,6 @@ package org.scribble.ext.ea.cli;
 
 
 import org.antlr.runtime.tree.CommonTree;
-import org.antlr.runtime.tree.Tree;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -48,7 +47,7 @@ class EAASTBuilder {
 
     public EAPLet visitLet(CommonTree n) {
         EAPVar var = visitVar((CommonTree) n.getChild(0));
-        EAValType varType = visitValType((CommonTree) n.getChild(1));
+        EAValType varType = visitA((CommonTree) n.getChild(1));
         EAPExpr e1 = visitM((CommonTree) n.getChild(2));
         EAPExpr e2 = visitM((CommonTree) n.getChild(3));
         return pf.let(var, varType, e1, e2);
@@ -98,10 +97,10 @@ class EAASTBuilder {
             case "V_REC": {
                 EAPFuncName f = visitfname((CommonTree) n.getChild(0));
                 EAPVar var = visitVar((CommonTree) n.getChild(1));
-                EAValType varType = visitValType((CommonTree) n.getChild(2));
+                EAValType varType = visitA((CommonTree) n.getChild(2));
                 EALType S = visitSessionType((CommonTree) n.getChild(3));
                 EALType T = visitSessionType((CommonTree) n.getChild(4));
-                EAValType B = visitValType((CommonTree) n.getChild(5));
+                EAValType B = visitA((CommonTree) n.getChild(5));
                 EAPExpr body = visitM((CommonTree) n.getChild(6));
                 return pf.rec(f, var, varType, body, S, T, B);
             }
@@ -118,9 +117,9 @@ class EAASTBuilder {
     public EAPIntVal visitInt(CommonTree n) {
         String txt = n.getChild(0).getText();
         if (txt.equals("UNIT_KW")) {  // FIXME
-            return pf.intval(1);
+            return pf.intt(1);
         }
-        return pf.intval(Integer.parseInt(txt));
+        return pf.intt(Integer.parseInt(txt));
     }
 
     public LinkedHashMap<Op, EAPHandler> visitHandlers(List<CommonTree> n) {
@@ -135,7 +134,7 @@ class EAASTBuilder {
     public EAPHandler visitHandler(CommonTree n) {
         Op op = visitOp((CommonTree) n.getChild(0));
         EAPVar var = visitVar((CommonTree) n.getChild(1));
-        EAValType varType = visitValType((CommonTree) n.getChild(2));
+        EAValType varType = visitA((CommonTree) n.getChild(2));
         EALType stype = visitSessionType((CommonTree) n.getChild(3));
         EAPExpr expr = visitM((CommonTree) n.getChild(4));
         return pf.handler(op, var, varType, expr, stype);
@@ -143,7 +142,7 @@ class EAASTBuilder {
 
     /* A */
 
-    public EAValType visitValType(CommonTree n) {
+    public EAValType visitA(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
             case "A_HANDLER": {
@@ -153,11 +152,14 @@ class EAASTBuilder {
                 return tf.val.unit();
             }
             case "A_FUN": {
-                EAValType A = visitValType((CommonTree) n.getChild(0));
+                EAValType A = visitA((CommonTree) n.getChild(0));
                 EALType S = visitSessionType((CommonTree) n.getChild(1));
                 EALType T = visitSessionType((CommonTree) n.getChild(2));
-                EAValType B = visitValType((CommonTree) n.getChild(3));
+                EAValType B = visitA((CommonTree) n.getChild(3));
                 return tf.val.func(A, S, T, B);
+            }
+            case "A_INT": {
+                return tf.val.intt();
             }
             default:
                 throw new RuntimeException("Unknown val type: " + n);
@@ -217,7 +219,7 @@ class EAASTBuilder {
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         for (int j = 1; j < n.getChildCount(); ) {
             Op op = visitOp((CommonTree) n.getChild(j));
-            EAValType valType = visitValType((CommonTree) n.getChild(j + 2));
+            EAValType valType = visitA((CommonTree) n.getChild(j + 2));
             EALType body = visitSessionType((CommonTree) n.getChild(j + 5));
             cases.put(op, new EAPPair<>(valType, body));
             j = j + 6;

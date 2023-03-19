@@ -21,7 +21,9 @@ tokens
     SUSPEND_KW = 'suspend';
 
     HANDLER_KW = 'handler';
+
     UNIT_KW = '1';  // N.B. Int(1) clash
+    INT_KW = 'Int';  // N.B. Int(1) clash
 
     MU_KW = 'mu';
     REC_KW = 'rec';
@@ -51,6 +53,7 @@ tokens
    A_HANDLER;
    A_UNIT;
    A_FUN;
+   A_INT;
 
    // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
    M_LET;
@@ -322,6 +325,10 @@ type:
     '{' session_type '}' type '->' type  '{' session_type '}'
 ->
     ^(A_FUN type session_type session_type type)
+|
+    INT_KW
+->
+    ^(A_INT)
 ;
 
 /* M */

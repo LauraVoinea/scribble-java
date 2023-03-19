@@ -42,12 +42,14 @@ public class EAPReturn implements EAPExpr {
 
     @Override
     public boolean canBeta() {
-        return false;
+        //return false;
+        return this.val.canBeta();
     }
 
     @Override
     public EAPExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
+        //throw new RuntimeException("Stuck: " + this);
+        return EAPFactory.factory.returnn(this.val.beta());
     }
 
     /* Aux */

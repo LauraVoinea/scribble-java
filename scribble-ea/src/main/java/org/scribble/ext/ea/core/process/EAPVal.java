@@ -10,6 +10,10 @@ import java.util.Set;
 public interface EAPVal extends EAPTerm {
     //EAPExpr {  !!! values should be exprs?
 
+    boolean canBeta();
+
+    EAPVal beta();
+
     EAValType type(Gamma gamma);
 
     EAPVal subs(Map<EAPVar, EAPVal> m);

@@ -18,6 +18,16 @@ public class EAPVar implements EAPVal, EAName {
         this.id = id;
     }
 
+    @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
     /* Aux */
 
     @Override

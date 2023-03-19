@@ -18,16 +18,15 @@ public class EAPIntVal implements EAPVal {
         this.val = val;
     }
 
-    /*@Override
+    @Override
     public boolean canBeta() {
-        //throw new RuntimeException("Shouldn't get here: " + this);
         return false;
     }
 
     @Override
-    public EAPBExpr beta() {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }*/
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
 
     /*@Override
     public EAPBExpr recon(@NotNull EAPBExpr old, EAPBExpr neww) {

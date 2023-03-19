@@ -39,6 +39,16 @@ public class EAPHandlers implements EAPVal {
     }
 
     @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
+    @Override
     public EAValType type(Gamma gamma) {
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
         for (Map.Entry<Op, EAPHandler> e : Hs.entrySet()) {

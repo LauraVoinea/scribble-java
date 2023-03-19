@@ -26,6 +26,16 @@ public class EAPSid implements EAPVal, EARuntimeName {
         throw new RuntimeException("CHECKME: N/A ?");  // !!!
     }
 
+    @Override
+    public boolean canBeta() {
+        return false;
+    }
+
+    @Override
+    public EAPVal beta() {
+        throw new RuntimeException("Stuck: " + this);
+    }
+
     /* Aux */
 
     @Override

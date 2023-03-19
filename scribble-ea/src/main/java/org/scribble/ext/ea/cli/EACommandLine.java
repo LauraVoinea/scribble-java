@@ -108,7 +108,7 @@ public class EACommandLine extends CommandLine {
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {
             CommonTree tree = (CommonTree) par.type().getTree();
-            return new EAASTBuilder().visitValType(tree);
+            return new EAASTBuilder().visitA(tree);
         } catch (RecognitionException x) {
             throw new RuntimeException(x);
         }
@@ -170,10 +170,10 @@ public class EACommandLine extends CommandLine {
 
         //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
-        //ex4(lf, pf, rf, tf);
+        ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
 
-        System.out.println(parseV("2"));
+        //System.out.println(parseV("2"));
 
         //new EACommandLine(args).run();
     }
@@ -1293,16 +1293,16 @@ public class EACommandLine extends CommandLine {
 		/*LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALOutType out1 = tf.local.out(B, cases);*/
-        EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).end}");
+        EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Int).end}");
 
 		/*cases = new LinkedHashMap<>();
 		cases.put(l1, new EAPPair<>(tf.val.unit(), tf.local.end()));
 		EALInType in1 = tf.local.in(B, cases);*/
-        EALInType in1 = (EALInType) parseSessionType("A?{l1(1).end}");
+        EALInType in1 = (EALInType) parseSessionType("A?{l1(Int).end}");
 
         // A: B!l1(unit)
         //EAPSend sendAB = pf.send(B, l1, unit);
-        EAPSend sendAB = (EAPSend) parseM("B!l1(())");
+        EAPSend sendAB = (EAPSend) parseM("B!l1(42)");
         EAPActiveThread tA = rf.activeThread(sendAB, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
         EAPConfig cA = rf.config(p1, tA, sigmaA);
@@ -1314,7 +1314,7 @@ public class EACommandLine extends CommandLine {
 		EAPHandler hB = pf.handler(l1, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l1, hB);
 		EAPHandlers hsB = pf.handlers(B, Hs);*/
-        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} l1(x: 1)  |-> return () }");
+        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} l1(x: Int)  |-> return () }");
         EAPIdle idle = rf.idle();
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB);

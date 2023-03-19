@@ -16,6 +16,10 @@ public class EAValTypeFactory {
         return EAUnitType.UNIT;
     }
 
+    public EAIntType intt() {
+        return EAIntType.INT;
+    }
+
     public EAPidType pid() {
         return EAPidType.PID;
     }
