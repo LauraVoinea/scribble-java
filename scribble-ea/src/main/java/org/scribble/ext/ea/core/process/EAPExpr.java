@@ -29,11 +29,12 @@ public interface EAPExpr extends EAPTerm {
 
     Set<EAPVar> getFreeVars();
 
+    // FIXME separate "is ground" (cf. EAPSystem.reduce) from "is finished value" (cf. EAPLet.canBeta)
     boolean isGround();
 
-    // Extract the (nested) "reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo)
+    // Extract the (nested) "statically reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo -- EAPActiveThread.canStep checks canBeta on relevant foo, but could refactor some canBeta into getFoo)
     //boolean canFoo();
-    EAPExpr getFoo();  // deterministic
+    EAPExpr getFoo();  // deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary
 
     EAPExpr foo();
 }

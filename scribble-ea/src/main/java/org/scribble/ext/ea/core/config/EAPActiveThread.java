@@ -29,6 +29,7 @@ public class EAPActiveThread implements EAPThreadState {
     }
 
     // return Pid set is "partners" (sync actions) -- TODO for (optimising?) init
+    // gets static foo CANDIDATE redexes and checks canBeta on them as needed
     //
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
@@ -39,15 +40,17 @@ public class EAPActiveThread implements EAPThreadState {
             if (this.expr instanceof EAPReturn && ((EAPReturn) this.expr).val.equals(EAPUnit.UNIT)) {
                 return new Pair<>(true, Collections.emptySet());
             }
-            // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additionally let x <= return V where V.canBeta (return V is the foo)
+            // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additional beta case: let x <= return V where V.canBeta (return V is the foo)
             return new Pair<>(foo.canBeta(), Collections.emptySet());
         } else if (foo instanceof EAPSend) {
             EAPSend cast = (EAPSend) foo;
             Optional<Map.Entry<EAPPid, EAPConfig>> fst =
-                    sys.configs.entrySet().stream().filter(x ->
-                            x.getValue().sigma.keySet().stream().anyMatch(y ->
-                                    y.left.equals(this.sid) && y.right.equals(cast.dst)
-                                            && x.getValue().sigma.get(y).role.equals(this.role))
+                    sys.configs.entrySet().stream().filter(x -> {
+                                EAPConfig v = x.getValue();
+                                return v.T.isIdle() && v.sigma.keySet().stream().anyMatch(y ->
+                                        y.left.equals(this.sid) && y.right.equals(cast.dst)
+                                                && x.getValue().sigma.get(y).role.equals(this.role));
+                            }
                     ).findFirst();
             if (fst.isPresent()) {
                 EAPPid key = fst.get().getKey();
