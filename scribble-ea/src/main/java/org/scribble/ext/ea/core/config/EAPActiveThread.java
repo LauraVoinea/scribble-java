@@ -39,8 +39,8 @@ public class EAPActiveThread implements EAPThreadState {
             if (this.expr instanceof EAPReturn && ((EAPReturn) this.expr).val.equals(EAPUnit.UNIT)) {
                 return new Pair<>(true, Collections.emptySet());
             }
-            // let x <= return V in ... handled by let as foo (LiftM beta)
-            return new Pair<>(false, Collections.emptySet());
+            // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additionally let x <= return V where V.canBeta (return V is the foo)
+            return new Pair<>(foo.canBeta(), Collections.emptySet());
         } else if (foo instanceof EAPSend) {
             EAPSend cast = (EAPSend) foo;
             Optional<Map.Entry<EAPPid, EAPConfig>> fst =

@@ -42,6 +42,10 @@ tokens
    * _LIST.
    */
 
+   // Higher is higher prec
+   V_PLUS;
+   V_COMP;
+
    V_UNIT;
    V_HANDLERS;
    V_REC;
@@ -268,6 +272,20 @@ start:
 
 // Parser rule non-terms must be lower case
 nV:
+    nVcomp (options{greedy=true;}:  //https://stackoverflow.com/questions/7954142/antlr-decision-can-match-input-using-multiple-alternatives
+    '+' nVcomp)*
+->
+    ^(V_PLUS nVcomp+)
+;
+
+nVcomp:
+    nVarith (options{greedy=true;}:
+    '<=' nVarith)*
+->
+    ^(V_PLUS nVarith+)
+;
+
+nVarith:
     '()'
 ->
     ^(V_UNIT)

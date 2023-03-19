@@ -19,6 +19,7 @@ public interface EAPTerm {
     int UNIT = 3797;
     int INT = 28807;
     int HANDLERS = 3833;
+    int BIN_OP = 51673;
 
     int LET = 3803;
     int RETURN = 3821;

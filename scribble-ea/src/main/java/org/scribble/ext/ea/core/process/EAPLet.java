@@ -114,7 +114,8 @@ public class EAPLet implements EAPExpr {
     // foo return corresponds with beta "subject"
     @Override
     public EAPExpr getFoo() {
-        if (this.init instanceof EAPReturn && ((EAPReturn) this.init).val.isGround()) {
+        if (this.init instanceof EAPReturn //&& ((EAPReturn) this.init).val.isGround()
+                && !((EAPReturn) this.init).val.canBeta()) {
             return this;
         } else {
             return this.init.getFoo();
@@ -123,7 +124,8 @@ public class EAPLet implements EAPExpr {
 
     @Override
     public EAPExpr foo() {  // Not beta because, e.g., send in init cannot beta (must foo)
-        if (this.init instanceof EAPReturn && this.init.isGround()) {
+        if (this.init instanceof EAPReturn && //this.init.isGround()) {
+                !this.init.canBeta()) {
             return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
         } else {
             return EAPFactory.factory.let(this.var, this.varType, this.init.foo(), this.body);

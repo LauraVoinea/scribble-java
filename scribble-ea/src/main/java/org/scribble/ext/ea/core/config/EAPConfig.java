@@ -75,8 +75,16 @@ public class EAPConfig implements EAPRuntimeTerm {
                 configs.put(this.pid, c1);
                 return configs;
             } else {
-                //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
-                throw new RuntimeException("Shouldn't get in here");
+                ////t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
+                //throw new RuntimeException("Shouldn't get in here");
+
+                // TODO factor out with other LiftM beta cases
+                LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+                LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+                EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+                configs.put(this.pid, c1);
+                return configs;
             }
         } else if (foo instanceof EAPSend) {
 

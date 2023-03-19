@@ -168,12 +168,12 @@ public class EACommandLine extends CommandLine {
 
         // HERE HERE merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
+        //System.out.println(parseV("2 + 3"));
+
         //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
-        ex4(lf, pf, rf, tf);
+        //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
-
-        //System.out.println(parseV("2"));
 
         //new EACommandLine(args).run();
     }
@@ -1302,7 +1302,8 @@ public class EACommandLine extends CommandLine {
 
         // A: B!l1(unit)
         //EAPSend sendAB = pf.send(B, l1, unit);
-        EAPSend sendAB = (EAPSend) parseM("B!l1(42)");
+        //EAPSend sendAB = (EAPSend) parseM("B!l1(42)");
+        EAPLet sendAB = (EAPLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");
         EAPActiveThread tA = rf.activeThread(sendAB, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
         EAPConfig cA = rf.config(p1, tA, sigmaA);
@@ -1362,6 +1363,12 @@ public class EACommandLine extends CommandLine {
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());
             pids = sys.canStep();
+        }
+
+        if (steps == 0) {
+            if (sys.configs.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
+                throw new RuntimeException("Stuck: " + sys);
+            }
         }
     }
 

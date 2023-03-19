@@ -49,6 +49,7 @@ public class EAPReturn implements EAPExpr {
     @Override
     public EAPExpr beta() {
         //throw new RuntimeException("Stuck: " + this);
+        System.out.println("33333333: " + EAPFactory.factory.returnn(this.val.beta()));
         return EAPFactory.factory.returnn(this.val.beta());
     }
 
@@ -94,7 +95,8 @@ public class EAPReturn implements EAPExpr {
 
     @Override
     public EAPExpr foo() {
-        throw new RuntimeException("Shouldn't get in here: " + this);
+        //throw new RuntimeException("Shouldn't get in here: " + this);
+        return EAPFactory.factory.returnn(this.val.beta());
     }
 
     @Override

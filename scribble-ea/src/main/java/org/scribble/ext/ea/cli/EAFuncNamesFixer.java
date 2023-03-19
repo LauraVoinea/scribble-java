@@ -67,7 +67,7 @@ public class EAFuncNamesFixer {
             EAPExpr body = visit(cast.body, tmp);
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
         } else if (V instanceof EAPFuncName || V instanceof EAPUnit
-                || V instanceof EAPPid || V instanceof EAPSid || V instanceof EAPIntVal) {
+                || V instanceof EAPPid || V instanceof EAPSid || V instanceof EAPIntVal || V instanceof EAPBinOp) {
             return V;
         } else {
             throw new RuntimeException("TODO: " + V);

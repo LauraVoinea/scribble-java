@@ -49,6 +49,10 @@ public class EAPFactory {
         return new EAPIntVal(id);
     }
 
+    public EAPBinOp binop(@NotNull EAPOp op, @NotNull EAPVal left, @NotNull EAPVal right) {
+        return new EAPBinOp(op, left, right);
+    }
+
 
     /* Computations */
 

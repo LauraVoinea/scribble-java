@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.config.EAPConfig;
 import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
@@ -104,9 +105,31 @@ class EAASTBuilder {
                 EAPExpr body = visitM((CommonTree) n.getChild(6));
                 return pf.rec(f, var, varType, body, S, T, B);
             }
+            case "V_PLUS":
+                return visitPlus(n);
+            case "V_COMP":
+                return visitComp(n);
             default:
                 throw new RuntimeException("Unknown V: " + n);
         }
+    }
+
+    public EAPVal visitComp(CommonTree n) {
+        List<Object> cs = n.getChildren();
+        EAPVal curr = visitV((CommonTree) cs.get(0));
+        for (int i = 1; i < cs.size(); i++) {
+            curr = EAPFactory.factory.binop(EAPOp.LT, curr, visitV((CommonTree) cs.get(i)));
+        }
+        return curr;
+    }
+
+    public EAPVal visitPlus(CommonTree n) {
+        List<Object> cs = n.getChildren();
+        EAPVal curr = visitV((CommonTree) cs.get(0));
+        for (int i = 1; i < cs.size(); i++) {
+            curr = EAPFactory.factory.binop(EAPOp.PLUS, curr, visitV((CommonTree) cs.get(i)));
+        }
+        return curr;
     }
 
     public EAPVar visitVar(CommonTree n) {
