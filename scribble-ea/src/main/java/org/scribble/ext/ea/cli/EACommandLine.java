@@ -1355,7 +1355,7 @@ public class EACommandLine extends CommandLine {
     static void run(EAPSystem sys, int steps) {
         Map<EAPPid, Set<EAPPid>> pids = sys.canStep();
         for (; !pids.isEmpty() && steps != 0; steps--) {
-            sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act
+            sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
             System.out.println();
             System.out.println(sys);
             sys.type(new Gamma(), new Delta());

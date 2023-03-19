@@ -28,7 +28,7 @@ public class EAPActiveThread implements EAPThreadState {
         this.role = role;
     }
 
-    // Pid set for init later
+    // return Pid set is "partners" (sync actions) -- TODO for (optimising?) init
     //
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig

@@ -28,6 +28,8 @@ class EAASTBuilder {
         return visitM(n);
     }*/
 
+    /* M */
+
     public EAPExpr visitM(CommonTree n) {
         switch (n.getText()) {
             case "M_LET":
@@ -75,6 +77,8 @@ class EAASTBuilder {
         return pf.app(left, right);
     }
 
+    /* V */
+
     public EAPVal visitV(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
@@ -85,6 +89,8 @@ class EAASTBuilder {
                 LinkedHashMap<Op, EAPHandler> hs = visitHandlers(cs.subList(1, cs.size()));
                 return pf.handlers(r, hs);
             }
+            case "V_VAR":
+                return visitVar(n);
             case "V_UNIT":
                 return pf.unit();
             case "V_REC": {
@@ -100,6 +106,11 @@ class EAASTBuilder {
             default:
                 return visitVar(n);
         }
+    }
+
+    public EAPVar visitVar(CommonTree n) {
+        //return pf.var(n.getText());
+        return pf.var(((CommonTree) n.getChild(0)).getText());
     }
 
     public LinkedHashMap<Op, EAPHandler> visitHandlers(List<CommonTree> n) {
@@ -119,6 +130,8 @@ class EAASTBuilder {
         EAPExpr expr = visitM((CommonTree) n.getChild(4));
         return pf.handler(op, var, varType, expr, stype);
     }
+
+    /* A */
 
     public EAValType visitValType(CommonTree n) {
         String txt = n.getText();
@@ -141,22 +154,7 @@ class EAASTBuilder {
         }
     }
 
-    public EAPVar visitVar(CommonTree n) {
-        return pf.var(n.getText());
-    }
-
-    public Role visitRole(CommonTree n) {
-        return new Role(n.getText());
-    }
-
-    // FIXME only used by rec -- other occurrences of fnames come out as var...
-    public EAPFuncName visitfname(CommonTree n) {
-        return new EAPFuncName(n.getText());
-    }
-
-    public Op visitOp(CommonTree n) {
-        return new Op(n.getText());
-    }
+    /* S */
 
     public EALType visitSessionType(CommonTree n) {
         String txt = n.getText();
@@ -215,5 +213,20 @@ class EAASTBuilder {
             j = j + 6;
         }
         return cases;
+    }
+
+    /* names */
+
+    public Role visitRole(CommonTree n) {
+        return new Role(n.getText());
+    }
+
+    // FIXME only used by rec -- other occurrences of fnames come out as var...
+    public EAPFuncName visitfname(CommonTree n) {
+        return new EAPFuncName(n.getText());
+    }
+
+    public Op visitOp(CommonTree n) {
+        return new Op(n.getText());
     }
 }

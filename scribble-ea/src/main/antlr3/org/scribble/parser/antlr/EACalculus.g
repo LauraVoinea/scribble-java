@@ -41,6 +41,7 @@ tokens
    V_UNIT;
    V_HANDLERS;
    V_REC;
+   V_VAR;
 
    HANDLER;  // H ... not a V or M
 
@@ -221,9 +222,10 @@ fragment UNDERSCORE:
  * Chapter 3 Syntax (Parser rules)
  ***************************************************************************/
 
+// Simply "names", not actual categories
 role: ID;
 op: ID;
-var: ID;
+//var: ID;
 //type: ID;
 recvar: ID;
 fname: ID;  // FIXME only used in rec (not in general expr -- parsed as var...)
@@ -240,9 +242,13 @@ module:
 ;
 */
 
+/* ... */
+
 start:
     nM EOF
 ;
+
+/* V */
 
 // Parser rule non-terms must be lower case
 nV:
@@ -265,11 +271,19 @@ nV:
     var
 ;
 
+var:
+    ID
+->
+    ^(V_VAR ID)
+;
+
 handler:
     '{' session_type '}' op '(' var ':' type ')' '|->' nM
 ->
     ^(HANDLER op var type session_type nM)
 ;
+
+/* A */
 
 type:
     HANDLER_KW_A '(' in_session_type ')'
@@ -284,6 +298,8 @@ type:
 ->
     ^(A_FUN type session_type session_type type)
 ;
+
+/* M */
 
 nM:
     '(' nM ')'
@@ -310,6 +326,8 @@ nM:
 ->
     ^(M_APP nV nV)
 ;
+
+/* S */
 
 session_type:
     role '!' '{' session_type_case (',' session_type_case)* '}'

@@ -80,6 +80,7 @@ public class EAPSystem {
         return collect;
     }*/
 
+    // Return map can-step-pids -> "parter" pids (sync actions) -- cf. EAPConfig/EAPActiveThread.canStep
     public Map<EAPPid, Set<EAPPid>> canStep() {
         return this.configs.entrySet().stream()
                 .filter(x -> x.getValue().canStep(this).left)
