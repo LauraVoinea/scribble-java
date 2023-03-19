@@ -30,6 +30,12 @@ public class EAFuncNamesFixer {
             EAPExpr init = visit(cast.init, env);
             EAPExpr body = visit(cast.body, env);
             return f.let(var, cast.varType, init, body);
+        } else if (M instanceof EAPIf) {
+            EAPIf cast = (EAPIf) M;
+            EAPVal cond = visit(cast.cond, env);
+            EAPExpr then = visit(cast.then, env);
+            EAPExpr elsee = visit(cast.elsee, env);
+            return f.iff(cond, then, elsee);
         } else if (M instanceof EAPSuspend) {
             return f.suspend(visit(((EAPSuspend) M).val, env));
         } else if (M instanceof EAPApp) {
@@ -67,7 +73,8 @@ public class EAFuncNamesFixer {
             EAPExpr body = visit(cast.body, tmp);
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
         } else if (V instanceof EAPFuncName || V instanceof EAPUnit
-                || V instanceof EAPPid || V instanceof EAPSid || V instanceof EAPIntVal || V instanceof EAPBinOp) {
+                || V instanceof EAPPid || V instanceof EAPSid
+                || V instanceof EAPIntVal || V instanceof EAPBinOp || V instanceof EAPBoolVal) {
             return V;
         } else {
             throw new RuntimeException("TODO: " + V);

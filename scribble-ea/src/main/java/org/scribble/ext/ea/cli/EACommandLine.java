@@ -170,12 +170,68 @@ public class EACommandLine extends CommandLine {
 
         //System.out.println(parseV("2 + 3"));
 
-        ex1(lf, pf, rf, tf);
+        //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
         //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
+        ex6(lf, pf, rf, tf);
 
         //new EACommandLine(args).run();
+    }
+
+    private static void ex6(
+            LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+
+        Role A = new Role("A");
+        Role B = new Role("B");
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+
+        EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Bool).end}");
+        EALInType in1 = (EALInType) parseSessionType("A?{l1(Bool).end}");
+        EAPExpr sendAB = parseM("let x: Bool <= return 3 < 2 in if x then B!l1(x) else B!l1(x)");
+        EAPActiveThread tA = rf.activeThread(sendAB, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig cA = rf.config(p1, tA, sigmaA);
+
+        EAPVar x = pf.var("x");
+        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} l1(x: Bool)  |-> return () }");
+        EAPIdle idle = rf.idle();
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        sigmaB.put(new EAPPair<>(s, B), hsB);
+        EAPConfig cB = rf.config(p2, idle, sigmaB);
+
+        System.out.println(cA);
+        System.out.println(cB);
+
+        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(), out1));
+
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, A), out1);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
+
+        LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
+        map.put(x, tf.val.unit());
+        Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+        System.out.println("Typing hB: " + hsB.type(gamma));
+
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), in1);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
+
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
+        cs.put(p1, cA);
+        cs.put(p2, cB);
+        //EAPSystem sys = rf.system(cs);
+        env.put(new EAPPair<>(s, A), out1);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
+
+        run(sys, -1);
     }
 
     private static void ex5(

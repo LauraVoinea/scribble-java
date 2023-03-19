@@ -19,11 +19,18 @@ tokens
     IN_KW = 'in';
     RETURN_KW = 'return';
     SUSPEND_KW = 'suspend';
+    IF_KW = 'if';
+    THEN_KW = 'then';
+    ELSE_KW = 'else';
 
     HANDLER_KW = 'handler';
 
+    TRUE_KW = 'true';
+    FALSE_KW = 'false';
+
     UNIT_KW = '1';  // N.B. Int(1) clash
-    INT_KW = 'Int';  // N.B. Int(1) clash
+    INT_KW = 'Int';
+    BOOL_KW = 'Bool';
 
     MU_KW = 'mu';
     REC_KW = 'rec';
@@ -51,6 +58,8 @@ tokens
    V_REC;
    V_VAR;
    V_INT;
+   V_TRUE;
+   V_FALSE;
 
    HANDLER;  // H ... not a V or M
 
@@ -58,6 +67,7 @@ tokens
    A_UNIT;
    A_FUN;
    A_INT;
+   A_BOOL;
 
    // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
    M_LET;
@@ -65,6 +75,7 @@ tokens
    M_SEND;
    M_SUSPEND;
    M_APP;
+   M_IF;
 
    S_SELECT;
    S_BRANCH;
@@ -273,9 +284,9 @@ start:
 // Parser rule non-terms must be lower case
 nV:
     nVarith (options{greedy=true;}:  //https://stackoverflow.com/questions/7954142/antlr-decision-can-match-input-using-multiple-alternatives
-    '<=' nVarith)*
+    '<' nVarith)*
 ->
-    ^(V_PLUS nVarith+)
+    ^(V_COMP nVarith+)
 ;
 
 nVarith:
@@ -303,6 +314,14 @@ nVprimary:
     ^(V_REC fname var type session_type session_type type nM)
 |
     vInt
+|
+    TRUE_KW
+->
+    ^(V_TRUE)
+|
+    FALSE_KW
+->
+    ^(V_FALSE)
 |
     var
 ;
@@ -347,6 +366,10 @@ type:
     INT_KW
 ->
     ^(A_INT)
+|
+    BOOL_KW
+->
+    ^(A_BOOL)
 ;
 
 /* M */
@@ -375,6 +398,10 @@ nM:
     '[' nV nV ']'
 ->
     ^(M_APP nV nV)
+|
+    IF_KW nV THEN_KW nM ELSE_KW nM
+->
+    ^(M_IF nV nM nM)
 ;
 
 /* S */

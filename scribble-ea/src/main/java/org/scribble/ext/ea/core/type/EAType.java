@@ -7,6 +7,7 @@ public interface EAType {
     int HANDLERS = 10559;
 
     int INT = 19867;
+    int BOOL = 19889;
 
     boolean canEquals(Object o);
 }

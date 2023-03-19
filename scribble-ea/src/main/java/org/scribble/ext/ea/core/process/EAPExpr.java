@@ -12,6 +12,7 @@ import java.util.Set;
 // "Computation"
 public interface EAPExpr extends EAPTerm {
 
+    // CHECKME still needed? or deprecate
     EALType infer(Gamma gamma);
 
     EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre);
@@ -25,6 +26,7 @@ public interface EAPExpr extends EAPTerm {
 
     EAPExpr fsubs(@NotNull Map<EAPFuncName, EAPRec> m);
 
+    // CHECKME needed?
     EAPExpr recon(@NotNull EAPExpr old, @NotNull EAPExpr neww);  // A subs for Expr (cf. Val)
 
     Set<EAPVar> getFreeVars();

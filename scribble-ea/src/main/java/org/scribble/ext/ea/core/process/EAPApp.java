@@ -71,7 +71,7 @@ public class EAPApp implements EAPExpr {
     @Override
     public boolean canBeta() {
         return this.left instanceof EAPRec  // TODO lambda
-                && this.left.isGround() && this.right.isGround();  // Redundant?
+                && this.left.isGround() && this.right.isGround();  // FIXME separate isValue (for canBeta) from isGround
     }
 
     @Override
@@ -106,7 +106,8 @@ public class EAPApp implements EAPExpr {
 
     @Override
     public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
-        return this;
+        //return this;  // XXX ?
+        throw new RuntimeException("Needed? " + this);
     }
 
     @Override
@@ -119,7 +120,7 @@ public class EAPApp implements EAPExpr {
 
     @Override
     public boolean isGround() {
-        return this.left.isGround() && this.right.isGround();  // !!! bad naming
+        return this.left.isGround() && this.right.isGround();  // !!! bad naming -- XXX separate isGround from isValue
     }
 
     @Override

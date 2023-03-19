@@ -1,6 +1,7 @@
 package org.scribble.ext.ea.core.type.value;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.process.EAPBoolVal;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 
@@ -18,6 +19,10 @@ public class EAValTypeFactory {
 
     public EAIntType intt() {
         return EAIntType.INT;
+    }
+
+    public EABoolType bool() {
+        return EABoolType.BOOL;
     }
 
     public EAPidType pid() {

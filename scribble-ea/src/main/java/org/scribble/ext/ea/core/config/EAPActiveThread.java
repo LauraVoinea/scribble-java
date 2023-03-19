@@ -64,7 +64,7 @@ public class EAPActiveThread implements EAPThreadState {
             return new Pair<>(true, Collections.emptySet());
         }
         // LiftM beta cases
-        else if (foo instanceof EAPApp || foo instanceof EAPLet) {
+        else if (foo instanceof EAPApp || foo instanceof EAPLet || foo instanceof EAPIf || foo instanceof EAPIf) {
             return new Pair<>(foo.canBeta(), Collections.emptySet());
         }
         throw new RuntimeException("Unknown foo: " + foo);

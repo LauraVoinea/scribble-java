@@ -18,6 +18,7 @@ public interface EAPTerm {
     //int PROCESS_ID = 3793;
     int UNIT = 3797;
     int INT = 28807;
+    int BOOL = 28813;
     int HANDLERS = 3833;
     int BIN_OP = 51673;
 
@@ -27,7 +28,7 @@ public interface EAPTerm {
     int SUSPEND = 3847;
     int REC = 3851;
     int APP = 3853;
-
+    int IF = 3863;
 
     int IDLE = 4481;
     int ACTIVE_THREAD = 4483;

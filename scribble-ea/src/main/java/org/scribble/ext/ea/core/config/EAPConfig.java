@@ -145,7 +145,7 @@ public class EAPConfig implements EAPRuntimeTerm {
             }
         }
         // LiftM beta cases
-        else if (foo instanceof EAPApp || foo instanceof EAPLet) {
+        else if (foo instanceof EAPApp || foo instanceof EAPLet || foo instanceof EAPIf) {
             LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 

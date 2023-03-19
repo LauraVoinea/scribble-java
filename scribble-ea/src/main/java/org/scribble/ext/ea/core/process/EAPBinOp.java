@@ -2,6 +2,7 @@ package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.value.EABoolType;
 import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
@@ -39,26 +40,43 @@ public class EAPBinOp implements EAPVal {
 
     @Override
     public EAValType type(Gamma gamma) {
-        if (this.op.equals(EAPOp.PLUS)) {
-            EAValType ltype = this.left.type(gamma);
-            if (!(ltype.equals(EAIntType.INT))) {
-                throw new RuntimeException("Expected Int type, not: "
-                        + this.left + " : " + ltype + "\n" + gamma);
-            }
+        switch (this.op) {
+            case PLUS: {
+                EAValType ltype = this.left.type(gamma);
+                if (!(ltype.equals(EAIntType.INT))) {
+                    throw new RuntimeException("Expected Int type, not: "
+                            + this.left + " : " + ltype + "\n" + gamma);
+                }
         /*EAFuncType ftype = (EAFuncType) ltype;
         /*if (!ftype.S.equals(pre)) {
             throw new RuntimeException("Incompatible pre type:\n"
                     + "\tfound=" + ftype.S + ", required=" + pre);
         }* /
         subtype(ftype.S, pre);*/
-            EAValType rtype = this.right.type(gamma);
-            if (!(rtype.equals(EAIntType.INT))) {
-                throw new RuntimeException("Incompatible arg type:\n"
-                        + "\tfound=" + rtype + ", required=" + EAIntType.INT);
+                EAValType rtype = this.right.type(gamma);
+                if (!(rtype.equals(EAIntType.INT))) {
+                    throw new RuntimeException("Incompatible arg type:\n"
+                            + "\tfound=" + rtype + ", required=" + EAIntType.INT);
+                }
+                return EAIntType.INT;
             }
-            return EAIntType.INT;
+            case LT: {
+                EAValType ltype = this.left.type(gamma);
+                if (!(ltype.equals(EAIntType.INT))) {
+                    throw new RuntimeException("Expected Int type, not: "
+                            + this.left + " : " + ltype + "\n" + gamma);
+                }
+                EAValType rtype = this.right.type(gamma);
+                if (!(rtype.equals(EAIntType.INT))) {
+                    throw new RuntimeException("Incompatible arg type:\n"
+                            + "\tfound=" + rtype + ", required=" + EAIntType.INT);
+                }
+                return EABoolType.BOOL;
+            }
+            default:
+                throw new RuntimeException("TODO: " + this);
+
         }
-        throw new RuntimeException("TODO: " + this);
     }
 
     @Override
@@ -78,10 +96,13 @@ public class EAPBinOp implements EAPVal {
 
     @Override
     public boolean canBeta() {
-        if (this.op.equals(EAPOp.PLUS)) {
-            return (this.left instanceof EAPIntVal) && (this.right instanceof EAPIntVal);
+        switch (this.op) {
+            case PLUS:
+            case LT:
+                return (this.left instanceof EAPIntVal) && (this.right instanceof EAPIntVal);
+            default:
+                throw new RuntimeException("TODO: " + this);
         }
-        throw new RuntimeException("TODO: " + this);
     }
 
     @Override
@@ -89,9 +110,20 @@ public class EAPBinOp implements EAPVal {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
-        EAPIntVal left = (EAPIntVal) this.left;
-        EAPIntVal right = (EAPIntVal) this.right;
-        return EAPFactory.factory.intt(left.val + right.val);
+        switch (this.op) {
+            case PLUS: {
+                EAPIntVal left = (EAPIntVal) this.left;
+                EAPIntVal right = (EAPIntVal) this.right;
+                return EAPFactory.factory.intt(left.val + right.val);
+            }
+            case LT: {
+                EAPIntVal left = (EAPIntVal) this.left;
+                EAPIntVal right = (EAPIntVal) this.right;
+                return EAPFactory.factory.bool(left.val < right.val);
+            }
+            default:
+                throw new RuntimeException("TODO: " + this);
+        }
     }
 
     /* Aux */

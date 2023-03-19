@@ -110,7 +110,7 @@ public class EAPSystem {
 
         // !!! Delta (annots) unchanged
         if (foo instanceof EAPSuspend || foo instanceof EAPReturn
-                || foo instanceof EAPApp || foo instanceof EAPLet) {
+                || foo instanceof EAPApp || foo instanceof EAPLet || foo instanceof EAPIf) {
             LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
             return new EAPSystem(this.lf, this.annots, configs);
         }

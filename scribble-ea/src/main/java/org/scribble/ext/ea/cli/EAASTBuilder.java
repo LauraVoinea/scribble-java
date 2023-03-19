@@ -42,8 +42,17 @@ class EAASTBuilder {
                 return visitReturn(n);
             case "M_APP":
                 return visitApp(n);
+            case "M_IF":
+                return visitIf(n);
         }
         throw new RuntimeException("Unknown node kind: " + n.getText());
+    }
+
+    public EAPIf visitIf(CommonTree n) {
+        EAPVal cond = visitV((CommonTree) n.getChild(0));
+        EAPExpr then = visitM((CommonTree) n.getChild(1));
+        EAPExpr elsee = visitM((CommonTree) n.getChild(2));
+        return pf.iff(cond, then, elsee);
     }
 
     public EAPLet visitLet(CommonTree n) {
@@ -95,6 +104,10 @@ class EAASTBuilder {
                 return visitVar(n);
             case "V_UNIT":
                 return pf.unit();
+            case "V_TRUE":
+                return pf.bool(true);
+            case "V_FALSE":
+                return pf.bool(false);
             case "V_REC": {
                 EAPFuncName f = visitfname((CommonTree) n.getChild(0));
                 EAPVar var = visitVar((CommonTree) n.getChild(1));
@@ -114,6 +127,7 @@ class EAASTBuilder {
         }
     }
 
+    // FIXME other comp ops
     public EAPVal visitComp(CommonTree n) {
         List<Object> cs = n.getChildren();
         EAPVal curr = visitV((CommonTree) cs.get(0));
@@ -136,6 +150,11 @@ class EAASTBuilder {
         //return pf.var(n.getText());
         return pf.var(n.getChild(0).getText());
     }
+
+    /*public EAPBoolVal visitBool(CommonTree n) {
+        String txt = n.getText();
+        return pf.bool(txt.equals("V_TRUE"));
+    }*/
 
     public EAPIntVal visitInt(CommonTree n) {
         String txt = n.getChild(0).getText();
@@ -181,9 +200,10 @@ class EAASTBuilder {
                 EAValType B = visitA((CommonTree) n.getChild(3));
                 return tf.val.func(A, S, T, B);
             }
-            case "A_INT": {
+            case "A_INT":
                 return tf.val.intt();
-            }
+            case "A_BOOL":
+                return tf.val.bool();
             default:
                 throw new RuntimeException("Unknown val type: " + n);
         }

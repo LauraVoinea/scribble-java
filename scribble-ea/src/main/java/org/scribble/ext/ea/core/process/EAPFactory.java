@@ -1,13 +1,10 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.core.type.name.Id;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
-import org.scribble.ext.ea.util.EATriple;
-import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
 
@@ -45,8 +42,12 @@ public class EAPFactory {
         return new EAPVar(id);
     }
 
-    public EAPIntVal intt(@NotNull int id) {
-        return new EAPIntVal(id);
+    public EAPIntVal intt(@NotNull int val) {
+        return new EAPIntVal(val);
+    }
+
+    public EAPBoolVal bool(@NotNull boolean val) {
+        return new EAPBoolVal(val);
     }
 
     public EAPBinOp binop(@NotNull EAPOp op, @NotNull EAPVal left, @NotNull EAPVal right) {
@@ -60,6 +61,10 @@ public class EAPFactory {
     public EAPLet let(@NotNull EAPVar var, @NotNull EAValType varType,
                       @NotNull EAPExpr init, @NotNull EAPExpr body) {
         return new EAPLet(var, varType, init, body);
+    }
+
+    public EAPIf iff(@NotNull EAPVal cond, @NotNull EAPExpr then, @NotNull EAPExpr elsee) {
+        return new EAPIf(cond, then, elsee);
     }
 
     public EAPApp app(@NotNull EAPVal left, @NotNull EAPVal right) {
