@@ -272,20 +272,20 @@ start:
 
 // Parser rule non-terms must be lower case
 nV:
-    nVcomp (options{greedy=true;}:  //https://stackoverflow.com/questions/7954142/antlr-decision-can-match-input-using-multiple-alternatives
-    '+' nVcomp)*
-->
-    ^(V_PLUS nVcomp+)
-;
-
-nVcomp:
-    nVarith (options{greedy=true;}:
+    nVarith (options{greedy=true;}:  //https://stackoverflow.com/questions/7954142/antlr-decision-can-match-input-using-multiple-alternatives
     '<=' nVarith)*
 ->
     ^(V_PLUS nVarith+)
 ;
 
 nVarith:
+    nVprimary (options{greedy=true;}:
+    '+' nVprimary)*
+->
+    ^(V_PLUS nVprimary+)
+;
+
+nVprimary:
     '()'
 ->
     ^(V_UNIT)

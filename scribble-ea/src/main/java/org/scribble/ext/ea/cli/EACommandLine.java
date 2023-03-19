@@ -170,7 +170,7 @@ public class EACommandLine extends CommandLine {
 
         //System.out.println(parseV("2 + 3"));
 
-        //ex1(lf, pf, rf, tf);
+        ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
         //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
@@ -1356,8 +1356,9 @@ public class EACommandLine extends CommandLine {
 
     // steps -1 for unbounded
     static void run(EAPSystem sys, int steps) {
+        int rem = steps;
         Map<EAPPid, Set<EAPPid>> pids = sys.canStep();
-        for (; !pids.isEmpty() && steps != 0; steps--) {
+        for (; !pids.isEmpty() && rem != 0; rem--) {
             sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
             System.out.println();
             System.out.println(sys);
@@ -1365,7 +1366,7 @@ public class EACommandLine extends CommandLine {
             pids = sys.canStep();
         }
 
-        if (steps == 0) {
+        if (steps == -1) {
             if (sys.configs.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
                 throw new RuntimeException("Stuck: " + sys);
             }
