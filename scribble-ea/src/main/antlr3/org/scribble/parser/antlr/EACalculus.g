@@ -14,15 +14,17 @@ options
 
 tokens
 {
-    HANDLER_KW = 'handler';
     HANDLER_KW_A = 'Handler';
     LET_KW = 'let';
     IN_KW = 'in';
     RETURN_KW = 'return';
     SUSPEND_KW = 'suspend';
+
+    HANDLER_KW = 'handler';
+    UNIT_KW = '1';  // N.B. Int(1) clash
+
     MU_KW = 'mu';
     REC_KW = 'rec';
-
     END_KW = 'end';
 
   /* Scribble AST token types (corresponding to the Scribble BNF).
@@ -42,6 +44,7 @@ tokens
    V_HANDLERS;
    V_REC;
    V_VAR;
+   V_INT;
 
    HANDLER;  // H ... not a V or M
 
@@ -173,7 +176,7 @@ LINE_COMMENT:
  * Section 2.3 Identifiers
  */
 ID:
-	(LETTER | DIGIT | UNDERSCORE)+
+	(LETTER | UNDERSCORE)(LETTER | DIGIT0 | UNDERSCORE)*
       /* Underscore currently can cause ambiguities in the API generation naming
        * scheme But maybe only consecutive underscores are the problem -- cannot
        * completely disallow underscores as needed for projection naming scheme
@@ -181,6 +184,11 @@ ID:
        */
 ;
 
+INT:
+    DIGIT DIGIT0*
+;
+
+/*
 fragment SYMBOL:
 	'{' | '}' | '(' | ')' | '[' | ']' | ':' | '/' | '\\' | '.' | '\#'
 |
@@ -196,6 +204,7 @@ fragment SYMBOL_SINGLE:
 fragment SYMBOL_DOUBLE:
  SYMBOL | '\"'
  ;
+ */
 
 /*// Comes after SYMBOL due to an ANTLR syntax highlighting issue involving quotes.
 // CHECKME: parser doesn't work without locating the quotes here? (e.g., if inlined into parser rules)
@@ -210,7 +219,11 @@ fragment LETTER:
 ;
 
 fragment DIGIT:
-	'0'..'9'
+	'1'..'9'
+;
+
+fragment DIGIT0:
+	'0' | DIGIT
 ;
 
 fragment UNDERSCORE:
@@ -252,7 +265,7 @@ start:
 
 // Parser rule non-terms must be lower case
 nV:
-    '(' ')'
+    '()'
 ->
     ^(V_UNIT)
 |
@@ -268,7 +281,19 @@ nV:
 ->
     ^(V_REC fname var type session_type session_type type nM)
 |
+    vInt
+|
     var
+;
+
+vInt:
+    UNIT_KW  // !!! clash
+->
+    ^(V_INT UNIT_KW)  // XXX FIXME
+|
+    INT
+->
+    ^(V_INT INT)
 ;
 
 var:
@@ -290,7 +315,7 @@ type:
 ->
     ^(A_HANDLER in_session_type)
 |
-    '1'
+    UNIT_KW
 ->
     ^(A_UNIT)
 |

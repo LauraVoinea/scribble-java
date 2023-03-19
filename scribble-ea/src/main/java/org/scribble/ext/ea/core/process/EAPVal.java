@@ -6,7 +6,7 @@ import org.scribble.ext.ea.core.type.value.EAValType;
 import java.util.Map;
 import java.util.Set;
 
-// !!! "values" vs. ground vals
+// !!! "values" vs. ground vals  -- XXX FIXME rename like "pure exprs"
 public interface EAPVal extends EAPTerm {
     //EAPExpr {  !!! values should be exprs?
 

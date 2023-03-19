@@ -17,13 +17,16 @@ public interface EAPTerm {
     int VAR = 3779;
     //int PROCESS_ID = 3793;
     int UNIT = 3797;
+    int INT = 28807;
+    int HANDLERS = 3833;
+
     int LET = 3803;
     int RETURN = 3821;
     int SEND = 3823;
-    int HANDLERS = 3833;
     int SUSPEND = 3847;
     int REC = 3851;
     int APP = 3853;
+
 
     int IDLE = 4481;
     int ACTIVE_THREAD = 4483;

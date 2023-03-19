@@ -170,8 +170,10 @@ public class EACommandLine extends CommandLine {
 
         //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
-        ex4(lf, pf, rf, tf);
+        //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
+
+        System.out.println(parseV("2"));
 
         //new EACommandLine(args).run();
     }

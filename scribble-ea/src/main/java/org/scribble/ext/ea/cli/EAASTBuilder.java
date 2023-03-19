@@ -2,13 +2,13 @@ package org.scribble.ext.ea.cli;
 
 
 import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.Tree;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
 import org.scribble.ext.ea.core.process.*;
-import org.scribble.ext.ea.core.type.EAType;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -89,6 +89,8 @@ class EAASTBuilder {
                 LinkedHashMap<Op, EAPHandler> hs = visitHandlers(cs.subList(1, cs.size()));
                 return pf.handlers(r, hs);
             }
+            case "V_INT":
+                return visitInt(n);
             case "V_VAR":
                 return visitVar(n);
             case "V_UNIT":
@@ -104,13 +106,21 @@ class EAASTBuilder {
                 return pf.rec(f, var, varType, body, S, T, B);
             }
             default:
-                return visitVar(n);
+                throw new RuntimeException("Unknown V: " + n);
         }
     }
 
     public EAPVar visitVar(CommonTree n) {
         //return pf.var(n.getText());
-        return pf.var(((CommonTree) n.getChild(0)).getText());
+        return pf.var(n.getChild(0).getText());
+    }
+
+    public EAPIntVal visitInt(CommonTree n) {
+        String txt = n.getChild(0).getText();
+        if (txt.equals("UNIT_KW")) {  // FIXME
+            return pf.intval(1);
+        }
+        return pf.intval(Integer.parseInt(txt));
     }
 
     public LinkedHashMap<Op, EAPHandler> visitHandlers(List<CommonTree> n) {

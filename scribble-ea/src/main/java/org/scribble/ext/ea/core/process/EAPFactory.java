@@ -32,8 +32,8 @@ public class EAPFactory {
     }
 
     public EAPRec rec(@NotNull EAPFuncName f, @NotNull EAPVar var,
-            @NotNull EAValType varType, @NotNull EAPExpr body,
-            @NotNull EALType S, @NotNull EALType T, @NotNull EAValType B) {
+                      @NotNull EAValType varType, @NotNull EAPExpr body,
+                      @NotNull EALType S, @NotNull EALType T, @NotNull EAValType B) {
         return new EAPRec(f, var, varType, body, S, T, B);
     }
 
@@ -43,6 +43,10 @@ public class EAPFactory {
 
     public EAPVar var(@NotNull String id) {
         return new EAPVar(id);
+    }
+
+    public EAPIntVal intval(@NotNull int id) {
+        return new EAPIntVal(id);
     }
 
 

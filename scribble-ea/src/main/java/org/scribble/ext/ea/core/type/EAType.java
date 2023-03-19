@@ -6,5 +6,7 @@ public interface EAType {
     int PID = 10531;
     int HANDLERS = 10559;
 
+    int INT = 19867;
+
     boolean canEquals(Object o);
 }
