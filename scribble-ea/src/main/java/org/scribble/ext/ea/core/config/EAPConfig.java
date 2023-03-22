@@ -116,7 +116,9 @@ public class EAPConfig implements EAPRuntimeTerm {
             Map<Pair<EAPSid, Role>, EAPHandlers> sigma2 = c2.sigma;
             Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
             EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
-            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val));
+
+            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
+
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
                     new LinkedHashMap<>(c2.sigma);
             newsigma2.remove(k2);
