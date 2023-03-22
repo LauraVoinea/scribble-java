@@ -37,7 +37,8 @@ public class EAFuncNamesFixer {
             EAPExpr elsee = visit(cast.elsee, env);
             return f.iff(cond, then, elsee);
         } else if (M instanceof EAPSuspend) {
-            return f.suspend(visit(((EAPSuspend) M).val, env));
+            EAPSuspend cast = (EAPSuspend) M;
+            return f.suspend(visit(cast.val, env), visit(cast.sval, env));
         } else if (M instanceof EAPApp) {
             EAPApp cast = (EAPApp) M;
             return f.app(visit(cast.left, env), visit(cast.right, env));
@@ -83,7 +84,8 @@ public class EAFuncNamesFixer {
 
     public EAPHandler visit(EAPHandler H, Set<EAPFuncName> env) {
         EAPVar var = (EAPVar) visit(H.var, env);
+        EAPVar svar = (EAPVar) visit(H.svar, env);
         EAPExpr expr = visit(H.expr, env);
-        return f.handler(H.op, var, H.varType, expr, H.pre);
+        return f.handler(H.op, var, H.varType, expr, H.pre, svar, H.svarType);
     }
 }

@@ -343,9 +343,9 @@ var:
 ;
 
 handler:
-    '{' session_type '}' op '(' var ':' type ')' '|->' nM
+    '{' session_type '}' svar=var ':' stype=type ',' op '(' v=var ':' t=type ')' '|->' nM
 ->
-    ^(HANDLER op var type session_type nM)
+    ^(HANDLER op $v $t session_type nM $svar $stype)
 ;
 
 /* A */
@@ -391,9 +391,9 @@ nM:
 ->
     ^(M_RETURN nV)  // Initial tree rewriting, no longer pure CST -- "node label tokens" needed or else "node value" is null (apart from children)
 |
-    SUSPEND_KW nV
+    SUSPEND_KW nV ',' nV
 ->
-    ^(M_SUSPEND nV)
+    ^(M_SUSPEND nV nV)
 |
     '[' nV nV ']'
 ->

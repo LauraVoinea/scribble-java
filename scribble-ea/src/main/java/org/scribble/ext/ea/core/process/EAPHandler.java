@@ -2,54 +2,64 @@ package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
-import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
-import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
-import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 import org.scribble.ext.ea.util.ConsoleColors;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class EAPHandler {
 
-    @NotNull public final Op op;
-    @NotNull public final EAPVar var;
-    @NotNull public final EAValType varType;  // !!! added type annots
-    @NotNull public final EAPExpr expr;
-    @NotNull public final EALType pre;  // For the handler expr (i.e., doesn't include the handler input itself)
+    @NotNull
+    public final Op op;
+    @NotNull
+    public final EAPVar var;
+    @NotNull
+    public final EAValType varType;  // !!! added type annots
+    @NotNull
+    public final EAPExpr expr;
+    @NotNull
+    public final EALType pre;  // For the handler expr (i.e., doesn't include the handler input itself)
+
+    @NotNull
+    public final EAPVar svar;
+    @NotNull
+    public final EAValType svarType;
 
     protected EAPHandler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
-                         @NotNull EAPExpr expr, @NotNull EALType pre) {
+                         @NotNull EAPExpr expr, @NotNull EALType pre, @NotNull EAPVar svar, @NotNull EAValType svarType) {
         this.op = op;
         this.var = var;
         this.varType = varType;
         this.expr = expr;
         this.pre = pre;
+        this.svar = svar;
+        this.svarType = svarType;
     }
 
     public void type(Gamma gamma) {
-       EATriple<EAPVar, EAValType, EAPExpr> v;
-       LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
-       tmp.put(this.var, this.varType);
-       Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
+        EATriple<EAPVar, EAValType, EAPExpr> v;
+        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+        tmp.put(this.var, this.varType);
+        tmp.put(this.svar, this.svarType);  // !!! map contains smap
+        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), this.svar, this.svarType);
 
-       //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i
-       EALType inferred = this.pre;
+        //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i
+        EALType inferred = this.pre;
 
-       Pair<EAValType, EALType> res = this.expr.type(gamma1, inferred);
-       if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
-           throw new RuntimeException("Type error: " + gamma1 + " |- "
-                   + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
-       }
+        Pair<EAValType, EALType> res = this.expr.type(gamma1, inferred);
+        if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
+            throw new RuntimeException("Type error: " + gamma1 + " |- "
+                    + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
+        }
     }
 
     /* Aux */
@@ -57,27 +67,33 @@ public class EAPHandler {
     public EAPHandler subs(@NotNull Map<EAPVar, EAPVal> m) {
         Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
         m1.remove(this.var);
+        m1.remove(this.svar);
         EAPExpr subs = this.expr.subs(m1);
-        return EAPFactory.factory.handler(this.op, this.var, this.varType, subs, this.pre);
+        return EAPFactory.factory.handler(
+                this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }
 
     public EAPHandler fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
         Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
         m1.remove(this.var);
+        m1.remove(this.svar);
         EAPExpr subs = this.expr.fsubs(m1);
-        return EAPFactory.factory.handler(this.op, this.var, this.varType, subs, this.pre);
+        return EAPFactory.factory.handler(
+                this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }
 
     public Set<EAPVar> getFreeVars() {
         Set<EAPVar> fvs = this.expr.getFreeVars();
         fvs.remove(this.var);
+        fvs.remove(this.svar);
         return fvs;
     }
 
     @Override
     public String toString() {
-        return this.op + "(" + this.var
-                + ConsoleColors.toAnnotString( ": " + this.varType.toString())
+        return this.svar + ConsoleColors.toAnnotString(": " + this.svarType)
+                + ", " + this.op + "(" + this.var
+                + ConsoleColors.toAnnotString(": " + this.varType.toString())
                 + ") "
                 + ConsoleColors.toAnnotString(": " + this.pre)
                 + " |-> " + this.expr;
@@ -94,7 +110,9 @@ public class EAPHandler {
                 && this.var.equals(them.var)
                 && this.varType.equals(them.varType)
                 && this.expr.equals(them.expr)
-                && this.pre.equals(them.pre);
+                && this.pre.equals(them.pre)
+                && this.svar.equals(them.svar)
+                && this.svarType.equals(them.svarType);
     }
 
     @Override
@@ -105,6 +123,8 @@ public class EAPHandler {
         hash = 31 * hash + this.varType.hashCode();
         hash = 31 * hash + this.expr.hashCode();
         hash = 31 * hash + this.pre.hashCode();
+        hash = 31 * hash + this.svar.hashCode();
+        hash = 31 * hash + this.svarType.hashCode();
         return hash;
     }
 }

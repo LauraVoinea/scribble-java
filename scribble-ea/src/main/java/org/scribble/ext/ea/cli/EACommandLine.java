@@ -19,6 +19,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAHandlersType;
+import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
 import org.scribble.ext.ea.parser.antlr.EACalculusParser;
@@ -176,6 +177,17 @@ public class EACommandLine extends CommandLine {
         //ex5(lf, pf, rf, tf);
         ex6(lf, pf, rf, tf);
 
+        /*
+        - add state params to handlers and return/suspend
+        - recursion example with if-then -- though state needed...
+        ...
+        - refactor EAPVal as EAPPure -- separate packages for expr/pure -- distinguish actual val from pure
+        - separate isGround/isValue -- cf. canBeta for exprs vs. is-stuck
+        - fix canBeta contexts and isGround for all exprs
+        - tidy foo vs. beta
+        */
+
+
         //new EACommandLine(args).run();
     }
 
@@ -196,7 +208,7 @@ public class EACommandLine extends CommandLine {
         EAPConfig cA = rf.config(p1, tA, sigmaA);
 
         EAPVar x = pf.var("x");
-        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} l1(x: Bool)  |-> return () }");
+        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} z1: Int, l1(x: Bool)  |-> return () }");
         EAPIdle idle = rf.idle();
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB);
@@ -213,8 +225,8 @@ public class EACommandLine extends CommandLine {
         cA.type(new Gamma(), new Delta(env));
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
-        map.put(x, tf.val.unit());
-        Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+        map.put(x, tf.val.unit());  // XXX FIXME
+        Gamma gamma = new Gamma(map, new LinkedHashMap<>(), null, EAIntType.INT);
         System.out.println("Typing hB: " + hsB.type(gamma));
 
         env = new LinkedHashMap<>();
@@ -333,10 +345,10 @@ public class EACommandLine extends CommandLine {
         EAFuncType ftA = (EAFuncType) parseA(ftAs);
         EAPLet lethA = (EAPLet) parseM(
                 "let h : " + ftAs + " <= return rec f {" + in2us + "} (w1 :1) : " + h2s + " {" + recXAs
-                        + "} . return handler B { {" + out1us + "} l2(w2: 1) |-> let y :1 <= B!l1(())"
-                        + "in let z : " + h2s + " <= [f ()] in suspend z,"
-                        + "{end} l3(w2: 1) |-> return () } "
-                        + "in let w1 :1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh");
+                        + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) |-> let y :1 <= B!l1(())"
+                        + "in let z : " + h2s + " <= [f ()] in suspend z, 42 ,"
+                        + "{end} z3: Int, l3(w2: 1) |-> return () } "
+                        + "in let w1 :1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh, 42");
 
         System.out.println(lethA);
         lethA.type(new Gamma(), out1u);
@@ -449,8 +461,8 @@ public class EACommandLine extends CommandLine {
         EAPLet leth = (EAPLet) parseM(
                 //"let h : {A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}}1 -> Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) {mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}} <= return rec f { A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}} (w1 :1) :Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) {mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}} . return handler A { l1(w2: 1) : A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end} |-> let y :1 <= A!l3(()) in return () } in let hh :Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) <= [h ()] in suspend hh");
                 "let h: " + fts + " <= return rec f {" + in1us + "} (w1 :1): " + h1s + "{" + recXBs
-                        + "} . return handler A { {" + out2us + "} l1(w2: 1) |-> let y :1 <= A!l3(()) in return () } "
-                        + "in let hh: " + h1s + " <= [h ()] in suspend hh");
+                        + "} . return handler A { {" + out2us + "} z1: Int, l1(w2: 1) |-> let y :1 <= A!l3(()) in return () } "
+                        + "in let hh: " + h1s + " <= [h ()] in suspend hh, 42");
 
         System.out.println(leth);
         leth.type(new Gamma(), recXB);
@@ -664,9 +676,10 @@ public class EACommandLine extends CommandLine {
         // z type EAHandlersType h2 = tf.val.handlers(in2u);
         // ..., in2u, recXA, h2
         EAPLet lethA = (EAPLet) parseM(
-                "let h: " + hts + " <= return (rec f{ " + in2us + "} (w1: 1 ):" + h2s + "{" + recXAs + "} . return handler B { {" + out1us + "} l2(w2: 1) "
-                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z })"
-                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh");
+                "let h: " + hts + " <= return (rec f{ " + in2us + "} (w1: 1 ):" + h2s + "{" + recXAs
+                        + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) "
+                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z, 42 })"
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 42");
 
         /*//let z = f() in suspend z
         EAPSuspend suszA = pf.suspend(z);
@@ -760,10 +773,10 @@ public class EACommandLine extends CommandLine {
 
         String htsB = "{" + in1us + "} 1 ->" + h1s + "{" + recXBs + "}";
         EAPLet leth = (EAPLet) parseM(
-                "let h: " + htsB + " <= return (rec f{  " + in1us + "}(w1: 1):" + h1s + "{" + recXBs + "} ."
-                        + "return handler A { {" + out2mus + "} l1(w2: 1) "
-                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z })"
-                        + "in let hh : " + h1s + " <= [h ()] in suspend hh");
+                "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
+                        + "return handler A { {" + out2mus + "} z1: Int, l1(w2: 1) "
+                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42 })"
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh, 42");
 
         /*//let z = f() in suspend z
         EAPSuspend susz = pf.suspend(z);
@@ -1253,12 +1266,13 @@ public class EACommandLine extends CommandLine {
 		Hs.put(l1, hB1);
 		EAPHandlers hsB1 = pf.handlers(A, Hs);*/
         EAPHandlers hsB1 = (EAPHandlers) parseV(
-                "handler A { {A?{l2(1).end}} l1(x: 1)  |->"
-                        + "suspend (handler A { {end} l2(x: 1) |-> return () }) }");
+                "handler A { {A?{l2(1).end}} z:Int, l1(x: 1)  |->"
+                        + "suspend (handler A { {end} z:Int, l2(x: 1) |-> return () }), 42 }");
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());
-        Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+        Gamma gamma = new Gamma(map, new LinkedHashMap<>(), null, EAIntType.INT);
+        System.out.println("1111111: " + hsB1 + " ,, " + gamma);
         System.out.println("Typing hB: " + hsB1.type(gamma));
 
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
@@ -1371,7 +1385,7 @@ public class EACommandLine extends CommandLine {
 		EAPHandler hB = pf.handler(l1, x, tf.val.unit(), ret, tf.local.end());
 		Hs.put(l1, hB);
 		EAPHandlers hsB = pf.handlers(B, Hs);*/
-        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} l1(x: Int)  |-> return () }");
+        EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} z: Int, l1(x: Int)  |-> return () }");
         EAPIdle idle = rf.idle();
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB);
@@ -1389,7 +1403,7 @@ public class EACommandLine extends CommandLine {
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());
-        Gamma gamma = new Gamma(map, new LinkedHashMap<>());
+        Gamma gamma = new Gamma(map, new LinkedHashMap<>(), null, EAIntType.INT);
         System.out.println("Typing hB: " + hsB.type(gamma));
 
         env = new LinkedHashMap<>();

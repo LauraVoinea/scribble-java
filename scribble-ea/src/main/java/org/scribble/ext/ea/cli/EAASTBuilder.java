@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.config.EAPConfig;
 import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
@@ -72,7 +71,8 @@ class EAASTBuilder {
 
     public EAPSuspend visitSuspend(CommonTree n) {
         EAPVal V = visitV((CommonTree) n.getChild(0));
-        return pf.suspend(V);
+        EAPVal sV = visitV((CommonTree) n.getChild(1));
+        return pf.suspend(V, sV);
     }
 
     public EAPReturn visitReturn(CommonTree n) {
@@ -179,7 +179,9 @@ class EAASTBuilder {
         EAValType varType = visitA((CommonTree) n.getChild(2));
         EALType stype = visitSessionType((CommonTree) n.getChild(3));
         EAPExpr expr = visitM((CommonTree) n.getChild(4));
-        return pf.handler(op, var, varType, expr, stype);
+        EAPVar svar = visitVar((CommonTree) n.getChild(5));
+        EAValType svarType = visitA((CommonTree) n.getChild(6));
+        return pf.handler(op, var, varType, expr, stype, svar, svarType);
     }
 
     /* A */

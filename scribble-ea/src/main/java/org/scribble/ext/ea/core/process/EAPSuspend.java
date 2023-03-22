@@ -1,17 +1,14 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.core.type.name.Op;
-import org.scribble.core.visit.local.LSubprotoVisitorNoThrow;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.session.local.*;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAHandlersType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,8 +17,12 @@ public class EAPSuspend implements EAPExpr {
     @NotNull
     public final EAPVal val;  // value, not expr -- a Handler(S?) type
 
-    public EAPSuspend(EAPVal val) {
+    @NotNull
+    public final EAPVal sval;
+
+    public EAPSuspend(@NotNull EAPVal val, @NotNull EAPVal sval) {
         this.val = val;
+        this.sval = sval;
     }
 
     @Override
@@ -39,6 +40,12 @@ public class EAPSuspend implements EAPExpr {
             throw new RuntimeException("Incompatible in type: " + pre + ", " + cast.S);
         }*/
         EAPApp.subtype(cast.S, pre);
+
+        EAValType t_s = this.sval.type(gamma);
+        if (!t_s.equals(gamma.svarType)) {
+            throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + t_s);
+        }
+
         EATypeFactory tf = EATypeFactory.factory;
         return new EAPPair<>(tf.val.unit(), tf.local.end());  // !!! unit vs A. !!! end vs. S'
     }
@@ -49,9 +56,6 @@ public class EAPSuspend implements EAPExpr {
         if (this.val instanceof EAPHandlers) {
             ht = (EAHandlersType) this.val.type(gamma);
         } else if (this.val instanceof EAPVal) {
-
-            System.out.println("111: " + this.val + " ,, " + this.val.getClass());
-
             ht = (EAHandlersType) gamma.map.get(this.val);
         } else {
             throw new RuntimeException("Shouldn't get here: " + gamma);
@@ -74,13 +78,15 @@ public class EAPSuspend implements EAPExpr {
     @Override
     public EAPSuspend subs(@NotNull Map<EAPVar, EAPVal> m) {
         EAPVal val1 = this.val.subs(m);
-        return EAPFactory.factory.suspend(val1);
+        EAPVal sval1 = this.sval.subs(m);
+        return EAPFactory.factory.suspend(val1, sval1);
     }
 
     @Override
     public EAPSuspend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
         EAPVal val1 = this.val.fsubs(m);
-        return EAPFactory.factory.suspend(val1);
+        EAPVal sval1 = this.sval.fsubs(m);
+        return EAPFactory.factory.suspend(val1, sval1);
     }
 
     @Override
@@ -115,7 +121,7 @@ public class EAPSuspend implements EAPExpr {
 
     @Override
     public String toString() {
-        return "suspend " + this.val;
+        return "suspend " + this.val + ", " + this.sval;
     }
 
     /* equals/canEquals, hashCode */
@@ -125,7 +131,8 @@ public class EAPSuspend implements EAPExpr {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EAPSuspend eaVar = (EAPSuspend) o;
-        return eaVar.canEquals(this) && this.val.equals(eaVar.val);
+        return eaVar.canEquals(this) && this.val.equals(eaVar.val)
+                && this.sval.equals(eaVar.sval);
     }
 
     @Override
@@ -137,6 +144,7 @@ public class EAPSuspend implements EAPExpr {
     public int hashCode() {
         int hash = EAPTerm.SUSPEND;
         hash = 31 * hash + this.val.hashCode();
+        hash = 31 * hash + this.sval.hashCode();
         return hash;
     }
 }

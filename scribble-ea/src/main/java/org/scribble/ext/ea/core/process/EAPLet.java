@@ -43,7 +43,7 @@ public class EAPLet implements EAPExpr {
         }
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, p1.left);
-        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
+        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
         return this.body.type(gamma1, p1.right);
     }
 
@@ -52,7 +52,7 @@ public class EAPLet implements EAPExpr {
         EALType i = this.init.infer(gamma);
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
-        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
+        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
         EALType b = this.body.infer(gamma1);
         return i.concat(b);
     }

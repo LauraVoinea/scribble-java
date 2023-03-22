@@ -234,7 +234,7 @@ public class EAPConfig implements EAPRuntimeTerm {
                 EAPHandler rhs = x.getValue();
                 LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
                 tmp.put(rhs.var, rhs.varType);
-                Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap));
+                Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
                 Pair<EAValType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
                 if (!res.equals(new EAPPair<>(EAUnitType.UNIT, EALEndType.END))) {
                     throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);

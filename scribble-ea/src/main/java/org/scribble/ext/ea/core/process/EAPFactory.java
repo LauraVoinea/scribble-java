@@ -19,8 +19,9 @@ public class EAPFactory {
     /* Values */
 
     public EAPHandler handler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
-                              @NotNull EAPExpr expr, @NotNull EALType pre) {
-        return new EAPHandler(op, var, varType, expr, pre);
+                              @NotNull EAPExpr expr, @NotNull EALType pre,
+                              @NotNull EAPVar svar, @NotNull EAValType svarType) {
+        return new EAPHandler(op, var, varType, expr, pre, svar, svarType);
     }
 
     public EAPHandlers handlers(
@@ -79,7 +80,7 @@ public class EAPFactory {
         return new EAPSend(dst, op, val);
     }
 
-    public EAPSuspend suspend(@NotNull EAPVal val) {
-        return new EAPSuspend(val);
+    public EAPSuspend suspend(@NotNull EAPVal val, @NotNull EAPVal sval) {
+        return new EAPSuspend(val, sval);
     }
 }
