@@ -26,8 +26,9 @@ public class EAPRuntimeFactory {
     }
 
     public EAPConfig config(EAPPid pid, EAPThreadState T,
-                            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma) {
-        return new EAPConfig(pid, T, sigma);
+                            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma,
+                            LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
+        return new EAPConfig(pid, T, sigma, state);
     }
 
     public EAPIdle idle() {

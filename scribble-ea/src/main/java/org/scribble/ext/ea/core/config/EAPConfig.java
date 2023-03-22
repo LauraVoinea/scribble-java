@@ -19,6 +19,7 @@ import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
+import javax.swing.plaf.LabelUI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,15 +33,20 @@ public class EAPConfig implements EAPRuntimeTerm {
     @NotNull
     public final Map<Pair<EAPSid, Role>, EAPHandlers> sigma;  // !!! handlers specifically
 
+    @NotNull
+    public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
+
     protected EAPConfig(@NotNull EAPPid pid,
                         @NotNull EAPThreadState T,
-                        @NotNull LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> handlers) {
+                        @NotNull LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> handlers,
+                        @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
         this.pid = pid;
         this.T = T;
         this.sigma = Collections.unmodifiableMap(handlers.entrySet()
                 .stream().collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+        this.state = Collections.unmodifiableMap(new LinkedHashMap<>(state));
     }
 
     // Return set is (sync) "dependencies" ("partner" pids) needed to step if any
@@ -70,7 +76,7 @@ public class EAPConfig implements EAPRuntimeTerm {
                 LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
                 EAPThreadState t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
-                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 //res.configs.put(p, c1);
                 configs.put(this.pid, c1);
                 return configs;
@@ -82,7 +88,7 @@ public class EAPConfig implements EAPRuntimeTerm {
                 LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
                 LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
                 EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
-                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 configs.put(this.pid, c1);
                 return configs;
             }
@@ -116,11 +122,11 @@ public class EAPConfig implements EAPRuntimeTerm {
             newsigma2.remove(k2);
             EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
             //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
-            configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+            configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
 
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             //res.configs.put(p, c1);
             configs.put(this.pid, c1);
 
@@ -136,7 +142,11 @@ public class EAPConfig implements EAPRuntimeTerm {
                 EAPThreadState t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 EAPSuspend cast = (EAPSuspend) foo;
                 sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
-                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+
+                LinkedHashMap<Pair<EAPSid, Role>, Integer> tmp = new LinkedHashMap<>(this.state);
+                tmp.put(new EAPPair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
+
+                EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
                 configs.put(this.pid, c1);
                 return configs;
             } else {
@@ -150,7 +160,7 @@ public class EAPConfig implements EAPRuntimeTerm {
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
-            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1);
+            EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             configs.put(this.pid, c1);
             return configs;
         } /*else if (foo instanceof EAPLet) {
@@ -199,6 +209,8 @@ public class EAPConfig implements EAPRuntimeTerm {
         }
         Delta delta2 = new Delta(tmp);
         typeSigma(gamma, delta2);
+
+        // FIXME type the state
     }
 
     // !!! TODO make sigma explicit (cf. TH-Handler)
@@ -247,7 +259,8 @@ public class EAPConfig implements EAPRuntimeTerm {
 
     @Override
     public String toString() {
-        return "<" + this.pid + ", " + this.T + ", " + this.sigma + ">";
+        return "<" + this.pid + ", " + this.T + ", "
+                + this.sigma + ", " + this.state + ">";
     }
 
     /* equals/canEquals, hashCode */
@@ -260,7 +273,8 @@ public class EAPConfig implements EAPRuntimeTerm {
         return them.canEquals(this)
                 && this.pid.equals(them.pid)
                 && this.T.equals(them.T)
-                && this.sigma.equals(them.sigma);
+                && this.sigma.equals(them.sigma)
+                && this.state.equals(them.state);
     }
 
     @Override
@@ -274,6 +288,7 @@ public class EAPConfig implements EAPRuntimeTerm {
         hash = 31 * hash + this.pid.hashCode();
         hash = 31 * hash + this.T.hashCode();
         hash = 31 * hash + this.sigma.hashCode();
+        hash = 31 * hash + this.state.hashCode();
         return hash;
 
     }

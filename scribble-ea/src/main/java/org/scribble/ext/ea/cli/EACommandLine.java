@@ -175,7 +175,7 @@ public class EACommandLine extends CommandLine {
         //ex2(lf, pf, rf, tf);
         //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
-        ex6(lf, pf, rf, tf);
+        //ex6(lf, pf, rf, tf);
 
         /*
         - add state params to handlers and return/suspend
@@ -205,14 +205,18 @@ public class EACommandLine extends CommandLine {
         EAPExpr sendAB = parseM("let x: Bool <= return 3 < 2 in if x then B!l1(x) else B!l1(x)");
         EAPActiveThread tA = rf.activeThread(sendAB, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig cA = rf.config(p1, tA, sigmaA);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
+        stateA.put(new Pair<>(s, A), 0);
+        EAPConfig cA = rf.config(p1, tA, sigmaA, stateA);
 
         EAPVar x = pf.var("x");
         EAPHandlers hsB = (EAPHandlers) parseV("handler A { {end} z1: Int, l1(x: Bool)  |-> return () }");
         EAPIdle idle = rf.idle();
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB);
-        EAPConfig cB = rf.config(p2, idle, sigmaB);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
+        stateB.put(new Pair<>(s, B), 0);
+        EAPConfig cB = rf.config(p2, idle, sigmaB, stateB);
 
         System.out.println(cA);
         System.out.println(cB);
@@ -359,7 +363,9 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig cA = rf.config(p1, tA, sigmaA);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
+        stateA.put(new Pair<>(s, A), 0);
+        EAPConfig cA = rf.config(p1, tA, sigmaA, stateA);
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         //env.put(new EAPPair<>(s, A), recXA);
@@ -482,7 +488,9 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tB = rf.activeThread(leth, s, B);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-        EAPConfig cB = rf.config(p2, tB, sigmaB);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
+        stateB.put(new Pair<>(s, B), 0);
+        EAPConfig cB = rf.config(p2, tB, sigmaB, stateB);
 
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
@@ -720,7 +728,9 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig cA = rf.config(p1, tA, sigmaA);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
+        stateA.put(new Pair<>(s, A), 0);
+        EAPConfig cA = rf.config(p1, tA, sigmaA, stateA);
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         //env.put(new EAPPair<>(s, A), recXA);
@@ -825,7 +835,9 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tB = rf.activeThread(leth, s, B);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-        EAPConfig cB = rf.config(p2, tB, sigmaB);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
+        stateB.put(new Pair<>(s, B), 0);
+        EAPConfig cB = rf.config(p2, tB, sigmaB, stateB);
 
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
@@ -1242,7 +1254,10 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tA = rf.activeThread(let, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig cA = rf.config(p1, tA, sigmaA);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
+        stateA.put(new Pair<>(s, A), 0);
+        EAPConfig cA = rf.config(p1, tA, sigmaA, stateA);
+
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1);
@@ -1277,7 +1292,9 @@ public class EACommandLine extends CommandLine {
 
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
-        EAPConfig cB = rf.config(p2, idle, sigmaB);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
+        stateB.put(new Pair<>(s, B), 0);
+        EAPConfig cB = rf.config(p2, idle, sigmaB, stateB);
 
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), in1);
@@ -1376,7 +1393,9 @@ public class EACommandLine extends CommandLine {
         EAPLet sendAB = (EAPLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");
         EAPActiveThread tA = rf.activeThread(sendAB, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig cA = rf.config(p1, tA, sigmaA);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
+        stateA.put(new Pair<>(s, A), 0);
+        EAPConfig cA = rf.config(p1, tA, sigmaA, stateA);
 
         EAPVar x = pf.var("x");
         // idle, s[B] |-> handler B { l1(x) |-> return(unit) }  -- l1 |-> (x, return(unit)
@@ -1389,7 +1408,9 @@ public class EACommandLine extends CommandLine {
         EAPIdle idle = rf.idle();
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
         sigmaB.put(new EAPPair<>(s, B), hsB);
-        EAPConfig cB = rf.config(p2, idle, sigmaB);
+        LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
+        stateB.put(new Pair<>(s, B), 0);
+        EAPConfig cB = rf.config(p2, idle, sigmaB, stateB);
 
         System.out.println(cA);
         System.out.println(cB);
