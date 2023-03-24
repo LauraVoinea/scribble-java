@@ -173,9 +173,11 @@ public class EACommandLine extends CommandLine {
 
         //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
-        ex4(lf, pf, rf, tf);
+        //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
         //ex6(lf, pf, rf, tf);
+        //ex7(lf, pf, rf, tf);
+        ex8(lf, pf, rf, tf);
 
         /* HERE HERE
         - state is currently per sess -- probably should be config wide, state shared across sess -> (intentional) race conditions
@@ -191,6 +193,215 @@ public class EACommandLine extends CommandLine {
 
 
         //new EACommandLine(args).run();
+    }
+
+    static void ex8(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+        Role A = new Role("A");
+        Role B = new Role("B");
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+
+        String out1s = "B!{l1(1).X}";
+        String in2s = "B?{l2(1)." + out1s + ", l3(1).end }";
+        String recXAs = "mu X." + in2s;
+        String out1us = "B!{l1(1)." + recXAs + "}";
+        String in2us = "B?{l2(1)." + out1us + ", l3(1).end}";  // unfolding of recXA
+
+        // ----
+
+        String h2s = "Handler (" + in2us + ")";
+        String hts = "{" + recXAs + "} 1-> " + h2s + "{" + recXAs + "}";
+        EAPLet lethA = (EAPLet) parseM(
+                "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s + "{" + recXAs
+                        + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) "
+                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z, 42"
+                        + ",  {end} z3: Int, l3(w3: 1) |-> return () })"
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 0");
+
+        System.out.println(lethA);
+        EALOutType out1u = (EALOutType) parseSessionType(out1us);
+        lethA.type(new Gamma(), out1u);
+
+        //---------------
+        // config < A, idle, c[A] |-> let h = ... in ... >
+        System.out.println();
+
+        EAPActiveThread tA = rf.activeThread(lethA, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, A), out1u);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
+
+        // ----
+        System.out.println();
+
+        String out2s = "A!{l2(1).X, l3(1).end}";
+        String in1s = "A?{l1(1)." + out2s + "}";
+        String recXBs = "mu X." + in1s;
+        String out2mus = "A!{l2(1)." + recXBs + ", l3(1).end}";
+        String in1us = "A?{l1(1)." + out2mus + "}";
+
+        // ---
+
+        String h1s = "Handler (" + in1us + ")";
+        String htsB = "{" + in1us + "} 1 ->" + h1s + "{" + recXBs + "}";
+        EAPLet leth = (EAPLet) parseM(
+                "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
+                        + "return handler A { {" + out2mus + "} d: Int, l1(w2: 1) "
+
+                        /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42 })"  // run forever
+                        + " |-> let y: 1 <= A!l3(()) in return () })"*/  // quit straight away
+
+                        //+ " |-> let tmp: Bool <= return d < 0 in "  // quit straight away
+                        + " |-> let tmp: Bool <= return d < 1 in "  // quit after one
+                        //+ " |-> let tmp: Bool <= return d < 43 in "  // run forever
+
+                        + "if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42"
+                        + "else let y: 1 <= A!l3(()) in return ()"
+
+                        + " })"
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh, 0");
+
+        System.out.println(leth);
+        EALRecType recXB = (EALRecType) parseSessionType(recXBs);
+        leth.type(new Gamma(), recXB);
+
+        //--------------
+        // config < B, idle, c[B] |-> let h = ... in ... } >
+        System.out.println();
+
+        EAPActiveThread tB = rf.activeThread(leth, s, B);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        EAPConfig<?> cB = rf.config(p2, tB, sigmaB, pf.factory.intt(0));
+
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
+        //*/
+
+        // ----
+
+        System.out.println("\n---");
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
+
+        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        cs.put(cA.pid, cA);
+        cs.put(cB.pid, cB);
+
+        env.put(new EAPPair<>(s, A), out1u);
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println(env);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
+
+        run(sys, 100);
+    }
+
+    static void ex7(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+        Role A = new Role("A");
+        Role B = new Role("B");
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+
+        String out1s = "B!{l1(1).X, l4(1).end}";
+        String in2s = "B?{l2(1)." + out1s + ", l3(1).end }";
+        String recXAs = "mu X." + in2s;
+        String out1us = "B!{l1(1)." + recXAs + ", l4(1).end}";
+        String in2us = "B?{l2(1)." + out1us + ", l3(1).end}";  // unfolding of recXA
+
+        // ----
+
+        String h2s = "Handler (" + in2us + ")";
+        String hts = "{" + recXAs + "} 1-> " + h2s + "{" + recXAs + "}";
+        EAPLet lethA = (EAPLet) parseM(
+                "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s + "{" + recXAs
+                        + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) "
+                        + " |-> let y: 1 <= B!l4(()) in return ()"
+                        + ",  {end} z3: Int, l3(w3: 1) |-> return () })"
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 0");
+
+        System.out.println(lethA);
+        EALOutType out1u = (EALOutType) parseSessionType(out1us);
+        lethA.type(new Gamma(), out1u);
+
+        //---------------
+        // config < A, idle, c[A] |-> let h = ... in ... >
+        System.out.println();
+
+        EAPActiveThread tA = rf.activeThread(lethA, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, A), out1u);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(), new Delta(env));
+
+        // ----
+        System.out.println();
+
+        String out2s = "A!{l2(1).X, l3(1).end}";
+        String in1s = "A?{l1(1)." + out2s + ", l4(1).end}";
+        String recXBs = "mu X." + in1s;
+        String out2mus = "A!{l2(1)." + recXBs + ", l3(1).end}";
+        String in1us = "A?{l1(1)." + out2mus + ", l4(1).end}";
+
+        // ---
+
+        String h1s = "Handler (" + in1us + ")";
+        String htsB = "{" + in1us + "} 1 ->" + h1s + "{" + recXBs + "}";
+        EAPLet leth = (EAPLet) parseM(
+                "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
+                        + "return handler A { {" + out2mus + "} d: Int, l1(w2: 1) "
+                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42 "
+                        + ", {end} d: Int, l4(w4: 1) |-> return ()"
+                        + "})"
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh, 0");
+
+        System.out.println(leth);
+        EALRecType recXB = (EALRecType) parseSessionType(recXBs);
+        leth.type(new Gamma(), recXB);
+
+        //--------------
+        // config < B, idle, c[B] |-> let h = ... in ... } >
+        System.out.println();
+
+        EAPActiveThread tB = rf.activeThread(leth, s, B);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        EAPConfig cB = rf.config(p2, tB, sigmaB, pf.factory.intt(0));
+
+        env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(), new Delta(env));
+        //*/
+
+        // ----
+
+        System.out.println("\n---");
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
+
+        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        cs.put(cA.pid, cA);
+        cs.put(cB.pid, cB);
+
+        env.put(new EAPPair<>(s, A), out1u);
+        env.put(new EAPPair<>(s, B), recXB);
+        System.out.println(env);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
+        sys.type(new Gamma(), new Delta());
+
+        run(sys, 100);
     }
 
     private static void ex6(

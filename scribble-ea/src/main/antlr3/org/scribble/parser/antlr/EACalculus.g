@@ -203,7 +203,7 @@ ID:
 ;
 
 INT:
-    DIGIT DIGIT0*
+    DIGIT DIGIT0* | '0'
 ;
 
 /*

@@ -49,7 +49,9 @@ public class EAPHandler {
         EATriple<EAPVar, EAValType, EAPExpr> v;
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
+
         tmp.put(this.svar, this.svarType);  // !!! map contains smap
+
         Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), this.svar, this.svarType);
 
         //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i

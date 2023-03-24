@@ -246,12 +246,17 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
             if (!cast.cases.keySet().equals(h.Hs.keySet())) {
                 throw new RuntimeException("Bad handler set: " + cast.cases + " |> " + h.Hs);
             }
+
             // !!! TH-Handler typing the nested handler expr (uses Delta) -- cf. typing handler value TV-Handler (uses "infer")
             for (Map.Entry<Op, EAPHandler> x : h.Hs.entrySet()) {
                 Op op = x.getKey();
                 EAPHandler rhs = x.getValue();
                 LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
                 tmp.put(rhs.var, rhs.varType);
+
+                tmp.put(rhs.var, rhs.varType);
+                tmp.put(rhs.svar, rhs.svarType);
+
                 Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
                 Pair<EAValType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
                 if (!res.equals(new EAPPair<>(EAUnitType.UNIT, EALEndType.END))) {
