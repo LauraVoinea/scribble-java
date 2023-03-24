@@ -17,8 +17,8 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// cf. T-Actor
-public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
+// cf. T-Actor // TODO rename Actor
+public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal  // TODO deprecate D
 
     @NotNull
     public final EAPPid pid;
@@ -29,13 +29,13 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
 
     @NotNull
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
-    public D state;  // XXX FIXME should be specifically EAPVal -- do actual EA typing of val against handler state type annots (not meta Java typing)
+    public EAPVal state;  // Pre: ground
 
     protected EAPConfig(@NotNull EAPPid pid,
                         @NotNull EAPThreadState T,
                         @NotNull LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> handlers,
                         //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                        @NotNull D state) {
+                        @NotNull EAPVal state) {
         this.pid = pid;
         this.T = T;
         this.sigma = Collections.unmodifiableMap(handlers.entrySet()
@@ -117,7 +117,7 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
             EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
 
             //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
-            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, (EAPIntVal) c2.state));  // XXX FIXME state hardcoded
+            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
 
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
                     new LinkedHashMap<>(c2.sigma);
@@ -216,7 +216,10 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
         Delta delta2 = new Delta(tmp);
         typeSigma(gamma, delta2);
 
-        // FIXME type the state
+        EAValType stype = this.state.type(gamma);
+        if (!stype.equals(gamma.svarType)) {
+            throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + stype);
+        }
     }
 
     // !!! TODO make sigma explicit (cf. TH-Handler)

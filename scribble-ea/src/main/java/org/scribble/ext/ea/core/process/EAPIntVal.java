@@ -19,6 +19,11 @@ public class EAPIntVal implements EAPVal {
     }
 
     @Override
+    public EAIntType infer() {
+        return EAIntType.INT;
+    }
+
+    @Override
     public boolean canBeta() {
         return false;
     }

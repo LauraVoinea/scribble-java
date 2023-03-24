@@ -75,91 +75,6 @@ public class EACommandLine extends CommandLine {
         //testParser();
     }
 
-    static void testParser() {
-        EAPFactory pf = EAPFactory.factory;
-        EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
-        EATypeFactory tf = EATypeFactory.factory;
-
-        //String input = "(A ! a((())))";
-        String input = "let x: 1 <= A ! a((())) in suspend "
-                + "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
-        EAPTerm res = parseM(input);
-        System.out.println("bbb: " + res);
-    }
-
-    static EAPExpr parseM(String input) {
-        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-        try {
-            //par.setTreeAdaptor(new EATreeAdaptor());  // XXX this requires nodes to be CommonTree to add children -- adaptor only constructs each node individualy without children
-            CommonTree tree = (CommonTree) par.start().getTree();
-            //System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
-
-            EAPExpr res = new EAFuncNamesFixer().parse(new EAASTBuilder().visitM((CommonTree) tree.getChild(0)));
-            return res;
-
-            //tree.token;
-        } catch (RecognitionException x) {
-            throw new RuntimeException(x);
-        }
-    }
-
-    static EAValType parseA(String input) {
-        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-        try {
-            CommonTree tree = (CommonTree) par.type().getTree();
-            return new EAASTBuilder().visitA(tree);
-        } catch (RecognitionException x) {
-            throw new RuntimeException(x);
-        }
-    }
-
-    static EAPVal parseV(String input) {
-        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-        try {
-            CommonTree tree = (CommonTree) par.nV().getTree();
-            return new EAFuncNamesFixer().parse(new EAASTBuilder().visitV(tree));
-        } catch (RecognitionException x) {
-            throw new RuntimeException(x);
-        }
-    }
-
-    static EALType parseSessionType(String input) {
-        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
-        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
-        try {
-            CommonTree tree = (CommonTree) par.session_type().getTree();
-            return new EAASTBuilder().visitSessionType(tree);
-        } catch (RecognitionException x) {
-            throw new RuntimeException(x);
-        }
-    }
-
-
-	/*static class EATreeAdaptor extends CommonTreeAdaptor {
-		static EAPFactory pf = EAPFactory.factory;
-		static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
-		static EATypeFactory tf = EATypeFactory.factory;
-
-		public EATreeAdaptor() {
-		}
-
-		// Generated parser seems to use nil to create "blank" nodes and then "fill them in"
-		//@Override public Object nil() {return new ScribNil();}
-
-		// Create a Tree (ScribNode) from a Token
-		// N.B. not using AstFactory, construction here is pre adding children (and also here directly record parsed Token, not recreate)
-		@Override public EAPVal create(Token t) {
-			switch (t.getText()) {
-				case "RETURN": {
-						pf.returnn()
-				}
-			}
-		}
-	}*/
-
     private static void eamain() {
         LTypeFactoryImpl lf = new LTypeFactoryImpl();
 
@@ -221,7 +136,7 @@ public class EACommandLine extends CommandLine {
 
         System.out.println(lethA);
         EALOutType out1u = (EALOutType) parseSessionType(out1us);
-        lethA.type(new Gamma(), out1u);
+        lethA.type(new Gamma(EAIntType.INT), out1u);
 
         //---------------
         // config < A, idle, c[A] |-> let h = ... in ... >
@@ -230,11 +145,12 @@ public class EACommandLine extends CommandLine {
         EAPActiveThread tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
         EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+        //EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.bool(true));
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
         // ----
         System.out.println();
@@ -268,7 +184,7 @@ public class EACommandLine extends CommandLine {
 
         System.out.println(leth);
         EALRecType recXB = (EALRecType) parseSessionType(recXBs);
-        leth.type(new Gamma(), recXB);
+        leth.type(new Gamma(EAIntType.INT), recXB);
 
         //--------------
         // config < B, idle, c[B] |-> let h = ... in ... } >
@@ -281,7 +197,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
         //*/
 
         // ----
@@ -299,7 +215,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(env);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, 100);
     }
@@ -330,7 +246,7 @@ public class EACommandLine extends CommandLine {
 
         System.out.println(lethA);
         EALOutType out1u = (EALOutType) parseSessionType(out1us);
-        lethA.type(new Gamma(), out1u);
+        lethA.type(new Gamma(EAIntType.INT), out1u);
 
         //---------------
         // config < A, idle, c[A] |-> let h = ... in ... >
@@ -343,7 +259,7 @@ public class EACommandLine extends CommandLine {
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
         // ----
         System.out.println();
@@ -368,7 +284,7 @@ public class EACommandLine extends CommandLine {
 
         System.out.println(leth);
         EALRecType recXB = (EALRecType) parseSessionType(recXBs);
-        leth.type(new Gamma(), recXB);
+        leth.type(new Gamma(EAIntType.INT), recXB);
 
         //--------------
         // config < B, idle, c[B] |-> let h = ... in ... } >
@@ -381,7 +297,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
         //*/
 
         // ----
@@ -399,7 +315,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(env);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, 100);
     }
@@ -436,12 +352,12 @@ public class EACommandLine extends CommandLine {
         System.out.println(cA);
         System.out.println(cB);
 
-        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(), out1));
+        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(EAIntType.INT), out1));
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());  // XXX FIXME
@@ -451,7 +367,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), in1);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
 
         LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
         cs.put(p1, cA);
@@ -460,7 +376,7 @@ public class EACommandLine extends CommandLine {
         env.put(new EAPPair<>(s, A), out1);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, -1);
     }
@@ -570,7 +486,7 @@ public class EACommandLine extends CommandLine {
                         + "in let w1 :1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh, 42");
 
         System.out.println(lethA);
-        lethA.type(new Gamma(), out1u);
+        lethA.type(new Gamma(EAIntType.INT), out1u);
 
         //---------------
         // config < A, idle, c[A] |-> let h = ... in ... >
@@ -587,7 +503,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), recXA);
         env.put(new EAPPair<>(s, A), out1u);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
         // ----
         System.out.println();
@@ -687,7 +603,7 @@ public class EACommandLine extends CommandLine {
                         + "in let hh: " + h1s + " <= [h ()] in suspend hh, 42");
 
         System.out.println(leth);
-        leth.type(new Gamma(), recXB);
+        leth.type(new Gamma(EAIntType.INT), recXB);
 
         //--------------
         // config < B, idle, c[B] |-> let h = ... in ... >
@@ -712,7 +628,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
         //*/
 
         // ----
@@ -739,7 +655,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, -1);
 
@@ -937,7 +853,7 @@ public class EACommandLine extends CommandLine {
         EAFuncType ftA = tf.val.func(tf.val.unit(), in2u, recXA, h2);
         //EAPLet lethA = pf.let(h, ftA, retfA, wA);*/
         System.out.println(lethA);
-        lethA.type(new Gamma(), out1u);
+        lethA.type(new Gamma(EAIntType.INT), out1u);
 
         //---------------
         // config < A, idle, c[A] |-> let h = ... in ... >
@@ -954,7 +870,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), recXA);
         env.put(new EAPPair<>(s, A), out1u);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
 
         // ----
@@ -1036,7 +952,7 @@ public class EACommandLine extends CommandLine {
         EAFuncType ft = tf.val.func(tf.val.unit(), in1u, recXB, h1);*/
         //EAPLet leth = pf.let(h, ft, retfB, lethh);
         System.out.println(leth);
-        leth.type(new Gamma(), recXB);
+        leth.type(new Gamma(EAIntType.INT), recXB);
 
         //--------------
         // config < B, idle, c[B] |-> let h = ... in ... } >
@@ -1061,7 +977,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
         //*/
 
         // ----
@@ -1088,7 +1004,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, 100);
 
@@ -1469,7 +1385,7 @@ public class EACommandLine extends CommandLine {
 		EAPLet let = pf.let(x, tf.val.unit(), sendAB1, sendAB2);*/
         EAPLet let = (EAPLet) parseM("let x: 1 <= B!l1(()) in B!l2(())");
 
-        System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(), out1));
+        System.out.println("Typing eA: " + out1 + " ,, " + let.type(new Gamma(EAIntType.INT), out1));
 
         EAPActiveThread tA = rf.activeThread(let, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
@@ -1482,7 +1398,7 @@ public class EACommandLine extends CommandLine {
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
         // ----
 
@@ -1520,7 +1436,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), in1);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
 
         // ----
 
@@ -1545,7 +1461,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, -1);
 		/*
@@ -1638,12 +1554,12 @@ public class EACommandLine extends CommandLine {
         System.out.println(cA);
         System.out.println(cB);
 
-        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(), out1));
+        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new Gamma(EAIntType.INT), out1));
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1);
         System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());
@@ -1653,7 +1569,7 @@ public class EACommandLine extends CommandLine {
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), in1);
         System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        cB.type(new Gamma(EAIntType.INT), new Delta(env));
 
         LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
         cs.put(p1, cA);
@@ -1662,7 +1578,7 @@ public class EACommandLine extends CommandLine {
         env.put(new EAPPair<>(s, A), out1);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(), new Delta());
+        sys.type(new Gamma(EAIntType.INT), new Delta());
 
         run(sys, -1);
     }
@@ -1676,7 +1592,7 @@ public class EACommandLine extends CommandLine {
             sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
             System.out.println();
             System.out.println(sys);
-            sys.type(new Gamma(), new Delta());
+            sys.type(new Gamma(EAIntType.INT), new Delta());
             pids = sys.canStep();
         }
 
@@ -1711,4 +1627,90 @@ public class EACommandLine extends CommandLine {
 	*/
 
 
+    /* parsing */
+
+    static void testParser() {
+        EAPFactory pf = EAPFactory.factory;
+        EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+        EATypeFactory tf = EATypeFactory.factory;
+
+        //String input = "(A ! a((())))";
+        String input = "let x: 1 <= A ! a((())) in suspend "
+                + "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
+        EAPTerm res = parseM(input);
+        System.out.println("bbb: " + res);
+    }
+
+    static EAPExpr parseM(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            //par.setTreeAdaptor(new EATreeAdaptor());  // XXX this requires nodes to be CommonTree to add children -- adaptor only constructs each node individualy without children
+            CommonTree tree = (CommonTree) par.start().getTree();
+            //System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
+
+            EAPExpr res = new EAFuncNamesFixer().parse(new EAASTBuilder().visitM((CommonTree) tree.getChild(0)));
+            return res;
+
+            //tree.token;
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
+
+    static EAValType parseA(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            CommonTree tree = (CommonTree) par.type().getTree();
+            return new EAASTBuilder().visitA(tree);
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
+
+    static EAPVal parseV(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            CommonTree tree = (CommonTree) par.nV().getTree();
+            return new EAFuncNamesFixer().parse(new EAASTBuilder().visitV(tree));
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
+
+    static EALType parseSessionType(String input) {
+        Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
+        EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
+        try {
+            CommonTree tree = (CommonTree) par.session_type().getTree();
+            return new EAASTBuilder().visitSessionType(tree);
+        } catch (RecognitionException x) {
+            throw new RuntimeException(x);
+        }
+    }
+
+
+	/*static class EATreeAdaptor extends CommonTreeAdaptor {
+		static EAPFactory pf = EAPFactory.factory;
+		static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+		static EATypeFactory tf = EATypeFactory.factory;
+
+		public EATreeAdaptor() {
+		}
+
+		// Generated parser seems to use nil to create "blank" nodes and then "fill them in"
+		//@Override public Object nil() {return new ScribNil();}
+
+		// Create a Tree (ScribNode) from a Token
+		// N.B. not using AstFactory, construction here is pre adding children (and also here directly record parsed Token, not recreate)
+		@Override public EAPVal create(Token t) {
+			switch (t.getText()) {
+				case "RETURN": {
+						pf.returnn()
+				}
+			}
+		}
+	}*/
 }

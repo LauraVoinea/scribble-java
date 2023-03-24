@@ -25,13 +25,13 @@ public class Gamma {
     @NotNull
     protected final LinkedHashMap<EAPFuncName, EAFuncType> _fmap;  // Backing of above
 
-    public final EAName svar;  // null if "none"  // !!! map contains svar:svarType
+    public final EAName svar;  // null if "none"  // !!! this.map contains [svar:svarType] if non-null
     @NotNull
     public final EAValType svarType;
 
-    public Gamma() {
+    /*public Gamma() {
         this(new LinkedHashMap<>(), new LinkedHashMap<>(), null, EAIntType.INT);
-    }
+    }*/
 
     public Gamma(@NotNull EAValType svarType) {
         this(new LinkedHashMap<>(), new LinkedHashMap<>(), null, svarType);

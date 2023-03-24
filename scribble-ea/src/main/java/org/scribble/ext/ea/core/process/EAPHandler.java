@@ -2,8 +2,11 @@ package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -46,7 +49,12 @@ public class EAPHandler {
     }
 
     public void type(Gamma gamma) {
-        EATriple<EAPVar, EAValType, EAPExpr> v;
+
+        if (!this.svarType.equals(gamma.svarType)) {
+            throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + this.svarType);
+        }
+
+        //EATriple<EAPVar, EAValType, EAPExpr> v;
         LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
 

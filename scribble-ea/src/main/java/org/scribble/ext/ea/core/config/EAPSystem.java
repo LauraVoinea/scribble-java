@@ -17,6 +17,7 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// TODO rename config(s)
 // cf. T-Session and (nested) T-Par (missing)
 // CHECKME: equiv to normal form with all \nu s at top?  sufficiently general?
 public class EAPSystem {

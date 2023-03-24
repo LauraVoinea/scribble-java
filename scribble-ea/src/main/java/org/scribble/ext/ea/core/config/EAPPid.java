@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.value.EABoolType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Collections;
@@ -11,7 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-// a, b, ...
+// a, b, ...  // TODO no longer EAPVal
 public class EAPPid implements EAPVal, EARuntimeName {
 
     @NotNull
@@ -19,6 +20,11 @@ public class EAPPid implements EAPVal, EARuntimeName {
 
     public EAPPid(@NotNull String id) {
         this.id = id;
+    }
+
+    @Override
+    public EAValType infer() {
+        throw new RuntimeException("Not supported");
     }
 
     @Override

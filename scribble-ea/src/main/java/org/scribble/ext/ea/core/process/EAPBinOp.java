@@ -1,8 +1,10 @@
 package org.scribble.ext.ea.core.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EABoolType;
+import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
@@ -37,6 +39,18 @@ public class EAPBinOp implements EAPVal {
                     + "\tfound=" + found + ", required=" + required);
         }
     }*/
+
+    @Override
+    public EAValType infer() {
+        switch (this.op) {
+            case PLUS:
+                return EAIntType.INT;
+            case LT:
+                return EABoolType.BOOL;
+            default:
+                throw new RuntimeException("Unknown op: " + this.op);
+        }
+    }
 
     @Override
     public EAValType type(Gamma gamma) {

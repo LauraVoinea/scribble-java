@@ -28,7 +28,7 @@ public class EAPRuntimeFactory {
     public <D> EAPConfig<D> config(EAPPid pid, EAPThreadState T,
                                    LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma,
                                    //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                                   D state) {
+                                   EAPVal state) {
         return new EAPConfig<>(pid, T, sigma, state);
     }
 

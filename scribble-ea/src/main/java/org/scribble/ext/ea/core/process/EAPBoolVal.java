@@ -20,6 +20,11 @@ public class EAPBoolVal implements EAPVal {
     }
 
     @Override
+    public EABoolType infer() {
+        return EABoolType.BOOL;
+    }
+
+    @Override
     public boolean canBeta() {
         return false;
     }

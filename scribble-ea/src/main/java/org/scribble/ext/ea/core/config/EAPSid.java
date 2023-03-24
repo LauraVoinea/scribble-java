@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-// s, s', ...
+// s, s', ...  // FIXME no longer values (not EAPVal)
 public class EAPSid implements EAPVal, EARuntimeName {
 
     @NotNull
@@ -19,6 +19,11 @@ public class EAPSid implements EAPVal, EARuntimeName {
 
     protected EAPSid(@NotNull String id) {
         this.id = id;
+    }
+
+    @Override
+    public EAValType infer() {
+        throw new RuntimeException("Not supported");
     }
 
     @Override

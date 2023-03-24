@@ -10,6 +10,8 @@ import java.util.Set;
 public interface EAPVal extends EAPTerm {
     //EAPExpr {  !!! values should be exprs?
 
+    EAValType infer();  // not intended to work for single var -- for use on ground vals at config level
+
     boolean canBeta();
 
     EAPVal beta();

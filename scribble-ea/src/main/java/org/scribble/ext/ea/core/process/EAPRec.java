@@ -6,6 +6,7 @@ import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
+import org.scribble.ext.ea.core.type.value.EAHandlersType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 import org.scribble.ext.ea.util.ConsoleColors;
@@ -47,6 +48,11 @@ public class EAPRec implements EAPVal {
         this.S = S;
         this.T = T;
         this.B = B;
+    }
+
+    @Override
+    public EAFuncType infer() {
+        return EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
     }
 
     @Override

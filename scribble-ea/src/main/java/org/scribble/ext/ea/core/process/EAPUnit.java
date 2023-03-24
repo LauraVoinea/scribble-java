@@ -3,6 +3,7 @@ package org.scribble.ext.ea.core.process;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
@@ -16,6 +17,11 @@ public class EAPUnit implements EAPVal {
     public static final EAPUnit UNIT = new EAPUnit();
 
     public EAPUnit() {
+    }
+
+    @Override
+    public EAUnitType infer() {
+        return EAUnitType.UNIT;
     }
 
     @Override

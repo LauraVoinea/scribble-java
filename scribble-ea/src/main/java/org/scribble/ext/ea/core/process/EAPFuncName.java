@@ -17,6 +17,11 @@ public class EAPFuncName extends Id implements EAPVal {
     }
 
     @Override
+    public EAValType infer() {
+        throw new RuntimeException("Not supported");
+    }
+
+    @Override
     public boolean canBeta() {
         return false;
     }

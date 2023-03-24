@@ -19,6 +19,11 @@ public class EAPVar implements EAPVal, EAName {
     }
 
     @Override
+    public EAValType infer() {
+        throw new RuntimeException("Not supported");
+    }
+
+    @Override
     public boolean canBeta() {
         return false;
     }

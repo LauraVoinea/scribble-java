@@ -3,13 +3,17 @@ package org.scribble.ext.ea.core.process;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
+import org.scribble.ext.ea.core.type.value.EAHandlersType;
+import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +40,22 @@ public class EAPHandlers implements EAPVal {
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public EAHandlersType infer() {
+        EATypeFactory f = EATypeFactory.factory;
+        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases =
+                this.Hs.entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> {
+                            EAPHandler v = x.getValue();
+                            return new EAPPair<>(v.varType, v.pre);
+                        },
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return f.val.handlers(f.local.in(this.role, cases));
     }
 
     @Override
