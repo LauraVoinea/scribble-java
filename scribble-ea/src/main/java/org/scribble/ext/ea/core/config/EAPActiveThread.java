@@ -44,9 +44,9 @@ public class EAPActiveThread implements EAPThreadState {
             return new Pair<>(foo.canBeta(), Collections.emptySet());
         } else if (foo instanceof EAPSend) {
             EAPSend cast = (EAPSend) foo;
-            Optional<Map.Entry<EAPPid, EAPConfig>> fst =
+            Optional<Map.Entry<EAPPid, EAPConfig<?>>> fst =
                     sys.configs.entrySet().stream().filter(x -> {
-                                EAPConfig v = x.getValue();
+                                EAPConfig<?> v = x.getValue();
                                 return v.T.isIdle() && v.sigma.keySet().stream().anyMatch(y ->
                                         y.left.equals(this.sid) && y.right.equals(cast.dst)
                                                 && x.getValue().sigma.get(y).role.equals(this.role));
