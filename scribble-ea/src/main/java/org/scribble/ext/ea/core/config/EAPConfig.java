@@ -29,7 +29,7 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
 
     @NotNull
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
-    public D state;
+    public D state;  // XXX FIXME should be specifically EAPVal -- do actual EA typing of val against handler state type annots (not meta Java typing)
 
     protected EAPConfig(@NotNull EAPPid pid,
                         @NotNull EAPThreadState T,
@@ -117,7 +117,7 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
             EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
 
             //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
-            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, (EAPIntVal) c2.state));
+            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, (EAPIntVal) c2.state));  // XXX FIXME state hardcoded
 
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
                     new LinkedHashMap<>(c2.sigma);
@@ -143,7 +143,7 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
                 LinkedHashMap<EAPPid, EAPConfig<?>> configs = new LinkedHashMap<>(sys.configs);
                 LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-                EAPThreadState t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
+                EAPThreadState t1 = EAPIdle.IDLE;
                 EAPSuspend cast = (EAPSuspend) foo;
                 sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
 
@@ -151,7 +151,7 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal
                 //tmp.put(new EAPPair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
 
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
-                EAPConfig<EAPIntVal> c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, (EAPIntVal) cast.sval);
+                EAPConfig<?> c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, cast.sval);
                 configs.put(this.pid, c1);
                 return configs;
             } else {
