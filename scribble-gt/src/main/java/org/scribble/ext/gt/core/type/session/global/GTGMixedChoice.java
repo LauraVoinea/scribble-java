@@ -102,6 +102,9 @@ public class GTGMixedChoice implements GTGType {
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
     public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+        if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
+            return Optional.empty();
+        }
         GTSNewTimeout nu = (GTSNewTimeout) a;
         /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
