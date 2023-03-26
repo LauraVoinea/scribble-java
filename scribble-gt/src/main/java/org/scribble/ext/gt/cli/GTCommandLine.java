@@ -10,6 +10,7 @@ import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -137,7 +138,7 @@ public class GTCommandLine extends CommandLine {
 
                     Theta theta = new Theta(translate.getTimeoutIds());
                     System.out.println("Initial theta = " + theta);
-                    foo(core, "", theta, translate, 2);
+                    foo(core, "", theta, translate, 2, new HashMap<>());
                     //bar(core, "", theta, translate, 0);
                 }
             }
@@ -204,7 +205,7 @@ public class GTCommandLine extends CommandLine {
     }
 
     // top level depth = 0
-    private void foo(Core core, String indent, Theta theta, GTGType g, int depth) {
+    private void foo(Core core, String indent, Theta theta, GTGType g, int depth, Map<String, Integer> unfolds) {
         if (!g.isGood()) {
             System.err.println("Not good: " + g);
             System.exit(0);
@@ -216,7 +217,7 @@ public class GTCommandLine extends CommandLine {
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
         Set<SAction<DynamicActionKind>> as = g.getActs(mf, theta).stream()
-                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounded via mixed...
+                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());
 
         System.out.println(indent + "as = " + as);
@@ -224,12 +225,25 @@ public class GTCommandLine extends CommandLine {
 
         for (SAction<DynamicActionKind> a : as) {
             Triple<Theta, GTGType, String> p = g.step(theta, a).get();  // a in as so step is non-empty
+
+            boolean prune = false;
+            Map<String, Integer> us = new HashMap<>(unfolds);
+            for (int i = p.right.indexOf('_'); i >= 0 && i < p.right.length(); i = p.right.indexOf('_', i + 1)) {
+                String recvar = p.right.substring(i + 1, p.right.indexOf(']', i + 1));
+                int n = us.computeIfAbsent(recvar, x -> 0);
+                us.put(recvar, n + 1);
+                if (n + 1 > depth) {
+                    prune = true;
+                }
+            }
+
             System.out.println(indent + p.right);
             System.out.println(indent + "a = " + a);
             System.out.println(indent + "g = " + p.mid);
             System.out.println(indent + "theta = " + p.left);
-            if (!p.right.equals(GTGEnd.END)) {
-                foo(core, indent + "    ", p.left, p.mid, depth);
+            System.out.println(indent + "unfolds = " + us);
+            if (!p.right.equals(GTGEnd.END) && !prune) {
+                foo(core, indent + "    ", p.left, p.mid, depth, us);
             }
         }
     }

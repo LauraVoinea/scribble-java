@@ -69,7 +69,7 @@ public class GTGRecursion implements GTGType {
     @Override
     public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         Optional<Triple<Theta, GTGType, String>> step = unfold().step(theta, a);  // !!! cf. [Rec], unfold-subs after step
-        return step.map(x -> new Triple<>(x.left, x.mid, "[Rec]" + x.right));
+        return step.map(x -> new Triple<>(x.left, x.mid, "[Rec_" + this.var + "]" + x.right));
     }
 
     @Override
