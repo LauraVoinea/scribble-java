@@ -44,9 +44,9 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return this.body.project(r).map(x -> new Pair<>(
+        return this.body.project(rs, r).map(x -> new Pair<>(
                 x.left.equals(this.var) ? lf.end() : lf.recursion(this.var, x.left),
                 x.right));
     }

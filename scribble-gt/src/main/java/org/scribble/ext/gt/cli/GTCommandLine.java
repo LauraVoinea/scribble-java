@@ -10,14 +10,15 @@ import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
-import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.job.Job;
@@ -125,8 +126,9 @@ public class GTCommandLine extends CommandLine {
 
                 System.out.println("---");
 
-                for (Role r : g.getRoles()) {
-                    System.out.println("project onto " + r + ": " + translate.project(r).get());
+                Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
+                for (Role r : rs) {
+                    System.out.println("project onto " + r + ": " + translate.project(rs, r).get());
                 }
 
                 System.out.println("---");
@@ -138,7 +140,7 @@ public class GTCommandLine extends CommandLine {
 
                     Theta theta = new Theta(translate.getTimeoutIds());
                     System.out.println("Initial theta = " + theta);
-                    foo(core, "", theta, translate, 2, new HashMap<>());
+                    foo(core, "", theta, translate, 2, new HashMap<>(), rs);
                     //bar(core, "", theta, translate, 0);
                 }
             }
@@ -205,7 +207,7 @@ public class GTCommandLine extends CommandLine {
     }
 
     // top level depth = 0
-    private void foo(Core core, String indent, Theta theta, GTGType g, int depth, Map<String, Integer> unfolds) {
+    private void foo(Core core, String indent, Theta theta, GTGType g, int depth, Map<String, Integer> unfolds, Set<Role> rs) {
         if (!g.isGood()) {
             System.err.println("Not good: " + g);
             System.exit(0);
@@ -213,6 +215,13 @@ public class GTCommandLine extends CommandLine {
         if (!g.isCoherent()) {
             System.err.println("Not coherent: " + g);
             System.exit(0);
+        }
+        for (Role r : rs) {
+            Optional<Pair<? extends GTLType, Sigma>> p = g.project(rs, r);
+            if (!p.isPresent()) {
+                System.err.println("Couldn't project onto " + r + ": " + g);
+                System.exit(0);
+            }
         }
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
@@ -243,7 +252,7 @@ public class GTCommandLine extends CommandLine {
             System.out.println(indent + "theta = " + p.left);
             System.out.println(indent + "unfolds = " + us);
             if (!p.right.equals(GTGEnd.END) && !prune) {
-                foo(core, indent + "    ", p.left, p.mid, depth, us);
+                foo(core, indent + "    ", p.left, p.mid, depth, us, rs);
             }
         }
     }

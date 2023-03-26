@@ -56,13 +56,13 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src) || r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             Sigma sigma = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(r);
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r);
                 if (opt.isEmpty()) {
                     return Optional.empty();
                 }
@@ -79,16 +79,16 @@ public class GTGInteraction implements GTGType {
                     : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
-                    this.cases.values().stream().map(x -> x.project(r));
+                    this.cases.values().stream().map(x -> x.project(rs, r));
             Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
             // FIXME stream made twice... -- refactor with GTGWiggly
-            str = this.cases.values().stream().map(x -> x.project(r));  // !!! XXX
+            str = this.cases.values().stream().map(x -> x.project(rs, r));  // !!! XXX
             return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }
 
-    // TODO refactor with GTMixedActive
+    // TODO refactor with GTMixedActive -- XXX mixed active needs to do Sigma.circ
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
             Optional<Pair<? extends GTLType, Sigma>> right) {
@@ -98,7 +98,6 @@ public class GTGInteraction implements GTGType {
         Optional<? extends GTLType> merge = merge(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = mergeSigma(left.map(x -> x.right), right.map(x -> x.right));
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
-
     }
 
     public static Optional<Sigma> mergeSigma(

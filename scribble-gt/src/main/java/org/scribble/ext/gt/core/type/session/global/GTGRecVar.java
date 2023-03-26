@@ -34,9 +34,9 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma()));
+        return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma(rs)));
     }
 
     @Override

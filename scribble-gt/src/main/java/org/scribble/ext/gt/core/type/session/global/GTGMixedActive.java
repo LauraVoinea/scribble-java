@@ -65,21 +65,23 @@ public class GTGMixedActive implements GTGType {
         return res;
     }
 
+    // Pre: this.committedLeft.contains(r) xor this.committedRight.contains(r)
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
         // Same as MixedChoice except with n
         if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
-            return this.left.project(r);
+            return this.left.project(rs, r);
         } else if (this.committedRight.contains(r) && !this.committedLeft.contains(r)) {
-            return this.right.project(r);
+            return this.right.project(rs, r);
         } else { //if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
             //throw new RuntimeException("TODO: ");  // p,q ??
             GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(r);
-            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(r);
-            if (r.equals(this.other) || r.equals(this.observer)) {
+            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r);
+            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r);
+            if (!(r.equals(this.other) || r.equals(this.observer))) {
                 Optional<Pair<? extends GTLType, Sigma>> merged =
-                        GTGInteraction.mergePair(opt_l, opt_r);
+                        GTGMixedActive.mergePair(opt_l, opt_r);
+                System.out.println("aaaaaa: " + this + " ,, " + r + " \n " + opt_l + " ,, " + opt_r + "\n" + merged);
                 if (!merged.isPresent()) { //optl.isEmpty() || optr.isEmpty()) {
                     return Optional.empty();
                 }
@@ -90,6 +92,17 @@ public class GTGMixedActive implements GTGType {
                     lf.mixedActive(this.c, this.n, get_l.left, get_r.left),
                     get_l.right.circ(get_r.right)));
         }
+    }
+
+    // Does Sigma.circ -- cf. GTGInteraction
+    public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
+            Optional<Pair<? extends GTLType, Sigma>> left,
+            Optional<Pair<? extends GTLType, Sigma>> right) {
+        Optional<? extends GTLType> merge = GTGInteraction.merge(left.map(x -> x.left), right.map(x -> x.left));
+        System.out.println("bbbbb: " + merge);
+        Optional<Sigma> sigma = left.flatMap(x -> right.map(y -> x.right.circ(y.right)));
+        System.out.println("cccccc: " + sigma);
+        return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
 
     @Override

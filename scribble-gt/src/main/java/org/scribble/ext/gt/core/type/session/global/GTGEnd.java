@@ -28,8 +28,8 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
-        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma()));
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
+        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma(rs)));
     }
 
     @Override

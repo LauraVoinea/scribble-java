@@ -12,8 +12,8 @@ public class Sigma {
 
     public final Map<Role, List<GTESend<DynamicActionKind>>> map;
 
-    public Sigma() {
-        this(Collections.emptyMap());
+    public Sigma(Set<Role> rs) {
+        this.map = rs.stream().collect(Collectors.toMap(x -> x, x -> Collections.unmodifiableList(new LinkedList<>())));
     }
 
     public Sigma(Map<Role, List<GTESend<DynamicActionKind>>> init) {

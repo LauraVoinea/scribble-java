@@ -53,14 +53,14 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(r);
-        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(r);
+        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(rs, r);
+        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(rs, r);
         if (optl.isEmpty() || optr.isEmpty()) {
             return Optional.empty();
         }
-        Sigma s0 = new Sigma();
+        Sigma s0 = new Sigma(rs);
         Pair<? extends GTLType, Sigma> get_l = optl.get();
         Pair<? extends GTLType, Sigma> get_r = optr.get();
         if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
