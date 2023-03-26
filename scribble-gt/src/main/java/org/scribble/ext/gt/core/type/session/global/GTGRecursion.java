@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -16,7 +17,7 @@ import java.util.*;
 
 public class GTGRecursion implements GTGType {
 
-    private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
+    //private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
 
     public final RecVar var;
     public final GTGType body;
@@ -65,12 +66,13 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         return unfold().step(theta, a);
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    public LinkedHashSet<SAction<DynamicActionKind>>
+    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         return this.body.getActs(mf, theta, blocked);
     }
 

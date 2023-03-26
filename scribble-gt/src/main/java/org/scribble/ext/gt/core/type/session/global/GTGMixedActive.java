@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -126,7 +127,7 @@ public class GTGMixedActive implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
         Optional<Pair<Theta, GTGType>> optl = this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
@@ -207,14 +208,14 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked) {  // XXX outer still OK to reduce if inner is fully ended?
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction> aLeft = this.left.getActs(mf, theta, bLeft);
+        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft);
         Set<Role> bRight = Stream.concat(blocked.stream(),
                 this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction> aRight = this.right.getActs(mf, theta, bRight);
+        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getActs(mf, theta, bRight);
         aLeft.addAll(aRight);
         return aLeft;
     }

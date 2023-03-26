@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -13,7 +14,6 @@ import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.util.Pair;
 
-import java.io.Console;
 import java.util.*;
 
 public class GTGMixedChoice implements GTGType {
@@ -101,11 +101,11 @@ public class GTGMixedChoice implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
             return Optional.empty();
         }
-        GTSNewTimeout nu = (GTSNewTimeout) a;
+        GTSNewTimeout<?> nu = (GTSNewTimeout<?>) a;
         /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
         Theta theta1 = new Theta(tmp);*/
@@ -120,9 +120,9 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked) {
-        LinkedHashSet<SAction> res = new LinkedHashSet<>();
+        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
         if (theta.map.containsKey(this.c)) {
             Integer n = theta.map.get(this.c);
             res.add(mf.SNewTimeout(this.c, n));

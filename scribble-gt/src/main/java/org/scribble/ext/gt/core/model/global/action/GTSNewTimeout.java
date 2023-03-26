@@ -15,12 +15,13 @@
  */
 package org.scribble.ext.gt.core.model.global.action;
 
+import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class GTSNewTimeout extends SAction {
+public class GTSNewTimeout<A extends ActionKind> extends SAction<A> {
     public final int c;
     public final int n;
 
@@ -57,7 +58,7 @@ public class GTSNewTimeout extends SAction {
         if (!(o instanceof GTSNewTimeout)) {
             return false;
         }
-        GTSNewTimeout them = (GTSNewTimeout) o;
+        GTSNewTimeout<?> them = (GTSNewTimeout<?>) o;
         return super.equals(o)  // Does canEquals
                 && this.c == them.c && this.n == them.n;
     }

@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
@@ -119,7 +120,7 @@ public class GTGInteraction implements GTGType {
         } else {
             throw new RuntimeException("TODO");
         }*/
-        return left.flatMap(x -> right.flatMap(y -> x.merge(y)));
+        return left.flatMap(x -> right.flatMap(x::merge));
     }
 
     @Override
@@ -134,16 +135,16 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(x -> x.isCoherent());
+        return this.cases.values().stream().allMatch(GTGType::isCoherent);
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         if (this.src.equals(a.subj)) {
             if (a.isSend()) {  // [Snd]
-                SSend cast = (SSend) a;
+                SSend<DynamicActionKind> cast = (SSend<DynamicActionKind>) a;
                 if (cast.obj.equals(this.dst)
-                        && this.cases.keySet().contains(cast.mid)) {
+                        && this.cases.containsKey(cast.mid)) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
                     return Optional.of(new Pair<>(
@@ -166,7 +167,7 @@ public class GTGInteraction implements GTGType {
     }
 
     protected Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> stepNested(
-            Map<Op, GTGType> cases, Theta theta, SAction a) {
+            Map<Op, GTGType> cases, Theta theta, SAction<DynamicActionKind> a) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         Theta fst = null;
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
@@ -209,19 +210,19 @@ public class GTGInteraction implements GTGType {
     // HERE HERE HERE SAction generics -> need GT SAction with
 
     @Override
-    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);
         tmp.add(this.dst);
         ////this.cases.values().stream().flatMap(x -> x.getActs(tmp).stream()).collect(Collectors.toCollection(LinkedHashSet::new));
         //LinkedHashSet<SAction> collect = new LinkedHashSet<>();
-        LinkedHashSet<SAction> res = new LinkedHashSet<>();
+        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
 
-        Map<Op, LinkedHashSet<SAction>> coll = new LinkedHashMap<>();
+        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             if (!blocked.contains(this.src)) {
-                SSend a = mf.SSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
+                SSend<DynamicActionKind> a = mf.SSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
                 res.add(a);
             }
             //collect.addAll(e.getValue().getActs(mf, theta, tmp));
@@ -229,8 +230,8 @@ public class GTGInteraction implements GTGType {
         }
 
         // !!!
-        Collection<LinkedHashSet<SAction>> vs = coll.values();
-        for (SAction a : vs.iterator().next()) {
+        Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
+        for (SAction<DynamicActionKind> a : vs.iterator().next()) {
             if (vs.stream().allMatch(x -> x.contains(a))) {
                 res.add(a);
             }

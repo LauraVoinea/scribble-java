@@ -8,6 +8,7 @@ import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
@@ -162,23 +163,24 @@ public class GTCommandLine extends CommandLine {
 
         List<Integer> tmp = new LinkedList<>();
         tmp.add(1);
-        Map<Integer, SAction> as = g.getActs(mf, theta).stream().collect(Collectors.toMap(
-                x -> {
-                    int i = tmp.remove(0);
-                    tmp.add(i + 1);
-                    return i;
-                },
-                x -> x,
-                (x, y) -> null,
-                LinkedHashMap::new
-        ));
+        Map<Integer, SAction<DynamicActionKind>> as =
+                g.getActs(mf, theta).stream().collect(Collectors.toMap(
+                        x -> {
+                            int i = tmp.remove(0);
+                            tmp.add(i + 1);
+                            return i;
+                        },
+                        x -> x,
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
 
         if (!as.isEmpty()) {
             System.out.println("Actions: " + as.entrySet().stream().map(
                     x -> x.getKey() + "=" + x.getValue()).collect(Collectors.joining(", ")));
             System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
             String read = KB.nextLine();
-            SAction a = null;
+            SAction<DynamicActionKind> a = null;
             try {
                 a = as.get(Integer.parseInt(read));
             } catch (NumberFormatException x) {
@@ -213,7 +215,7 @@ public class GTCommandLine extends CommandLine {
         }
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
-        Set<SAction> as = g.getActs(mf, theta);
+        Set<SAction<DynamicActionKind>> as = g.getActs(mf, theta);
 		/*System.out.println(as);
 		SAction a = as.iterator().next();
 		GTGType g1 = g.step(a).get();  // a in as so step is non-empty
@@ -231,7 +233,7 @@ public class GTCommandLine extends CommandLine {
 		System.out.println(indent + "a = " + a);
 		System.out.println(indent + "g = " + g1);*/
 
-        for (SAction a : as) {
+        for (SAction<DynamicActionKind> a : as) {
             //System.out.println("bbb: " + g.getClass() + " ,, " + g + " ,, " + a);
 
             Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty

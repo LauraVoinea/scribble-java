@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -7,7 +8,6 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.local.GTLEnd;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.util.Pair;
@@ -52,12 +52,12 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         return Optional.empty();
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         return new LinkedHashSet<>();
     }
 

@@ -116,21 +116,21 @@ public class GTGWiggly implements GTGType {
     @Override
     public boolean isGood() {
         return this.cases.values().stream().allMatch(GTGType::isGood)
-                && this.cases.keySet().contains(this.op);  // !!!
+                && this.cases.containsKey(this.op);  // !!!
     }
 
     @Override
     public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(x -> x.isCoherent());
+        return this.cases.values().stream().allMatch(GTGType::isCoherent);
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         if (this.dst.equals(a.subj)) {
             if (a.isReceive()) {  // [Rcv]
-                SRecv cast = (SRecv) a;
+                SRecv<?> cast = (SRecv<?>) a;
                 if (cast.obj.equals(this.src)
-                        && this.cases.keySet().contains(cast.mid)) {
+                        && this.cases.containsKey(cast.mid)) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
                     return Optional.of(new Pair<>(theta, this.cases.get(cast.mid)));
@@ -150,7 +150,7 @@ public class GTGWiggly implements GTGType {
     }
 
     protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
-            Map<Op, GTGType> cases, Theta theta, SAction a) {
+            Map<Op, GTGType> cases, Theta theta, SAction<DynamicActionKind> a) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
@@ -170,30 +170,31 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    public LinkedHashSet<SAction<DynamicActionKind>>
+    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.dst);
-        LinkedHashSet<SAction> res = new LinkedHashSet<>();
+        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
 
-        Map<Op, LinkedHashSet<SAction>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
+        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             Op op = e.getKey();
-            LinkedHashSet<SAction> as = e.getValue().getActs(mf, theta, tmp);
+            LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getActs(mf, theta, tmp);
             coll.put(op, new LinkedHashSet<>(
                     as.stream().filter(x -> !x.subj.equals(this.src)).collect(Collectors.toSet())));
         }
 
         if (!blocked.contains(this.dst)) {
             // N.B. SRecv subj is this.dst
-            SRecv a = mf.SRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD);  // FIXME empty
+            SRecv<DynamicActionKind> a = mf.SRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD);  // FIXME empty
             res.add(a);
         }
         this.cases.get(this.op).getActs(mf, theta, blocked).stream()
                 .filter(x -> x.subj.equals(this.src)).forEach(x -> res.add(x));
 
         // !!!
-        Collection<LinkedHashSet<SAction>> vs = coll.values();
-        for (SAction a : vs.iterator().next()) {
+        Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
+        for (SAction<DynamicActionKind> a : vs.iterator().next()) {
             if (vs.stream().allMatch(x -> x.contains(a))) {
                 res.add(a);
             }

@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -23,9 +24,7 @@ public class GTGRecVar implements GTGType {
 
     @Override
     public GTGType unfoldContext(Map<RecVar, GTGType> c) {
-        return c.containsKey(this.var)
-                ? c.get(this.var)
-                : this;  // CHECKME
+        return c.getOrDefault(this.var, this);  // CHECKME this
     }
 
     @Override
@@ -55,12 +54,13 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a) {
+    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
         return Optional.empty();
     }
 
     @Override
-    public LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    public LinkedHashSet<SAction<DynamicActionKind>>
+    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
         return new LinkedHashSet<>();
     }
 

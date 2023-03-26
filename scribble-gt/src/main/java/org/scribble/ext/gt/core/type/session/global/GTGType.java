@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
@@ -43,13 +44,14 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Set<Integer> getTimeoutIds();
 
     // a is deterministic (including "nested" steps)
-    Optional<Pair<Theta, GTGType>> step(Theta theta, SAction a);
+    Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a);
 
-    default LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta) {
+    // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
+    default LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta) {
         return getActs(mf, theta, Collections.emptySet());
     }
 
-    LinkedHashSet<SAction> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked);
+    LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked);
 
     Set<Op> getOps();
 }
