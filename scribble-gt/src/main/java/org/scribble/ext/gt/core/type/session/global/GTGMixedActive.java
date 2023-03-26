@@ -11,6 +11,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -127,77 +128,89 @@ public class GTGMixedActive implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-        Optional<Pair<Theta, GTGType>> optl = this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                ? Optional.empty()
-                : this.left.step(theta, a);
-        Optional<Pair<Theta, GTGType>> optr = this.committedLeft.contains(a.subj)
-                ? Optional.empty()
-                : this.right.step(theta, a);
+        Optional<Triple<Theta, GTGType, String>> optl =
+                this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
+                        ? Optional.empty()
+                        : this.left.step(theta, a);
+        Optional<Triple<Theta, GTGType, String>> optr =
+                this.committedLeft.contains(a.subj)
+                        ? Optional.empty()
+                        : this.right.step(theta, a);
         if (optl.isPresent() && optr.isPresent()) {
             // [RTAct]
             // !!! CHECKME: check something re. this.p/q and a ?
-            return Optional.of(new Pair<>(
+            return Optional.of(new Triple<>(
                     theta,  // XXX FIXME wrong in rule
                     this.fact.activeMixedChoice(this.c, this.n,
-                            optl.get().right,
-                            optr.get().right,
-                            this.other, this.observer, cl, cr)));
+                            optl.get().mid,
+                            optr.get().mid,
+                            this.other, this.observer, cl, cr),
+                    "[RTAct][..discard..]"));  // !!! Discard both opt strings
         } else if (optl.isPresent()) {
             if (optr.isPresent() || this.committedRight.contains(a.subj)) {  // First cond is redundant
                 return Optional.empty();
             }
-            Pair<Theta, GTGType> get = optl.get();
+            Triple<Theta, GTGType, String> get = optl.get();
             if (a.isReceive()) {
+                String rule;
                 if (this.committedLeft.contains(a.obj) || a.subj.equals(this.observer)) {  // XXX this.p => q ?
                     // [LRcv1]
                     cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
+                    rule = "[LRcv1]";
                 } else {
                     // [LRcv2]
+                    rule = "[LRcv2]";
                 }
-                return Optional.of(new Pair<>(
+                return Optional.of(new Triple<>(
                         get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
+                        this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
+                        rule));
             } else if (a.isSend()) {  // [LSnd]
-                return Optional.of(new Pair<>(
+                return Optional.of(new Triple<>(
                         get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
+                        this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
+                        "[LSnd]" + get.right));
 
             } else if (a instanceof GTSNewTimeout) {  // Hack
-                return Optional.of(new Pair<>(
+                return Optional.of(new Triple<>(
                         get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
+                        this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
+                        "[TO-HACK-L]" + get.right));
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
         } else if (optr.isPresent()) {
-            Pair<Theta, GTGType> get = optr.get();  // May be empty for nested mixed choices in the "stuck" side
+            Triple<Theta, GTGType, String> get = optr.get();  // May be empty for nested mixed choices in the "stuck" side
             if (a.isSend()) {
                 // [RSnd]
-                if (optl.isPresent() || this.committedLeft.contains(a.subj)) {  // First cond is redundant
+                if (optl.isPresent() || this.committedLeft.contains(a.subj)) {  // First cond is redundant due to earlier
                     return Optional.empty();
                 }
                 cr.add(a.subj);
-                return Optional.of(new Pair<>(
+                return Optional.of(new Triple<>(
                         get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
+                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
+                        "[RSnd]" + get.right));
             } else if (a.isReceive()) {
                 // [RRcv]
-                if (optl.isPresent()) {  // Redundant in this code
+                if (optl.isPresent()) {  // Redundant due to earlier
                     return Optional.empty();
                 }
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
-                return Optional.of(new Pair<>(
+                return Optional.of(new Triple<>(
                         get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
+                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
+                        "[RRcv]" + get.right));
 
             } else if (a instanceof GTSNewTimeout) {  // Hack
-                return Optional.of(new Pair<>(
+                return Optional.of(new Triple<>(
                         get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
+                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
+                        "[TO-HACK-R]" + get.right));
 
             } else {
                 throw new RuntimeException("TODO: " + a);

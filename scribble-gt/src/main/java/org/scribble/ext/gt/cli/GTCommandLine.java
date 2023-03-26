@@ -7,22 +7,26 @@ import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
-import org.scribble.core.job.CoreContext;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.main.GTMain;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
-import org.scribble.util.*;
+import org.scribble.util.AntlrSourceException;
+import org.scribble.util.Pair;
+import org.scribble.util.ScribException;
+import org.scribble.util.ScribParserException;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -132,8 +136,9 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("Initial g = " + translate);
 
                     Theta theta = new Theta(translate.getTimeoutIds());
-                    ////foo(core, "", theta, translate, 0);
-                    bar(core, "", theta, translate, 0);
+                    System.out.println("Initial theta = " + theta);
+                    foo(core, "", theta, translate, 2);
+                    //bar(core, "", theta, translate, 0);
                 }
             }
         }
@@ -187,20 +192,19 @@ public class GTCommandLine extends CommandLine {
                 System.exit(0);
             }
 
-            Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty
+            Triple<Theta, GTGType, String> p = g.step(theta, a).get();  // a in as so step is non-empty
+            System.out.println(indent + p.right);
             System.out.println(indent + "a = " + a);
             System.out.println(indent + "theta = " + p.left);
-            System.out.println(indent + "g = " + p.right);
+            System.out.println(indent + "g = " + p.mid);
             if (!p.right.equals(GTGEnd.END)) {
-                bar(core, indent + "    ", p.left, p.right, count++);
+                bar(core, indent + "    ", p.left, p.mid, count++);
             }
         }
     }
 
-    private void foo(Core core, String indent, Theta theta, GTGType g, int count) {
-        System.out.print("Press [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
-        KB.nextLine();
-
+    // top level depth = 0
+    private void foo(Core core, String indent, Theta theta, GTGType g, int depth) {
         if (!g.isGood()) {
             System.err.println("Not good: " + g);
             System.exit(0);
@@ -209,38 +213,23 @@ public class GTCommandLine extends CommandLine {
             System.err.println("Not coherent: " + g);
             System.exit(0);
         }
-        if (count > 20) {
-            System.err.println("Pruned.");
-            return;
-        }
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
-        Set<SAction<DynamicActionKind>> as = g.getActs(mf, theta);
-		/*System.out.println(as);
-		SAction a = as.iterator().next();
-		GTGType g1 = g.step(a).get();  // a in as so step is non-empty
-		System.out.println("aaa: " + a + " ,, " + g1);
-		System.out.println(indent + "a = " + a);
-		System.out.println(indent + "g = " + g1);
+        Set<SAction<DynamicActionKind>> as = g.getActs(mf, theta).stream()
+                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounded via mixed...
+                .collect(Collectors.toSet());
 
-		System.out.println("---");
-
-		as = g1.getActs(core.config.mf.global);
-		System.out.println(as);
-		a = as.iterator().next();
-		g1 = g1.step(a).get();  // a in as so step is non-empty
-		System.out.println("aaa: " + a + " ,, " + g1);
-		System.out.println(indent + "a = " + a);
-		System.out.println(indent + "g = " + g1);*/
+        System.out.println(indent + "as = " + as);
+        //String read = KB.nextLine();
 
         for (SAction<DynamicActionKind> a : as) {
-            //System.out.println("bbb: " + g.getClass() + " ,, " + g + " ,, " + a);
-
-            Pair<Theta, GTGType> p = g.step(theta, a).get();  // a in as so step is non-empty
+            Triple<Theta, GTGType, String> p = g.step(theta, a).get();  // a in as so step is non-empty
+            System.out.println(indent + p.right);
             System.out.println(indent + "a = " + a);
-            System.out.println(indent + "g = " + p.right);
+            System.out.println(indent + "g = " + p.mid);
+            System.out.println(indent + "theta = " + p.left);
             if (!p.right.equals(GTGEnd.END)) {
-                foo(core, indent + "    ", p.left, p.right, count++);
+                foo(core, indent + "    ", p.left, p.mid, depth);
             }
         }
     }

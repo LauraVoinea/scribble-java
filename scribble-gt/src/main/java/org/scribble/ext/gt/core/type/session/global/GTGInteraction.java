@@ -12,6 +12,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -139,7 +140,7 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         if (this.src.equals(a.subj)) {
             if (a.isSend()) {  // [Snd]
                 SSend<DynamicActionKind> cast = (SSend<DynamicActionKind>) a;
@@ -147,9 +148,10 @@ public class GTGInteraction implements GTGType {
                         && this.cases.containsKey(cast.mid)) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    return Optional.of(new Pair<>(
+                    return Optional.of(new Triple<>(
                             theta,
-                            this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp)));
+                            this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp),
+                            "[Snd]"));
                 }
             }
             return Optional.empty();
@@ -159,9 +161,10 @@ public class GTGInteraction implements GTGType {
                 : Optional.empty();*/
             Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> nestedCases =
                     stepNested(this.cases, theta, a);
-            return nestedCases.map(x -> new Pair<>(
+            return nestedCases.map(x -> new Triple<>(
                     x.left,
-                    this.fact.choice(this.src, this.dst, x.right)));
+                    this.fact.choice(this.src, this.dst, x.right),
+                    "[Cont1][..discard..]"));
         }
         return Optional.empty();
     }
@@ -174,17 +177,17 @@ public class GTGInteraction implements GTGType {
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
             GTGType c = e.getValue();
-            Optional<Pair<Theta, GTGType>> step = c.step(theta, a);
+            Optional<Triple<Theta, GTGType, String>> step = c.step(theta, a);
             if (step.isEmpty()) {
                 return Optional.empty();
             }
-            Pair<Theta, GTGType> p = step.get();
+            Triple<Theta, GTGType, String> p = step.get();  // !!! discarding [rule]
             if (fst == null) {
                 fst = p.left;
             } else if (!p.left.equals(fst)) {
                 return Optional.empty();
             }
-            cs.put(op, p.right);
+            cs.put(op, p.mid);
         }
         return Optional.of(new Pair<>(fst, cs));
         /*boolean done = false;

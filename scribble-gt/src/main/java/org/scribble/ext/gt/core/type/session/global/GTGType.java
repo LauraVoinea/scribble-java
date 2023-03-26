@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -44,8 +45,9 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Set<Integer> getTimeoutIds();
 
     // a is deterministic (including "nested" steps)
-    Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a);
+    Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a);
 
+    //HERE HERE fix SAction kinds and add c, n
     // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
     default LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta) {
         return getActs(mf, theta, Collections.emptySet());

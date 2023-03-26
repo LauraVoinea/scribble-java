@@ -12,6 +12,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -101,7 +102,7 @@ public class GTGMixedChoice implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
             return Optional.empty();
         }
@@ -116,7 +117,7 @@ public class GTGMixedChoice implements GTGType {
                 this.left, this.right, this.other, this.observer,
                 new LinkedHashSet<>(), new LinkedHashSet<>());
 
-        return Optional.of(new Pair<>(theta1, active));
+        return Optional.of(new Triple<>(theta1, active, "[Inst]"));
     }
 
     @Override

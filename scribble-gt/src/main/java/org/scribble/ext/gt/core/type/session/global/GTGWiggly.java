@@ -13,6 +13,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -125,7 +126,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public Optional<Pair<Theta, GTGType>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         if (this.dst.equals(a.subj)) {
             if (a.isReceive()) {  // [Rcv]
                 SRecv<?> cast = (SRecv<?>) a;
@@ -133,7 +134,7 @@ public class GTGWiggly implements GTGType {
                         && this.cases.containsKey(cast.mid)) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    return Optional.of(new Pair<>(theta, this.cases.get(cast.mid)));
+                    return Optional.of(new Triple<>(theta, this.cases.get(cast.mid), "[Rcv]"));
                 }
             }
             return Optional.empty();
@@ -141,17 +142,18 @@ public class GTGWiggly implements GTGType {
             /*return done
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
                     : Optional.empty();*/
-            Optional<LinkedHashMap<Op, GTGType>> nestedCases
-                    = stepNested(this.cases, theta, a);  // !!! XXX I\k
-            return nestedCases.map(x -> new Pair<>(
-                    theta,
-                    this.fact.wiggly(this.src, this.dst, this.op, x)));
+            Optional<Triple<Theta, LinkedHashMap<Op, GTGType>, String>> nestedCases
+                    = stepNested(theta, a);
+            return nestedCases.map(x -> new Triple<>(
+                    x.left,
+                    this.fact.wiggly(this.src, this.dst, this.op, x.mid),
+                    "[Cont2]" + x.right));
         }
     }
 
-    protected Optional<LinkedHashMap<Op, GTGType>> stepNested(
-            Map<Op, GTGType> cases, Theta theta, SAction<DynamicActionKind> a) {
-        Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
+    protected Optional<Triple<Theta, LinkedHashMap<Op, GTGType>, String>> stepNested(
+            Theta theta, SAction<DynamicActionKind> a) {
+        /*//Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
@@ -166,7 +168,15 @@ public class GTGWiggly implements GTGType {
                 cs.put(op, c);
             }
         }
-        return Optional.of(cs);
+        return Optional.of(cs);*/
+        Optional<Triple<Theta, GTGType, String>> step = this.cases.get(this.op).step(theta, a);
+        if (step.isPresent()) {
+            Triple<Theta, GTGType, String> get = step.get();
+            LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>(this.cases);
+            cs.put(op, get.mid);
+            return Optional.of(new Triple<>(get.left, cs, get.right));
+        }
+        return Optional.empty();
     }
 
     @Override
