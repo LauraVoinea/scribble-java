@@ -22,17 +22,26 @@ type <fstar> "string" from "..." as String;
 // !!! FIXME: duplicate located statevars not checked, e.g., A[y:int=0] B[y:int=0]
 
 
-/*
+//*
 global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
+    // HERE HERE test rec svar GC
+
     1() from A to B;
     do Proto1(A, B); @'A[0, m]'
 }
 //*/
 
 
+
+
+
+
+
+
+
 // HERE HERE more testing of sessionstar example RCAs -> tempRunSyncSat global validation (check status of global LTS)
 
-// HERE HERE move all lambdas to silents on concretes and start from blank lambda -- cf. ff and flatten?
+// HERE XXX(?) move all lambdas to silents on concretes and start from blank lambda -- cf. ff and flatten?
 //({x=(ZERO, int)}, B?{ 4(y1:int){True}.end, 5(y2:int){True}.end })
 //({z1=(ZERO, int)}, B?:3(z2:int){True}.end)
 
@@ -41,11 +50,12 @@ global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
 
 
 
-//*/
+/*/
 global protocol Proto1(role A, role B, role C)
 {
     1(x: int) from A to B;  @'x>0'
     2(y: int) from B to C;  @'y>x'
+    //2(y: int) from B to C;  @'x<0'
 }
 //*/
 

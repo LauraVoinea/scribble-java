@@ -2,8 +2,7 @@ package org.scribble.ext.assrt.core.type.formal.global;
 
 import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.formula.*;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.ext.assrt.util.Triple;
@@ -123,6 +122,27 @@ public class AssrtGamma {
         return res;
     }
 
+    // hat and nohat the same re. validation?
+    public AssrtBFormula close(AssrtBFormula rhs) {
+        Optional<AssrtBFormula> red = Stream.concat(
+                        this.hat.values().stream().map(x -> x.right),
+                        this.nohat.values().stream().map(x -> x.right))
+                .distinct()
+                .filter(x -> !x.equals(AssrtTrueFormula.TRUE))
+                .reduce((x, y) -> AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, x, y));
+        if (!red.isPresent()) {
+            return rhs;
+        }
+        AssrtBFormula lhs = red.get();
+        List<AssrtAVarFormula> vs = Stream.concat(this.hat.keySet().stream(), this.nohat.keySet().stream())
+                .map(x -> (AssrtAVarFormula) AssrtFormulaFactory.AssrtIntVar(x.toString()))  // FIXME factory should take VarFormula (without A)
+                .collect(Collectors.toList());
+        AssrtBinBFormula impl = AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.Imply, lhs, rhs);
+        return AssrtFormulaFactory.AssrtForallFormula(vs, impl);
+    }
+
+    /* ... */
+
     @Override
     public String toString() {
         return "({" +
@@ -135,6 +155,8 @@ public class AssrtGamma {
                         .collect(Collectors.joining(", ")) +
                 "})";
     }
+
+    /* ... */
 
     @Override
     public boolean equals(Object obj) {

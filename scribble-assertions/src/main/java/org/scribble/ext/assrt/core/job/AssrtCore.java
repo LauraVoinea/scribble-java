@@ -14,7 +14,6 @@
 package org.scribble.ext.assrt.core.job;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,15 +23,12 @@ import org.scribble.core.lang.ProtoMod;
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.lang.local.LProjection;
 import org.scribble.core.model.ModelFactory;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.global.SGraph;
-import org.scribble.core.model.global.SModelFactory;
 import org.scribble.core.type.kind.Global;
 import org.scribble.core.type.name.*;
 import org.scribble.core.visit.STypeVisitorFactory;
 import org.scribble.core.visit.STypeVisitorFactoryImpl;
 import org.scribble.core.visit.global.GTypeVisitorFactoryImpl;
-import org.scribble.ext.assrt.core.lang.AssrtProtocol;
 import org.scribble.ext.assrt.core.lang.global.AssrtGProtocol;
 import org.scribble.ext.assrt.core.model.endpoint.AssrtEModelFactoryImpl;
 import org.scribble.ext.assrt.core.model.formal.endpoint.RCA;
@@ -40,7 +36,6 @@ import org.scribble.ext.assrt.core.model.formal.endpoint.RCAState;
 import org.scribble.ext.assrt.core.model.global.AssrtSGraph;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactory;
 import org.scribble.ext.assrt.core.model.global.AssrtSModelFactoryImpl;
-import org.scribble.ext.assrt.core.model.global.action.AssrtSSend;
 import org.scribble.ext.assrt.core.type.formal.Multiplicity;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGTranslator;
 import org.scribble.ext.assrt.core.type.formal.global.AssrtFormalGType;
@@ -49,16 +44,11 @@ import org.scribble.ext.assrt.core.type.formal.global.AssrtPhi;
 import org.scribble.ext.assrt.core.type.formal.global.action.AssrtFormalGComm;
 import org.scribble.ext.assrt.core.type.formal.local.*;
 import org.scribble.ext.assrt.core.type.formal.local.action.*;
-import org.scribble.ext.assrt.core.type.formula.AssrtAFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtBFormula;
-import org.scribble.ext.assrt.core.type.formula.AssrtTrueFormula;
+import org.scribble.ext.assrt.core.type.formula.*;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
 import org.scribble.ext.assrt.core.type.session.AssrtSTypeFactory;
-import org.scribble.ext.assrt.core.type.session.global.AssrtGTypeFactory;
-import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGConfig;
-import org.scribble.ext.assrt.core.type.session.global.lts.AssrtGEnv;
 import org.scribble.ext.assrt.core.visit.gather.AssrtRoleGatherer;
 import org.scribble.ext.assrt.core.visit.local.AssrtLTypeVisitorFactoryImpl;
 import org.scribble.ext.assrt.job.AssrtJob.Solver;
@@ -114,7 +104,7 @@ public class AssrtCore extends Core {
         //runProjectionSyntaxWfPasses();
         runEfsmBuildingPasses();  // Currently, unfair-transform graph building must come after syntactic WF --- TODO fix graph building to prevent crash ?
         runLocalModelCheckingPasses();
-        runGlobalModelCheckingPasses();
+        //runGlobalModelCheckingPasses();  // Also checks "local knowledge" -- basically no phantoms?
 
         tempRunSyncSat();  // XXX HERE HERE global model building
 
@@ -549,23 +539,54 @@ public class AssrtCore extends Core {
             if (!g.mods.contains(ProtoMod.AUX)) {
                 AssrtFormalGType g1 = tr.translate(g.type);
                 System.out.println("1111: " + g.fullname + " ,, " + g1);
-                Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>>
-                        graph = tempRunSyncSat(g1);
-                //Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());  // !!! use g.getRoles
-
-                // assert progress
-                // ...maybe convert graph structure to Map of Map
-                // Pair<AssrtGamma, AssrtFormalGType> ---AssrtFormalGComm--> Pair<AssrtGamma, AssrtFormalGType>
-                // Conj AssrtGamma_L -> Disj GComm assrts
-                // ...check graph for recursion assertions -- rec-assrt-prog not needed here? because no "value knowledge"?  (V?)
-
-                //HERE HERE AssrtGamma needs assertions
-               
+                hhh(g.fullname, tempRunSyncSat(g1));
             }
         }
     }
 
-    private Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>>
+    private <N extends Pair<AssrtGamma, AssrtFormalGType>>
+    void hhh(GProtoName fullname, Map<Pair<N, AssrtFormalGComm>, N> graph) {
+
+        //Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());  // !!! use g.getRoles
+
+        // assert progress
+        // ...maybe convert graph structure to Map of Map
+        // Pair<AssrtGamma, AssrtFormalGType> ---AssrtFormalGComm--> Pair<AssrtGamma, AssrtFormalGType>
+        // Conj AssrtGamma_L -> Disj GComm assrts
+        // ...check graph for recursion assertions -- rec-assrt-prog not needed here? because no "value knowledge"?  (V?)
+
+        Map<N, Map<AssrtFormalGComm, N>> graph1 = convertGraph(graph);
+        System.out.println();
+        assrtProg(fullname, graph1);
+    }
+
+    private <N extends Pair<AssrtGamma, AssrtFormalGType>>
+    void assrtProg(GProtoName fullname, Map<N, Map<AssrtFormalGComm, N>> graph) {
+        for (Map.Entry<N, Map<AssrtFormalGComm, N>> e1 : graph.entrySet()) {
+            N k = e1.getKey();
+            Map<AssrtFormalGComm, N> v = e1.getValue();
+            AssrtBFormula rhs = v.keySet().stream().map(x -> x.makeAssrtProgRhs())
+                    .reduce((x, y) -> AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.Or, x, y))
+                    .get();
+            AssrtBFormula assprog = k.left.close(rhs);
+            System.out.println(assprog);
+            System.out.println("\t " + checkSat(fullname, Stream.of(assprog).collect(Collectors.toSet())));
+        }
+
+    }
+
+    private static <N extends Pair<AssrtGamma, AssrtFormalGType>>
+    Map<N, Map<AssrtFormalGComm, N>> convertGraph(Map<Pair<N, AssrtFormalGComm>, N> graph) {
+        Map<N, Map<AssrtFormalGComm, N>> res = new LinkedHashMap<>();
+        for (Map.Entry<Pair<N, AssrtFormalGComm>, N> e : graph.entrySet()) {
+            Pair<N, AssrtFormalGComm> k = e.getKey();
+            Map<AssrtFormalGComm, N> tmp = res.computeIfAbsent(k.left, x -> new LinkedHashMap<>());
+            tmp.put(k.right, e.getValue());
+        }
+        return res;
+    }
+
+    private static Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>>
     tempRunSyncSat(AssrtFormalGType g) {
         AssrtGamma gamma = new AssrtGamma();
         Pair<AssrtGamma, AssrtFormalGType> step = new Pair<>(gamma, g);
@@ -586,7 +607,7 @@ public class AssrtCore extends Core {
     // ...with rec-entry GC, have static finite global LTS
     // TODO deprecate seen
     // HERE HERE for global z3 validation, also need "recursion satis" as well as "(choice) assertion progress"
-    private void tempRunSyncSat(
+    private static void tempRunSyncSat(
             Set<AssrtFormalGType> seen,
             Pair<AssrtGamma, AssrtFormalGType> curr,
             Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>> graph
@@ -623,6 +644,7 @@ public class AssrtCore extends Core {
         System.out.println("[[: " + AssrtUtil.pairToString(step.get()));*/
     }
 
+    /*
     private void tempRunSyncSatOrig() throws ScribException {
         System.out.println("\n--------------------\n");
         AssrtCoreContext c = (AssrtCoreContext) this.context;
@@ -682,14 +704,14 @@ public class AssrtCore extends Core {
 
         System.out.println();
         graph.entrySet().forEach(x -> System.out.println(x.getKey() + " ,, " + x.getValue()));
-
-
     }
+    //*/
 
+    /*// AssrtGConfig deprecated -- now using core.type.formal
     private static AssrtBFormula assrtprog(AssrtGConfig n, Map<AssrtSSend, AssrtGConfig> edges) {
         //n.gamma.
         return null;
-    }
+    }*/
 
     // knowledge is: all vars in p/q
 
