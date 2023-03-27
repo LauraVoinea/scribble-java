@@ -10,7 +10,6 @@ import org.scribble.ext.assrt.core.type.formal.local.AssrtFormalLType;
 import org.scribble.ext.assrt.core.type.name.AssrtAnnotDataName;
 import org.scribble.ext.assrt.core.type.name.AssrtVar;
 import org.scribble.ext.assrt.core.type.session.AssrtMsg;
-import org.scribble.ext.assrt.util.AssrtUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -57,12 +56,12 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
                 Op op = e.getKey();
                 Pair<AssrtMsg, AssrtFormalGType> p = e.getValue();
                 Optional<AssrtGamma> tmp = Optional.of(gamma);
-                for (AssrtAnnotDataName d : p.left.pay) {  // Not assuming can check canAdd seaprately... (overly cautious)
-                    tmp = tmp.flatMap(x -> x.addNohat(d.var, rs, d.data));
+                for (AssrtAnnotDataName d : p.left.pay) {  // Not assuming can check canAdd seprately... (overly cautious)
+                    tmp = tmp.flatMap(x -> x.addNohat(d.var, rs, d.data, p.left.ass));  // Duplicating ass...
                 }
                 if (tmp.isPresent()) {
                     AssrtMsg msg = new AssrtMsg(op, p.left.pay, p.left.ass, null, null);  // !!! null phantoms
-                    res.add(new AssrtFormalGComm(this.sender, this.receiver, msg));// FIXME use factory
+                    res.add(new AssrtFormalGComm(this.sender, this.receiver, msg));  // FIXME use factory
                 }
             }
         }
@@ -74,7 +73,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
             for (Pair<AssrtMsg, AssrtFormalGType> p : this.cases.values()) {
                 Optional<AssrtGamma> tmp = Optional.of(gamma);
                 for (AssrtAnnotDataName d : p.left.pay) {  // Not assuming can check canAdd separately... (overly cautious)
-                    tmp = tmp.flatMap(x -> x.addHat(d.var, rs, d.data));
+                    tmp = tmp.flatMap(x -> x.addHat(d.var, rs, d.data, p.left.ass));  // Duplicating ass...
                 }
                 tmp.map(x -> res.addAll(p.right.getActions(x, bs)));
             }
@@ -93,7 +92,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
                 Set<Role> rs = Stream.of(this.sender, this.receiver).collect(Collectors.toSet());
                 Optional<AssrtGamma> tmp = Optional.of(gamma);
                 for (AssrtAnnotDataName d : a.msg.pay) {
-                    tmp = tmp.flatMap(x -> x.addNohat(d.var, rs, d.data));
+                    tmp = tmp.flatMap(x -> x.addNohat(d.var, rs, d.data, a.msg.ass));  // Duplicating ass...
                 }
                 return tmp.map(x -> new Pair<>(x, this.cases.get(a.msg.op).right));
             } else {
@@ -111,7 +110,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
             Set<Role> rs = Stream.of(this.sender, this.receiver).collect(Collectors.toSet());
             Optional<AssrtGamma> g = Optional.of(gamma);
             for (AssrtAnnotDataName d : p.left.pay) {
-                g = g.flatMap(x -> x.addHat(d.var, rs, d.data));
+                g = g.flatMap(x -> x.addHat(d.var, rs, d.data, p.left.ass));  // Duplicating ass...
             }
             Optional<Pair<AssrtGamma, AssrtFormalGType>> opt = g.flatMap(x -> p.right.step(x, a));
 
@@ -132,7 +131,7 @@ public class AssrtFormalGChoice extends AssrtFormalTypeBase
     public AssrtFormalLType project(AssrtFormalLFactory lf, Role r, AssrtPhi phi) {
         LinkedHashMap<Op, Pair<AssrtMsg, AssrtFormalLType>> cases =
                 this.cases.entrySet().stream().collect(Collectors.toMap(
-                        x -> x.getKey(),
+                        Map.Entry::getKey,
                         x -> {
                             Pair<AssrtMsg, AssrtFormalGType> v = x.getValue();
                             return new Pair<>(v.left, v.right.project(lf, r, phi));

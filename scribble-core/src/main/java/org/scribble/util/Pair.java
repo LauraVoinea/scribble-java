@@ -15,42 +15,41 @@ package org.scribble.util;
 
 import java.util.Objects;
 
-public class Pair<T1, T2>
-{
-	public final T1 left;
-	public final T2 right;
+public class Pair<T1, T2> {
+    public final T1 left;
+    public final T2 right;
 
-	public Pair(T1 t1, T2 t2)
-	{
-		this.left = t1;
-		this.right = t2;
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		int hash = 11;
-		//hash = 31 * hash + this.left.hashCode();
-		//hash = 31 * hash + this.right.hashCode();
-		hash = 31 * hash + Objects.hashCode(this.left);
-		hash = 31 * hash + Objects.hashCode(this.right);
-		return hash;
-	}
-	
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof Pair))
-		{
-			return false;
-		}
-		Pair<?, ?> them = (Pair<?, ?>) o;
-		//return this.left.equals(them.left) && this.right.equals(them.right);
-		return Objects.equals(this.left, them.left)
-				&& Objects.equals(this.right, them.right);
-	}
+    public Pair(T1 t1, T2 t2) {
+        this.left = t1;
+        this.right = t2;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + this.left + ", " + this.right + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 11;
+        //hash = 31 * hash + this.left.hashCode();
+        //hash = 31 * hash + this.right.hashCode();
+        hash = 31 * hash + Objects.hashCode(this.left);
+        hash = 31 * hash + Objects.hashCode(this.right);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Pair)) {
+            return false;
+        }
+        Pair<?, ?> them = (Pair<?, ?>) o;
+        //return this.left.equals(them.left) && this.right.equals(them.right);
+        return Objects.equals(this.left, them.left)
+                && Objects.equals(this.right, them.right);
+    }
 }

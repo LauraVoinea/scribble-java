@@ -549,14 +549,24 @@ public class AssrtCore extends Core {
             if (!g.mods.contains(ProtoMod.AUX)) {
                 AssrtFormalGType g1 = tr.translate(g.type);
                 System.out.println("1111: " + g.fullname + " ,, " + g1);
-                tempRunSyncSat(g1);
-
+                Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>>
+                        graph = tempRunSyncSat(g1);
                 //Set<Role> rs = g.type.assrtCoreGather(new AssrtRoleGatherer()::visit).collect(Collectors.toSet());  // !!! use g.getRoles
+
+                // assert progress
+                // ...maybe convert graph structure to Map of Map
+                // Pair<AssrtGamma, AssrtFormalGType> ---AssrtFormalGComm--> Pair<AssrtGamma, AssrtFormalGType>
+                // Conj AssrtGamma_L -> Disj GComm assrts
+                // ...check graph for recursion assertions -- rec-assrt-prog not needed here? because no "value knowledge"?  (V?)
+
+                //HERE HERE AssrtGamma needs assertions
+               
             }
         }
     }
 
-    private void tempRunSyncSat(AssrtFormalGType g) {
+    private Map<Pair<Pair<AssrtGamma, AssrtFormalGType>, AssrtFormalGComm>, Pair<AssrtGamma, AssrtFormalGType>>
+    tempRunSyncSat(AssrtFormalGType g) {
         AssrtGamma gamma = new AssrtGamma();
         Pair<AssrtGamma, AssrtFormalGType> step = new Pair<>(gamma, g);
         //Set<Pair<AssrtGamma, AssrtFormalGType>> graph = new HashSet<>();
@@ -567,6 +577,7 @@ public class AssrtCore extends Core {
         graph.entrySet().stream().forEach(x ->
                 System.out.println(AssrtUtil.pairToString(x.getKey())
                         + " -> " + AssrtUtil.pairToString(x.getValue())));
+        return graph;
     }
 
     // HERE HERE check unique mu recvars in WF
@@ -574,6 +585,7 @@ public class AssrtCore extends Core {
     // HERE HERE also check unique refine vars overall (to avoid "false merging" of graph states)
     // ...with rec-entry GC, have static finite global LTS
     // TODO deprecate seen
+    // HERE HERE for global z3 validation, also need "recursion satis" as well as "(choice) assertion progress"
     private void tempRunSyncSat(
             Set<AssrtFormalGType> seen,
             Pair<AssrtGamma, AssrtFormalGType> curr,
