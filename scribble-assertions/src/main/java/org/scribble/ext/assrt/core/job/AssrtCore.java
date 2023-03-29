@@ -569,7 +569,7 @@ public class AssrtCore extends Core {
                     .reduce((x, y) -> AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.Or, x, y))
                     .get();
             AssrtBFormula assprog = k.left.close(rhs);
-            System.out.println(assprog);
+            System.out.println(k.left + " ,, " + assprog);
             System.out.println("\t " + checkSat(fullname, Stream.of(assprog).collect(Collectors.toSet())));
         }
 

@@ -23,17 +23,26 @@ type <fstar> "string" from "..." as String;
 
 
 //*
-global protocol Proto1(role A, role B) @'A[n:int = 0, m:int = 1]' {
-    // HERE HERE test rec svar GC
+global protocol Proto1(role A, role B, role C) @'A[x: int = 0]' {
+    //HERE HERE test rec svar GC
 
-    1() from A to B;
-    do Proto1(A, B); @'A[0, m]'
+    1(y: int) from A to B;
+    2(z: int) from B to C;
+    3(w: int) from C to A;
+    do Proto1(A, B, C); @'A[x]'
 }
 //*/
 
 
 
 
+/*
+global protocol Proto1(role A, role B, role C, role D) {
+    1(x: int) from A to B;
+    2(y: int) from B to C;  @'x=y'
+    3(z: int) from C to D;  @'x=z'  // Testing global validation w/o knowledge check
+}
+//*/
 
 
 

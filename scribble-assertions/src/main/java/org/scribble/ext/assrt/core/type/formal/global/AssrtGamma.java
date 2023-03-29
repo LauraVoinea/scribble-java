@@ -124,19 +124,22 @@ public class AssrtGamma {
 
     // hat and nohat the same re. validation?
     public AssrtBFormula close(AssrtBFormula rhs) {
+        List<AssrtAVarFormula> vs = Stream.concat(this.hat.keySet().stream(), this.nohat.keySet().stream())
+                .map(x -> (AssrtAVarFormula) AssrtFormulaFactory.AssrtIntVar(x.toString()))  // FIXME factory should take VarFormula (without A)
+                .collect(Collectors.toList());
+        if (vs.isEmpty()) {
+            return rhs;
+        }
         Optional<AssrtBFormula> red = Stream.concat(
                         this.hat.values().stream().map(x -> x.right),
                         this.nohat.values().stream().map(x -> x.right))
                 .distinct()
                 .filter(x -> !x.equals(AssrtTrueFormula.TRUE))
                 .reduce((x, y) -> AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.And, x, y));
-        if (!red.isPresent()) {
-            return rhs;
-        }
-        AssrtBFormula lhs = red.get();
-        List<AssrtAVarFormula> vs = Stream.concat(this.hat.keySet().stream(), this.nohat.keySet().stream())
-                .map(x -> (AssrtAVarFormula) AssrtFormulaFactory.AssrtIntVar(x.toString()))  // FIXME factory should take VarFormula (without A)
-                .collect(Collectors.toList());
+        /*if (!red.isPresent()) {
+            return rhs;  // XXX still need exists x even if TRUE
+        }*/
+        AssrtBFormula lhs = red.isPresent() ? red.get() : AssrtTrueFormula.TRUE;
         AssrtBinBFormula impl = AssrtFormulaFactory.AssrtBinBool(AssrtBinBFormula.Op.Imply, lhs, rhs);
         return AssrtFormulaFactory.AssrtForallFormula(vs, impl);
     }
