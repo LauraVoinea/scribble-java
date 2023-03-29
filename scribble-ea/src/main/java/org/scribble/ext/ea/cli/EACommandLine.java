@@ -17,10 +17,7 @@ import org.scribble.ext.ea.core.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
-import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAHandlersType;
-import org.scribble.ext.ea.core.type.value.EAIntType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.*;
 import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
 import org.scribble.ext.ea.parser.antlr.EACalculusParser;
 import org.scribble.ext.ea.util.EAPPair;
@@ -92,9 +89,10 @@ public class EACommandLine extends CommandLine {
         //ex5(lf, pf, rf, tf);
         //ex6(lf, pf, rf, tf);
         //ex7(lf, pf, rf, tf);
-        ex8(lf, pf, rf, tf);
+        //ex8(lf, pf, rf, tf);
+        ex9(lf, pf, rf, tf);
 
-        /* HERE HERE
+        /* HERE
         - state is currently per sess -- probably should be config wide, state shared across sess -> (intentional) race conditions
         - ...take state on config creation, infer state type from that
         - ...need (self) handler firing when state satis some condition -- !!! how done in standard actors?
@@ -106,8 +104,84 @@ public class EACommandLine extends CommandLine {
         - tidy foo vs. beta -- cf. some expr foo is just beta (some not, e.g., let)
         */
 
+        // HERE HERE currently should be a state typing counterexample
 
         //new EACommandLine(args).run();
+    }
+
+    static void ex9(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
+        Role A = new Role("A");
+        Role B = new Role("B");
+        EAPSid s = rf.sid("s");
+        EAPPid p1 = rf.pid("p1");
+        EAPPid p2 = rf.pid("p2");
+
+        //---------------
+
+        String in2s = "A?{l2(1).end}";
+        String h2s = "Handler (" + in2s + ")";
+        EAPLet lethA = (EAPLet) parseM(
+                "let h: " + h2s + " <= return handler A {"
+                        + "{end} d: Int, l2(x: 1) |-> let w: Bool <= return d < 42 in return ()"
+                        + "}"  // role hardcoded -- or state not accessible
+                        + " in let g: 1 <= B!l1(h) in B!l2(())"
+        );
+
+        //---------------
+        // config < A, idle, c[A] |-> let h = ... in ... >
+        EAPActiveThread tA = rf.activeThread(lethA, s, A);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
+        EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+
+        System.out.println();
+        String out1s = "B!{l1(" + h2s + ").B!{l2(1). end }}";
+        EALOutType out1 = (EALOutType) parseSessionType(out1s);
+        LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
+        env.put(new EAPPair<>(s, A), out1);
+        System.out.println("Typing cA: " + cA + " ,, " + env);
+        cA.type(new Gamma(EAIntType.INT), new Delta(env));
+
+        //---------------
+
+        String in1s = "A?{l1(" + h2s + ")." + in2s + "}";
+        String hBs = "Handler(" + in1s + ")";
+        EAPLet lethB = (EAPLet) parseM(
+                "let h: " + hBs + " <= return handler A { {" + in2s + "} d: Bool, l1(x: " + h2s + ") |-> "
+                        + " suspend x, false }"  // suspend received x handler, XXX (data) type preservation -- d type Int at A, Bool at B
+                        + " in suspend h, true"
+        );
+
+        //--------------
+        // config < B, idle, c[B] |-> let h = ... in ... } >
+        EAPActiveThread tB = rf.activeThread(lethB, s, B);
+        LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
+        EAPConfig<?> cB = rf.config(p2, tB, sigmaB, pf.factory.bool(false));
+
+        System.out.println();
+        env = new LinkedHashMap<>();
+        EALInType in1 = (EALInType) parseSessionType(in1s);
+        env.put(new EAPPair<>(s, B), in1);
+        System.out.println("Typing cB: " + cB + " ,, " + env);
+        cB.type(new Gamma(EABoolType.BOOL), new Delta(env));
+
+        // ----
+
+        System.out.println("\n---");
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
+        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        cs.put(cA.pid, cA);
+        cs.put(cB.pid, cB);
+
+        env.put(new EAPPair<>(s, A), out1);
+        env.put(new EAPPair<>(s, B), in1);
+        System.out.println(env);
+        EAPSystem sys = rf.system(lf, new Delta(env), cs);
+        System.out.println(sys);
+        sys.type(new Gamma(null), new Delta());
+
+        run(sys, -1);
+        //
     }
 
     static void ex8(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
@@ -126,12 +200,13 @@ public class EACommandLine extends CommandLine {
         // ----
 
         String h2s = "Handler (" + in2us + ")";
-        String hts = "{" + recXAs + "} 1-> " + h2s + "{" + recXAs + "}";
+        String hts = "{" + recXAs + "} 1 -> " + h2s + "{" + recXAs + "}";
         EAPLet lethA = (EAPLet) parseM(
-                "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s + "{" + recXAs
-                        + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) "
-                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z, 42"
-                        + ",  {end} z3: Int, l3(w3: 1) |-> return () })"
+                "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s
+                        + "{" + recXAs + "} . return handler B { {" + out1us + "}"
+                        + " z2: Int, l2(w2: 1)  |-> let y: 1 <= B!l1(()) in"
+                        + " let z : " + h2s + " <= [f ()] in suspend z, 42,"
+                        + "  {end} z3: Int, l3(w3: 1) |-> return () })"
                         + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 0");
 
         System.out.println(lethA);
@@ -173,8 +248,8 @@ public class EACommandLine extends CommandLine {
                         + " |-> let y: 1 <= A!l3(()) in return () })"*/  // quit straight away
 
                         //+ " |-> let tmp: Bool <= return d < 0 in "  // quit straight away
-                        + " |-> let tmp: Bool <= return d < 1 in "  // quit after one
-                        //+ " |-> let tmp: Bool <= return d < 43 in "  // run forever
+                        //+ " |-> let tmp: Bool <= return d < 42 in "  // quit after one
+                        + " |-> let tmp: Bool <= return d < 43 in "  // run forever
 
                         + "if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42"
                         + "else let y: 1 <= A!l3(()) in return ()"

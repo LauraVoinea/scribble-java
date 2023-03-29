@@ -39,7 +39,7 @@ public class EAPSuspend implements EAPExpr {
         /*if (!(cast.S.equals(pre))) {
             throw new RuntimeException("Incompatible in type: " + pre + ", " + cast.S);
         }*/
-        EAPApp.subtype(cast.S, pre);
+        EAPApp.subtype(cast.S, pre);  // XXX FIXME add state type to Handler type and check handler and state -- state type can evolve?
 
         EAValType t_s = this.sval.type(gamma);
         if (!t_s.equals(gamma.svarType)) {

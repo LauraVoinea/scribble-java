@@ -27,13 +27,13 @@ public class Gamma {
 
     public final EAName svar;  // null if "none"  // !!! this.map contains [svar:svarType] if non-null
     @NotNull
-    public final EAValType svarType;
+    public final EAValType svarType;  // XXX FIXME now null for EAPSystem -- Config infers local state
 
     /*public Gamma() {
         this(new LinkedHashMap<>(), new LinkedHashMap<>(), null, EAIntType.INT);
     }*/
 
-    public Gamma(@NotNull EAValType svarType) {
+    public Gamma(EAValType svarType) {
         this(new LinkedHashMap<>(), new LinkedHashMap<>(), null, svarType);
     }
 

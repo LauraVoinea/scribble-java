@@ -196,7 +196,11 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal  // T
         return !this.T.isIdle();
     }
 
-    public void type(Gamma gamma, Delta delta) {
+    public void type(Gamma gamma1, Delta delta) {
+
+        EAValType infer = this.state.infer();
+        Gamma gamma2 = new Gamma(new LinkedHashMap<>(gamma1.map), new LinkedHashMap<>(gamma1.fmap), null, infer);
+
         LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>();
         if (this.T instanceof EAPActiveThread) { // !!! CHECKME
             EAPActiveThread at = (EAPActiveThread) this.T;
@@ -207,19 +211,19 @@ public class EAPConfig<D> implements EAPRuntimeTerm {  // D extends EAPVal  // T
             tmp.put(k, delta.map.get(k));
         }
         Delta delta1 = new Delta(tmp);
-        this.T.type(gamma, delta1);  // !!! TODO split delta_1, delta_2 ?
+        this.T.type(gamma2, delta1);  // !!! TODO split delta_1, delta_2 ?
 
         tmp = new LinkedHashMap<>(delta.map);
         if (this.T instanceof EAPActiveThread) { // !!! CHECKME
             tmp.remove(delta1.map.keySet().iterator().next());
         }
         Delta delta2 = new Delta(tmp);
-        typeSigma(gamma, delta2);
+        typeSigma(gamma2, delta2);
 
-        EAValType stype = this.state.type(gamma);
+        /*EAValType stype = this.state.type(gamma);
         if (!stype.equals(gamma.svarType)) {
             throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + stype);
-        }
+        }*/
     }
 
     // !!! TODO make sigma explicit (cf. TH-Handler)

@@ -67,7 +67,7 @@ public class EAPHandler {
 
         Pair<EAValType, EALType> res = this.expr.type(gamma1, inferred);
         if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
-            throw new RuntimeException("Type error: " + gamma1 + " |- "
+            throw new RuntimeException("Type error: " + gamma1 + " | "
                     + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
         }
     }
