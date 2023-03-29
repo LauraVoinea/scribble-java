@@ -290,7 +290,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(env);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, 100);
     }
@@ -390,7 +390,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(env);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, 100);
     }
@@ -451,7 +451,7 @@ public class EACommandLine extends CommandLine {
         env.put(new EAPPair<>(s, A), out1);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, -1);
     }
@@ -730,7 +730,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, -1);
 
@@ -1079,7 +1079,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, 100);
 
@@ -1536,7 +1536,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new EAPPair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, -1);
 		/*
@@ -1653,7 +1653,7 @@ public class EACommandLine extends CommandLine {
         env.put(new EAPPair<>(s, A), out1);
         EAPSystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(EAIntType.INT), new Delta());
+        sys.type(new Gamma(null), new Delta());
 
         run(sys, -1);
     }
@@ -1667,7 +1667,7 @@ public class EACommandLine extends CommandLine {
             sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
             System.out.println();
             System.out.println(sys);
-            sys.type(new Gamma(EAIntType.INT), new Delta());
+            sys.type(new Gamma(null), new Delta());
             pids = sys.canStep();
         }
 
