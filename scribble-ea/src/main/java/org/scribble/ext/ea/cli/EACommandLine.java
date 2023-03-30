@@ -87,8 +87,8 @@ public class EACommandLine extends CommandLine {
         //ex5(lf, pf, rf, tf);
         //ex6(lf, pf, rf, tf);
         //ex7(lf, pf, rf, tf);
-        ex8(lf, pf, rf, tf);
-        //ex9(lf, pf, rf, tf);
+        //ex8(lf, pf, rf, tf);
+        ex9(lf, pf, rf, tf);
 
         /* HERE
         //merge rhu1-refactorinterfaces -- i.e., latest scrib-core
@@ -151,8 +151,8 @@ public class EACommandLine extends CommandLine {
         String hBs = "Handler(Bool, " + in1s + ")";
         EAPLet lethB = (EAPLet) parseM(
                 "let h: " + hBs + " <= return handler A { {" + in2s + "} d: Bool, l1(x: " + h2s + ") |-> "
-                        + " suspend x, false }"  // suspend received x handler, XXX (data) type preservation -- d type Int at A, Bool at B
-                        + " in suspend h, true"
+                        + " suspend x false }"  // suspend received x handler, XXX (data) type preservation -- d type Int at A, Bool at B
+                        + " in suspend h true"
         );
 
         //--------------
@@ -210,9 +210,9 @@ public class EACommandLine extends CommandLine {
                 "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s
                         + "{" + recXAs + "} . return handler B { {" + out1us + "}"
                         + " z2: Int, l2(w2: 1)  |-> let y: 1 <= B!l1(()) in"
-                        + " let z : " + h2s + " <= [f ()] in suspend z, 42,"
+                        + " let z : " + h2s + " <= [f ()] in suspend z 42,"
                         + "  {end} z3: Int, l3(w3: 1) |-> return () })"
-                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 0");
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh 0");
 
         System.out.println(lethA);
         EALOutType out1u = (EALOutType) parseSessionType(out1us);
@@ -249,18 +249,18 @@ public class EACommandLine extends CommandLine {
                 "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
                         + "return handler A { {" + out2mus + "} d: Int, l1(w2: 1) "
 
-                        /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42 })"  // run forever
+                        /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 })"  // run forever
                         + " |-> let y: 1 <= A!l3(()) in return () })"*/  // quit straight away
 
                         //+ " |-> let tmp: Bool <= return d < 0 in "  // quit straight away
                         + " |-> let tmp: Bool <= return d < 42 in "  // quit after one
                         //+ " |-> let tmp: Bool <= return d < 43 in "  // run forever
 
-                        + "if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42"
+                        + "if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42"
                         + "else let y: 1 <= A!l3(()) in return ()"
 
                         + " })"
-                        + "in let hh : " + h1s + " <= [h ()] in suspend hh, 0");
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh 0");
 
         System.out.println(leth);
         EALRecType recXB = (EALRecType) parseSessionType(recXBs);
@@ -323,7 +323,7 @@ public class EACommandLine extends CommandLine {
                         + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) "
                         + " |-> let y: 1 <= B!l4(()) in return ()"
                         + ",  {end} z3: Int, l3(w3: 1) |-> return () })"
-                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 0");
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh 0");
 
         System.out.println(lethA);
         EALOutType out1u = (EALOutType) parseSessionType(out1us);
@@ -358,10 +358,10 @@ public class EACommandLine extends CommandLine {
         EAPLet leth = (EAPLet) parseM(
                 "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
                         + "return handler A { {" + out2mus + "} d: Int, l1(w2: 1) "
-                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42 "
+                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 "
                         + ", {end} d: Int, l4(w4: 1) |-> return ()"
                         + "})"
-                        + "in let hh : " + h1s + " <= [h ()] in suspend hh, 0");
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh 0");
 
         System.out.println(leth);
         EALRecType recXB = (EALRecType) parseSessionType(recXBs);
@@ -521,7 +521,7 @@ public class EACommandLine extends CommandLine {
         EAHandlersType h2 = (EAHandlersType) parseA(h2s);
 
         // ----
-        // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z,
+        // let h = return rec f(_). handler B { l2(_) |-> let y = B!l1() in let z = f() in suspend z
         // 										l3(_) |-> return () }
         // in [ let _ = B!l1() in let hh = h() in suspend hh ]
 
@@ -563,9 +563,9 @@ public class EACommandLine extends CommandLine {
         EAPLet lethA = (EAPLet) parseM(
                 "let h : " + ftAs + " <= return rec f {" + in2us + "} (w1 :1) : " + h2s + " {" + recXAs
                         + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) |-> let y :1 <= B!l1(())"
-                        + "in let z : " + h2s + " <= [f ()] in suspend z, 42 ,"
+                        + "in let z : " + h2s + " <= [f ()] in suspend z 42 ,"
                         + "{end} z3: Int, l3(w2: 1) |-> return () } "
-                        + "in let w1 :1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh, 42");
+                        + "in let w1 :1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh 42");
 
         System.out.println(lethA);
         lethA.type(new Gamma(EAIntType.INT), out1u);
@@ -682,7 +682,7 @@ public class EACommandLine extends CommandLine {
                 //"let h : {A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}}1 -> Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) {mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}} <= return rec f { A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}} (w1 :1) :Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) {mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}} . return handler A { l1(w2: 1) : A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end} |-> let y :1 <= A!l3(()) in return () } in let hh :Handler(A?{l1(1).A!{l2(1).mu X.A?{l1(1).A!{l2(1).X, l3(1).end}}, l3(1).end}}) <= [h ()] in suspend hh");
                 "let h: " + fts + " <= return rec f {" + in1us + "} (w1 :1): " + h1s + "{" + recXBs
                         + "} . return handler A { {" + out2us + "} z1: Int, l1(w2: 1) |-> let y :1 <= A!l3(()) in return () } "
-                        + "in let hh: " + h1s + " <= [h ()] in suspend hh, 42");
+                        + "in let hh: " + h1s + " <= [h ()] in suspend hh 42");
 
         System.out.println(leth);
         leth.type(new Gamma(EAIntType.INT), recXB);
@@ -902,8 +902,8 @@ public class EACommandLine extends CommandLine {
         EAPLet lethA = (EAPLet) parseM(
                 "let h: " + hts + " <= return (rec f{ " + in2us + "} (w1: 1 ):" + h2s + "{" + recXAs
                         + "} . return handler B { {" + out1us + "} z2: Int, l2(w2: 1) "
-                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z, 42 })"
-                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh, 42");
+                        + " |-> let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z 42 })"
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh 42");
 
         /*//let z = f() in suspend z
         EAPSuspend suszA = pf.suspend(z);
@@ -1002,8 +1002,8 @@ public class EACommandLine extends CommandLine {
         EAPLet leth = (EAPLet) parseM(
                 "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
                         + "return handler A { {" + out2mus + "} z1: Int, l1(w2: 1) "
-                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42 })"
-                        + "in let hh : " + h1s + " <= [h ()] in suspend hh, 42");
+                        + " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 })"
+                        + "in let hh : " + h1s + " <= [h ()] in suspend hh 42");
 
         /*//let z = f() in suspend z
         EAPSuspend susz = pf.suspend(z);
@@ -1502,7 +1502,7 @@ public class EACommandLine extends CommandLine {
 		EAPHandlers hsB1 = pf.handlers(A, Hs);*/
         EAPHandlers hsB1 = (EAPHandlers) parseV(
                 "handler A { {A?{l2(1).end}} z:Int, l1(x: 1)  |->"
-                        + "suspend (handler A { {end} z:Int, l2(x: 1) |-> return () }), 42 }");
+                        + "suspend (handler A { {end} z:Int, l2(x: 1) |-> return () }) 42 }");
 
         LinkedHashMap<EAName, EAValType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());

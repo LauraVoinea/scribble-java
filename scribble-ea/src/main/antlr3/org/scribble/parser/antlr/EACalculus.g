@@ -391,7 +391,7 @@ nM:
 ->
     ^(M_RETURN nV)  // Initial tree rewriting, no longer pure CST -- "node label tokens" needed or else "node value" is null (apart from children)
 |
-    SUSPEND_KW nV ',' nV
+    SUSPEND_KW nV nV
 ->
     ^(M_SUSPEND nV nV)
 |
