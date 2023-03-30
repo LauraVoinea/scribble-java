@@ -6,17 +6,21 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 
 public class EAHandlersType implements EAValType {
 
-    @NotNull public final EALType S;
+    @NotNull
+    public final EALType S;
+    @NotNull
+    public final EAValType T;  // state
 
-    protected EAHandlersType(@NotNull EALType S) {
+    protected EAHandlersType(@NotNull EALType S, @NotNull EAValType T) {
         this.S = S;
+        this.T = T;
     }
 
     /* Aux */
 
     @Override
     public String toString() {
-        return "Handler(" + this.S + ")";
+        return "Handler(" + this.T + ", " + this.S + ")";
     }
 
     /* equals/canEquals, hashCode */
@@ -26,7 +30,7 @@ public class EAHandlersType implements EAValType {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EAHandlersType them = (EAHandlersType) o;
-        return them.canEquals(this) && this.S.equals(them.S);
+        return them.canEquals(this) && this.S.equals(them.S) && this.T.equals(them.T);
     }
 
     @Override
@@ -38,6 +42,7 @@ public class EAHandlersType implements EAValType {
     public int hashCode() {
         int hash = EAType.HANDLERS;
         hash = 31 * hash + this.S.hashCode();
+        hash = 31 * hash + this.T.hashCode();
         return hash;
     }
 }

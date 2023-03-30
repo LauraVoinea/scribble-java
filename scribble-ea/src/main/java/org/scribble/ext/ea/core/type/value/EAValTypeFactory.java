@@ -29,8 +29,8 @@ public class EAValTypeFactory {
         return EAPidType.PID;
     }
 
-    public EAHandlersType handlers(@NotNull EALInType S) {
-        return new EAHandlersType(S);
+    public EAHandlersType handlers(@NotNull EALInType S, @NotNull EAValType T) {
+        return new EAHandlersType(S, T);
     }
 
     public EAFuncType func(@NotNull EAValType A, @NotNull EALType S,

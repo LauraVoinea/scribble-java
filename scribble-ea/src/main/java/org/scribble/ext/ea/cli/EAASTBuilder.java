@@ -190,7 +190,9 @@ class EAASTBuilder {
         String txt = n.getText();
         switch (txt) {
             case "A_HANDLER": {
-                return tf.val.handlers((EALInType) visitSessionType((CommonTree) n.getChild(0)));
+                EAValType A = visitA((CommonTree) n.getChild(0));
+                EALInType inS = (EALInType) visitSessionType((CommonTree) n.getChild(1));
+                return tf.val.handlers(inS, A);
             }
             case "A_UNIT": {
                 return tf.val.unit();

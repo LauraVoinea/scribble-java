@@ -79,20 +79,20 @@ public class EACommandLine extends CommandLine {
         EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
         EATypeFactory tf = EATypeFactory.factory;
 
-        // HERE HERE merge rhu1-refactorinterfaces -- i.e., latest scrib-core
-
         //System.out.println(parseV("2 + 3"));
 
-        //ex1(lf, pf, rf, tf);
+        ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
         //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
         //ex6(lf, pf, rf, tf);
         //ex7(lf, pf, rf, tf);
         //ex8(lf, pf, rf, tf);
-        ex9(lf, pf, rf, tf);
+        //ex9(lf, pf, rf, tf);
 
         /* HERE
+        //merge rhu1-refactorinterfaces -- i.e., latest scrib-core
+
         - state is currently per sess -- probably should be config wide, state shared across sess -> (intentional) race conditions
         - ...take state on config creation, infer state type from that
         - ...need (self) handler firing when state satis some condition -- !!! how done in standard actors?
@@ -102,9 +102,12 @@ public class EACommandLine extends CommandLine {
         - separate isGround/isValue -- cf. canBeta for exprs vs. is-stuck
         - fix canBeta contexts and isGround for all exprs
         - tidy foo vs. beta -- cf. some expr foo is just beta (some not, e.g., let)
+        ...
+        - evolving state types? but tricky if state is config-wide (shared by multiple sessions)
         */
 
-        // HERE HERE currently should be a state typing counterexample
+        // HERE HERE add state type to Handler type
+        // remove comma from suspend V V syntax
 
         //new EACommandLine(args).run();
     }
@@ -119,7 +122,7 @@ public class EACommandLine extends CommandLine {
         //---------------
 
         String in2s = "A?{l2(1).end}";
-        String h2s = "Handler (" + in2s + ")";
+        String h2s = "Handler (Int, " + in2s + ")";
         EAPLet lethA = (EAPLet) parseM(
                 "let h: " + h2s + " <= return handler A {"
                         + "{end} d: Int, l2(x: 1) |-> let w: Bool <= return d < 42 in return ()"
@@ -144,7 +147,7 @@ public class EACommandLine extends CommandLine {
         //---------------
 
         String in1s = "A?{l1(" + h2s + ")." + in2s + "}";
-        String hBs = "Handler(" + in1s + ")";
+        String hBs = "Handler(Bool, " + in1s + ")";
         EAPLet lethB = (EAPLet) parseM(
                 "let h: " + hBs + " <= return handler A { {" + in2s + "} d: Bool, l1(x: " + h2s + ") |-> "
                         + " suspend x, false }"  // suspend received x handler, XXX (data) type preservation -- d type Int at A, Bool at B
@@ -199,7 +202,7 @@ public class EACommandLine extends CommandLine {
 
         // ----
 
-        String h2s = "Handler (" + in2us + ")";
+        String h2s = "Handler (Int, " + in2us + ")";
         String hts = "{" + recXAs + "} 1 -> " + h2s + "{" + recXAs + "}";
         EAPLet lethA = (EAPLet) parseM(
                 "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s
@@ -238,7 +241,7 @@ public class EACommandLine extends CommandLine {
 
         // ---
 
-        String h1s = "Handler (" + in1us + ")";
+        String h1s = "Handler (Int, " + in1us + ")";
         String htsB = "{" + in1us + "} 1 ->" + h1s + "{" + recXBs + "}";
         EAPLet leth = (EAPLet) parseM(
                 "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
@@ -310,7 +313,7 @@ public class EACommandLine extends CommandLine {
 
         // ----
 
-        String h2s = "Handler (" + in2us + ")";
+        String h2s = "Handler (Int, " + in2us + ")";
         String hts = "{" + recXAs + "} 1-> " + h2s + "{" + recXAs + "}";
         EAPLet lethA = (EAPLet) parseM(
                 "let h: " + hts + " <= return (rec f { " + recXAs + "} (w1: 1 ):" + h2s + "{" + recXAs
@@ -347,7 +350,7 @@ public class EACommandLine extends CommandLine {
 
         // ---
 
-        String h1s = "Handler (" + in1us + ")";
+        String h1s = "Handler (Int, " + in1us + ")";
         String htsB = "{" + in1us + "} 1 ->" + h1s + "{" + recXBs + "}";
         EAPLet leth = (EAPLet) parseM(
                 "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
@@ -510,7 +513,7 @@ public class EACommandLine extends CommandLine {
         EAHandlersType h2 = tf.val.handlers(in2u);*/
         String in2us = "B?{l2(1)." + out1us + ", l3(1).end}";
         EALInType in2u = (EALInType) parseSessionType(in2us);
-        String h2s = "Handler(" + in2us + ")";
+        String h2s = "Handler(Int, " + in2us + ")";
         EAHandlersType h2 = (EAHandlersType) parseA(h2s);
 
         // ----
@@ -621,7 +624,7 @@ public class EACommandLine extends CommandLine {
         //EALInType in1u = (EALInType) parseSessionType(in1us);
 
         //EAHandlersType h1 = tf.val.handlers(in1u);
-        String h1s = "Handler(" + in1us + ")";
+        String h1s = "Handler(Int, " + in1us + ")";
         EAHandlersType h1 = (EAHandlersType) parseA(h1s);
         ////EAHandlersType h1fold = tf.val.handlers(recXB);
 
@@ -879,7 +882,7 @@ public class EACommandLine extends CommandLine {
         String in2us = "B?{l2(1)." + out1us + "}";  // unfolding of recXA
         //EALInType in2u = (EALInType) parseSessionType(in2us);
         ////EAHandlersType h2 = tf.val.handlers(in2u);
-        String h2s = "Handler (" + in2us + ")";
+        String h2s = "Handler (Int, " + in2us + ")";
         //EAHandlersType h2 = (EAHandlersType) parseA(h2s);
 
         // ----
@@ -981,7 +984,7 @@ public class EACommandLine extends CommandLine {
         String in1us = "A?{l1(1)." + out2mus + "}";
         //EALInType in1u = (EALInType) parseSessionType(in1us);
 
-        String h1s = "Handler (" + in1us + ")";
+        String h1s = "Handler (Int, " + in1us + ")";
         ////EAHandlersType h1 = tf.val.handlers(in1u);
         //EAHandlersType h1 = (EAHandlersType) parseA(h1s);
         ////EAHandlersType h1fold = tf.val.handlers(recXB);

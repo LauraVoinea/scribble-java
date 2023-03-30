@@ -351,9 +351,9 @@ handler:
 /* A */
 
 type:
-    HANDLER_KW_A '(' in_session_type ')'
+    HANDLER_KW_A '(' type ',' in_session_type ')'
 ->
-    ^(A_HANDLER in_session_type)
+    ^(A_HANDLER type in_session_type)
 |
     UNIT_KW
 ->

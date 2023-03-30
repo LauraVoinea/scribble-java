@@ -9,11 +9,9 @@ import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAHandlersType;
-import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,6 +43,11 @@ public class EAPHandlers implements EAPVal {
     @Override
     public EAHandlersType infer() {
         EATypeFactory f = EATypeFactory.factory;
+        List<EAValType> As = this.Hs.values().stream()
+                .map(x -> x.svarType).distinct().collect(Collectors.toList());
+        if (As.size() != 1) {
+            throw new RuntimeException("Inconsistent state types: " + this);
+        }
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases =
                 this.Hs.entrySet().stream().collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -55,7 +58,7 @@ public class EAPHandlers implements EAPVal {
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));
-        return f.val.handlers(f.local.in(this.role, cases));
+        return f.val.handlers(f.local.in(this.role, cases), As.get(0));
     }
 
     @Override
@@ -71,14 +74,18 @@ public class EAPHandlers implements EAPVal {
     @Override
     public EAValType type(Gamma gamma) {
         LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAPHandler> e : Hs.entrySet()) {
+        EAValType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
+        for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
             Op k = e.getKey();
             EAPHandler v = e.getValue();
+            if (!A.equals(v.svarType)) {
+                throw new RuntimeException("Inconsistent state types: " + this);
+            }
             v.type(gamma);
             cases.put(k, new EAPPair<>(v.varType, v.pre));
         }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
-        return EAValTypeFactory.factory.handlers(in);
+        return EAValTypeFactory.factory.handlers(in, A);
     }
 
     /* Aux */
@@ -109,8 +116,8 @@ public class EAPHandlers implements EAPVal {
     public Set<EAPVar> getFreeVars() {
         Set<EAPVar> res = this.Hs.values().stream()
                 .flatMap(x -> x.getFreeVars().stream())
-                .collect(Collectors.toSet());
-        return new HashSet<>(res);
+                .collect(Collectors.toCollection(HashSet::new));
+        return res;
     }
 
     @Override
