@@ -81,13 +81,13 @@ public class EACommandLine extends CommandLine {
 
         //System.out.println(parseV("2 + 3"));
 
-        ex1(lf, pf, rf, tf);
+        //ex1(lf, pf, rf, tf);
         //ex2(lf, pf, rf, tf);
         //ex4(lf, pf, rf, tf);
         //ex5(lf, pf, rf, tf);
         //ex6(lf, pf, rf, tf);
         //ex7(lf, pf, rf, tf);
-        //ex8(lf, pf, rf, tf);
+        ex8(lf, pf, rf, tf);
         //ex9(lf, pf, rf, tf);
 
         /* HERE
@@ -112,6 +112,7 @@ public class EACommandLine extends CommandLine {
         //new EACommandLine(args).run();
     }
 
+    // Not WT -- testing (incompatible) state typing
     static void ex9(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
         Role A = new Role("A");
         Role B = new Role("B");
@@ -176,6 +177,7 @@ public class EACommandLine extends CommandLine {
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
+        env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1);
         env.put(new EAPPair<>(s, B), in1);
         System.out.println(env);
@@ -251,8 +253,8 @@ public class EACommandLine extends CommandLine {
                         + " |-> let y: 1 <= A!l3(()) in return () })"*/  // quit straight away
 
                         //+ " |-> let tmp: Bool <= return d < 0 in "  // quit straight away
-                        //+ " |-> let tmp: Bool <= return d < 42 in "  // quit after one
-                        + " |-> let tmp: Bool <= return d < 43 in "  // run forever
+                        + " |-> let tmp: Bool <= return d < 42 in "  // quit after one
+                        //+ " |-> let tmp: Bool <= return d < 43 in "  // run forever
 
                         + "if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z, 42"
                         + "else let y: 1 <= A!l3(()) in return ()"
@@ -288,6 +290,7 @@ public class EACommandLine extends CommandLine {
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
+        env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
         env.put(new EAPPair<>(s, B), recXB);
         System.out.println(env);
@@ -388,6 +391,7 @@ public class EACommandLine extends CommandLine {
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
+        env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
         env.put(new EAPPair<>(s, B), recXB);
         System.out.println(env);
@@ -719,6 +723,7 @@ public class EACommandLine extends CommandLine {
         cs.put(p1, cA);
         cs.put(p2, cB);
 
+        env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
         //env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
         env.put(new EAPPair<>(s, B), recXB);
@@ -1068,6 +1073,7 @@ public class EACommandLine extends CommandLine {
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
+        env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
         //env.put(new EAPPair<>(s, B), in1u);  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
         env.put(new EAPPair<>(s, B), recXB);
@@ -1526,6 +1532,7 @@ public class EACommandLine extends CommandLine {
         cs.put(p1, cA);
         cs.put(p2, cB);
 
+        env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1);
         env.put(new EAPPair<>(s, B), in1);
         System.out.println(env);
