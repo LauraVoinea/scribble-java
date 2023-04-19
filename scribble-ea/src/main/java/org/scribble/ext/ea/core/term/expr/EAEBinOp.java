@@ -14,13 +14,13 @@ import java.util.Set;
 public class EAEBinOp implements EAExpr {
 
     @NotNull
-    public final EAEOp op;
+    public final EAOp op;
     @NotNull
     public final EAExpr left;
     @NotNull
     public final EAExpr right;
 
-    public EAEBinOp(@NotNull EAEOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
+    public EAEBinOp(@NotNull EAOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
         this.op = op;
         this.left = left;
         this.right = right;
@@ -98,7 +98,7 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
         return EATermFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
     }
 
@@ -108,7 +108,7 @@ public class EAEBinOp implements EAExpr {
     }*/
 
     @Override
-    public boolean canBeta() {
+    public boolean canEval() {
         switch (this.op) {
             case PLUS:
             case LT:
@@ -119,8 +119,8 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
-    public EAExpr beta() {
-        if (!canBeta()) {
+    public EAExpr eval() {
+        if (!canEval()) {
             throw new RuntimeException("Stuck: " + this);
         }
         switch (this.op) {
@@ -155,10 +155,15 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
+    public boolean isValue() {
+        return false;
+    }
+
+    /*@Override
     public boolean isGround() {
         return this.left.isGround() && this.right.isGround();
         //return false;
-    }
+    }*/
 
     /*@Override
     public EAPBExpr getFoo() {

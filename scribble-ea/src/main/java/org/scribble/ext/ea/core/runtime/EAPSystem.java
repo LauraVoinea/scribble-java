@@ -84,10 +84,10 @@ public class EAPSystem {
     // Return map can-step-pids -> "parter" pids (sync actions) -- cf. EAPConfig/EAPActiveThread.canStep
     public Map<EAPid, Set<EAPid>> canStep() {
         return this.configs.entrySet().stream()
-                .filter(x -> x.getValue().canStep(this).left)
+                .filter(x -> x.getValue().canReduce(this).left)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().canStep(this).right
+                        x -> x.getValue().canReduce(this).right
                 ));
     }
 
@@ -112,12 +112,12 @@ public class EAPSystem {
         // !!! Delta (annots) unchanged
         if (foo instanceof EAMSuspend || foo instanceof EAMReturn
                 || foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf) {
-            LinkedHashMap<EAPid, EAPConfig> configs = c.step(this);
+            LinkedHashMap<EAPid, EAPConfig> configs = c.reduce(this);
             return new EAPSystem(this.lf, this.annots, configs);
         }
         // !!! Delta (annots) change
         else if (foo instanceof EAMSend) {
-            LinkedHashMap<EAPid, EAPConfig> configs = c.step(this);
+            LinkedHashMap<EAPid, EAPConfig> configs = c.reduce(this);
 
             EAMSend cast = (EAMSend) foo;
             LinkedHashMap<Pair<EASid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);

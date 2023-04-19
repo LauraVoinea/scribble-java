@@ -25,7 +25,7 @@ public class EAFuncNamesFixer {
         return visit(V, new HashSet<>());
     }
 
-    protected EAComp visit(EAComp M, Set<EAFuncName> env) {
+    protected EAComp visit(EAComp M, Set<EAEFuncName> env) {
         if (M instanceof EAMLet) {
             EAMLet cast = (EAMLet) M;
             EAEVar var = (EAEVar) visit(cast.var, env);
@@ -54,10 +54,10 @@ public class EAFuncNamesFixer {
         }
     }
 
-    protected EAExpr visit(EAExpr V, Set<EAFuncName> env) {
+    protected EAExpr visit(EAExpr V, Set<EAEFuncName> env) {
         if (V instanceof EAEHandlers) {
             EAEHandlers cast = (EAEHandlers) V;
-            LinkedHashMap<Op, EAEHandler> Hs =
+            LinkedHashMap<Op, EAHandler> Hs =
                     cast.Hs.entrySet().stream().collect(Collectors.toMap(
                             Map.Entry::getKey,
                             x -> visit(x.getValue(), env),
@@ -66,16 +66,16 @@ public class EAFuncNamesFixer {
                     ));
             return f.handlers(cast.role, Hs);
         } else if (V instanceof EAEVar) {
-            EAFuncName tmp = new EAFuncName(((EAEVar) V).id);
+            EAEFuncName tmp = new EAEFuncName(((EAEVar) V).id);
             return env.contains(tmp) ? tmp : V;
         } else if (V instanceof EAERec) {
             EAERec cast = (EAERec) V;
-            Set<EAFuncName> tmp = new HashSet<>(env);
+            Set<EAEFuncName> tmp = new HashSet<>(env);
             tmp.add(cast.f);
             EAEVar var = (EAEVar) visit(cast.var, tmp);
             EAComp body = visit(cast.body, tmp);
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
-        } else if (V instanceof EAFuncName || V instanceof EAEUnit
+        } else if (V instanceof EAEFuncName || V instanceof EAEUnit
                 || V instanceof EAPid || V instanceof EASid
                 || V instanceof EAEIntVal || V instanceof EAEBinOp || V instanceof EAEBoolVal) {
             return V;
@@ -84,7 +84,7 @@ public class EAFuncNamesFixer {
         }
     }
 
-    public EAEHandler visit(EAEHandler H, Set<EAFuncName> env) {
+    public EAHandler visit(EAHandler H, Set<EAEFuncName> env) {
         EAEVar var = (EAEVar) visit(H.var, env);
         EAEVar svar = (EAEVar) visit(H.svar, env);
         EAComp expr = visit(H.expr, env);

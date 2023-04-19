@@ -5,7 +5,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.runtime.*;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAEHandler;
+import org.scribble.ext.ea.core.term.expr.EAHandler;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.comp.*;
@@ -51,17 +51,17 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
     }
 
     // Return set is (sync) "dependencies" ("partner" pids) needed to step if any
-    public Pair<Boolean, Set<EAPid>> canStep(EAPSystem sys) {
+    public Pair<Boolean, Set<EAPid>> canReduce(EAPSystem sys) {
         if (!(this.T instanceof EATActive)) {
             return new Pair<>(false, Collections.emptySet());
         }
-        return ((EATActive) this.T).canStep(sys);
+        return ((EATActive) this.T).canConfigReduce(sys);
     }
 
     // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
     // Pre: getFoo + foo OK -- cf. EAPActiveThread.canStep -- TODO optimise away getFoo
     // cf. EAPActiveThread.canStep
-    public LinkedHashMap<EAPid, EAPConfig> step(EAPSystem sys) {
+    public LinkedHashMap<EAPid, EAPConfig> reduce(EAPSystem sys) {
         if (!(this.T instanceof EATActive)) {
             throw new RuntimeException("Shouldn't get here: ");
         }
@@ -89,7 +89,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
                 // TODO factor out with other LiftM beta cases
                 LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
-                EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
+                EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
                 configs.put(this.pid, c1);
@@ -101,7 +101,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
             EAThread t1;
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            t1 = EARuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
+            t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
             EAMSend cast = (EAMSend) foo;
 
             Optional<Map.Entry<EAPid, EAPConfig>> fst =
@@ -118,7 +118,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
             EAPConfig c2 = get.getValue();
             Map<Pair<EASid, Role>, EAEHandlers> sigma2 = c2.sigma;
             Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
-            EAEHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
+            EAHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
 
             //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
             EAComp e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
@@ -168,7 +168,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
             LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-            EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
+            EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
             configs.put(this.pid, c1);
@@ -259,9 +259,9 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
             }
 
             // !!! TH-Handler typing the nested handler expr (uses Delta) -- cf. typing handler value TV-Handler (uses "infer")
-            for (Map.Entry<Op, EAEHandler> x : h.Hs.entrySet()) {
+            for (Map.Entry<Op, EAHandler> x : h.Hs.entrySet()) {
                 Op op = x.getKey();
-                EAEHandler rhs = x.getValue();
+                EAHandler rhs = x.getValue();
                 LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
                 tmp.put(rhs.var, rhs.varType);
 

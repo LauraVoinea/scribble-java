@@ -1,9 +1,7 @@
-package org.scribble.ext.ea.core.term;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.scribble.core.type.name.Id;
-import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -13,25 +11,15 @@ import java.util.Map;
 import java.util.Set;
 
 // !!! Currently EAName is hardcoded to Gamma.map domain (not Gamma.fmap)
-public class EAFuncName extends Id implements EAExpr {
+public class EAEFuncName extends Id implements EAExpr {
 
-    public EAFuncName(String text) {
+    public EAEFuncName(String text) {
         super(text);
     }
 
     @Override
     public EAVType infer() {
         throw new RuntimeException("Not supported");
-    }
-
-    @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
     }
 
     @Override
@@ -45,7 +33,7 @@ public class EAFuncName extends Id implements EAExpr {
     }
 
     @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
         return m.containsKey(this) ? m.get(this) : this;
     }
 
@@ -55,19 +43,24 @@ public class EAFuncName extends Id implements EAExpr {
         return new HashSet<>();
     }
 
+    @Override
+    public boolean isValue() {
+        return true;  // though only in body of rec f in an app, where beta_M will subs it for rec f ...
+    }
+
     /* equals/canEquals, hashCode */
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAFuncName eaVar = (EAFuncName) o;
+        EAEFuncName eaVar = (EAEFuncName) o;
         return eaVar.canEquals(this) && super.equals(o);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAFuncName;
+        return o instanceof EAEFuncName;
     }
 
     @Override

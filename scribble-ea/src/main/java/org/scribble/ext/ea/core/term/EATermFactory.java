@@ -20,18 +20,18 @@ public class EATermFactory {
 
     /* Values */
 
-    public EAEHandler handler(@NotNull Op op, @NotNull EAEVar var, @NotNull EAVType varType,
-                              @NotNull EAComp expr, @NotNull EALType pre,
-                              @NotNull EAEVar svar, @NotNull EAVType svarType) {
-        return new EAEHandler(op, var, varType, expr, pre, svar, svarType);
+    public EAHandler handler(@NotNull Op op, @NotNull EAEVar var, @NotNull EAVType varType,
+                             @NotNull EAComp expr, @NotNull EALType pre,
+                             @NotNull EAEVar svar, @NotNull EAVType svarType) {
+        return new EAHandler(op, var, varType, expr, pre, svar, svarType);
     }
 
     public EAEHandlers handlers(
-            @NotNull Role role, @NotNull LinkedHashMap<Op, EAEHandler> Hs) {
+            @NotNull Role role, @NotNull LinkedHashMap<Op, EAHandler> Hs) {
         return new EAEHandlers(role, Hs);
     }
 
-    public EAERec rec(@NotNull EAFuncName f, @NotNull EAEVar var,
+    public EAERec rec(@NotNull EAEFuncName f, @NotNull EAEVar var,
                       @NotNull EAVType varType, @NotNull EAComp body,
                       @NotNull EALType S, @NotNull EALType T, @NotNull EAVType B) {
         return new EAERec(f, var, varType, body, S, T, B);
@@ -53,7 +53,7 @@ public class EATermFactory {
         return new EAEBoolVal(val);
     }
 
-    public EAEBinOp binop(@NotNull EAEOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
+    public EAEBinOp binop(@NotNull EAOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
         return new EAEBinOp(op, left, right);
     }
 

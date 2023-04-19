@@ -19,7 +19,7 @@ import java.util.Set;
 public class EAERec implements EAExpr {
 
     @NotNull
-    public final EAFuncName f;
+    public final EAEFuncName f;
     @NotNull
     public final EAEVar var;  // hardcoded single param
     @NotNull
@@ -35,7 +35,7 @@ public class EAERec implements EAExpr {
     public final EAVType B;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-    public EAERec(@NotNull EAFuncName f, @NotNull EAEVar var,
+    public EAERec(@NotNull EAEFuncName f, @NotNull EAEVar var,
                   @NotNull EAVType varType, @NotNull EAComp body,
                   @NotNull EALType S, @NotNull EALType T, @NotNull EAVType B) {
         this.f = f;
@@ -54,20 +54,10 @@ public class EAERec implements EAExpr {
     }
 
     @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
-    @Override
     public EAVType type(Gamma gamma) {
         LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
-        LinkedHashMap<EAFuncName, EAVFuncType> ftmp = new LinkedHashMap<>(gamma.fmap);
+        LinkedHashMap<EAEFuncName, EAVFuncType> ftmp = new LinkedHashMap<>(gamma.fmap);
         EAVFuncType ftype = EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
         ftmp.put(this.f, ftype);
         Gamma gamma1 = new Gamma(tmp, ftmp, gamma.svar, gamma.svarType);
@@ -92,8 +82,8 @@ public class EAERec implements EAExpr {
     }
 
     @Override
-    public EAExpr fsubs(@NotNull Map<EAFuncName, EAERec> m) {
-        Map<EAFuncName, EAERec> m1 = new HashMap<>(m);
+    public EAExpr fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
+        Map<EAEFuncName, EAERec> m1 = new HashMap<>(m);
         m1.remove(this.f);
         EAComp body1 = body.fsubs(m1);
         return EATermFactory.factory.rec(this.f, this.var, this.varType, body1,
@@ -109,9 +99,15 @@ public class EAERec implements EAExpr {
     }
 
     @Override
+    public boolean isValue() {
+        //return getFreeVars().stream().allMatch(x -> x.equals(this.var));
+        return isGround();
+    }
+
+    /*@Override
     public boolean isGround() {
         return this.body.isGround();
-    }
+    }*/
 
     @Override
     public String toString() {

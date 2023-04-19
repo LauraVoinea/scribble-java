@@ -2,7 +2,6 @@ package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAName;
-import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -26,16 +25,6 @@ public class EAEVar implements EAExpr, EAName {
         throw new RuntimeException("Not supported");
     }
 
-    @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
     /* Aux */
 
     @Override
@@ -46,10 +35,10 @@ public class EAEVar implements EAExpr, EAName {
         throw new RuntimeException("Unknown var: " + this + ", " + gamma);
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
         return false;
-    }
+    }*/
 
     @Override
     public EAExpr subs(@NotNull Map<EAEVar, EAExpr> m) {
@@ -57,13 +46,23 @@ public class EAEVar implements EAExpr, EAName {
     }
 
     @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) { return this; }
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) { return this; }
 
     @Override
     public Set<EAEVar> getFreeVars() {
         //return Set.of(this);
         return new HashSet<>(Set.of(this));
     }
+
+    @Override
+    public boolean isValue() {
+        return false;
+    }
+
+    /*@Override
+    public boolean isGround() {
+        return true;
+    }*/
 
     @Override
     public String toString() {

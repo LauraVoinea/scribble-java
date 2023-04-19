@@ -2,6 +2,7 @@ package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
@@ -77,6 +78,29 @@ public class EAMLet implements EAComp {
         }
     }
 
+    // foo return corresponds with beta "subject"
+    @Override
+    public EAComp getConfigRedexCandidate() {
+        /*if (this.init instanceof EAMReturn //&& ((EAPReturn) this.init).val.isGround()
+                && !((EAMReturn) this.init).val.canEval()) {*/
+        if (this.init.isGroundValueReturn()) {
+            return this;
+        } else {
+            return this.init.getConfigRedexCandidate();
+        }
+    }
+
+    @Override
+    public EAComp configReduce() {  // Not beta because, e.g., send in init cannot beta (must foo)
+        /*if (this.init instanceof EAMReturn && //this.init.isGround()) {
+                !this.init.canBeta()) {*/
+        if (this.init.isGroundValueReturn()) {
+            return this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
+        } else {
+            return EATermFactory.factory.let(this.var, this.varType, this.init.configReduce(), this.body);
+        }
+    }
+
     /* Aux */
 
     @Override
@@ -89,7 +113,7 @@ public class EAMLet implements EAComp {
     }
 
     @Override
-    public EAMLet fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMLet fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
         EAComp init1 = this.init.fsubs(m);
         EAComp body1 = body.fsubs(m);
         return EATermFactory.factory.let(this.var, this.varType, init1, body1);
@@ -109,31 +133,11 @@ public class EAMLet implements EAComp {
         return res;
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
-        return this.init.isGround();  // !!! bad naming
-    }
-
-    // foo return corresponds with beta "subject"
-    @Override
-    public EAComp getConfigRedexCandidate() {
-        if (this.init instanceof EAMReturn //&& ((EAPReturn) this.init).val.isGround()
-                && !((EAMReturn) this.init).val.canBeta()) {
-            return this;
-        } else {
-            return this.init.getConfigRedexCandidate();
-        }
-    }
-
-    @Override
-    public EAComp configStep() {  // Not beta because, e.g., send in init cannot beta (must foo)
-        if (this.init instanceof EAMReturn && //this.init.isGround()) {
-                !this.init.canBeta()) {
-            return this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
-        } else {
-            return EATermFactory.factory.let(this.var, this.varType, this.init.configStep(), this.body);
-        }
-    }
+        //return this.init.isGround();  // !!! bad naming
+        return getFreeVars().isEmpty();
+    }*/
 
     @Override
     public String toString() {

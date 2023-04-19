@@ -1,6 +1,5 @@
 package org.scribble.ext.ea.core.term.expr;
 
-import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
@@ -25,16 +24,6 @@ public class EAEIntVal implements EAExpr {
         return EAVIntType.INT;
     }
 
-    @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
     /*@Override
     public EAPBExpr recon(@NotNull EAPBExpr old, EAPBExpr neww) {
         return this.equals(old) ? neww : this;
@@ -53,14 +42,19 @@ public class EAEIntVal implements EAExpr {
     }
 
     @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
         return this;
     }
 
     @Override
-    public boolean isGround() {
+    public boolean isValue() {
         return true;
     }
+
+    /*@Override
+    public boolean isGround() {
+        return true;
+    }*/
 
     @Override
     public Set<EAEVar> getFreeVars() {

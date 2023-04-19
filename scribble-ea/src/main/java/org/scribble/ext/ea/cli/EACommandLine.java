@@ -15,6 +15,7 @@ import org.scribble.core.type.session.local.LTypeFactoryImpl;
 import org.scribble.ext.ea.core.runtime.*;
 import org.scribble.ext.ea.core.runtime.process.EAPConfig;
 import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
@@ -492,7 +493,7 @@ public class EACommandLine extends CommandLine {
         EAEVar zz = pf.var("zz");
         EAEVar w1 = pf.var("w1");
         EAEVar w2 = pf.var("w2");
-        EAFuncName f = new EAFuncName("f");
+        EAEFuncName f = new EAEFuncName("f");
         RecVar X = new RecVar("X");
 
         // ----
@@ -856,7 +857,7 @@ public class EACommandLine extends CommandLine {
         EAEVar zz = pf.var("zz");
         EAEVar w1 = pf.var("w1");
         EAEVar w2 = pf.var("w2");
-        EAFuncName f = new EAFuncName("f");
+        EAEFuncName f = new EAEFuncName("f");
         RecVar X = new RecVar("X");
 
         // ----

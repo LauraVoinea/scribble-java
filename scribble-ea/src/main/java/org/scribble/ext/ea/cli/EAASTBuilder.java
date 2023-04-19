@@ -97,7 +97,7 @@ class EAASTBuilder {
                 List<CommonTree> cs = ((List<Object>) n.getChildren()).stream()
                         .map(x -> (CommonTree) x).collect(Collectors.toList());
                 Role r = visitRole(cs.get(0));
-                LinkedHashMap<Op, EAEHandler> hs = visitHandlers(cs.subList(1, cs.size()));
+                LinkedHashMap<Op, EAHandler> hs = visitHandlers(cs.subList(1, cs.size()));
                 return pf.handlers(r, hs);
             }
             case "V_INT":
@@ -111,7 +111,7 @@ class EAASTBuilder {
             case "V_FALSE":
                 return pf.bool(false);
             case "V_REC": {
-                EAFuncName f = visitfname((CommonTree) n.getChild(0));
+                EAEFuncName f = visitfname((CommonTree) n.getChild(0));
                 EAEVar var = visitVar((CommonTree) n.getChild(1));
                 EAVType varType = visitA((CommonTree) n.getChild(2));
                 EALType S = visitSessionType((CommonTree) n.getChild(3));
@@ -134,7 +134,7 @@ class EAASTBuilder {
         List<Object> cs = n.getChildren();
         EAExpr curr = visitV((CommonTree) cs.get(0));
         for (int i = 1; i < cs.size(); i++) {
-            curr = EATermFactory.factory.binop(EAEOp.LT, curr, visitV((CommonTree) cs.get(i)));
+            curr = EATermFactory.factory.binop(EAOp.LT, curr, visitV((CommonTree) cs.get(i)));
         }
         return curr;
     }
@@ -143,7 +143,7 @@ class EAASTBuilder {
         List<Object> cs = n.getChildren();
         EAExpr curr = visitV((CommonTree) cs.get(0));
         for (int i = 1; i < cs.size(); i++) {
-            curr = EATermFactory.factory.binop(EAEOp.PLUS, curr, visitV((CommonTree) cs.get(i)));
+            curr = EATermFactory.factory.binop(EAOp.PLUS, curr, visitV((CommonTree) cs.get(i)));
         }
         return curr;
     }
@@ -166,7 +166,7 @@ class EAASTBuilder {
         return pf.intt(Integer.parseInt(txt));
     }
 
-    public LinkedHashMap<Op, EAEHandler> visitHandlers(List<CommonTree> n) {
+    public LinkedHashMap<Op, EAHandler> visitHandlers(List<CommonTree> n) {
         return n.stream().map(this::visitHandler).collect(Collectors.toMap(
                 x -> x.op,
                 x -> x,
@@ -175,7 +175,7 @@ class EAASTBuilder {
         ));
     }
 
-    public EAEHandler visitHandler(CommonTree n) {
+    public EAHandler visitHandler(CommonTree n) {
         Op op = visitOp((CommonTree) n.getChild(0));
         EAEVar var = visitVar((CommonTree) n.getChild(1));
         EAVType varType = visitA((CommonTree) n.getChild(2));
@@ -283,8 +283,8 @@ class EAASTBuilder {
     }
 
     // FIXME only used by rec -- other occurrences of fnames come out as var...
-    public EAFuncName visitfname(CommonTree n) {
-        return new EAFuncName(n.getText());
+    public EAEFuncName visitfname(CommonTree n) {
+        return new EAEFuncName(n.getText());
     }
 
     public Op visitOp(CommonTree n) {

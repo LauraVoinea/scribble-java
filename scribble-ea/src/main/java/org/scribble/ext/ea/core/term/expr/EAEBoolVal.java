@@ -1,6 +1,5 @@
 package org.scribble.ext.ea.core.term.expr;
 
-import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAVBoolType;
@@ -25,16 +24,6 @@ public class EAEBoolVal implements EAExpr {
         return EAVBoolType.BOOL;
     }
 
-    @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
     /*@Override
     public EAPBExpr recon(@NotNull EAPBExpr old, EAPBExpr neww) {
         return this.equals(old) ? neww : this;
@@ -53,19 +42,24 @@ public class EAEBoolVal implements EAExpr {
     }
 
     @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
         return this;
-    }
-
-    @Override
-    public boolean isGround() {
-        return true;
     }
 
     @Override
     public Set<EAEVar> getFreeVars() {
         return new HashSet<>();
     }
+
+    @Override
+    public boolean isValue() {
+        return true;  // though only in body of rec f in an app, where beta_M will subs it for rec f ...
+    }
+
+    /*@Override
+    public boolean isGround() {
+        return true;
+    }*/
 
     @Override
     public String toString() {

@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
@@ -29,7 +29,7 @@ public interface EAComp extends EATerm {
 
     EAComp subs(@NotNull Map<EAEVar, EAExpr> m);
 
-    EAComp fsubs(@NotNull Map<EAFuncName, EAERec> m);
+    EAComp fsubs(@NotNull Map<EAEFuncName, EAERec> m);
 
     // CHECKME needed?
     EAComp recon(@NotNull EAComp old, @NotNull EAComp neww);  // A subs for Expr (cf. Val)
@@ -37,9 +37,11 @@ public interface EAComp extends EATerm {
     Set<EAEVar> getFreeVars();
 
     // FIXME separate "is ground" (cf. EAPSystem.reduce) from "is finished value" (cf. EAPLet.canBeta)
-    boolean isGround();
+    default boolean isGround() {
+        return getFreeVars().isEmpty();
+    }
 
-    default boolean isGroundValueReturn() {
+    default boolean isGroundValueReturn() {  // "isValue" for Comp
         return false;
     }
 
@@ -47,6 +49,6 @@ public interface EAComp extends EATerm {
     //boolean canFoo();
     EAComp getConfigRedexCandidate();  // deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary
 
-    EAComp configStep();
+    EAComp configReduce();
 }
 

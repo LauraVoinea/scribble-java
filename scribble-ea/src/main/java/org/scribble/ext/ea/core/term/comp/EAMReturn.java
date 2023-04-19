@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAERec;
@@ -46,14 +46,14 @@ public class EAMReturn implements EAComp {
     @Override
     public boolean canBeta() {
         //return false;
-        return this.val.canBeta();
+        return this.val.canEval();
     }
 
     @Override
     public EAComp beta() {
         //throw new RuntimeException("Stuck: " + this);
-        System.out.println("33333333: " + EATermFactory.factory.returnn(this.val.beta()));
-        return EATermFactory.factory.returnn(this.val.beta());
+        System.out.println("33333333: " + EATermFactory.factory.returnn(this.val.eval()));
+        return EATermFactory.factory.returnn(this.val.eval());
     }
 
     /* Aux */
@@ -65,7 +65,7 @@ public class EAMReturn implements EAComp {
     }
 
     @Override
-    public EAMReturn fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMReturn fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
         EAExpr val1 = this.val.fsubs(m);
         return EATermFactory.factory.returnn(val1);
     }
@@ -80,10 +80,10 @@ public class EAMReturn implements EAComp {
         return this.val.getFreeVars();
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
         return this.val.isGround();
-    }
+    }*/
 
     /*@Override
     public boolean canFoo() {
@@ -92,7 +92,7 @@ public class EAMReturn implements EAComp {
 
     @Override
     public boolean isGroundValueReturn() {
-        return isGround();
+        return this.val.isValue();
     }
 
     @Override
@@ -102,9 +102,9 @@ public class EAMReturn implements EAComp {
     }
 
     @Override
-    public EAComp configStep() {
+    public EAComp configReduce() {
         //throw new RuntimeException("Shouldn't get in here: " + this);
-        return EATermFactory.factory.returnn(this.val.beta());
+        return EATermFactory.factory.returnn(this.val.eval());
     }
 
     @Override

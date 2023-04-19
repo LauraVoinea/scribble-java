@@ -3,7 +3,6 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.type.EATypeFactory;
@@ -33,10 +32,10 @@ public class EAEHandlers implements EAExpr {
     public final Role role;
     //@NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;  // !!! var is part of value, not key
     @NotNull
-    public final Map<Op, EAEHandler> Hs;  // Invariant: Op equals EAPHandler.op
+    public final Map<Op, EAHandler> Hs;  // Invariant: Op equals EAPHandler.op
 
     public EAEHandlers(
-            @NotNull Role role, @NotNull LinkedHashMap<Op, EAEHandler> Hbar) {
+            @NotNull Role role, @NotNull LinkedHashMap<Op, EAHandler> Hbar) {
         this.role = role;
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -55,7 +54,7 @@ public class EAEHandlers implements EAExpr {
                 this.Hs.entrySet().stream().collect(Collectors.toMap(
                         Map.Entry::getKey,
                         x -> {
-                            EAEHandler v = x.getValue();
+                            EAHandler v = x.getValue();
                             return new Pair<>(v.varType, v.pre);
                         },
                         (x, y) -> null,
@@ -65,22 +64,12 @@ public class EAEHandlers implements EAExpr {
     }
 
     @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
-    @Override
     public EAVType type(Gamma gamma) {
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         EAVType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
-        for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
+        for (Map.Entry<Op, EAHandler> e : this.Hs.entrySet()) {
             Op k = e.getKey();
-            EAEHandler v = e.getValue();
+            EAHandler v = e.getValue();
             if (!A.equals(v.svarType)) {
                 throw new RuntimeException("Inconsistent state types: " + this);
             }
@@ -95,8 +84,8 @@ public class EAEHandlers implements EAExpr {
 
     @Override
     public EAEHandlers subs(@NotNull Map<EAEVar, EAExpr> m) {
-        LinkedHashMap<Op, EAEHandler> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
+        LinkedHashMap<Op, EAHandler> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAHandler> e : this.Hs.entrySet()) {
             Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
             Op k = e.getKey();
             Hs.put(k, e.getValue().subs(m));
@@ -105,10 +94,10 @@ public class EAEHandlers implements EAExpr {
     }
 
     @Override
-    public EAExpr fsubs(@NotNull Map<EAFuncName, EAERec> m) {
-        LinkedHashMap<Op, EAEHandler> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
-            Map<EAFuncName, EAERec> m1 = new HashMap<>(m);
+    public EAExpr fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
+        LinkedHashMap<Op, EAHandler> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAHandler> e : this.Hs.entrySet()) {
+            Map<EAEFuncName, EAERec> m1 = new HashMap<>(m);
             Op k = e.getKey();
             Hs.put(k, e.getValue().fsubs(m));
         }
@@ -121,6 +110,11 @@ public class EAEHandlers implements EAExpr {
                 .flatMap(x -> x.getFreeVars().stream())
                 .collect(Collectors.toCollection(HashSet::new));
         return res;
+    }
+
+    @Override
+    public boolean isValue() {
+        return this.Hs.values().stream().allMatch(x -> x.isValue());
     }
 
     @Override

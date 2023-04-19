@@ -1,7 +1,6 @@
 package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
@@ -24,16 +23,6 @@ public class EAEUnit implements EAExpr {
     }
 
     @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
-    @Override
     public EAVUnitType type(Gamma gamma) {
         return EATypeFactory.factory.val.unit();
     }
@@ -47,12 +36,17 @@ public class EAEUnit implements EAExpr {
     }
 
     @Override
+    public boolean isValue() {
+        return true;
+    }
+
+    @Override
     public EAEUnit subs(@NotNull Map<EAEVar, EAExpr> m) {
         return this;
     }
 
     @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) { return this; }
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) { return this; }
 
     @Override
     public String toString() {

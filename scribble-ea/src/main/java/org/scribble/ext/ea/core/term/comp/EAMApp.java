@@ -2,6 +2,7 @@ package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
@@ -74,7 +75,8 @@ public class EAMApp implements EAComp {
     @Override
     public boolean canBeta() {
         return this.left instanceof EAERec  // TODO lambda
-                && this.left.isGround() && this.right.isGround();  // FIXME separate isValue (for canBeta) from isGround
+                //&& this.left.isGround() && this.right.isGround();  // FIXME separate isValue (for canBeta) from isGround
+                && this.left.isValue() && this.right.isValue();
     }
 
     @Override
@@ -101,7 +103,7 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EAMApp fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMApp fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
         EAExpr left = this.left.fsubs(m);
         EAExpr right = this.right.fsubs(m);
         return EATermFactory.factory.app(left, right);
@@ -121,10 +123,10 @@ public class EAMApp implements EAComp {
         return res;
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
         return this.left.isGround() && this.right.isGround();
-    }
+    }*/
 
     @Override
     public EAComp getConfigRedexCandidate() {
@@ -132,7 +134,7 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EAComp configStep() {
+    public EAComp configReduce() {
         return beta();
     }
 

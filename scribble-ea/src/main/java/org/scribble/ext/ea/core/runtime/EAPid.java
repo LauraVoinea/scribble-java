@@ -2,20 +2,12 @@ package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.runtime.process.EAProcess;
-import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-// a, b, ...  // TODO no longer EAPVal
-public class EAPid implements EAExpr, EARuntimeName {
+// a, b, ...
+public class EAPid implements EARuntimeName {
 
     @NotNull
     public final String id;
@@ -25,40 +17,11 @@ public class EAPid implements EAExpr, EARuntimeName {
     }
 
     @Override
-    public EAVType infer() {
-        throw new RuntimeException("Not supported");
-    }
-
-    @Override
-    public boolean canBeta() {
-        return false;
-    }
-
-    @Override
-    public EAExpr beta() {
-        throw new RuntimeException("Stuck: " + this);
-    }
-
-    @Override
     public EAVType type(Gamma gamma) {
         return EATypeFactory.factory.val.pid();
     }
 
     /* Aux */
-
-    @Override
-    public EAPid subs(@NotNull Map<EAEVar, EAExpr> m) {
-        return this;
-    }
-
-    @Override
-    public EAExpr fsubs(Map<EAFuncName, EAERec> m) { return this; }
-
-    @Override
-    public Set<EAEVar> getFreeVars() {
-        //return Collections.emptySet();
-        return new HashSet<>();
-    }
 
     @Override
     public String toString() {

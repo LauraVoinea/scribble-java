@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
@@ -83,10 +84,10 @@ public class EAMSend implements EAComp {
         return this.val.getFreeVars();
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
         return this.val.isGround();
-    }
+    }*/
 
     /*@Override
     public boolean canFoo() {
@@ -99,7 +100,7 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public EAComp configStep() {
+    public EAComp configReduce() {
         return EATermFactory.factory.returnn(EATermFactory.factory.unit());
     }
 
@@ -110,7 +111,7 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public EAMSend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMSend fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
         EAExpr val1 = this.val.fsubs(m);
         return EATermFactory.factory.send(this.dst, this.op, val1);
     }

@@ -17,7 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAEHandler {
+// TODO factor out with EAELam
+public class EAHandler {
 
     @NotNull
     public final Op op;
@@ -35,8 +36,8 @@ public class EAEHandler {
     @NotNull
     public final EAVType svarType;
 
-    public EAEHandler(@NotNull Op op, @NotNull EAEVar var, @NotNull EAVType varType,
-                      @NotNull EAComp expr, @NotNull EALType pre, @NotNull EAEVar svar, @NotNull EAVType svarType) {
+    public EAHandler(@NotNull Op op, @NotNull EAEVar var, @NotNull EAVType varType,
+                     @NotNull EAComp expr, @NotNull EALType pre, @NotNull EAEVar svar, @NotNull EAVType svarType) {
         this.op = op;
         this.var = var;
         this.varType = varType;
@@ -72,7 +73,7 @@ public class EAEHandler {
 
     /* Aux */
 
-    public EAEHandler subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAHandler subs(@NotNull Map<EAEVar, EAExpr> m) {
         Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
         m1.remove(this.svar);
@@ -81,8 +82,8 @@ public class EAEHandler {
                 this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }
 
-    public EAEHandler fsubs(@NotNull Map<EAFuncName, EAERec> m) {
-        Map<EAFuncName, EAERec> m1 = new HashMap<>(m);
+    public EAHandler fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
+        Map<EAEFuncName, EAERec> m1 = new HashMap<>(m);
         m1.remove(this.var);
         m1.remove(this.svar);
         EAComp subs = this.expr.fsubs(m1);
@@ -95,6 +96,10 @@ public class EAEHandler {
         fvs.remove(this.var);
         fvs.remove(this.svar);
         return fvs;
+    }
+
+    public boolean isValue() {
+        return getFreeVars().isEmpty();  // i.e., isGround
     }
 
     @Override
@@ -113,7 +118,7 @@ public class EAEHandler {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAEHandler them = (EAEHandler) o;
+        EAHandler them = (EAHandler) o;
         return this.op.equals(them.op)
                 && this.var.equals(them.var)
                 && this.varType.equals(them.varType)

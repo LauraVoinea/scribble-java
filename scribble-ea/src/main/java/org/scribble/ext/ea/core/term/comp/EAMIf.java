@@ -2,10 +2,7 @@ package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAEBoolVal;
-import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -54,7 +51,7 @@ public class EAMIf implements EAComp {
 
     @Override
     public boolean canBeta() {
-        return this.cond.canBeta() || this.cond instanceof EAEBoolVal;
+        return this.cond.canEval() || this.cond instanceof EAEBoolVal;
     }
 
     @Override
@@ -62,8 +59,8 @@ public class EAMIf implements EAComp {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
-        if (this.cond.canBeta()) {
-            return EATermFactory.factory.iff(this.cond.beta(), this.then, this.elsee);
+        if (this.cond.canEval()) {
+            return EATermFactory.factory.iff(this.cond.eval(), this.then, this.elsee);
         } else {
             return ((EAEBoolVal) this.cond).val ? this.then : this.elsee;
         }
@@ -78,7 +75,7 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public EAMIf fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMIf fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
         return EATermFactory.factory.iff(
                 this.cond.fsubs(m), this.then.fsubs(m), this.elsee.fsubs(m));
     }
@@ -97,10 +94,10 @@ public class EAMIf implements EAComp {
         return res;
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
         return this.cond.isGround() && this.then.isGround() && this.elsee.isGround();  // !!! bad naming
-    }
+    }*/
 
     @Override
     public EAComp getConfigRedexCandidate() {
@@ -108,7 +105,7 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public EAComp configStep() {
+    public EAComp configReduce() {
         return beta();
     }
 

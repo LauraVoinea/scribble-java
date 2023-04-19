@@ -2,10 +2,7 @@ package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAEHandlers;
-import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
@@ -91,7 +88,7 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public EAMSuspend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMSuspend fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
         EAExpr val1 = this.val.fsubs(m);
         EAExpr sval1 = this.sval.fsubs(m);
         return EATermFactory.factory.suspend(val1, sval1);
@@ -107,10 +104,10 @@ public class EAMSuspend implements EAComp {
         return this.val.getFreeVars();
     }
 
-    @Override
+    /*@Override
     public boolean isGround() {
         return this.val.isGround();
-    }
+    }*/
 
     /*@Override
     public boolean canFoo() {
@@ -123,7 +120,7 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public EAComp configStep() {
+    public EAComp configReduce() {
         throw new RuntimeException("Shouldn't get in here.");
     }
 

@@ -2,7 +2,7 @@ package org.scribble.ext.ea.core.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAName;
-import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
@@ -20,9 +20,9 @@ public class Gamma {
     protected final LinkedHashMap<EAName, EAVType> _map;  // Backing of above
 
     @NotNull
-    public final Map<EAFuncName, EAVFuncType> fmap;  // Unmodifiable wrapper of below
+    public final Map<EAEFuncName, EAVFuncType> fmap;  // Unmodifiable wrapper of below
     @NotNull
-    protected final LinkedHashMap<EAFuncName, EAVFuncType> _fmap;  // Backing of above
+    protected final LinkedHashMap<EAEFuncName, EAVFuncType> _fmap;  // Backing of above
 
     public final EAName svar;  // null if "none"  // !!! this.map contains [svar:svarType] if non-null
     @NotNull
@@ -41,7 +41,7 @@ public class Gamma {
     }*/
 
     public Gamma(LinkedHashMap<EAName, EAVType> map,
-                 LinkedHashMap<EAFuncName, EAVFuncType> fmap,
+                 LinkedHashMap<EAEFuncName, EAVFuncType> fmap,
                  EAName svar,
                  EAVType svarType) {
         this._map = map.entrySet().stream().collect(

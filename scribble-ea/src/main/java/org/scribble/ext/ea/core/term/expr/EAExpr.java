@@ -1,6 +1,5 @@
 package org.scribble.ext.ea.core.term.expr;
 
-import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -14,20 +13,27 @@ public interface EAExpr extends EATerm {
 
     EAVType infer();  // not intended to work for single var -- for use on ground vals at config level
 
-    boolean canBeta();
+    default boolean canEval() {
+        return false;
+    }
 
-    EAExpr beta();
+    default EAExpr eval() {
+        throw new RuntimeException("Stuck: " + this);
+    }
 
     EAVType type(Gamma gamma);
 
     EAExpr subs(Map<EAEVar, EAExpr> m);
 
-    EAExpr fsubs(Map<EAFuncName, EAERec> m);
+    EAExpr fsubs(Map<EAEFuncName, EAERec> m);
 
     Set<EAEVar> getFreeVars();
 
-    // !!! cf. "value"
+    // !!! cf. "isValue" (cf. EAEBinOp)
     default boolean isGround() {  // FIXME override hack for var when it's actually an fname
         return getFreeVars().isEmpty();
     }
+
+    // A ground value -- implies isGround, !canEval
+    boolean isValue();
 }
