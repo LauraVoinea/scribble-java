@@ -120,7 +120,7 @@ public class EAPApp implements EAPExpr {
 
     @Override
     public boolean isGround() {
-        return this.left.isGround() && this.right.isGround();  // !!! bad naming -- XXX separate isGround from isValue
+        return this.left.isGround() && this.right.isGround();
     }
 
     @Override

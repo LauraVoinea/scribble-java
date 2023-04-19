@@ -34,6 +34,10 @@ public interface EAPExpr extends EAPTerm {
     // FIXME separate "is ground" (cf. EAPSystem.reduce) from "is finished value" (cf. EAPLet.canBeta)
     boolean isGround();
 
+    default boolean isGroundValueReturn() {
+        return false;
+    }
+
     // Extract the (nested) "statically reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo -- EAPActiveThread.canStep checks canBeta on relevant foo, but could refactor some canBeta into getFoo)
     //boolean canFoo();
     EAPExpr getFoo();  // deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary

@@ -59,7 +59,7 @@ public class EAPLet implements EAPExpr {
 
     @Override
     public boolean canBeta() {
-        return this.init.canBeta() || (this.init instanceof EAPReturn && this.init.isGround());  // FIXME: isValue vs isGround
+        return this.init.canBeta() || this.init.isGroundValueReturn();
     }
 
     @Override

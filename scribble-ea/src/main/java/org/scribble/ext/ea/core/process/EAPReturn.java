@@ -88,6 +88,11 @@ public class EAPReturn implements EAPExpr {
     }*/
 
     @Override
+    public boolean isGroundValueReturn() {
+        return isGround();
+    }
+
+    @Override
     public EAPExpr getFoo() {
         //throw new RuntimeException("Shouldn't get here: " + this);
         return this;  // foo is a candidate
