@@ -98,12 +98,12 @@ public class EAPIf implements EAPExpr {
     }
 
     @Override
-    public EAPExpr getFoo() {
+    public EAPExpr getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr foo() {
+    public EAPExpr configStep() {
         return beta();
     }
 

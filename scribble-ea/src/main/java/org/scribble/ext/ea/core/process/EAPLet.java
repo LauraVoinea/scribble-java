@@ -6,7 +6,6 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -113,22 +112,22 @@ public class EAPLet implements EAPExpr {
 
     // foo return corresponds with beta "subject"
     @Override
-    public EAPExpr getFoo() {
+    public EAPExpr getConfigRedexCandidate() {
         if (this.init instanceof EAPReturn //&& ((EAPReturn) this.init).val.isGround()
                 && !((EAPReturn) this.init).val.canBeta()) {
             return this;
         } else {
-            return this.init.getFoo();
+            return this.init.getConfigRedexCandidate();
         }
     }
 
     @Override
-    public EAPExpr foo() {  // Not beta because, e.g., send in init cannot beta (must foo)
+    public EAPExpr configStep() {  // Not beta because, e.g., send in init cannot beta (must foo)
         if (this.init instanceof EAPReturn && //this.init.isGround()) {
                 !this.init.canBeta()) {
             return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
         } else {
-            return EAPFactory.factory.let(this.var, this.varType, this.init.foo(), this.body);
+            return EAPFactory.factory.let(this.var, this.varType, this.init.configStep(), this.body);
         }
     }
 

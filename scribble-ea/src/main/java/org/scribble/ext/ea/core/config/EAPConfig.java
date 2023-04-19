@@ -62,7 +62,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             throw new RuntimeException("Shouldn't get here: ");
         }
         EAPActiveThread t = (EAPActiveThread) this.T;
-        EAPExpr foo = t.expr.getFoo();
+        EAPExpr foo = t.expr.getConfigRedexCandidate();
 
         // TODO refactor separate case by case (rather than grouping thread/sigma/config creation)
 
@@ -85,7 +85,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
                 // TODO factor out with other LiftM beta cases
                 LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
                 LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
-                EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+                EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
                 configs.put(this.pid, c1);
@@ -97,7 +97,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
 
             EAPThreadState t1;
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+            t1 = EAPRuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
             EAPSend cast = (EAPSend) foo;
 
             Optional<Map.Entry<EAPPid, EAPConfig>> fst =
@@ -164,7 +164,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-            EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.foo(), t.sid, t.role);
+            EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
             configs.put(this.pid, c1);

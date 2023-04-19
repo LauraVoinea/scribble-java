@@ -93,13 +93,13 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
-    public EAPExpr getFoo() {
+    public EAPExpr getConfigRedexCandidate() {
         //throw new RuntimeException("Shouldn't get here: " + this);
         return this;  // foo is a candidate
     }
 
     @Override
-    public EAPExpr foo() {
+    public EAPExpr configStep() {
         //throw new RuntimeException("Shouldn't get in here: " + this);
         return EAPFactory.factory.returnn(this.val.beta());
     }

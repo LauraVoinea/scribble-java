@@ -113,12 +113,12 @@ public class EAPSuspend implements EAPExpr {
     }*/
 
     @Override
-    public EAPExpr getFoo() {
+    public EAPExpr getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr foo() {
+    public EAPExpr configStep() {
         throw new RuntimeException("Shouldn't get in here.");
     }
 

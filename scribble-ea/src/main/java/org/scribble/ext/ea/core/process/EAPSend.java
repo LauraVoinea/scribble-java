@@ -91,12 +91,12 @@ public class EAPSend implements EAPExpr {
     }*/
 
     @Override
-    public EAPExpr getFoo() {
+    public EAPExpr getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr foo() {
+    public EAPExpr configStep() {
         return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
 

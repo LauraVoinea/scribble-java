@@ -34,7 +34,7 @@ public class EAPActiveThread implements EAPThreadState {
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
     public Pair<Boolean, Set<EAPPid>> canStep(EAPSystem sys) {
-        EAPExpr foo = this.expr.getFoo();
+        EAPExpr foo = this.expr.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAPReturn) {
             if (this.expr instanceof EAPReturn && ((EAPReturn) this.expr).val.equals(EAPUnit.UNIT)) {

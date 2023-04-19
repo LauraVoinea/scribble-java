@@ -105,7 +105,7 @@ public class EAPSystem {
         // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
         // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
 
-        EAPExpr foo = t.expr.getFoo();
+        EAPExpr foo = t.expr.getConfigRedexCandidate();
 
         //System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 
