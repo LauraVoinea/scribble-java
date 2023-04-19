@@ -3,24 +3,24 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EABoolType;
-import org.scribble.ext.ea.core.type.value.EAIntType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVBoolType;
+import org.scribble.ext.ea.core.type.value.EAVIntType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPBinOp implements EAPExpr {
+public class EAEBinOp implements EAExpr {
 
     @NotNull
-    public final EAPOp op;
+    public final EAEOp op;
     @NotNull
-    public final EAPExpr left;
+    public final EAExpr left;
     @NotNull
-    public final EAPExpr right;
+    public final EAExpr right;
 
-    public EAPBinOp(@NotNull EAPOp op, @NotNull EAPExpr left, @NotNull EAPExpr right) {
+    public EAEBinOp(@NotNull EAEOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
         this.op = op;
         this.left = left;
         this.right = right;
@@ -40,23 +40,23 @@ public class EAPBinOp implements EAPExpr {
     }*/
 
     @Override
-    public EAValType infer() {
+    public EAVType infer() {
         switch (this.op) {
             case PLUS:
-                return EAIntType.INT;
+                return EAVIntType.INT;
             case LT:
-                return EABoolType.BOOL;
+                return EAVBoolType.BOOL;
             default:
                 throw new RuntimeException("Unknown op: " + this.op);
         }
     }
 
     @Override
-    public EAValType type(Gamma gamma) {
+    public EAVType type(Gamma gamma) {
         switch (this.op) {
             case PLUS: {
-                EAValType ltype = this.left.type(gamma);
-                if (!(ltype.equals(EAIntType.INT))) {
+                EAVType ltype = this.left.type(gamma);
+                if (!(ltype.equals(EAVIntType.INT))) {
                     throw new RuntimeException("Expected Int type, not: "
                             + this.left + " : " + ltype + "\n" + gamma);
                 }
@@ -66,25 +66,25 @@ public class EAPBinOp implements EAPExpr {
                     + "\tfound=" + ftype.S + ", required=" + pre);
         }* /
         subtype(ftype.S, pre);*/
-                EAValType rtype = this.right.type(gamma);
-                if (!(rtype.equals(EAIntType.INT))) {
+                EAVType rtype = this.right.type(gamma);
+                if (!(rtype.equals(EAVIntType.INT))) {
                     throw new RuntimeException("Incompatible arg type:\n"
-                            + "\tfound=" + rtype + ", required=" + EAIntType.INT);
+                            + "\tfound=" + rtype + ", required=" + EAVIntType.INT);
                 }
-                return EAIntType.INT;
+                return EAVIntType.INT;
             }
             case LT: {
-                EAValType ltype = this.left.type(gamma);
-                if (!(ltype.equals(EAIntType.INT))) {
+                EAVType ltype = this.left.type(gamma);
+                if (!(ltype.equals(EAVIntType.INT))) {
                     throw new RuntimeException("Expected Int type, not: "
                             + this.left + " : " + ltype + "\n" + gamma);
                 }
-                EAValType rtype = this.right.type(gamma);
-                if (!(rtype.equals(EAIntType.INT))) {
+                EAVType rtype = this.right.type(gamma);
+                if (!(rtype.equals(EAVIntType.INT))) {
                     throw new RuntimeException("Incompatible arg type:\n"
-                            + "\tfound=" + rtype + ", required=" + EAIntType.INT);
+                            + "\tfound=" + rtype + ", required=" + EAVIntType.INT);
                 }
-                return EABoolType.BOOL;
+                return EAVBoolType.BOOL;
             }
             default:
                 throw new RuntimeException("TODO: " + this);
@@ -93,13 +93,13 @@ public class EAPBinOp implements EAPExpr {
     }
 
     @Override
-    public EAPExpr subs(Map<EAPVar, EAPExpr> m) {
-        return EAPFactory.factory.binop(this.op, this.left.subs(m), this.right.subs(m));
+    public EAExpr subs(Map<EAEVar, EAExpr> m) {
+        return EATermFactory.factory.binop(this.op, this.left.subs(m), this.right.subs(m));
     }
 
     @Override
-    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) {
-        return EAPFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
+    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
+        return EATermFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
     }
 
     /*@Override
@@ -112,27 +112,27 @@ public class EAPBinOp implements EAPExpr {
         switch (this.op) {
             case PLUS:
             case LT:
-                return (this.left instanceof EAPIntVal) && (this.right instanceof EAPIntVal);
+                return (this.left instanceof EAEIntVal) && (this.right instanceof EAEIntVal);
             default:
                 throw new RuntimeException("TODO: " + this);
         }
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
         switch (this.op) {
             case PLUS: {
-                EAPIntVal left = (EAPIntVal) this.left;
-                EAPIntVal right = (EAPIntVal) this.right;
-                return EAPFactory.factory.intt(left.val + right.val);
+                EAEIntVal left = (EAEIntVal) this.left;
+                EAEIntVal right = (EAEIntVal) this.right;
+                return EATermFactory.factory.intt(left.val + right.val);
             }
             case LT: {
-                EAPIntVal left = (EAPIntVal) this.left;
-                EAPIntVal right = (EAPIntVal) this.right;
-                return EAPFactory.factory.bool(left.val < right.val);
+                EAEIntVal left = (EAEIntVal) this.left;
+                EAEIntVal right = (EAEIntVal) this.right;
+                return EATermFactory.factory.bool(left.val < right.val);
             }
             default:
                 throw new RuntimeException("TODO: " + this);
@@ -147,8 +147,8 @@ public class EAPBinOp implements EAPExpr {
     }*/
 
     @Override
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = new HashSet<>();
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> res = new HashSet<>();
         res.addAll(this.left.getFreeVars());
         res.addAll(this.right.getFreeVars());
         return res;
@@ -181,7 +181,7 @@ public class EAPBinOp implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPBinOp them = (EAPBinOp) o;
+        EAEBinOp them = (EAEBinOp) o;
         return them.canEquals(this)
                 && this.left.equals(them.left)
                 && this.right.equals(them.right);
@@ -189,12 +189,12 @@ public class EAPBinOp implements EAPExpr {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPBinOp;
+        return o instanceof EAEBinOp;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.BIN_OP;
+        int hash = EATerm.BIN_OP;
         hash = 31 * hash + this.left.hashCode();
         hash = 31 * hash + this.right.hashCode();
         return hash;

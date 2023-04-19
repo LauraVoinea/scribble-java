@@ -2,12 +2,12 @@ package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAPPair;
 
@@ -19,9 +19,9 @@ import java.util.Set;
 public class EAPLet implements EAComp {
 
     @NotNull
-    public final EAPVar var;
+    public final EAEVar var;
     @NotNull
-    public final EAValType varType;  // vars x have ValTypes A -- !!! added type annot
+    public final EAVType varType;  // vars x have ValTypes A -- !!! added type annot
     //@NotNull public final EAPExpr init;  // !!! value?  not expr
     @NotNull
     public final EAComp init;
@@ -29,7 +29,7 @@ public class EAPLet implements EAComp {
     public final EAComp body;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-    public EAPLet(@NotNull EAPVar var, @NotNull EAValType varType,
+    public EAPLet(@NotNull EAEVar var, @NotNull EAVType varType,
                   @NotNull EAComp init, @NotNull EAComp body) {
         this.var = var;
         this.varType = varType;
@@ -38,13 +38,13 @@ public class EAPLet implements EAComp {
     }
 
     @Override
-    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
-        EAPPair<EAValType, EALType> p1 = this.init.type(gamma, pre);
+    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+        EAPPair<EAVType, EALType> p1 = this.init.type(gamma, pre);
         if (!this.varType.equals(p1.left)) {
             throw new RuntimeException("Bad type annotation: "
                     + this.varType + ", " + p1.left);
         }
-        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, p1.left);
         Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
         return this.body.type(gamma1, p1.right);
@@ -53,7 +53,7 @@ public class EAPLet implements EAComp {
     @Override
     public EALType infer(Gamma gamma) {
         EALType i = this.init.infer(gamma);
-        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
         Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
         EALType b = this.body.infer(gamma1);
@@ -71,7 +71,7 @@ public class EAPLet implements EAComp {
             throw new RuntimeException("Stuck: " + this);
         }
         if (this.init.canBeta()) {
-            return EAPFactory.factory.let(this.var, this.varType, this.init.beta(), this.body);
+            return EATermFactory.factory.let(this.var, this.varType, this.init.beta(), this.body);
         } else {  // this.init instanceof EAPReturn && this.init.isGround()
             return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
         }
@@ -80,30 +80,30 @@ public class EAPLet implements EAComp {
     /* Aux */
 
     @Override
-    public EAPLet subs(@NotNull Map<EAPVar, EAPExpr> m) {
+    public EAPLet subs(@NotNull Map<EAEVar, EAExpr> m) {
         EAComp init1 = this.init.subs(m);
-        Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
+        Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
         EAComp body1 = body.subs(m1);
-        return EAPFactory.factory.let(this.var, this.varType, init1, body1);
+        return EATermFactory.factory.let(this.var, this.varType, init1, body1);
     }
 
     @Override
-    public EAPLet fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+    public EAPLet fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         EAComp init1 = this.init.fsubs(m);
         EAComp body1 = body.fsubs(m);
-        return EAPFactory.factory.let(this.var, this.varType, init1, body1);
+        return EATermFactory.factory.let(this.var, this.varType, init1, body1);
     }
 
     @Override
     public EAComp recon(@NotNull EAComp old, EAComp neww) {
         EAComp init1 = this.init.recon(old, neww);
-        return EAPFactory.factory.let(this.var, this.varType, init1, this.body);  // !!! CHECKME: body unchanged
+        return EATermFactory.factory.let(this.var, this.varType, init1, this.body);  // !!! CHECKME: body unchanged
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = this.init.getFreeVars();
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> res = this.init.getFreeVars();
         res.addAll(this.body.getFreeVars());
         res.remove(this.var);
         return res;
@@ -131,7 +131,7 @@ public class EAPLet implements EAComp {
                 !this.init.canBeta()) {
             return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
         } else {
-            return EAPFactory.factory.let(this.var, this.varType, this.init.configStep(), this.body);
+            return EATermFactory.factory.let(this.var, this.varType, this.init.configStep(), this.body);
         }
     }
 
@@ -164,7 +164,7 @@ public class EAPLet implements EAComp {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.LET;
+        int hash = EATerm.LET;
         hash = 31 * hash + this.var.hashCode();
         hash = 31 * hash + this.varType.hashCode();
         hash = 31 * hash + this.init.hashCode();

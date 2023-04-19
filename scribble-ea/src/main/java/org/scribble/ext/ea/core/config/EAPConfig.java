@@ -4,17 +4,17 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPHandler;
-import org.scribble.ext.ea.core.term.expr.EAPHandlers;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAEHandler;
+import org.scribble.ext.ea.core.term.expr.EAEHandlers;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAUnitType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
@@ -29,17 +29,17 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
     @NotNull
     public final EAPThreadState T;
     @NotNull
-    public final Map<Pair<EAPSid, Role>, EAPHandlers> sigma;  // !!! handlers specifically
+    public final Map<Pair<EAPSid, Role>, EAEHandlers> sigma;  // !!! handlers specifically
 
     @NotNull
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
-    public EAPExpr state;  // Pre: ground
+    public EAExpr state;  // Pre: ground
 
     protected EAPConfig(@NotNull EAPPid pid,
                         @NotNull EAPThreadState T,
-                        @NotNull LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> handlers,
+                        @NotNull LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> handlers,
                         //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                        @NotNull EAPExpr state) {
+                        @NotNull EAExpr state) {
         this.pid = pid;
         this.T = T;
         this.sigma = Collections.unmodifiableMap(handlers.entrySet()
@@ -74,7 +74,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
         if (foo instanceof EAPReturn) {
             if (t.expr.equals(foo)) {  // top level
                 LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
-                LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+                LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
                 EAPThreadState t1 = EAPIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
@@ -88,7 +88,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
 
                 // TODO factor out with other LiftM beta cases
                 LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
-                LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+                LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
                 EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
@@ -116,14 +116,14 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             Map.Entry<EAPPid, EAPConfig> get = fst.get();
             EAPPid p2 = get.getKey();
             EAPConfig c2 = get.getValue();
-            Map<Pair<EAPSid, Role>, EAPHandlers> sigma2 = c2.sigma;
+            Map<Pair<EAPSid, Role>, EAEHandlers> sigma2 = c2.sigma;
             Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
-            EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
+            EAEHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
 
             //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
             EAComp e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
 
-            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
+            LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> newsigma2 =
                     new LinkedHashMap<>(c2.sigma);
             newsigma2.remove(k2);
             EAPActiveThread newt2 = EAPRuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
@@ -131,7 +131,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             //configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
             configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, c2.state));
 
-            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+            LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
@@ -145,11 +145,11 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
         else if (foo instanceof EAPSuspend) {
             if (t.expr.equals(foo)) {  // top level
                 LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
-                LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+                LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
                 EAPThreadState t1 = EAPIdle.IDLE;
                 EAPSuspend cast = (EAPSuspend) foo;
-                sigma1.put(new EAPPair<>(t.sid, t.role), (EAPHandlers) cast.val);  // t.role = r
+                sigma1.put(new EAPPair<>(t.sid, t.role), (EAEHandlers) cast.val);  // t.role = r
 
                 //LinkedHashMap<Pair<EAPSid, Role>, Integer> tmp = new LinkedHashMap<>(this.state);
                 //tmp.put(new EAPPair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
@@ -166,7 +166,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
         // LiftM beta cases
         else if (foo instanceof EAPApp || foo instanceof EAPLet || foo instanceof EAPIf) {
             LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
-            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+            LinkedHashMap<Pair<EAPSid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             EAPThreadState t1 = EAPRuntimeFactory.factory.activeThread(t.expr.configStep(), t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
@@ -202,7 +202,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
 
     public void type(Gamma gamma1, Delta delta) {
 
-        EAValType infer = this.state.infer();
+        EAVType infer = this.state.infer();
         Gamma gamma2 = new Gamma(new LinkedHashMap<>(gamma1.map), new LinkedHashMap<>(gamma1.fmap), null, infer);
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>();
@@ -236,7 +236,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             throw new RuntimeException("Invalid delta: " + delta + " |- " + this.sigma);
         }
 
-        for (Map.Entry<Pair<EAPSid, Role>, EAPHandlers> e : this.sigma.entrySet()) {
+        for (Map.Entry<Pair<EAPSid, Role>, EAEHandlers> e : this.sigma.entrySet()) {
             Pair<EAPSid, Role> k = e.getKey();
             if (!delta.map.containsKey(k)) {
                 throw new RuntimeException("Unknown endpoint: " + k + " : " + delta.map);
@@ -250,7 +250,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
                 throw new RuntimeException("Self communication not allowed: " + k + " ,, " + cast);
             }
             //EAPHandlers h = this.sigma.get(k);
-            EAPHandlers h = e.getValue();
+            EAEHandlers h = e.getValue();
             if (!cast.peer.equals(h.role)) {
                 throw new RuntimeException("Invalid handler type peer: " + e + " : " + T);
             }
@@ -259,18 +259,18 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             }
 
             // !!! TH-Handler typing the nested handler expr (uses Delta) -- cf. typing handler value TV-Handler (uses "infer")
-            for (Map.Entry<Op, EAPHandler> x : h.Hs.entrySet()) {
+            for (Map.Entry<Op, EAEHandler> x : h.Hs.entrySet()) {
                 Op op = x.getKey();
-                EAPHandler rhs = x.getValue();
-                LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+                EAEHandler rhs = x.getValue();
+                LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
                 tmp.put(rhs.var, rhs.varType);
 
                 tmp.put(rhs.var, rhs.varType);
                 tmp.put(rhs.svar, rhs.svarType);
 
                 Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
-                Pair<EAValType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
-                if (!res.equals(new EAPPair<>(EAUnitType.UNIT, EALEndType.END))) {
+                Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
+                if (!res.equals(new EAPPair<>(EAVUnitType.UNIT, EALEndType.END))) {
                     throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);
                 }
             }
@@ -306,7 +306,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.CONFIG;
+        int hash = EATerm.CONFIG;
         hash = 31 * hash + this.pid.hashCode();
         hash = 31 * hash + this.T.hashCode();
         hash = 31 * hash + this.sigma.hashCode();

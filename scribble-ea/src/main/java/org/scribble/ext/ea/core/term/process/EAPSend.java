@@ -4,16 +4,16 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALOutType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
@@ -28,16 +28,16 @@ public class EAPSend implements EAComp {
     @NotNull
     public final Op op;
     @NotNull
-    public final EAPExpr val;  // value, not expr
+    public final EAExpr val;  // value, not expr
 
-    public EAPSend(@NotNull Role dst, @NotNull Op op, @NotNull EAPExpr val) {
+    public EAPSend(@NotNull Role dst, @NotNull Op op, @NotNull EAExpr val) {
         this.dst = dst;
         this.op = op;
         this.val = val;
     }
 
     @Override
-    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         if (!(pre instanceof EALOutType)) {
             throw new RuntimeException("Expected out type: " + pre + ", " + this);
         }
@@ -49,8 +49,8 @@ public class EAPSend implements EAComp {
         if (!cast.cases.containsKey(this.op)) {
             throw new RuntimeException("Invalid op: " + pre + ", " + this);
         }
-        EAValType valType = this.val.type(gamma);
-        Pair<EAValType, EALType> p = cast.cases.get(this.op);
+        EAVType valType = this.val.type(gamma);
+        Pair<EAVType, EALType> p = cast.cases.get(this.op);
         if (!valType.equals(p.left)) {
             throw new RuntimeException("Incompatible value type: " + valType + ", " + p.left);
         }
@@ -59,8 +59,8 @@ public class EAPSend implements EAComp {
 
     @Override
     public EALOutType infer(Gamma gamma) {
-        EAValType t = this.val.type(gamma);
-        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+        EAVType t = this.val.type(gamma);
+        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = new LinkedHashMap<>();
         cases.put(this.op, new EAPPair<>(t, EALEndType.END));  // !!! (potential) placeholder END
         return EALTypeFactory.factory.out(this.dst, cases);
     }
@@ -80,7 +80,7 @@ public class EAPSend implements EAComp {
     /* Aux */
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         return this.val.getFreeVars();
     }
 
@@ -101,19 +101,19 @@ public class EAPSend implements EAComp {
 
     @Override
     public EAComp configStep() {
-        return EAPFactory.factory.returnn(EAPFactory.factory.unit());
+        return EATermFactory.factory.returnn(EATermFactory.factory.unit());
     }
 
     @Override
-    public EAPSend subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        EAPExpr val1 = this.val.subs(m);
-        return EAPFactory.factory.send(this.dst, this.op, val1);
+    public EAPSend subs(@NotNull Map<EAEVar, EAExpr> m) {
+        EAExpr val1 = this.val.subs(m);
+        return EATermFactory.factory.send(this.dst, this.op, val1);
     }
 
     @Override
-    public EAPSend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPExpr val1 = this.val.fsubs(m);
-        return EAPFactory.factory.send(this.dst, this.op, val1);
+    public EAPSend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        EAExpr val1 = this.val.fsubs(m);
+        return EATermFactory.factory.send(this.dst, this.op, val1);
     }
 
     @Override
@@ -146,7 +146,7 @@ public class EAPSend implements EAComp {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.SEND;
+        int hash = EATerm.SEND;
         hash = 31 * hash + this.dst.hashCode();
         hash = 31 * hash + this.op.hashCode();
         hash = 31 * hash + this.val.hashCode();

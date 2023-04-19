@@ -4,14 +4,14 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.EAType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 
-public class EAHandlersType implements EAValType {
+public class EAVHandlersType implements EAVType {
 
     @NotNull
     public final EALType S;
     @NotNull
-    public final EAValType T;  // state
+    public final EAVType T;  // state
 
-    protected EAHandlersType(@NotNull EALType S, @NotNull EAValType T) {
+    protected EAVHandlersType(@NotNull EALType S, @NotNull EAVType T) {
         this.S = S;
         this.T = T;
     }
@@ -29,13 +29,13 @@ public class EAHandlersType implements EAValType {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAHandlersType them = (EAHandlersType) o;
+        EAVHandlersType them = (EAVHandlersType) o;
         return them.canEquals(this) && this.S.equals(them.S) && this.T.equals(them.T);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAHandlersType;
+        return o instanceof EAVHandlersType;
     }
 
     @Override

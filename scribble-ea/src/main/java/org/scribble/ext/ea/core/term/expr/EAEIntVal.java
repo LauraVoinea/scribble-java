@@ -1,10 +1,10 @@
 package org.scribble.ext.ea.core.term.expr;
 
-import org.scribble.ext.ea.core.term.EAPFuncName;
-import org.scribble.ext.ea.core.term.EAPTerm;
+import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EABoolType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVIntType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -12,17 +12,17 @@ import java.util.Objects;
 import java.util.Set;
 
 // x, y, ...
-public class EAPBoolVal implements EAPExpr {
+public class EAEIntVal implements EAExpr {
 
-    public final boolean val;
+    public final int val;
 
-    public EAPBoolVal(boolean val) {
+    public EAEIntVal(int val) {
         this.val = val;
     }
 
     @Override
-    public EABoolType infer() {
-        return EABoolType.BOOL;
+    public EAVIntType infer() {
+        return EAVIntType.INT;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class EAPBoolVal implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -43,17 +43,17 @@ public class EAPBoolVal implements EAPExpr {
     /* Aux */
 
     @Override
-    public EAValType type(Gamma gamma) {
-        return EABoolType.BOOL;
+    public EAVType type(Gamma gamma) {
+        return EAVIntType.INT;
     }
 
     @Override
-    public EAPExpr subs(Map<EAPVar, EAPExpr> m) {
+    public EAExpr subs(Map<EAEVar, EAExpr> m) {
         return this;
     }
 
     @Override
-    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) {
+    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
         return this;
     }
 
@@ -63,13 +63,13 @@ public class EAPBoolVal implements EAPExpr {
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         return new HashSet<>();
     }
 
     @Override
     public String toString() {
-        return Boolean.toString(this.val);
+        return Integer.toString(this.val);
     }
 
     /* equals/canEquals, hashCode */
@@ -78,19 +78,19 @@ public class EAPBoolVal implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPBoolVal them = (EAPBoolVal) o;
+        EAEIntVal them = (EAEIntVal) o;
         return them.canEquals(this) && Objects.equals(this.val, them.val);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPBoolVal;
+        return o instanceof EAEIntVal;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.BOOL;
-        hash = 31 * hash + (this.val ? 1 : 0);
+        int hash = EATerm.INT;
+        hash = 31 * hash + this.val;
         return hash;
     }
 }

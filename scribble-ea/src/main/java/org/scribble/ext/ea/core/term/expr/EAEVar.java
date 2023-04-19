@@ -2,10 +2,10 @@ package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAName;
-import org.scribble.ext.ea.core.term.EAPFuncName;
-import org.scribble.ext.ea.core.term.EAPTerm;
+import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -13,16 +13,16 @@ import java.util.Objects;
 import java.util.Set;
 
 // x, y, ...
-public class EAPVar implements EAPExpr, EAName {
+public class EAEVar implements EAExpr, EAName {
 
     public final String id;
 
-    public EAPVar(String id) {
+    public EAEVar(String id) {
         this.id = id;
     }
 
     @Override
-    public EAValType infer() {
+    public EAVType infer() {
         throw new RuntimeException("Not supported");
     }
 
@@ -32,14 +32,14 @@ public class EAPVar implements EAPExpr, EAName {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     /* Aux */
 
     @Override
-    public EAValType type(Gamma gamma) {
+    public EAVType type(Gamma gamma) {
         if (gamma.map.containsKey(this)) {
             return gamma.map.get(this);
         }
@@ -52,15 +52,15 @@ public class EAPVar implements EAPExpr, EAName {
     }
 
     @Override
-    public EAPExpr subs(@NotNull Map<EAPVar, EAPExpr> m) {
+    public EAExpr subs(@NotNull Map<EAEVar, EAExpr> m) {
         return m.containsKey(this) ? m.get(this) : this;
     }
 
     @Override
-    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+    public EAExpr fsubs(Map<EAFuncName, EAERec> m) { return this; }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         //return Set.of(this);
         return new HashSet<>(Set.of(this));
     }
@@ -76,18 +76,18 @@ public class EAPVar implements EAPExpr, EAName {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPVar eaVar = (EAPVar) o;
+        EAEVar eaVar = (EAEVar) o;
         return eaVar.canEquals(this) && Objects.equals(this.id, eaVar.id);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPVar;
+        return o instanceof EAEVar;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.VAR;
+        int hash = EATerm.VAR;
         hash = 31 * hash + this.id.hashCode();
         return hash;
     }

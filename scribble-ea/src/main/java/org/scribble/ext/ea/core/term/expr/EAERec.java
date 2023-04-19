@@ -6,8 +6,8 @@ import org.scribble.ext.ea.core.term.process.EAComp;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVFuncType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAPPair;
 
@@ -16,14 +16,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPRec implements EAPExpr {
+public class EAERec implements EAExpr {
 
     @NotNull
-    public final EAPFuncName f;
+    public final EAFuncName f;
     @NotNull
-    public final EAPVar var;  // hardcoded single param
+    public final EAEVar var;  // hardcoded single param
     @NotNull
-    public final EAValType varType;  // A -- hardcode single param
+    public final EAVType varType;  // A -- hardcode single param
     @NotNull
     public final EAComp body;
 
@@ -32,12 +32,12 @@ public class EAPRec implements EAPExpr {
     @NotNull
     public final EALType T;
     @NotNull
-    public final EAValType B;
+    public final EAVType B;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-    public EAPRec(@NotNull EAPFuncName f, @NotNull EAPVar var,
-                  @NotNull EAValType varType, @NotNull EAComp body,
-                  @NotNull EALType S, @NotNull EALType T, @NotNull EAValType B) {
+    public EAERec(@NotNull EAFuncName f, @NotNull EAEVar var,
+                  @NotNull EAVType varType, @NotNull EAComp body,
+                  @NotNull EALType S, @NotNull EALType T, @NotNull EAVType B) {
         this.f = f;
         this.var = var;
         this.varType = varType;
@@ -49,7 +49,7 @@ public class EAPRec implements EAPExpr {
     }
 
     @Override
-    public EAFuncType infer() {
+    public EAVFuncType infer() {
         return EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
     }
 
@@ -59,20 +59,20 @@ public class EAPRec implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     @Override
-    public EAValType type(Gamma gamma) {
-        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+    public EAVType type(Gamma gamma) {
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
-        LinkedHashMap<EAPFuncName, EAFuncType> ftmp = new LinkedHashMap<>(gamma.fmap);
-        EAFuncType ftype = EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
+        LinkedHashMap<EAFuncName, EAVFuncType> ftmp = new LinkedHashMap<>(gamma.fmap);
+        EAVFuncType ftype = EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
         ftmp.put(this.f, ftype);
         Gamma gamma1 = new Gamma(tmp, ftmp, gamma.svar, gamma.svarType);
-        EAPPair<EAValType, EALType> res = this.body.type(gamma1, this.S);
-        EAPPair<EAValType, EALType> target = new EAPPair<>(this.B, this.S);
+        EAPPair<EAVType, EALType> res = this.body.type(gamma1, this.S);
+        EAPPair<EAVType, EALType> target = new EAPPair<>(this.B, this.S);
         if (!res.equals(target)) {
             throw new RuntimeException("Typing error:\n\t" + res + "\n\t" + target);
         }
@@ -83,27 +83,27 @@ public class EAPRec implements EAPExpr {
     /* Aux */
 
     @Override
-    public EAPRec subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
+    public EAERec subs(@NotNull Map<EAEVar, EAExpr> m) {
+        Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
         EAComp body1 = body.subs(m1);
-        return EAPFactory.factory.rec(this.f, this.var, this.varType, body1,
+        return EATermFactory.factory.rec(this.f, this.var, this.varType, body1,
                 this.S, this.T, this.B);
     }
 
     @Override
-    public EAPExpr fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
+    public EAExpr fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        Map<EAFuncName, EAERec> m1 = new HashMap<>(m);
         m1.remove(this.f);
         EAComp body1 = body.fsubs(m1);
-        return EAPFactory.factory.rec(this.f, this.var, this.varType, body1,
+        return EATermFactory.factory.rec(this.f, this.var, this.varType, body1,
                 this.S, this.T, this.B);
     }
 
     // CHECKME: how about free f names?
     @Override
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = this.body.getFreeVars();
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> res = this.body.getFreeVars();
         res.remove(this.var);
         return res;
     }
@@ -130,7 +130,7 @@ public class EAPRec implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPRec them = (EAPRec) o;
+        EAERec them = (EAERec) o;
         return them.canEquals(this)
                 && this.f.equals(them.f)
                 && this.var.equals(them.var)
@@ -143,12 +143,12 @@ public class EAPRec implements EAPExpr {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPRec;
+        return o instanceof EAERec;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.REC;
+        int hash = EATerm.REC;
         hash = 31 * hash + this.f.hashCode();
         hash = 31 * hash + this.var.hashCode();
         hash = 31 * hash + this.varType.hashCode();

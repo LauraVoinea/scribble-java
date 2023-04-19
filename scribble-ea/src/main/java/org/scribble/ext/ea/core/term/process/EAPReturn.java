@@ -2,14 +2,14 @@ package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.Map;
@@ -19,19 +19,19 @@ import java.util.Set;
 public class EAPReturn implements EAComp {
 
     @NotNull
-    public final EAPExpr val;  // value, not expr
+    public final EAExpr val;  // value, not expr
 
-    public EAPReturn(EAPExpr val) {
+    public EAPReturn(EAExpr val) {
         this.val = val;
     }
 
     @Override
-    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         EALEndType end = EATypeFactory.factory.local.end();
         /*if (!pre.equals(end)) {  // !!! return is value/term typing wrapper, not (session) control flow
             throw new RuntimeException("Expected end type: " + pre);
         }*/
-        EAValType t = this.val.type(gamma);
+        EAVType t = this.val.type(gamma);
         //return new EAPPair<>(t, end);
         return new EAPPair<>(t, pre);
     }
@@ -50,22 +50,22 @@ public class EAPReturn implements EAComp {
     @Override
     public EAComp beta() {
         //throw new RuntimeException("Stuck: " + this);
-        System.out.println("33333333: " + EAPFactory.factory.returnn(this.val.beta()));
-        return EAPFactory.factory.returnn(this.val.beta());
+        System.out.println("33333333: " + EATermFactory.factory.returnn(this.val.beta()));
+        return EATermFactory.factory.returnn(this.val.beta());
     }
 
     /* Aux */
 
     @Override
-    public EAPReturn subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        EAPExpr val1 = this.val.subs(m);
-        return EAPFactory.factory.returnn(val1);
+    public EAPReturn subs(@NotNull Map<EAEVar, EAExpr> m) {
+        EAExpr val1 = this.val.subs(m);
+        return EATermFactory.factory.returnn(val1);
     }
 
     @Override
-    public EAPReturn fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPExpr val1 = this.val.fsubs(m);
-        return EAPFactory.factory.returnn(val1);
+    public EAPReturn fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        EAExpr val1 = this.val.fsubs(m);
+        return EATermFactory.factory.returnn(val1);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class EAPReturn implements EAComp {
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         return this.val.getFreeVars();
     }
 
@@ -102,7 +102,7 @@ public class EAPReturn implements EAComp {
     @Override
     public EAComp configStep() {
         //throw new RuntimeException("Shouldn't get in here: " + this);
-        return EAPFactory.factory.returnn(this.val.beta());
+        return EATermFactory.factory.returnn(this.val.beta());
     }
 
     @Override
@@ -127,7 +127,7 @@ public class EAPReturn implements EAComp {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.RETURN;
+        int hash = EATerm.RETURN;
         hash = 31 * hash + this.val.hashCode();
         return hash;
     }

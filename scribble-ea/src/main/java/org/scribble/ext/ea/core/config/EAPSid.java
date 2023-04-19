@@ -2,18 +2,18 @@ package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 // s, s', ...  // FIXME no longer values (not EAPVal)
-public class EAPSid implements EAPExpr, EARuntimeName {
+public class EAPSid implements EAExpr, EARuntimeName {
 
     @NotNull
     public final String id;
@@ -23,12 +23,12 @@ public class EAPSid implements EAPExpr, EARuntimeName {
     }
 
     @Override
-    public EAValType infer() {
+    public EAVType infer() {
         throw new RuntimeException("Not supported");
     }
 
     @Override
-    public EAValType type(Gamma gamma) {
+    public EAVType type(Gamma gamma) {
         throw new RuntimeException("CHECKME: N/A ?");  // !!!
     }
 
@@ -38,22 +38,22 @@ public class EAPSid implements EAPExpr, EARuntimeName {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     /* Aux */
 
     @Override
-    public EAPSid subs(@NotNull Map<EAPVar, EAPExpr> m) {
+    public EAPSid subs(@NotNull Map<EAEVar, EAExpr> m) {
         return this;
     }
 
     @Override
-    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+    public EAExpr fsubs(Map<EAFuncName, EAERec> m) { return this; }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         //return Collections.emptySet();
         return new HashSet<>();
     }

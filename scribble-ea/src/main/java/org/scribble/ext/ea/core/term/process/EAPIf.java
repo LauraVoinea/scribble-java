@@ -2,13 +2,13 @@ package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPBoolVal;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAEBoolVal;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.HashSet;
@@ -18,22 +18,22 @@ import java.util.Set;
 public class EAPIf implements EAComp {
 
     @NotNull
-    public final EAPExpr cond;
+    public final EAExpr cond;
     @NotNull
     public final EAComp then;
     @NotNull
     public final EAComp elsee;
 
-    public EAPIf(@NotNull EAPExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
+    public EAPIf(@NotNull EAExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
         this.cond = cond;
         this.then = then;
         this.elsee = elsee;
     }
 
     @Override
-    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
-        EAPPair<EAValType, EALType> ttype = this.then.type(gamma, pre);
-        EAPPair<EAValType, EALType> etype = this.elsee.type(gamma, pre);
+    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+        EAPPair<EAVType, EALType> ttype = this.then.type(gamma, pre);
+        EAPPair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
         //subtype(ftype.S, pre);
         if (!ttype.equals(etype)) {
             throw new RuntimeException("Incompatible branches:\n"
@@ -54,7 +54,7 @@ public class EAPIf implements EAComp {
 
     @Override
     public boolean canBeta() {
-        return this.cond.canBeta() || this.cond instanceof EAPBoolVal;
+        return this.cond.canBeta() || this.cond instanceof EAEBoolVal;
     }
 
     @Override
@@ -63,23 +63,23 @@ public class EAPIf implements EAComp {
             throw new RuntimeException("Stuck: " + this);
         }
         if (this.cond.canBeta()) {
-            return EAPFactory.factory.iff(this.cond.beta(), this.then, this.elsee);
+            return EATermFactory.factory.iff(this.cond.beta(), this.then, this.elsee);
         } else {
-            return ((EAPBoolVal) this.cond).val ? this.then : this.elsee;
+            return ((EAEBoolVal) this.cond).val ? this.then : this.elsee;
         }
     }
 
     /* Aux */
 
     @Override
-    public EAPIf subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        return EAPFactory.factory.iff(
+    public EAPIf subs(@NotNull Map<EAEVar, EAExpr> m) {
+        return EATermFactory.factory.iff(
                 this.cond.subs(m), this.then.subs(m), this.elsee.subs(m));
     }
 
     @Override
-    public EAPIf fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        return EAPFactory.factory.iff(
+    public EAPIf fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        return EATermFactory.factory.iff(
                 this.cond.fsubs(m), this.then.fsubs(m), this.elsee.fsubs(m));
     }
 
@@ -89,8 +89,8 @@ public class EAPIf implements EAComp {
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = new HashSet<>();
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> res = new HashSet<>();
         res.addAll(this.cond.getFreeVars());
         res.addAll(this.then.getFreeVars());
         res.addAll(this.elsee.getFreeVars());
@@ -137,7 +137,7 @@ public class EAPIf implements EAComp {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.IF;
+        int hash = EATerm.IF;
         hash = 31 * hash + this.cond.hashCode();
         hash = 31 * hash + this.then.hashCode();
         hash = 31 * hash + this.elsee.hashCode();

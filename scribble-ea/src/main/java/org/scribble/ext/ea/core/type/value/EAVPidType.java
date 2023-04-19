@@ -2,11 +2,11 @@ package org.scribble.ext.ea.core.type.value;
 
 import org.scribble.ext.ea.core.type.EAType;
 
-public class EAPidType implements EAValType {
+public class EAVPidType implements EAVType {
 
-    public static final EAPidType PID = new EAPidType();
+    public static final EAVPidType PID = new EAVPidType();
 
-    protected EAPidType() {
+    protected EAVPidType() {
     }
 
     /* Aux */
@@ -22,13 +22,13 @@ public class EAPidType implements EAValType {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPidType them = (EAPidType) o;
+        EAVPidType them = (EAVPidType) o;
         return them.canEquals(this);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPidType;
+        return o instanceof EAVPidType;
     }
 
     @Override

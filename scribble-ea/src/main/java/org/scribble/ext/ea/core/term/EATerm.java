@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.term;
 
 // !!! "terms" vs. "term typing"
-public interface EAPTerm {
+public interface EATerm {
 
     int FUNC_NAME = 1609;  // TODO move
 

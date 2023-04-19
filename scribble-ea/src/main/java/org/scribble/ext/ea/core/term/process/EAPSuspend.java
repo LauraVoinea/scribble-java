@@ -2,16 +2,16 @@ package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPHandlers;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAEHandlers;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAHandlersType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVHandlersType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.Map;
@@ -20,27 +20,27 @@ import java.util.Set;
 public class EAPSuspend implements EAComp {
 
     @NotNull
-    public final EAPExpr val;  // value, not expr -- a Handler(S?) type
+    public final EAExpr val;  // value, not expr -- a Handler(S?) type
 
     @NotNull
-    public final EAPExpr sval;
+    public final EAExpr sval;
 
-    public EAPSuspend(@NotNull EAPExpr val, @NotNull EAPExpr sval) {
+    public EAPSuspend(@NotNull EAExpr val, @NotNull EAExpr sval) {
         this.val = val;
         this.sval = sval;
     }
 
     @Override
-    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
+    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
         if (!EAPApp.isInType(pre)) {  // Could be a rec type
             throw new RuntimeException("Expected in type, not: " + pre);
         }
-        EAValType t = this.val.type(gamma);
-        if (!(t instanceof EAHandlersType)) {
+        EAVType t = this.val.type(gamma);
+        if (!(t instanceof EAVHandlersType)) {
             throw new RuntimeException("Expected handlers type, not: " + this);
         }
-        EAHandlersType cast = (EAHandlersType) t;
+        EAVHandlersType cast = (EAVHandlersType) t;
         if (!cast.T.equals(gamma.svarType)) {
             throw new RuntimeException("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType);
         }
@@ -49,7 +49,7 @@ public class EAPSuspend implements EAComp {
         }*/
         EAPApp.subtype(cast.S, pre);
 
-        EAValType t_s = this.sval.type(gamma);
+        EAVType t_s = this.sval.type(gamma);
         if (!t_s.equals(gamma.svarType)) {
             throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + t_s);
         }
@@ -60,11 +60,11 @@ public class EAPSuspend implements EAComp {
 
     @Override
     public EALInType infer(Gamma gamma) {
-        EAHandlersType ht;
-        if (this.val instanceof EAPHandlers) {
-            ht = (EAHandlersType) this.val.type(gamma);
-        } else if (this.val instanceof EAPExpr) {
-            ht = (EAHandlersType) gamma.map.get(this.val);
+        EAVHandlersType ht;
+        if (this.val instanceof EAEHandlers) {
+            ht = (EAVHandlersType) this.val.type(gamma);
+        } else if (this.val instanceof EAExpr) {
+            ht = (EAVHandlersType) gamma.map.get(this.val);
         } else {
             throw new RuntimeException("Shouldn't get here: " + gamma);
         }
@@ -84,17 +84,17 @@ public class EAPSuspend implements EAComp {
     /* Aux */
 
     @Override
-    public EAPSuspend subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        EAPExpr val1 = this.val.subs(m);
-        EAPExpr sval1 = this.sval.subs(m);
-        return EAPFactory.factory.suspend(val1, sval1);
+    public EAPSuspend subs(@NotNull Map<EAEVar, EAExpr> m) {
+        EAExpr val1 = this.val.subs(m);
+        EAExpr sval1 = this.sval.subs(m);
+        return EATermFactory.factory.suspend(val1, sval1);
     }
 
     @Override
-    public EAPSuspend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPExpr val1 = this.val.fsubs(m);
-        EAPExpr sval1 = this.sval.fsubs(m);
-        return EAPFactory.factory.suspend(val1, sval1);
+    public EAPSuspend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        EAExpr val1 = this.val.fsubs(m);
+        EAExpr sval1 = this.sval.fsubs(m);
+        return EATermFactory.factory.suspend(val1, sval1);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class EAPSuspend implements EAComp {
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         return this.val.getFreeVars();
     }
 
@@ -150,7 +150,7 @@ public class EAPSuspend implements EAComp {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.SUSPEND;
+        int hash = EATerm.SUSPEND;
         hash = 31 * hash + this.val.hashCode();
         hash = 31 * hash + this.sval.hashCode();
         return hash;

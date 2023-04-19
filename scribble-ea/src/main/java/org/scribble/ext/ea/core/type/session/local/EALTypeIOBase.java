@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
@@ -15,11 +15,13 @@ import java.util.stream.Collectors;
 
 public abstract class EALTypeIOBase implements EALType {
 
-    @NotNull public final Role peer;
-    @NotNull public final Map<Op, EAPPair<EAValType, EALType>> cases;
+    @NotNull
+    public final Role peer;
+    @NotNull
+    public final Map<Op, EAPPair<EAVType, EALType>> cases;
 
     protected EALTypeIOBase(@NotNull Role peer,
-                         @NotNull LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases) {
+                            @NotNull LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases) {
         this.peer = peer;
         if (cases.isEmpty()) {
             throw new RuntimeException("Invalid empty cases");
@@ -35,16 +37,16 @@ public abstract class EALTypeIOBase implements EALType {
     }
 
     @Deprecated
-    public LinkedHashMap<Op, EAPPair<EAValType, EALType>> unfoldCases(
+    public LinkedHashMap<Op, EAPPair<EAVType, EALType>> unfoldCases(
             RecVar rvar, EALType t) {
-         return this.cases.entrySet().stream()
+        return this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    x -> {
-                        EAPPair<EAValType, EALType> v = x.getValue();
-                        return new EAPPair(v.left, v.right.unfold(rvar, t));
-                    },
-                    (x, y) -> x, LinkedHashMap::new
+                        Map.Entry::getKey,
+                        x -> {
+                            EAPPair<EAVType, EALType> v = x.getValue();
+                            return new EAPPair(v.left, v.right.unfold(rvar, t));
+                        },
+                        (x, y) -> x, LinkedHashMap::new
                 ));
     }
 
@@ -63,12 +65,12 @@ public abstract class EALTypeIOBase implements EALType {
     @Override
     public String toString() {
         return this.peer + symbol() + "{"
-            + this.cases.entrySet().stream().map(x -> {
-                Op k = x.getKey();
-                Pair<EAValType, EALType> v = x.getValue();
-                return k + "(" + v.left + ")" + "." + v.right;
-            }).collect(Collectors.joining(", "))
-            + "}";
+                + this.cases.entrySet().stream().map(x -> {
+            Op k = x.getKey();
+            Pair<EAVType, EALType> v = x.getValue();
+            return k + "(" + v.left + ")" + "." + v.right;
+        }).collect(Collectors.joining(", "))
+                + "}";
     }
 
     /* equals/canEquals, hashCode */

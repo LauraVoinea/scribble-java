@@ -15,26 +15,26 @@ import java.util.stream.Collectors;
 
 public class EAFuncNamesFixer {
 
-    protected static final EAPFactory f = EAPFactory.factory;
+    protected static final EATermFactory f = EATermFactory.factory;
 
     public EAComp parse(EAComp M) {
         return visit(M, new HashSet<>());
     }
 
-    public EAPExpr parse(EAPExpr V) {
+    public EAExpr parse(EAExpr V) {
         return visit(V, new HashSet<>());
     }
 
-    protected EAComp visit(EAComp M, Set<EAPFuncName> env) {
+    protected EAComp visit(EAComp M, Set<EAFuncName> env) {
         if (M instanceof EAPLet) {
             EAPLet cast = (EAPLet) M;
-            EAPVar var = (EAPVar) visit(cast.var, env);
+            EAEVar var = (EAEVar) visit(cast.var, env);
             EAComp init = visit(cast.init, env);
             EAComp body = visit(cast.body, env);
             return f.let(var, cast.varType, init, body);
         } else if (M instanceof EAPIf) {
             EAPIf cast = (EAPIf) M;
-            EAPExpr cond = visit(cast.cond, env);
+            EAExpr cond = visit(cast.cond, env);
             EAComp then = visit(cast.then, env);
             EAComp elsee = visit(cast.elsee, env);
             return f.iff(cond, then, elsee);
@@ -54,10 +54,10 @@ public class EAFuncNamesFixer {
         }
     }
 
-    protected EAPExpr visit(EAPExpr V, Set<EAPFuncName> env) {
-        if (V instanceof EAPHandlers) {
-            EAPHandlers cast = (EAPHandlers) V;
-            LinkedHashMap<Op, EAPHandler> Hs =
+    protected EAExpr visit(EAExpr V, Set<EAFuncName> env) {
+        if (V instanceof EAEHandlers) {
+            EAEHandlers cast = (EAEHandlers) V;
+            LinkedHashMap<Op, EAEHandler> Hs =
                     cast.Hs.entrySet().stream().collect(Collectors.toMap(
                             Map.Entry::getKey,
                             x -> visit(x.getValue(), env),
@@ -65,28 +65,28 @@ public class EAFuncNamesFixer {
                             LinkedHashMap::new
                     ));
             return f.handlers(cast.role, Hs);
-        } else if (V instanceof EAPVar) {
-            EAPFuncName tmp = new EAPFuncName(((EAPVar) V).id);
+        } else if (V instanceof EAEVar) {
+            EAFuncName tmp = new EAFuncName(((EAEVar) V).id);
             return env.contains(tmp) ? tmp : V;
-        } else if (V instanceof EAPRec) {
-            EAPRec cast = (EAPRec) V;
-            Set<EAPFuncName> tmp = new HashSet<>(env);
+        } else if (V instanceof EAERec) {
+            EAERec cast = (EAERec) V;
+            Set<EAFuncName> tmp = new HashSet<>(env);
             tmp.add(cast.f);
-            EAPVar var = (EAPVar) visit(cast.var, tmp);
+            EAEVar var = (EAEVar) visit(cast.var, tmp);
             EAComp body = visit(cast.body, tmp);
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
-        } else if (V instanceof EAPFuncName || V instanceof EAPUnit
+        } else if (V instanceof EAFuncName || V instanceof EAEUnit
                 || V instanceof EAPPid || V instanceof EAPSid
-                || V instanceof EAPIntVal || V instanceof EAPBinOp || V instanceof EAPBoolVal) {
+                || V instanceof EAEIntVal || V instanceof EAEBinOp || V instanceof EAEBoolVal) {
             return V;
         } else {
             throw new RuntimeException("TODO: " + V);
         }
     }
 
-    public EAPHandler visit(EAPHandler H, Set<EAPFuncName> env) {
-        EAPVar var = (EAPVar) visit(H.var, env);
-        EAPVar svar = (EAPVar) visit(H.svar, env);
+    public EAEHandler visit(EAEHandler H, Set<EAFuncName> env) {
+        EAEVar var = (EAEVar) visit(H.var, env);
+        EAEVar svar = (EAEVar) visit(H.svar, env);
         EAComp expr = visit(H.expr, env);
         return f.handler(H.op, var, H.varType, expr, H.pre, svar, H.svarType);
     }

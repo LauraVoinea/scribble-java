@@ -1,6 +1,6 @@
 package org.scribble.ext.ea.core.config;
 
-import org.scribble.ext.ea.core.term.EAPTerm;
+import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 
@@ -48,7 +48,7 @@ public class EAPIdle implements EAPThreadState {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.IDLE;
+        int hash = EATerm.IDLE;
         hash = 31 * hash;
         return hash;
     }

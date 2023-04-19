@@ -2,13 +2,13 @@ package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
-import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVFuncType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.*;
@@ -17,11 +17,11 @@ public class EAPApp implements EAComp {
 
     // !!! vals -- use let for computation
     @NotNull
-    public final EAPExpr left;  // Not just rec/lam, could be a var
+    public final EAExpr left;  // Not just rec/lam, could be a var
     @NotNull
-    public final EAPExpr right;
+    public final EAExpr right;
 
-    public EAPApp(@NotNull EAPExpr left, @NotNull EAPExpr right) {
+    public EAPApp(@NotNull EAExpr left, @NotNull EAExpr right) {
         this.left = left;
         this.right = right;
     }
@@ -42,19 +42,19 @@ public class EAPApp implements EAComp {
     }
 
     @Override
-    public EAPPair<EAValType, EALType> type(Gamma gamma, EALType pre) {
-        EAValType ltype = this.left.type(gamma);
-        if (!(ltype instanceof EAFuncType)) {
+    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+        EAVType ltype = this.left.type(gamma);
+        if (!(ltype instanceof EAVFuncType)) {
             throw new RuntimeException("Expected function type, not: "
                     + this.left + " : " + ltype + "\n" + gamma);
         }
-        EAFuncType ftype = (EAFuncType) ltype;
+        EAVFuncType ftype = (EAVFuncType) ltype;
         /*if (!ftype.S.equals(pre)) {
             throw new RuntimeException("Incompatible pre type:\n"
                     + "\tfound=" + ftype.S + ", required=" + pre);
         }*/
         subtype(ftype.S, pre);
-        EAValType rtype = this.right.type(gamma);
+        EAVType rtype = this.right.type(gamma);
         if (!rtype.equals(ftype.A)) {
             throw new RuntimeException("Incompatible arg type:\n"
                     + "\tfound=" + rtype + ", required=" + ftype.A);
@@ -64,16 +64,16 @@ public class EAPApp implements EAComp {
 
     @Override
     public EALType infer(Gamma gamma) {
-        EAValType ftype = this.left.type(gamma);
-        if (!(ftype instanceof EAFuncType)) {
+        EAVType ftype = this.left.type(gamma);
+        if (!(ftype instanceof EAVFuncType)) {
             throw new RuntimeException("Couldn't infer type: " + ftype);
         }
-        return ((EAFuncType) ftype).S;  // infer yields the I/O to be done
+        return ((EAVFuncType) ftype).S;  // infer yields the I/O to be done
     }
 
     @Override
     public boolean canBeta() {
-        return this.left instanceof EAPRec  // TODO lambda
+        return this.left instanceof EAERec  // TODO lambda
                 && this.left.isGround() && this.right.isGround();  // FIXME separate isValue (for canBeta) from isGround
     }
 
@@ -82,8 +82,8 @@ public class EAPApp implements EAComp {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
-        if (this.left instanceof EAPRec) {
-            EAPRec rec = (EAPRec) this.left;
+        if (this.left instanceof EAERec) {
+            EAERec rec = (EAERec) this.left;
             return rec.body.fsubs(Map.of(rec.f, rec))
                     .subs(Map.of(rec.var, this.right));
         } else {
@@ -94,17 +94,17 @@ public class EAPApp implements EAComp {
     /* Aux */
 
     @Override
-    public EAPApp subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        EAPExpr left = this.left.subs(m);
-        EAPExpr right = this.right.subs(m);
-        return EAPFactory.factory.app(left, right);
+    public EAPApp subs(@NotNull Map<EAEVar, EAExpr> m) {
+        EAExpr left = this.left.subs(m);
+        EAExpr right = this.right.subs(m);
+        return EATermFactory.factory.app(left, right);
     }
 
     @Override
-    public EAPApp fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPExpr left = this.left.fsubs(m);
-        EAPExpr right = this.right.fsubs(m);
-        return EAPFactory.factory.app(left, right);
+    public EAPApp fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        EAExpr left = this.left.fsubs(m);
+        EAExpr right = this.right.fsubs(m);
+        return EATermFactory.factory.app(left, right);
     }
 
     @Override
@@ -114,8 +114,8 @@ public class EAPApp implements EAComp {
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = new HashSet<>();
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> res = new HashSet<>();
         res.addAll(this.left.getFreeVars());
         res.addAll(this.right.getFreeVars());
         return res;
@@ -160,7 +160,7 @@ public class EAPApp implements EAComp {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.APP;
+        int hash = EATerm.APP;
         hash = 31 * hash + this.left.hashCode();
         hash = 31 * hash + this.right.hashCode();
         return hash;

@@ -1,26 +1,26 @@
 package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.EAPFuncName;
-import org.scribble.ext.ea.core.term.EAPTerm;
+import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EAUnitType;
+import org.scribble.ext.ea.core.type.value.EAVUnitType;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPUnit implements EAPExpr {
+public class EAEUnit implements EAExpr {
 
-    public static final EAPUnit UNIT = new EAPUnit();
+    public static final EAEUnit UNIT = new EAEUnit();
 
-    public EAPUnit() {
+    public EAEUnit() {
     }
 
     @Override
-    public EAUnitType infer() {
-        return EAUnitType.UNIT;
+    public EAVUnitType infer() {
+        return EAVUnitType.UNIT;
     }
 
     @Override
@@ -29,30 +29,30 @@ public class EAPUnit implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     @Override
-    public EAUnitType type(Gamma gamma) {
+    public EAVUnitType type(Gamma gamma) {
         return EATypeFactory.factory.val.unit();
     }
 
     /* Aux */
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         //return Collections.emptySet();
         return new HashSet<>();
     }
 
     @Override
-    public EAPUnit subs(@NotNull Map<EAPVar, EAPExpr> m) {
+    public EAEUnit subs(@NotNull Map<EAEVar, EAExpr> m) {
         return this;
     }
 
     @Override
-    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+    public EAExpr fsubs(Map<EAFuncName, EAERec> m) { return this; }
 
     @Override
     public String toString() {
@@ -65,18 +65,18 @@ public class EAPUnit implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPUnit eaVar = (EAPUnit) o;
+        EAEUnit eaVar = (EAEUnit) o;
         return eaVar.canEquals(this);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPUnit;
+        return o instanceof EAEUnit;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.UNIT;
+        int hash = EATerm.UNIT;
         hash = 31 * hash;
         return hash;
     }

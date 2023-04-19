@@ -1,26 +1,26 @@
 package org.scribble.ext.ea.core.term;
 
 import org.scribble.core.type.name.Id;
-import org.scribble.ext.ea.core.term.expr.EAPRec;
-import org.scribble.ext.ea.core.term.expr.EAPExpr;
-import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.expr.EAERec;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
+import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVFuncType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 // !!! Currently EAName is hardcoded to Gamma.map domain (not Gamma.fmap)
-public class EAPFuncName extends Id implements EAPExpr {
+public class EAFuncName extends Id implements EAExpr {
 
-    public EAPFuncName(String text) {
+    public EAFuncName(String text) {
         super(text);
     }
 
     @Override
-    public EAValType infer() {
+    public EAVType infer() {
         throw new RuntimeException("Not supported");
     }
 
@@ -30,27 +30,27 @@ public class EAPFuncName extends Id implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     @Override
-    public EAFuncType type(Gamma gamma) {
+    public EAVFuncType type(Gamma gamma) {
         return gamma.fmap.get(this);
     }
 
     @Override
-    public EAPExpr subs(Map<EAPVar, EAPExpr> m) {
+    public EAExpr subs(Map<EAEVar, EAExpr> m) {
         return this;
     }
 
     @Override
-    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) {
+    public EAExpr fsubs(Map<EAFuncName, EAERec> m) {
         return m.containsKey(this) ? m.get(this) : this;
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
+    public Set<EAEVar> getFreeVars() {
         //return Set.of();
         return new HashSet<>();
     }
@@ -61,18 +61,18 @@ public class EAPFuncName extends Id implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPFuncName eaVar = (EAPFuncName) o;
+        EAFuncName eaVar = (EAFuncName) o;
         return eaVar.canEquals(this) && super.equals(o);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPFuncName;
+        return o instanceof EAFuncName;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.FUNC_NAME;
+        int hash = EATerm.FUNC_NAME;
         hash = 31 * hash + super.hashCode();
         return hash;
     }

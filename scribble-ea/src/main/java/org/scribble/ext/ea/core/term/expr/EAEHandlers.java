@@ -3,17 +3,17 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.term.EAPFactory;
-import org.scribble.ext.ea.core.term.EAPFuncName;
-import org.scribble.ext.ea.core.term.EAPTerm;
+import org.scribble.ext.ea.core.term.EATermFactory;
+import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
-import org.scribble.ext.ea.core.type.value.EAHandlersType;
-import org.scribble.ext.ea.core.type.value.EAValType;
-import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
+import org.scribble.ext.ea.core.type.value.EAVHandlersType;
+import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.core.type.value.EAVTypeFactory;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.*;
@@ -27,16 +27,16 @@ import java.util.stream.Collectors;
 //
 
 
-public class EAPHandlers implements EAPExpr {
+public class EAEHandlers implements EAExpr {
 
     @NotNull
     public final Role role;
     //@NotNull public final Map<Pair<Op, EAPVar>, EAPExpr> Hs;  // !!! var is part of value, not key
     @NotNull
-    public final Map<Op, EAPHandler> Hs;  // Invariant: Op equals EAPHandler.op
+    public final Map<Op, EAEHandler> Hs;  // Invariant: Op equals EAPHandler.op
 
-    public EAPHandlers(
-            @NotNull Role role, @NotNull LinkedHashMap<Op, EAPHandler> Hbar) {
+    public EAEHandlers(
+            @NotNull Role role, @NotNull LinkedHashMap<Op, EAEHandler> Hbar) {
         this.role = role;
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -44,18 +44,18 @@ public class EAPHandlers implements EAPExpr {
     }
 
     @Override
-    public EAHandlersType infer() {
+    public EAVHandlersType infer() {
         EATypeFactory f = EATypeFactory.factory;
-        List<EAValType> As = this.Hs.values().stream()
+        List<EAVType> As = this.Hs.values().stream()
                 .map(x -> x.svarType).distinct().collect(Collectors.toList());
         if (As.size() != 1) {
             throw new RuntimeException("Inconsistent state types: " + this);
         }
-        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases =
+        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases =
                 this.Hs.entrySet().stream().collect(Collectors.toMap(
                         Map.Entry::getKey,
                         x -> {
-                            EAPHandler v = x.getValue();
+                            EAEHandler v = x.getValue();
                             return new EAPPair<>(v.varType, v.pre);
                         },
                         (x, y) -> null,
@@ -70,17 +70,17 @@ public class EAPHandlers implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     @Override
-    public EAValType type(Gamma gamma) {
-        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
-        EAValType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
-        for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
+    public EAVType type(Gamma gamma) {
+        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = new LinkedHashMap<>();
+        EAVType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
+        for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
             Op k = e.getKey();
-            EAPHandler v = e.getValue();
+            EAEHandler v = e.getValue();
             if (!A.equals(v.svarType)) {
                 throw new RuntimeException("Inconsistent state types: " + this);
             }
@@ -88,36 +88,36 @@ public class EAPHandlers implements EAPExpr {
             cases.put(k, new EAPPair<>(v.varType, v.pre));
         }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
-        return EAValTypeFactory.factory.handlers(in, A);
+        return EAVTypeFactory.factory.handlers(in, A);
     }
 
     /* Aux */
 
     @Override
-    public EAPHandlers subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
-            Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
+    public EAEHandlers subs(@NotNull Map<EAEVar, EAExpr> m) {
+        LinkedHashMap<Op, EAEHandler> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
+            Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
             Op k = e.getKey();
             Hs.put(k, e.getValue().subs(m));
         }
-        return EAPFactory.factory.handlers(this.role, Hs);
+        return EATermFactory.factory.handlers(this.role, Hs);
     }
 
     @Override
-    public EAPExpr fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
-            Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
+    public EAExpr fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        LinkedHashMap<Op, EAEHandler> Hs = new LinkedHashMap<>();
+        for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
+            Map<EAFuncName, EAERec> m1 = new HashMap<>(m);
             Op k = e.getKey();
             Hs.put(k, e.getValue().fsubs(m));
         }
-        return EAPFactory.factory.handlers(this.role, Hs);
+        return EATermFactory.factory.handlers(this.role, Hs);
     }
 
     @Override
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> res = this.Hs.values().stream()
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> res = this.Hs.values().stream()
                 .flatMap(x -> x.getFreeVars().stream())
                 .collect(Collectors.toCollection(HashSet::new));
         return res;
@@ -138,7 +138,7 @@ public class EAPHandlers implements EAPExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPHandlers them = (EAPHandlers) o;
+        EAEHandlers them = (EAEHandlers) o;
         return them.canEquals(this)
                 && this.role.equals(them.role)
                 && this.Hs.equals(them.Hs);
@@ -146,12 +146,12 @@ public class EAPHandlers implements EAPExpr {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPHandlers;
+        return o instanceof EAEHandlers;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.HANDLERS;
+        int hash = EATerm.HANDLERS;
         hash = 31 * hash + this.role.hashCode();
         hash = 31 * hash + this.Hs.hashCode();
         return hash;

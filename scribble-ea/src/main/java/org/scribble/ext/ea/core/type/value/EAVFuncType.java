@@ -4,19 +4,19 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.type.EAType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 
-public class EAFuncType implements EAValType {
+public class EAVFuncType implements EAVType {
 
     @NotNull
-    public final EAValType A;
+    public final EAVType A;
     @NotNull
-    public final EAValType B;
+    public final EAVType B;
     @NotNull
     public final EALType S;
     @NotNull
     public final EALType T;
 
-    protected EAFuncType(@NotNull EAValType A, @NotNull EALType S,
-                         @NotNull EALType T, @NotNull EAValType B) {
+    protected EAVFuncType(@NotNull EAVType A, @NotNull EALType S,
+                          @NotNull EALType T, @NotNull EAVType B) {
         this.S = S;
         this.A = A;
         this.B = B;
@@ -36,7 +36,7 @@ public class EAFuncType implements EAValType {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAFuncType them = (EAFuncType) o;
+        EAVFuncType them = (EAVFuncType) o;
         return them.canEquals(this)
                 && this.A.equals(them.A)
                 && this.S.equals(them.S)
@@ -46,7 +46,7 @@ public class EAFuncType implements EAValType {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAFuncType;
+        return o instanceof EAVFuncType;
     }
 
     @Override

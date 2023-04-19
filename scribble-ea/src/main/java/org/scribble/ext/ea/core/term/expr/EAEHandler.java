@@ -7,8 +7,8 @@ import org.scribble.ext.ea.core.term.process.EAComp;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAUnitType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.util.Pair;
 
@@ -17,26 +17,26 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPHandler {
+public class EAEHandler {
 
     @NotNull
     public final Op op;
     @NotNull
-    public final EAPVar var;
+    public final EAEVar var;
     @NotNull
-    public final EAValType varType;  // !!! added type annots
+    public final EAVType varType;  // !!! added type annots
     @NotNull
     public final EAComp expr;
     @NotNull
     public final EALType pre;  // For the handler expr (i.e., doesn't include the handler input itself)
 
     @NotNull
-    public final EAPVar svar;
+    public final EAEVar svar;
     @NotNull
-    public final EAValType svarType;
+    public final EAVType svarType;
 
-    public EAPHandler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
-                      @NotNull EAComp expr, @NotNull EALType pre, @NotNull EAPVar svar, @NotNull EAValType svarType) {
+    public EAEHandler(@NotNull Op op, @NotNull EAEVar var, @NotNull EAVType varType,
+                      @NotNull EAComp expr, @NotNull EALType pre, @NotNull EAEVar svar, @NotNull EAVType svarType) {
         this.op = op;
         this.var = var;
         this.varType = varType;
@@ -53,7 +53,7 @@ public class EAPHandler {
         }
 
         //EATriple<EAPVar, EAValType, EAPExpr> v;
-        LinkedHashMap<EAName, EAValType> tmp = new LinkedHashMap<>(gamma.map);
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
         tmp.put(this.var, this.varType);
 
         tmp.put(this.svar, this.svarType);  // !!! map contains smap
@@ -63,8 +63,8 @@ public class EAPHandler {
         //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i
         EALType inferred = this.pre;
 
-        Pair<EAValType, EALType> res = this.expr.type(gamma1, inferred);
-        if (!(res.left.equals(EAUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
+        Pair<EAVType, EALType> res = this.expr.type(gamma1, inferred);
+        if (!(res.left.equals(EAVUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
             throw new RuntimeException("Type error: " + gamma1 + " | "
                     + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
         }
@@ -72,26 +72,26 @@ public class EAPHandler {
 
     /* Aux */
 
-    public EAPHandler subs(@NotNull Map<EAPVar, EAPExpr> m) {
-        Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
+    public EAEHandler subs(@NotNull Map<EAEVar, EAExpr> m) {
+        Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
         m1.remove(this.svar);
         EAComp subs = this.expr.subs(m1);
-        return EAPFactory.factory.handler(
+        return EATermFactory.factory.handler(
                 this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }
 
-    public EAPHandler fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
+    public EAEHandler fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+        Map<EAFuncName, EAERec> m1 = new HashMap<>(m);
         m1.remove(this.var);
         m1.remove(this.svar);
         EAComp subs = this.expr.fsubs(m1);
-        return EAPFactory.factory.handler(
+        return EATermFactory.factory.handler(
                 this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }
 
-    public Set<EAPVar> getFreeVars() {
-        Set<EAPVar> fvs = this.expr.getFreeVars();
+    public Set<EAEVar> getFreeVars() {
+        Set<EAEVar> fvs = this.expr.getFreeVars();
         fvs.remove(this.var);
         fvs.remove(this.svar);
         return fvs;
@@ -113,7 +113,7 @@ public class EAPHandler {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPHandler them = (EAPHandler) o;
+        EAEHandler them = (EAEHandler) o;
         return this.op.equals(them.op)
                 && this.var.equals(them.var)
                 && this.varType.equals(them.varType)
@@ -125,7 +125,7 @@ public class EAPHandler {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.HANDLER;
+        int hash = EATerm.HANDLER;
         hash = 31 * hash + this.op.hashCode();
         hash = 31 * hash + this.var.hashCode();
         hash = 31 * hash + this.varType.hashCode();

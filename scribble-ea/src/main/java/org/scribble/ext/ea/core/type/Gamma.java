@@ -2,9 +2,9 @@ package org.scribble.ext.ea.core.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAName;
-import org.scribble.ext.ea.core.term.EAPFuncName;
-import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.type.value.EAVFuncType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -15,24 +15,24 @@ import java.util.stream.Collectors;
 public class Gamma {
 
     @NotNull
-    public final Map<EAName, EAValType> map;  // Unmodifiable wrapper of below
+    public final Map<EAName, EAVType> map;  // Unmodifiable wrapper of below
     @NotNull
-    protected final LinkedHashMap<EAName, EAValType> _map;  // Backing of above
+    protected final LinkedHashMap<EAName, EAVType> _map;  // Backing of above
 
     @NotNull
-    public final Map<EAPFuncName, EAFuncType> fmap;  // Unmodifiable wrapper of below
+    public final Map<EAFuncName, EAVFuncType> fmap;  // Unmodifiable wrapper of below
     @NotNull
-    protected final LinkedHashMap<EAPFuncName, EAFuncType> _fmap;  // Backing of above
+    protected final LinkedHashMap<EAFuncName, EAVFuncType> _fmap;  // Backing of above
 
     public final EAName svar;  // null if "none"  // !!! this.map contains [svar:svarType] if non-null
     @NotNull
-    public final EAValType svarType;  // XXX FIXME now null for EAPSystem -- Config infers local state
+    public final EAVType svarType;  // XXX FIXME now null for EAPSystem -- Config infers local state
 
     /*public Gamma() {
         this(new LinkedHashMap<>(), new LinkedHashMap<>(), null, EAIntType.INT);
     }*/
 
-    public Gamma(EAValType svarType) {
+    public Gamma(EAVType svarType) {
         this(new LinkedHashMap<>(), new LinkedHashMap<>(), null, svarType);
     }
 
@@ -40,10 +40,10 @@ public class Gamma {
        this(map, new LinkedHashMap<>());
     }*/
 
-    public Gamma(LinkedHashMap<EAName, EAValType> map,
-                 LinkedHashMap<EAPFuncName, EAFuncType> fmap,
+    public Gamma(LinkedHashMap<EAName, EAVType> map,
+                 LinkedHashMap<EAFuncName, EAVFuncType> fmap,
                  EAName svar,
-                 EAValType svarType) {
+                 EAVType svarType) {
         this._map = map.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new));

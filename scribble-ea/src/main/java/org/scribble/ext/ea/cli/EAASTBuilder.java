@@ -12,7 +12,7 @@ import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.term.process.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.session.local.*;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.LinkedHashMap;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 // Move to parsing
 class EAASTBuilder {
-    static EAPFactory pf = EAPFactory.factory;
+    static EATermFactory pf = EATermFactory.factory;
     static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
     static EATypeFactory tf = EATypeFactory.factory;
 
@@ -50,15 +50,15 @@ class EAASTBuilder {
     }
 
     public EAPIf visitIf(CommonTree n) {
-        EAPExpr cond = visitV((CommonTree) n.getChild(0));
+        EAExpr cond = visitV((CommonTree) n.getChild(0));
         EAComp then = visitM((CommonTree) n.getChild(1));
         EAComp elsee = visitM((CommonTree) n.getChild(2));
         return pf.iff(cond, then, elsee);
     }
 
     public EAPLet visitLet(CommonTree n) {
-        EAPVar var = visitVar((CommonTree) n.getChild(0));
-        EAValType varType = visitA((CommonTree) n.getChild(1));
+        EAEVar var = visitVar((CommonTree) n.getChild(0));
+        EAVType varType = visitA((CommonTree) n.getChild(1));
         EAComp e1 = visitM((CommonTree) n.getChild(2));
         EAComp e2 = visitM((CommonTree) n.getChild(3));
         return pf.let(var, varType, e1, e2);
@@ -67,37 +67,37 @@ class EAASTBuilder {
     public EAPSend visitSend(CommonTree n) {
         Role dst = visitRole((CommonTree) n.getChild(0));
         Op op = visitOp((CommonTree) n.getChild(1));
-        EAPExpr V = visitV((CommonTree) n.getChild(2));
+        EAExpr V = visitV((CommonTree) n.getChild(2));
         return pf.send(dst, op, V);
     }
 
     public EAPSuspend visitSuspend(CommonTree n) {
-        EAPExpr V = visitV((CommonTree) n.getChild(0));
-        EAPExpr sV = visitV((CommonTree) n.getChild(1));
+        EAExpr V = visitV((CommonTree) n.getChild(0));
+        EAExpr sV = visitV((CommonTree) n.getChild(1));
         return pf.suspend(V, sV);
     }
 
     public EAPReturn visitReturn(CommonTree n) {
-        EAPExpr V = visitV((CommonTree) n.getChild(0));
+        EAExpr V = visitV((CommonTree) n.getChild(0));
         return pf.returnn(V);
     }
 
     public EAPApp visitApp(CommonTree n) {
-        EAPExpr left = visitV((CommonTree) n.getChild(0));
-        EAPExpr right = visitV((CommonTree) n.getChild(1));
+        EAExpr left = visitV((CommonTree) n.getChild(0));
+        EAExpr right = visitV((CommonTree) n.getChild(1));
         return pf.app(left, right);
     }
 
     /* V */
 
-    public EAPExpr visitV(CommonTree n) {
+    public EAExpr visitV(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
             case "V_HANDLERS": {
                 List<CommonTree> cs = ((List<Object>) n.getChildren()).stream()
                         .map(x -> (CommonTree) x).collect(Collectors.toList());
                 Role r = visitRole(cs.get(0));
-                LinkedHashMap<Op, EAPHandler> hs = visitHandlers(cs.subList(1, cs.size()));
+                LinkedHashMap<Op, EAEHandler> hs = visitHandlers(cs.subList(1, cs.size()));
                 return pf.handlers(r, hs);
             }
             case "V_INT":
@@ -111,12 +111,12 @@ class EAASTBuilder {
             case "V_FALSE":
                 return pf.bool(false);
             case "V_REC": {
-                EAPFuncName f = visitfname((CommonTree) n.getChild(0));
-                EAPVar var = visitVar((CommonTree) n.getChild(1));
-                EAValType varType = visitA((CommonTree) n.getChild(2));
+                EAFuncName f = visitfname((CommonTree) n.getChild(0));
+                EAEVar var = visitVar((CommonTree) n.getChild(1));
+                EAVType varType = visitA((CommonTree) n.getChild(2));
                 EALType S = visitSessionType((CommonTree) n.getChild(3));
                 EALType T = visitSessionType((CommonTree) n.getChild(4));
-                EAValType B = visitA((CommonTree) n.getChild(5));
+                EAVType B = visitA((CommonTree) n.getChild(5));
                 EAComp body = visitM((CommonTree) n.getChild(6));
                 return pf.rec(f, var, varType, body, S, T, B);
             }
@@ -130,25 +130,25 @@ class EAASTBuilder {
     }
 
     // FIXME other comp ops
-    public EAPExpr visitComp(CommonTree n) {
+    public EAExpr visitComp(CommonTree n) {
         List<Object> cs = n.getChildren();
-        EAPExpr curr = visitV((CommonTree) cs.get(0));
+        EAExpr curr = visitV((CommonTree) cs.get(0));
         for (int i = 1; i < cs.size(); i++) {
-            curr = EAPFactory.factory.binop(EAPOp.LT, curr, visitV((CommonTree) cs.get(i)));
+            curr = EATermFactory.factory.binop(EAEOp.LT, curr, visitV((CommonTree) cs.get(i)));
         }
         return curr;
     }
 
-    public EAPExpr visitPlus(CommonTree n) {
+    public EAExpr visitPlus(CommonTree n) {
         List<Object> cs = n.getChildren();
-        EAPExpr curr = visitV((CommonTree) cs.get(0));
+        EAExpr curr = visitV((CommonTree) cs.get(0));
         for (int i = 1; i < cs.size(); i++) {
-            curr = EAPFactory.factory.binop(EAPOp.PLUS, curr, visitV((CommonTree) cs.get(i)));
+            curr = EATermFactory.factory.binop(EAEOp.PLUS, curr, visitV((CommonTree) cs.get(i)));
         }
         return curr;
     }
 
-    public EAPVar visitVar(CommonTree n) {
+    public EAEVar visitVar(CommonTree n) {
         //return pf.var(n.getText());
         return pf.var(n.getChild(0).getText());
     }
@@ -158,7 +158,7 @@ class EAASTBuilder {
         return pf.bool(txt.equals("V_TRUE"));
     }*/
 
-    public EAPIntVal visitInt(CommonTree n) {
+    public EAEIntVal visitInt(CommonTree n) {
         String txt = n.getChild(0).getText();
         if (txt.equals("UNIT_KW")) {  // FIXME
             return pf.intt(1);
@@ -166,7 +166,7 @@ class EAASTBuilder {
         return pf.intt(Integer.parseInt(txt));
     }
 
-    public LinkedHashMap<Op, EAPHandler> visitHandlers(List<CommonTree> n) {
+    public LinkedHashMap<Op, EAEHandler> visitHandlers(List<CommonTree> n) {
         return n.stream().map(x -> visitHandler(x)).collect(Collectors.toMap(
                 x -> x.op,
                 x -> x,
@@ -175,24 +175,24 @@ class EAASTBuilder {
         ));
     }
 
-    public EAPHandler visitHandler(CommonTree n) {
+    public EAEHandler visitHandler(CommonTree n) {
         Op op = visitOp((CommonTree) n.getChild(0));
-        EAPVar var = visitVar((CommonTree) n.getChild(1));
-        EAValType varType = visitA((CommonTree) n.getChild(2));
+        EAEVar var = visitVar((CommonTree) n.getChild(1));
+        EAVType varType = visitA((CommonTree) n.getChild(2));
         EALType stype = visitSessionType((CommonTree) n.getChild(3));
         EAComp expr = visitM((CommonTree) n.getChild(4));
-        EAPVar svar = visitVar((CommonTree) n.getChild(5));
-        EAValType svarType = visitA((CommonTree) n.getChild(6));
+        EAEVar svar = visitVar((CommonTree) n.getChild(5));
+        EAVType svarType = visitA((CommonTree) n.getChild(6));
         return pf.handler(op, var, varType, expr, stype, svar, svarType);
     }
 
     /* A */
 
-    public EAValType visitA(CommonTree n) {
+    public EAVType visitA(CommonTree n) {
         String txt = n.getText();
         switch (txt) {
             case "A_HANDLER": {
-                EAValType A = visitA((CommonTree) n.getChild(0));
+                EAVType A = visitA((CommonTree) n.getChild(0));
                 EALInType inS = (EALInType) visitSessionType((CommonTree) n.getChild(1));
                 return tf.val.handlers(inS, A);
             }
@@ -200,10 +200,10 @@ class EAASTBuilder {
                 return tf.val.unit();
             }
             case "A_FUN": {
-                EAValType A = visitA((CommonTree) n.getChild(0));
+                EAVType A = visitA((CommonTree) n.getChild(0));
                 EALType S = visitSessionType((CommonTree) n.getChild(1));
                 EALType T = visitSessionType((CommonTree) n.getChild(2));
-                EAValType B = visitA((CommonTree) n.getChild(3));
+                EAVType B = visitA((CommonTree) n.getChild(3));
                 return tf.val.func(A, S, T, B);
             }
             case "A_INT":
@@ -237,13 +237,13 @@ class EAASTBuilder {
 
     public EALInType visitBranch(CommonTree n) {
         Role r = visitRole((CommonTree) n.getChild(0));
-        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = visitCases(n);
+        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = visitCases(n);
         return tf.local.in(r, cases);
     }
 
     public EALOutType visitSelect(CommonTree n) {
         Role r = visitRole((CommonTree) n.getChild(0));
-        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = visitCases(n);
+        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = visitCases(n);
         return tf.local.out(r, cases);
     }
 
@@ -264,11 +264,11 @@ class EAASTBuilder {
 
     // n is whole branch/select node
     @NotNull
-    private LinkedHashMap<Op, EAPPair<EAValType, EALType>> visitCases(CommonTree n) {
-        LinkedHashMap<Op, EAPPair<EAValType, EALType>> cases = new LinkedHashMap<>();
+    private LinkedHashMap<Op, EAPPair<EAVType, EALType>> visitCases(CommonTree n) {
+        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = new LinkedHashMap<>();
         for (int j = 1; j < n.getChildCount(); ) {
             Op op = visitOp((CommonTree) n.getChild(j));
-            EAValType valType = visitA((CommonTree) n.getChild(j + 2));
+            EAVType valType = visitA((CommonTree) n.getChild(j + 2));
             EALType body = visitSessionType((CommonTree) n.getChild(j + 5));
             cases.put(op, new EAPPair<>(valType, body));
             j = j + 6;
@@ -283,8 +283,8 @@ class EAASTBuilder {
     }
 
     // FIXME only used by rec -- other occurrences of fnames come out as var...
-    public EAPFuncName visitfname(CommonTree n) {
-        return new EAPFuncName(n.getText());
+    public EAFuncName visitfname(CommonTree n) {
+        return new EAFuncName(n.getText());
     }
 
     public Op visitOp(CommonTree n) {

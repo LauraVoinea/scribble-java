@@ -2,14 +2,14 @@ package org.scribble.ext.ea.core.config;
 
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAPUnit;
+import org.scribble.ext.ea.core.term.expr.EAEUnit;
 import org.scribble.ext.ea.core.term.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAUnitType;
-import org.scribble.ext.ea.core.type.value.EAValType;
+import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
@@ -39,7 +39,7 @@ public class EAPActiveThread implements EAPThreadState {
         EAComp foo = this.expr.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAPReturn) {
-            if (this.expr instanceof EAPReturn && ((EAPReturn) this.expr).val.equals(EAPUnit.UNIT)) {
+            if (this.expr instanceof EAPReturn && ((EAPReturn) this.expr).val.equals(EAEUnit.UNIT)) {
                 return new Pair<>(true, Collections.emptySet());
             }
             // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additional beta case: let x <= return V where V.canBeta (return V is the foo)
@@ -83,8 +83,8 @@ public class EAPActiveThread implements EAPThreadState {
             throw new RuntimeException("Unknown endpoint: "
                     + endpointToString(this.sid, this.role));
         }
-        Pair<EAValType, EALType> res = this.expr.type(gamma, pre);
-        if (!res.equals(new EAPPair<>(EAUnitType.UNIT, EALEndType.END))) {
+        Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
+        if (!res.equals(new EAPPair<>(EAVUnitType.UNIT, EALEndType.END))) {
             throw new RuntimeException("Badly typed: " + this + " : "
                     + res.left + " <| " + res.right);
         }
@@ -118,7 +118,7 @@ public class EAPActiveThread implements EAPThreadState {
 
     @Override
     public int hashCode() {
-        int hash = EAPTerm.ACTIVE_THREAD;
+        int hash = EATerm.ACTIVE_THREAD;
         hash = 31 * hash;
         hash = 31 * this.expr.hashCode();
         hash = 31 * this.sid.hashCode();

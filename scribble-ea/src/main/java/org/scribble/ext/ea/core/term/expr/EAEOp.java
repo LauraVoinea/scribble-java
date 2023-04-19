@@ -1,6 +1,6 @@
 package org.scribble.ext.ea.core.term.expr;
 
-public enum EAPOp {
+public enum EAEOp {
     PLUS,
     LT,
 }
