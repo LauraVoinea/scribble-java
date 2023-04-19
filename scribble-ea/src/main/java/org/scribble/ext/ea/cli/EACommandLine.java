@@ -81,22 +81,28 @@ public class EACommandLine extends CommandLine {
 
         //System.out.println(parseV("2 + 3"));
 
-        //ex1(lf, pf, rf, tf);
-        //ex2(lf, pf, rf, tf);
-        //ex4(lf, pf, rf, tf);
-        //ex5(lf, pf, rf, tf);
-        //ex6(lf, pf, rf, tf);
-        //ex7(lf, pf, rf, tf);
-        //ex8(lf, pf, rf, tf);
-        ex9(lf, pf, rf, tf);
+        System.out.println("\n---\nex1");
+        ex1(lf, pf, rf, tf);
+        System.out.println("\n---\nex2");
+        ex2(lf, pf, rf, tf);
 
-        /* HERE
+        System.out.println("\n---\nex4");
+        ex4(lf, pf, rf, tf);
+        System.out.println("\n---\nex5");
+        ex5(lf, pf, rf, tf);
+        System.out.println("\n---\nex6");
+        ex6(lf, pf, rf, tf);
+        System.out.println("\n---\nex7");
+        ex7(lf, pf, rf, tf);
+        System.out.println("\n---\nex8");
+        ex8(lf, pf, rf, tf);
+
+        //ex9(lf, pf, rf, tf);
+
+        /* HERE HERE
         //merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
-        - state is currently per sess -- probably should be config wide, state shared across sess -> (intentional) race conditions
-        - ...take state on config creation, infer state type from that
         - ...need (self) handler firing when state satis some condition -- !!! how done in standard actors?
-        - recursion example with if-then and state
         ...
         - refactor EAPVal as EAPPure -- separate packages for expr/pure -- distinguish actual val from pure
         - separate isGround/isValue -- cf. canBeta for exprs vs. is-stuck
@@ -106,13 +112,10 @@ public class EACommandLine extends CommandLine {
         - evolving state types? but tricky if state is config-wide (shared by multiple sessions)
         */
 
-        // HERE HERE add state type to Handler type
-        // remove comma from suspend V V syntax
-
         //new EACommandLine(args).run();
     }
 
-    // Not WT -- testing (incompatible) state typing
+    // !!! Not WT -- testing (incompatible) state typing
     static void ex9(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
         Role A = new Role("A");
         Role B = new Role("B");
@@ -135,7 +138,7 @@ public class EACommandLine extends CommandLine {
         // config < A, idle, c[A] |-> let h = ... in ... >
         EAPActiveThread tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+        EAPConfig cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
 
         System.out.println();
         String out1s = "B!{l1(" + h2s + ").B!{l2(1). end }}";
@@ -159,7 +162,7 @@ public class EACommandLine extends CommandLine {
         // config < B, idle, c[B] |-> let h = ... in ... } >
         EAPActiveThread tB = rf.activeThread(lethB, s, B);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-        EAPConfig<?> cB = rf.config(p2, tB, sigmaB, pf.factory.bool(false));
+        EAPConfig cB = rf.config(p2, tB, sigmaB, pf.factory.bool(false));
 
         System.out.println();
         env = new LinkedHashMap<>();
@@ -173,7 +176,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("\n---");
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
@@ -224,7 +227,7 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+        EAPConfig cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
         //EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.bool(true));
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
@@ -249,11 +252,11 @@ public class EACommandLine extends CommandLine {
                 "let h: " + htsB + " <= return (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} ."
                         + "return handler A { {" + out2mus + "} d: Int, l1(w2: 1) "
 
-                        /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 })"  // run forever
+                        /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 })"  // run forever -- old
                         + " |-> let y: 1 <= A!l3(()) in return () })"*/  // quit straight away
 
-                        //+ " |-> let tmp: Bool <= return d < 0 in "  // quit straight away
-                        + " |-> let tmp: Bool <= return d < 42 in "  // quit after one
+                        //+ " |-> let tmp: Bool <= return d < 0 in "  // quit straight away -- 0
+                        + " |-> let tmp: Bool <= return d < 42 in "  // quit after one -- 42
                         //+ " |-> let tmp: Bool <= return d < 43 in "  // run forever
 
                         + "if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42"
@@ -272,7 +275,7 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tB = rf.activeThread(leth, s, B);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaB = new LinkedHashMap<>();
-        EAPConfig<?> cB = rf.config(p2, tB, sigmaB, pf.factory.intt(0));
+        EAPConfig cB = rf.config(p2, tB, sigmaB, pf.factory.intt(0));
 
         env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, B), recXB);
@@ -286,7 +289,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
@@ -298,7 +301,8 @@ public class EACommandLine extends CommandLine {
         System.out.println(sys);
         sys.type(new Gamma(null), new Delta());
 
-        run(sys, 100);
+        //run(sys, 100);  // run forever
+        run(sys, -1);  // quit straight away or after one
     }
 
     static void ex7(LTypeFactory lf, EAPFactory pf, EAPRuntimeFactory rf, EATypeFactory tf) {
@@ -335,7 +339,7 @@ public class EACommandLine extends CommandLine {
 
         EAPActiveThread tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
-        EAPConfig<?> cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
+        EAPConfig cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
 
         LinkedHashMap<Pair<EAPSid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new EAPPair<>(s, A), out1u);
@@ -387,7 +391,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
@@ -399,7 +403,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(sys);
         sys.type(new Gamma(null), new Delta());
 
-        run(sys, 100);
+        run(sys, -1);
     }
 
     private static void ex6(
@@ -451,7 +455,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("Typing cB: " + cB + " ,, " + env);
         cB.type(new Gamma(EAIntType.INT), new Delta(env));
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(p1, cA);
         cs.put(p2, cB);
         //EAPSystem sys = rf.system(cs);
@@ -719,7 +723,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(p1, cA);
         cs.put(p2, cB);
 
@@ -1069,7 +1073,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(cA.pid, cA);
         cs.put(cB.pid, cB);
 
@@ -1528,7 +1532,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(p1, cA);
         cs.put(p2, cB);
 
@@ -1656,7 +1660,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("Typing cB: " + cB + " ,, " + env);
         cB.type(new Gamma(EAIntType.INT), new Delta(env));
 
-        LinkedHashMap<EAPPid, EAPConfig<?>> cs = new LinkedHashMap<>();
+        LinkedHashMap<EAPPid, EAPConfig> cs = new LinkedHashMap<>();
         cs.put(p1, cA);
         cs.put(p2, cB);
         //EAPSystem sys = rf.system(cs);
@@ -1669,22 +1673,38 @@ public class EACommandLine extends CommandLine {
     }
     //*/
 
-    // steps -1 for unbounded
+    /* ... */
+
     static void run(EAPSystem sys, int steps) {
+        run(sys, steps, false);
+    }
+
+    // steps -1 for unbounded
+    static void run(EAPSystem sys, int steps, boolean debug) {
         int rem = steps;
         Map<EAPPid, Set<EAPPid>> pids = sys.canStep();
         for (; !pids.isEmpty() && rem != 0; rem--) {
             sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
-            System.out.println();
-            System.out.println(sys);
+            if (debug) {
+                System.out.println();
+                System.out.println(sys);
+            }
             sys.type(new Gamma(null), new Delta());
             pids = sys.canStep();
+        }
+
+        if (!debug) {
+            System.out.println();
+            System.out.println("Result steps(" + steps + "):");
+            System.out.println(sys);
         }
 
         if (steps == -1) {
             if (sys.configs.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
                 throw new RuntimeException("Stuck: " + sys);
             }
+        } else if (rem != 0) {
+            throw new RuntimeException("Stuck rem=" + rem + ": " + sys);
         }
     }
 

@@ -25,14 +25,14 @@ public class EAPSystem {
     @NotNull
     public final Delta annots;
     @NotNull
-    public final LinkedHashMap<EAPPid, EAPConfig<?>> configs;
+    public final LinkedHashMap<EAPPid, EAPConfig> configs;
 
     @NotNull
     protected final LTypeFactory lf;
 
     public EAPSystem(@NotNull LTypeFactory lf,
                      @NotNull Delta annots,
-                     @NotNull LinkedHashMap<EAPPid, EAPConfig<?>> configs) {
+                     @NotNull LinkedHashMap<EAPPid, EAPConfig> configs) {
         if (configs.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
             throw new RuntimeException("Invalid pid/config mapping: " + configs);
         }
@@ -46,7 +46,7 @@ public class EAPSystem {
     // !!! TODO safety
     //public void type(Gamma gamma, Delta delta, Delta delta1) {
     public void type(Gamma gamma, Delta delta) {
-        for (EAPConfig<?> c : this.configs.values()) {
+        for (EAPConfig c : this.configs.values()) {
             LinkedHashSet<Pair<EAPSid, Role>> eps = c.getEndpoints();
             LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);
             for (Pair<EAPSid, Role> p : eps) {
@@ -93,7 +93,7 @@ public class EAPSystem {
 
     // Pre: p \in getReady ?
     public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
-        EAPConfig<?> c = this.configs.get(p); // p.equals(c.pid)
+        EAPConfig c = this.configs.get(p); // p.equals(c.pid)
         if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
@@ -107,17 +107,17 @@ public class EAPSystem {
 
         EAPExpr foo = t.expr.getFoo();
 
-        System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
+        //System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 
         // !!! Delta (annots) unchanged
         if (foo instanceof EAPSuspend || foo instanceof EAPReturn
                 || foo instanceof EAPApp || foo instanceof EAPLet || foo instanceof EAPIf) {
-            LinkedHashMap<EAPPid, EAPConfig<?>> configs = c.step(this);
+            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
             return new EAPSystem(this.lf, this.annots, configs);
         }
         // !!! Delta (annots) change
         else if (foo instanceof EAPSend) {
-            LinkedHashMap<EAPPid, EAPConfig<?>> configs = c.step(this);
+            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
 
             EAPSend cast = (EAPSend) foo;
             LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
@@ -149,13 +149,13 @@ public class EAPSystem {
         }
     }
 
-    public Map<EAPPid, EAPConfig<?>> getConfigs() {
+    public Map<EAPPid, EAPConfig> getConfigs() {
         return Collections.unmodifiableMap(this.configs);
     }
 
     @Override
     public String toString() {
-        return "[annots =" + this.annots.map + "\n configs="
+        return "[annots=\n" + this.annots.map + "\nconfigs=\n"
                 + this.configs.entrySet().stream().map(x -> x.toString()).collect(Collectors.joining("\n"))
                 + "]";
     }

@@ -25,11 +25,11 @@ public class EAPRuntimeFactory {
         return new EAPSid(id);
     }
 
-    public <D> EAPConfig<D> config(EAPPid pid, EAPThreadState T,
-                                   LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma,
-                                   //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                                   EAPVal state) {
-        return new EAPConfig<>(pid, T, sigma, state);
+    public EAPConfig config(EAPPid pid, EAPThreadState T,
+                            LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma,
+                            //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
+                            EAPVal state) {
+        return new EAPConfig(pid, T, sigma, state);
     }
 
     public EAPIdle idle() {
@@ -43,7 +43,7 @@ public class EAPRuntimeFactory {
 
     public EAPSystem system(@NotNull LTypeFactory lf,
                             @NotNull Delta annots,
-                            @NotNull LinkedHashMap<EAPPid, EAPConfig<?>> cs) {
+                            @NotNull LinkedHashMap<EAPPid, EAPConfig> cs) {
         return new EAPSystem(lf, annots, cs);
     }
 }
