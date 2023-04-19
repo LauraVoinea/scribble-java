@@ -12,7 +12,6 @@ import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -65,7 +64,7 @@ public class EAPSystem {
     public Set<Pair<EAPPid, EAPExpr>> getReady() {
         // Includes sends, but not matching receives
         Set<Pair<EAPPid, EAPExpr>> collect = this.configs.entrySet().stream().filter(x -> x.getValue().isActive())
-                .map(x -> new EAPPair<>(x.getKey(), ((EAPActiveThread) x.getValue().T).expr.getFoo()))
+                .map(x -> new Pair<>(x.getKey(), ((EAPActiveThread) x.getValue().T).expr.getFoo()))
                 .filter(x -> !(x.right instanceof EAPSend) || !this.configs.get(((EAPSend) x.right).dst).isActive())  // dst is idle...
                 .collect(Collectors.toSet());
         /*Set<Pair<Role, EAPExpr>> res = new HashSet<>();
@@ -123,7 +122,7 @@ public class EAPSystem {
             EAMSend cast = (EAMSend) foo;
             LinkedHashMap<Pair<EASid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
 
-            EAPPair<EASid, Role> k1 = new EAPPair<>(t.sid, t.role);
+            Pair<EASid, Role> k1 = new Pair<>(t.sid, t.role);
             EALType l1 = this.annots.map.get(k1);
             LSend ls = this.lf.LSend(null, new SigLit(cast.op, Payload.EMPTY_PAYLOAD), cast.dst);  // from foo  // FIXME EMPTY_PAY
             Optional<EALType> opt1 = l1.step(ls);
@@ -133,7 +132,7 @@ public class EAPSystem {
             l1 = opt1.get();
             dmap.put(k1, l1);
 
-            Pair<EASid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
+            Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
             EALType l2 = this.annots.map.get(k2);
             LRecv lr = this.lf.LRecv(null, t.role, new SigLit(cast.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
             Optional<EALType> opt2 = l2.step(lr);

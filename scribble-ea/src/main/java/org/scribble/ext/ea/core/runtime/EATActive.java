@@ -11,7 +11,6 @@ import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.core.type.value.EAVUnitType;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -85,7 +84,7 @@ public class EATActive implements EAThread {
                     + endpointToString(this.sid, this.role));
         }
         Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
-        if (!res.equals(new EAPPair<>(EAVUnitType.UNIT, EALEndType.END))) {
+        if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
             throw new RuntimeException("Badly typed: " + this + " : "
                     + res.left + " <| " + res.right);
         }

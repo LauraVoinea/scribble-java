@@ -9,7 +9,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -38,8 +38,8 @@ public class EAMLet implements EAComp {
     }
 
     @Override
-    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
-        EAPPair<EAVType, EALType> p1 = this.init.type(gamma, pre);
+    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+        Pair<EAVType, EALType> p1 = this.init.type(gamma, pre);
         if (!this.varType.equals(p1.left)) {
             throw new RuntimeException("Bad type annotation: "
                     + this.varType + ", " + p1.left);

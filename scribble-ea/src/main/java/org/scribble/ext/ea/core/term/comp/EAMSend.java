@@ -14,7 +14,6 @@ import org.scribble.ext.ea.core.type.session.local.EALOutType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -37,7 +36,7 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         if (!(pre instanceof EALOutType)) {
             throw new RuntimeException("Expected out type: " + pre + ", " + this);
         }
@@ -54,14 +53,14 @@ public class EAMSend implements EAComp {
         if (!valType.equals(p.left)) {
             throw new RuntimeException("Incompatible value type: " + valType + ", " + p.left);
         }
-        return new EAPPair<>(EATypeFactory.factory.val.unit(), p.right);
+        return new Pair<>(EATypeFactory.factory.val.unit(), p.right);
     }
 
     @Override
     public EALOutType infer(Gamma gamma) {
         EAVType t = this.val.type(gamma);
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = new LinkedHashMap<>();
-        cases.put(this.op, new EAPPair<>(t, EALEndType.END));  // !!! (potential) placeholder END
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
+        cases.put(this.op, new Pair<>(t, EALEndType.END));  // !!! (potential) placeholder END
         return EALTypeFactory.factory.out(this.dst, cases);
     }
 

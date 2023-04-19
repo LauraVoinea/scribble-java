@@ -5,7 +5,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
 
@@ -22,12 +22,12 @@ public class EALTypeFactory {
     }
 
     public EALInType in(@NotNull Role peer,
-                        @NotNull LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases) {
+                        @NotNull LinkedHashMap<Op, Pair<EAVType, EALType>> cases) {
         return new EALInType(peer, cases);
     }
 
     public EALOutType out(@NotNull Role peer,
-                          @NotNull LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases) {
+                          @NotNull LinkedHashMap<Op, Pair<EAVType, EALType>> cases) {
         return new EALOutType(peer, cases);
     }
 

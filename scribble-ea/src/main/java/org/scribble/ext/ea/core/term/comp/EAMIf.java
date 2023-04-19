@@ -9,7 +9,7 @@ import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -31,9 +31,9 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
-        EAPPair<EAVType, EALType> ttype = this.then.type(gamma, pre);
-        EAPPair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
+    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+        Pair<EAVType, EALType> ttype = this.then.type(gamma, pre);
+        Pair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
         //subtype(ftype.S, pre);
         if (!ttype.equals(etype)) {
             throw new RuntimeException("Incompatible branches:\n"

@@ -4,12 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +20,7 @@ public interface EAComp extends EATerm {
     // CHECKME still needed? or deprecate
     EALType infer(Gamma gamma);
 
-    EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre);
+    Pair<EAVType, EALType> type(Gamma gamma, EALType pre);
 
     // ->_M -- config independent M eval
     boolean canBeta();

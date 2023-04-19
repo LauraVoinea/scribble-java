@@ -9,7 +9,7 @@ import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -42,7 +42,7 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         EAVType ltype = this.left.type(gamma);
         if (!(ltype instanceof EAVFuncType)) {
             throw new RuntimeException("Expected function type, not: "
@@ -59,7 +59,7 @@ public class EAMApp implements EAComp {
             throw new RuntimeException("Incompatible arg type:\n"
                     + "\tfound=" + rtype + ", required=" + ftype.A);
         }
-        return new EAPPair<>(ftype.B, ftype.T);
+        return new Pair<>(ftype.B, ftype.T);
     }
 
     @Override

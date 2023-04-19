@@ -9,7 +9,6 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -19,7 +18,7 @@ import java.util.Optional;
 public class EALOutType extends EALTypeIOBase {
 
     protected EALOutType(@NotNull Role peer,
-                         @NotNull LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases) {
+                         @NotNull LinkedHashMap<Op, Pair<EAVType, EALType>> cases) {
         super(peer, cases);
     }
 
@@ -28,20 +27,20 @@ public class EALOutType extends EALTypeIOBase {
         if (this.cases.size() != 1) {
             throw new RuntimeException("Concat only defined for unary send");
         }
-        Map.Entry<Op, EAPPair<EAVType, EALType>> e = this.cases.entrySet().iterator().next();
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases1 = new LinkedHashMap<>();
+        Map.Entry<Op, Pair<EAVType, EALType>> e = this.cases.entrySet().iterator().next();
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases1 = new LinkedHashMap<>();
         Pair<EAVType, EALType> v = e.getValue();
-        cases1.put(e.getKey(), new EAPPair<>(v.left, v.right.concat(t)));
+        cases1.put(e.getKey(), new Pair<>(v.left, v.right.concat(t)));
         return EALTypeFactory.factory.out(this.peer, cases1);
     }
 
     @Override
     public EALType subs(Map<RecVar, EALRecType> map) {
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases1 = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAPPair<EAVType, EALType>> e : this.cases.entrySet()) {
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases1 = new LinkedHashMap<>();
+        for (Map.Entry<Op, Pair<EAVType, EALType>> e : this.cases.entrySet()) {
             Op k = e.getKey();
-            EAPPair<EAVType, EALType> v = e.getValue();
-            cases1.put(k, new EAPPair<>(v.left, v.right.subs(map)));
+            Pair<EAVType, EALType> v = e.getValue();
+            cases1.put(k, new Pair<>(v.left, v.right.subs(map)));
         }
         return EALTypeFactory.factory.out(this.peer, cases1);
     }
@@ -67,7 +66,7 @@ public class EALOutType extends EALTypeIOBase {
     }
 
     protected static Optional<EALType> stepId(
-            Map<Op, EAPPair<EAVType, EALType>> cases, MsgId<?> id) {
+            Map<Op, Pair<EAVType, EALType>> cases, MsgId<?> id) {
         if (!(id instanceof Op)) {
             throw new RuntimeException("TODO: " + id);
         }

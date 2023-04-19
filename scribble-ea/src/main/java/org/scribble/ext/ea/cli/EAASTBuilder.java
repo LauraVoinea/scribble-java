@@ -13,7 +13,7 @@ import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -167,7 +167,7 @@ class EAASTBuilder {
     }
 
     public LinkedHashMap<Op, EAEHandler> visitHandlers(List<CommonTree> n) {
-        return n.stream().map(x -> visitHandler(x)).collect(Collectors.toMap(
+        return n.stream().map(this::visitHandler).collect(Collectors.toMap(
                 x -> x.op,
                 x -> x,
                 (x, y) -> null,
@@ -237,13 +237,13 @@ class EAASTBuilder {
 
     public EALInType visitBranch(CommonTree n) {
         Role r = visitRole((CommonTree) n.getChild(0));
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = visitCases(n);
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases = visitCases(n);
         return tf.local.in(r, cases);
     }
 
     public EALOutType visitSelect(CommonTree n) {
         Role r = visitRole((CommonTree) n.getChild(0));
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = visitCases(n);
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases = visitCases(n);
         return tf.local.out(r, cases);
     }
 
@@ -264,13 +264,13 @@ class EAASTBuilder {
 
     // n is whole branch/select node
     @NotNull
-    private LinkedHashMap<Op, EAPPair<EAVType, EALType>> visitCases(CommonTree n) {
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = new LinkedHashMap<>();
+    private LinkedHashMap<Op, Pair<EAVType, EALType>> visitCases(CommonTree n) {
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         for (int j = 1; j < n.getChildCount(); ) {
             Op op = visitOp((CommonTree) n.getChild(j));
             EAVType valType = visitA((CommonTree) n.getChild(j + 2));
             EALType body = visitSessionType((CommonTree) n.getChild(j + 5));
-            cases.put(op, new EAPPair<>(valType, body));
+            cases.put(op, new Pair<>(valType, body));
             j = j + 6;
         }
         return cases;

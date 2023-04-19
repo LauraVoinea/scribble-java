@@ -3,9 +3,9 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.EAFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
@@ -14,7 +14,7 @@ import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.core.type.value.EAVTypeFactory;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,12 +51,12 @@ public class EAEHandlers implements EAExpr {
         if (As.size() != 1) {
             throw new RuntimeException("Inconsistent state types: " + this);
         }
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases =
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases =
                 this.Hs.entrySet().stream().collect(Collectors.toMap(
                         Map.Entry::getKey,
                         x -> {
                             EAEHandler v = x.getValue();
-                            return new EAPPair<>(v.varType, v.pre);
+                            return new Pair<>(v.varType, v.pre);
                         },
                         (x, y) -> null,
                         LinkedHashMap::new
@@ -76,7 +76,7 @@ public class EAEHandlers implements EAExpr {
 
     @Override
     public EAVType type(Gamma gamma) {
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases = new LinkedHashMap<>();
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         EAVType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
         for (Map.Entry<Op, EAEHandler> e : this.Hs.entrySet()) {
             Op k = e.getKey();
@@ -85,7 +85,7 @@ public class EAEHandlers implements EAExpr {
                 throw new RuntimeException("Inconsistent state types: " + this);
             }
             v.type(gamma);
-            cases.put(k, new EAPPair<>(v.varType, v.pre));
+            cases.put(k, new Pair<>(v.varType, v.pre));
         }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
         return EAVTypeFactory.factory.handlers(in, A);

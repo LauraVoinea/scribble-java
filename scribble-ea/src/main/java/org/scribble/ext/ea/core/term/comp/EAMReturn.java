@@ -1,16 +1,18 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.EAFuncName;
+import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,14 +28,14 @@ public class EAMReturn implements EAComp {
     }
 
     @Override
-    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         EALEndType end = EATypeFactory.factory.local.end();
         /*if (!pre.equals(end)) {  // !!! return is value/term typing wrapper, not (session) control flow
             throw new RuntimeException("Expected end type: " + pre);
         }*/
         EAVType t = this.val.type(gamma);
-        //return new EAPPair<>(t, end);
-        return new EAPPair<>(t, pre);
+        //return new Pair<>(t, end);
+        return new Pair<>(t, pre);
     }
 
     @Override

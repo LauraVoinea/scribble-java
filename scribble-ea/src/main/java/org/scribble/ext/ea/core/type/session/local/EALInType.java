@@ -9,7 +9,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LRecv;
 import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.Optional;
 public class EALInType extends EALTypeIOBase {
 
     protected EALInType(@NotNull Role peer,
-                        @NotNull LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases) {
+                        @NotNull LinkedHashMap<Op, Pair<EAVType, EALType>> cases) {
         super(peer, cases);
     }
 
@@ -30,11 +30,11 @@ public class EALInType extends EALTypeIOBase {
 
     @Override
     public EALType subs(Map<RecVar, EALRecType> map) {
-        LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases1 = new LinkedHashMap<>();
-        for (Map.Entry<Op, EAPPair<EAVType, EALType>> e : this.cases.entrySet()) {
+        LinkedHashMap<Op, Pair<EAVType, EALType>> cases1 = new LinkedHashMap<>();
+        for (Map.Entry<Op, Pair<EAVType, EALType>> e : this.cases.entrySet()) {
             Op k = e.getKey();
-            EAPPair<EAVType, EALType> v = e.getValue();
-            cases1.put(k, new EAPPair<>(v.left, v.right.subs(map)));
+            Pair<EAVType, EALType> v = e.getValue();
+            cases1.put(k, new Pair<>(v.left, v.right.subs(map)));
         }
         return EALTypeFactory.factory.in(this.peer, cases1);
     }

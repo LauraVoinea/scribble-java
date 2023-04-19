@@ -16,7 +16,6 @@ import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.core.type.value.EAVUnitType;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -118,7 +117,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
             EAPid p2 = get.getKey();
             EAPConfig c2 = get.getValue();
             Map<Pair<EASid, Role>, EAEHandlers> sigma2 = c2.sigma;
-            Pair<EASid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
+            Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
             EAEHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
 
             //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
@@ -150,10 +149,10 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
                 EAThread t1 = EATIdle.IDLE;
                 EAMSuspend cast = (EAMSuspend) foo;
-                sigma1.put(new EAPPair<>(t.sid, t.role), (EAEHandlers) cast.val);  // t.role = r
+                sigma1.put(new Pair<>(t.sid, t.role), (EAEHandlers) cast.val);  // t.role = r
 
                 //LinkedHashMap<Pair<EAPSid, Role>, Integer> tmp = new LinkedHashMap<>(this.state);
-                //tmp.put(new EAPPair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
+                //tmp.put(new Pair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
 
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
                 EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.sval);
@@ -191,7 +190,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
         LinkedHashSet<Pair<EASid, Role>> res = new LinkedHashSet<>();
         if (!this.T.isIdle()) {
             EATActive t = (EATActive) this.T;
-            res.add(new EAPPair<>(t.sid, t.role));
+            res.add(new Pair<>(t.sid, t.role));
         }
         res.addAll(this.sigma.keySet());
         return res;
@@ -209,7 +208,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
         LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
         if (this.T instanceof EATActive) { // !!! CHECKME
             EATActive at = (EATActive) this.T;
-            Pair<EASid, Role> k = new EAPPair<>(at.sid, at.role);
+            Pair<EASid, Role> k = new Pair<>(at.sid, at.role);
             if (!delta.map.containsKey(k)) {
                 throw new RuntimeException("Unknown endpoint: " + k + " ,, " + delta.map);
             }
@@ -271,7 +270,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
                 Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
                 Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
-                if (!res.equals(new EAPPair<>(EAVUnitType.UNIT, EALEndType.END))) {
+                if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
                     throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);
                 }
             }

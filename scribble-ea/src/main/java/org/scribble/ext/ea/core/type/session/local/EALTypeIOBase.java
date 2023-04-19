@@ -5,7 +5,6 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -18,10 +17,10 @@ public abstract class EALTypeIOBase implements EALType {
     @NotNull
     public final Role peer;
     @NotNull
-    public final Map<Op, EAPPair<EAVType, EALType>> cases;
+    public final Map<Op, Pair<EAVType, EALType>> cases;
 
     protected EALTypeIOBase(@NotNull Role peer,
-                            @NotNull LinkedHashMap<Op, EAPPair<EAVType, EALType>> cases) {
+                            @NotNull LinkedHashMap<Op, Pair<EAVType, EALType>> cases) {
         this.peer = peer;
         if (cases.isEmpty()) {
             throw new RuntimeException("Invalid empty cases");
@@ -37,14 +36,14 @@ public abstract class EALTypeIOBase implements EALType {
     }
 
     @Deprecated
-    public LinkedHashMap<Op, EAPPair<EAVType, EALType>> unfoldCases(
+    public LinkedHashMap<Op, Pair<EAVType, EALType>> unfoldCases(
             RecVar rvar, EALType t) {
         return this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         x -> {
-                            EAPPair<EAVType, EALType> v = x.getValue();
-                            return new EAPPair(v.left, v.right.unfold(rvar, t));
+                            Pair<EAVType, EALType> v = x.getValue();
+                            return new Pair(v.left, v.right.unfold(rvar, t));
                         },
                         (x, y) -> x, LinkedHashMap::new
                 ));

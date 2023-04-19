@@ -12,7 +12,7 @@ import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAPPair;
+import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +31,7 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
         if (!EAMApp.isInType(pre)) {  // Could be a rec type
             throw new RuntimeException("Expected in type, not: " + pre);
@@ -55,7 +55,7 @@ public class EAMSuspend implements EAComp {
         }
 
         EATypeFactory tf = EATypeFactory.factory;
-        return new EAPPair<>(tf.val.unit(), tf.local.end());  // !!! unit vs A. !!! end vs. S'
+        return new Pair<>(tf.val.unit(), tf.local.end());  // !!! unit vs A. !!! end vs. S'
     }
 
     @Override
