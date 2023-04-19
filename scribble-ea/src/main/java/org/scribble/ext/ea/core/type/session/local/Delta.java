@@ -3,8 +3,6 @@ package org.scribble.ext.ea.core.type.session.local;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.config.EAPSid;
-import org.scribble.ext.ea.core.process.EAName;
-import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -14,7 +12,8 @@ import java.util.stream.Collectors;
 
 public class Delta {
 
-    @NotNull public final Map<Pair<EAPSid, Role>, EALType> map;
+    @NotNull
+    public final Map<Pair<EAPSid, Role>, EALType> map;
 
     public Delta() {
         this(new LinkedHashMap<>());

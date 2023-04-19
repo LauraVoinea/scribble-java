@@ -1,6 +1,9 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term;
 
 import org.scribble.core.type.name.Id;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -10,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 // !!! Currently EAName is hardcoded to Gamma.map domain (not Gamma.fmap)
-public class EAPFuncName extends Id implements EAPVal {
+public class EAPFuncName extends Id implements EAPExpr {
 
     public EAPFuncName(String text) {
         super(text);
@@ -27,7 +30,7 @@ public class EAPFuncName extends Id implements EAPVal {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -37,12 +40,12 @@ public class EAPFuncName extends Id implements EAPVal {
     }
 
     @Override
-    public EAPVal subs(Map<EAPVar, EAPVal> m) {
+    public EAPExpr subs(Map<EAPVar, EAPExpr> m) {
         return this;
     }
 
     @Override
-    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) {
+    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) {
         return m.containsKey(this) ? m.get(this) : this;
     }
 

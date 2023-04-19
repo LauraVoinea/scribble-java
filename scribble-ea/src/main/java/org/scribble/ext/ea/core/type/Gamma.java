@@ -1,10 +1,9 @@
 package org.scribble.ext.ea.core.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.process.EAName;
-import org.scribble.ext.ea.core.process.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAName;
+import org.scribble.ext.ea.core.term.EAPFuncName;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Collections;

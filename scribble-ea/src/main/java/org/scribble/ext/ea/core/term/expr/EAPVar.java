@@ -1,6 +1,9 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.EAName;
+import org.scribble.ext.ea.core.term.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAPTerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
@@ -10,7 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 
 // x, y, ...
-public class EAPVar implements EAPVal, EAName {
+public class EAPVar implements EAPExpr, EAName {
 
     public final String id;
 
@@ -29,7 +32,7 @@ public class EAPVar implements EAPVal, EAName {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -49,12 +52,12 @@ public class EAPVar implements EAPVal, EAName {
     }
 
     @Override
-    public EAPVal subs(@NotNull Map<EAPVar, EAPVal> m) {
+    public EAPExpr subs(@NotNull Map<EAPVar, EAPExpr> m) {
         return m.containsKey(this) ? m.get(this) : this;
     }
 
     @Override
-    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
 
     @Override
     public Set<EAPVar> getFreeVars() {

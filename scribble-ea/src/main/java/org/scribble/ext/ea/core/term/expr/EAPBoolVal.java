@@ -1,8 +1,9 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
+import org.scribble.ext.ea.core.term.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAPTerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EABoolType;
-import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.HashSet;
@@ -11,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 // x, y, ...
-public class EAPBoolVal implements EAPVal {
+public class EAPBoolVal implements EAPExpr {
 
     public final boolean val;
 
@@ -30,7 +31,7 @@ public class EAPBoolVal implements EAPVal {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -47,12 +48,12 @@ public class EAPBoolVal implements EAPVal {
     }
 
     @Override
-    public EAPVal subs(Map<EAPVar, EAPVal> m) {
+    public EAPExpr subs(Map<EAPVar, EAPExpr> m) {
         return this;
     }
 
     @Override
-    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) {
+    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) {
         return this;
     }
 

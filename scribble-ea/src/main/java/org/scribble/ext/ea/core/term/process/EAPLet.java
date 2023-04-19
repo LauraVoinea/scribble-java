@@ -1,6 +1,10 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -12,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPLet implements EAPExpr {
+public class EAPLet implements EAComp {
 
     @NotNull
     public final EAPVar var;
@@ -20,13 +24,13 @@ public class EAPLet implements EAPExpr {
     public final EAValType varType;  // vars x have ValTypes A -- !!! added type annot
     //@NotNull public final EAPExpr init;  // !!! value?  not expr
     @NotNull
-    public final EAPExpr init;
+    public final EAComp init;
     @NotNull
-    public final EAPExpr body;
+    public final EAComp body;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
     public EAPLet(@NotNull EAPVar var, @NotNull EAValType varType,
-                  @NotNull EAPExpr init, @NotNull EAPExpr body) {
+                  @NotNull EAComp init, @NotNull EAComp body) {
         this.var = var;
         this.varType = varType;
         this.init = init;
@@ -62,7 +66,7 @@ public class EAPLet implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAComp beta() {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
@@ -76,24 +80,24 @@ public class EAPLet implements EAPExpr {
     /* Aux */
 
     @Override
-    public EAPLet subs(@NotNull Map<EAPVar, EAPVal> m) {
-        EAPExpr init1 = this.init.subs(m);
-        Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
+    public EAPLet subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        EAComp init1 = this.init.subs(m);
+        Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
-        EAPExpr body1 = body.subs(m1);
+        EAComp body1 = body.subs(m1);
         return EAPFactory.factory.let(this.var, this.varType, init1, body1);
     }
 
     @Override
     public EAPLet fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPExpr init1 = this.init.fsubs(m);
-        EAPExpr body1 = body.fsubs(m);
+        EAComp init1 = this.init.fsubs(m);
+        EAComp body1 = body.fsubs(m);
         return EAPFactory.factory.let(this.var, this.varType, init1, body1);
     }
 
     @Override
-    public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
-        EAPExpr init1 = this.init.recon(old, neww);
+    public EAComp recon(@NotNull EAComp old, EAComp neww) {
+        EAComp init1 = this.init.recon(old, neww);
         return EAPFactory.factory.let(this.var, this.varType, init1, this.body);  // !!! CHECKME: body unchanged
     }
 
@@ -112,7 +116,7 @@ public class EAPLet implements EAPExpr {
 
     // foo return corresponds with beta "subject"
     @Override
-    public EAPExpr getConfigRedexCandidate() {
+    public EAComp getConfigRedexCandidate() {
         if (this.init instanceof EAPReturn //&& ((EAPReturn) this.init).val.isGround()
                 && !((EAPReturn) this.init).val.canBeta()) {
             return this;
@@ -122,7 +126,7 @@ public class EAPLet implements EAPExpr {
     }
 
     @Override
-    public EAPExpr configStep() {  // Not beta because, e.g., send in init cannot beta (must foo)
+    public EAComp configStep() {  // Not beta because, e.g., send in init cannot beta (must foo)
         if (this.init instanceof EAPReturn && //this.init.isGround()) {
                 !this.init.canBeta()) {
             return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));

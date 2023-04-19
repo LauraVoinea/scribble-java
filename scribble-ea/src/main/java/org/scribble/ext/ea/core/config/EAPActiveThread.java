@@ -1,7 +1,9 @@
 package org.scribble.ext.ea.core.config;
 
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPUnit;
+import org.scribble.ext.ea.core.term.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
@@ -18,11 +20,11 @@ import java.util.Set;
 
 public class EAPActiveThread implements EAPThreadState {
 
-    public final EAPExpr expr;
+    public final EAComp expr;
     public final EAPSid sid;
     public final Role role;
 
-    protected EAPActiveThread(EAPExpr expr, EAPSid sid, Role role) {
+    protected EAPActiveThread(EAComp expr, EAPSid sid, Role role) {
         this.expr = expr;
         this.sid = sid;
         this.role = role;
@@ -34,7 +36,7 @@ public class EAPActiveThread implements EAPThreadState {
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
     public Pair<Boolean, Set<EAPPid>> canStep(EAPSystem sys) {
-        EAPExpr foo = this.expr.getConfigRedexCandidate();
+        EAComp foo = this.expr.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAPReturn) {
             if (this.expr instanceof EAPReturn && ((EAPReturn) this.expr).val.equals(EAPUnit.UNIT)) {

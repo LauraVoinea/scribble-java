@@ -1,10 +1,9 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EABoolType;
-import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
@@ -12,16 +11,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPBinOp implements EAPVal {
+public class EAPBinOp implements EAPExpr {
 
     @NotNull
     public final EAPOp op;
     @NotNull
-    public final EAPVal left;
+    public final EAPExpr left;
     @NotNull
-    public final EAPVal right;
+    public final EAPExpr right;
 
-    public EAPBinOp(@NotNull EAPOp op, @NotNull EAPVal left, @NotNull EAPVal right) {
+    public EAPBinOp(@NotNull EAPOp op, @NotNull EAPExpr left, @NotNull EAPExpr right) {
         this.op = op;
         this.left = left;
         this.right = right;
@@ -94,12 +93,12 @@ public class EAPBinOp implements EAPVal {
     }
 
     @Override
-    public EAPVal subs(Map<EAPVar, EAPVal> m) {
+    public EAPExpr subs(Map<EAPVar, EAPExpr> m) {
         return EAPFactory.factory.binop(this.op, this.left.subs(m), this.right.subs(m));
     }
 
     @Override
-    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) {
+    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) {
         return EAPFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
     }
 
@@ -120,7 +119,7 @@ public class EAPBinOp implements EAPVal {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }

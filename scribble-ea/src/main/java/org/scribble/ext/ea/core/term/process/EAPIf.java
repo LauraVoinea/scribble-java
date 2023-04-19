@@ -1,6 +1,11 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPBoolVal;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -10,16 +15,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPIf implements EAPExpr {
+public class EAPIf implements EAComp {
 
     @NotNull
-    public final EAPVal cond;
+    public final EAPExpr cond;
     @NotNull
-    public final EAPExpr then;
+    public final EAComp then;
     @NotNull
-    public final EAPExpr elsee;
+    public final EAComp elsee;
 
-    public EAPIf(@NotNull EAPVal cond, @NotNull EAPExpr then, @NotNull EAPExpr elsee) {
+    public EAPIf(@NotNull EAPExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
         this.cond = cond;
         this.then = then;
         this.elsee = elsee;
@@ -53,7 +58,7 @@ public class EAPIf implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAComp beta() {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
@@ -67,7 +72,7 @@ public class EAPIf implements EAPExpr {
     /* Aux */
 
     @Override
-    public EAPIf subs(@NotNull Map<EAPVar, EAPVal> m) {
+    public EAPIf subs(@NotNull Map<EAPVar, EAPExpr> m) {
         return EAPFactory.factory.iff(
                 this.cond.subs(m), this.then.subs(m), this.elsee.subs(m));
     }
@@ -79,7 +84,7 @@ public class EAPIf implements EAPExpr {
     }
 
     @Override
-    public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
+    public EAComp recon(@NotNull EAComp old, EAComp neww) {
         throw new RuntimeException("Needed? " + this);
     }
 
@@ -98,12 +103,12 @@ public class EAPIf implements EAPExpr {
     }
 
     @Override
-    public EAPExpr getConfigRedexCandidate() {
+    public EAComp getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr configStep() {
+    public EAComp configStep() {
         return beta();
     }
 

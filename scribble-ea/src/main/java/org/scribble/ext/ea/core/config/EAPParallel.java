@@ -1,16 +1,14 @@
 package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.process.EAPSend;
-import org.scribble.ext.ea.core.process.EAPTerm;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Deprecated
 public class EAPParallel implements EAPRuntimeTerm {
 
-    @NotNull public final List<EAPRuntimeTerm> terms;
+    @NotNull
+    public final List<EAPRuntimeTerm> terms;
 
     protected EAPParallel(@NotNull List<EAPRuntimeTerm> terms) {
         this.terms = Collections.unmodifiableList(new LinkedList<>(terms));

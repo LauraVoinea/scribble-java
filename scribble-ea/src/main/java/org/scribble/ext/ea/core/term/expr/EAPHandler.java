@@ -1,17 +1,15 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
-import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.type.EATypeFactory;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.process.EAComp;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
-import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAUnitType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.ConsoleColors;
-import org.scribble.ext.ea.util.EATriple;
 import org.scribble.util.Pair;
 
 import java.util.HashMap;
@@ -28,7 +26,7 @@ public class EAPHandler {
     @NotNull
     public final EAValType varType;  // !!! added type annots
     @NotNull
-    public final EAPExpr expr;
+    public final EAComp expr;
     @NotNull
     public final EALType pre;  // For the handler expr (i.e., doesn't include the handler input itself)
 
@@ -37,8 +35,8 @@ public class EAPHandler {
     @NotNull
     public final EAValType svarType;
 
-    protected EAPHandler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
-                         @NotNull EAPExpr expr, @NotNull EALType pre, @NotNull EAPVar svar, @NotNull EAValType svarType) {
+    public EAPHandler(@NotNull Op op, @NotNull EAPVar var, @NotNull EAValType varType,
+                      @NotNull EAComp expr, @NotNull EALType pre, @NotNull EAPVar svar, @NotNull EAValType svarType) {
         this.op = op;
         this.var = var;
         this.varType = varType;
@@ -74,11 +72,11 @@ public class EAPHandler {
 
     /* Aux */
 
-    public EAPHandler subs(@NotNull Map<EAPVar, EAPVal> m) {
-        Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
+    public EAPHandler subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
         m1.remove(this.svar);
-        EAPExpr subs = this.expr.subs(m1);
+        EAComp subs = this.expr.subs(m1);
         return EAPFactory.factory.handler(
                 this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }
@@ -87,7 +85,7 @@ public class EAPHandler {
         Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
         m1.remove(this.var);
         m1.remove(this.svar);
-        EAPExpr subs = this.expr.fsubs(m1);
+        EAComp subs = this.expr.fsubs(m1);
         return EAPFactory.factory.handler(
                 this.op, this.var, this.varType, subs, this.pre, this.svar, this.svarType);
     }

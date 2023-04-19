@@ -1,6 +1,11 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPHandlers;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
@@ -12,15 +17,15 @@ import org.scribble.ext.ea.util.EAPPair;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPSuspend implements EAPExpr {
+public class EAPSuspend implements EAComp {
 
     @NotNull
-    public final EAPVal val;  // value, not expr -- a Handler(S?) type
+    public final EAPExpr val;  // value, not expr -- a Handler(S?) type
 
     @NotNull
-    public final EAPVal sval;
+    public final EAPExpr sval;
 
-    public EAPSuspend(@NotNull EAPVal val, @NotNull EAPVal sval) {
+    public EAPSuspend(@NotNull EAPExpr val, @NotNull EAPExpr sval) {
         this.val = val;
         this.sval = sval;
     }
@@ -58,7 +63,7 @@ public class EAPSuspend implements EAPExpr {
         EAHandlersType ht;
         if (this.val instanceof EAPHandlers) {
             ht = (EAHandlersType) this.val.type(gamma);
-        } else if (this.val instanceof EAPVal) {
+        } else if (this.val instanceof EAPExpr) {
             ht = (EAHandlersType) gamma.map.get(this.val);
         } else {
             throw new RuntimeException("Shouldn't get here: " + gamma);
@@ -72,28 +77,28 @@ public class EAPSuspend implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAComp beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
     /* Aux */
 
     @Override
-    public EAPSuspend subs(@NotNull Map<EAPVar, EAPVal> m) {
-        EAPVal val1 = this.val.subs(m);
-        EAPVal sval1 = this.sval.subs(m);
+    public EAPSuspend subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        EAPExpr val1 = this.val.subs(m);
+        EAPExpr sval1 = this.sval.subs(m);
         return EAPFactory.factory.suspend(val1, sval1);
     }
 
     @Override
     public EAPSuspend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPVal val1 = this.val.fsubs(m);
-        EAPVal sval1 = this.sval.fsubs(m);
+        EAPExpr val1 = this.val.fsubs(m);
+        EAPExpr sval1 = this.sval.fsubs(m);
         return EAPFactory.factory.suspend(val1, sval1);
     }
 
     @Override
-    public EAPSuspend recon(@NotNull EAPExpr old, EAPExpr neww) {
+    public EAPSuspend recon(@NotNull EAComp old, EAComp neww) {
         return this;
     }
 
@@ -113,12 +118,12 @@ public class EAPSuspend implements EAPExpr {
     }*/
 
     @Override
-    public EAPExpr getConfigRedexCandidate() {
+    public EAComp getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr configStep() {
+    public EAComp configStep() {
         throw new RuntimeException("Shouldn't get in here.");
     }
 

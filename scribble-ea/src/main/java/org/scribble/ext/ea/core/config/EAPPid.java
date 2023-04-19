@@ -1,19 +1,20 @@
 package org.scribble.ext.ea.core.config;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EABoolType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 // a, b, ...  // TODO no longer EAPVal
-public class EAPPid implements EAPVal, EARuntimeName {
+public class EAPPid implements EAPExpr, EARuntimeName {
 
     @NotNull
     public final String id;
@@ -33,7 +34,7 @@ public class EAPPid implements EAPVal, EARuntimeName {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -45,12 +46,12 @@ public class EAPPid implements EAPVal, EARuntimeName {
     /* Aux */
 
     @Override
-    public EAPPid subs(@NotNull Map<EAPVar, EAPVal> m) {
+    public EAPPid subs(@NotNull Map<EAPVar, EAPExpr> m) {
         return this;
     }
 
     @Override
-    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
 
     @Override
     public Set<EAPVar> getFreeVars() {

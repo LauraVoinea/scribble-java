@@ -1,18 +1,17 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAPTerm;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.value.EAIntType;
 import org.scribble.ext.ea.core.type.value.EAUnitType;
-import org.scribble.ext.ea.core.type.value.EAValType;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPUnit implements EAPVal {
+public class EAPUnit implements EAPExpr {
 
     public static final EAPUnit UNIT = new EAPUnit();
 
@@ -30,7 +29,7 @@ public class EAPUnit implements EAPVal {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -48,12 +47,12 @@ public class EAPUnit implements EAPVal {
     }
 
     @Override
-    public EAPUnit subs(@NotNull Map<EAPVar, EAPVal> m) {
+    public EAPUnit subs(@NotNull Map<EAPVar, EAPExpr> m) {
         return this;
     }
 
     @Override
-    public EAPVal fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
+    public EAPExpr fsubs(Map<EAPFuncName, EAPRec> m) { return this; }
 
     @Override
     public String toString() {

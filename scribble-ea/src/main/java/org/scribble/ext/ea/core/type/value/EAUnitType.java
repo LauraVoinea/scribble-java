@@ -1,8 +1,6 @@
 package org.scribble.ext.ea.core.type.value;
 
-import org.scribble.ext.ea.core.process.EAPUnit;
 import org.scribble.ext.ea.core.type.EAType;
-import org.scribble.ext.ea.core.type.Gamma;
 
 public class EAUnitType implements EAValType {
 

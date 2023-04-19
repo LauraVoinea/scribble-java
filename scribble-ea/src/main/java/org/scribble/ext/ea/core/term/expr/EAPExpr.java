@@ -1,26 +1,28 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
+import org.scribble.ext.ea.core.term.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAPTerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
 
 import java.util.Map;
 import java.util.Set;
 
-// !!! "values" vs. ground vals  -- XXX FIXME rename like "pure exprs"
-public interface EAPVal extends EAPTerm {
+// "pure" exprs (no I/O)
+public interface EAPExpr extends EAPTerm {
     //EAPExpr {  !!! values should be exprs?
 
     EAValType infer();  // not intended to work for single var -- for use on ground vals at config level
 
     boolean canBeta();
 
-    EAPVal beta();
+    EAPExpr beta();
 
     EAValType type(Gamma gamma);
 
-    EAPVal subs(Map<EAPVar, EAPVal> m);
+    EAPExpr subs(Map<EAPVar, EAPExpr> m);
 
-    EAPVal fsubs(Map<EAPFuncName, EAPRec> m);
+    EAPExpr fsubs(Map<EAPFuncName, EAPRec> m);
 
     Set<EAPVar> getFreeVars();
 

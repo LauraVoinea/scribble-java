@@ -3,12 +3,13 @@ package org.scribble.ext.ea.core.config;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LTypeFactory;
-import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.term.expr.EAPHandlers;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.process.EAComp;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class EAPRuntimeFactory {
 
@@ -28,7 +29,7 @@ public class EAPRuntimeFactory {
     public EAPConfig config(EAPPid pid, EAPThreadState T,
                             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma,
                             //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                            EAPVal state) {
+                            EAPExpr state) {
         return new EAPConfig(pid, T, sigma, state);
     }
 
@@ -37,7 +38,7 @@ public class EAPRuntimeFactory {
     }
 
     public EAPActiveThread activeThread(
-            @NotNull EAPExpr expr, @NotNull EAPSid sid, @NotNull Role role) {
+            @NotNull EAComp expr, @NotNull EAPSid sid, @NotNull Role role) {
         return new EAPActiveThread(expr, sid, role);
     }
 

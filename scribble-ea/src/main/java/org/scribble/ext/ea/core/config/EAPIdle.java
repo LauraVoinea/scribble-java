@@ -1,14 +1,8 @@
 package org.scribble.ext.ea.core.config;
 
-import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.process.EAPTerm;
-import org.scribble.ext.ea.core.process.EAPUnit;
+import org.scribble.ext.ea.core.term.EAPTerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
 public class EAPIdle implements EAPThreadState {
 

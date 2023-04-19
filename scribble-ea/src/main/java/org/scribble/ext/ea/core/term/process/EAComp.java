@@ -1,6 +1,11 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAPTerm;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAValType;
@@ -10,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 // "Computation"
-public interface EAPExpr extends EAPTerm {
+public interface EAComp extends EAPTerm {
 
     // CHECKME still needed? or deprecate
     EALType infer(Gamma gamma);
@@ -20,14 +25,14 @@ public interface EAPExpr extends EAPTerm {
     // ->_M -- config independent M eval
     boolean canBeta();
 
-    EAPExpr beta();  // !!! CHECKME deterministic
+    EAComp beta();  // !!! CHECKME deterministic
 
-    EAPExpr subs(@NotNull Map<EAPVar, EAPVal> m);
+    EAComp subs(@NotNull Map<EAPVar, EAPExpr> m);
 
-    EAPExpr fsubs(@NotNull Map<EAPFuncName, EAPRec> m);
+    EAComp fsubs(@NotNull Map<EAPFuncName, EAPRec> m);
 
     // CHECKME needed?
-    EAPExpr recon(@NotNull EAPExpr old, @NotNull EAPExpr neww);  // A subs for Expr (cf. Val)
+    EAComp recon(@NotNull EAComp old, @NotNull EAComp neww);  // A subs for Expr (cf. Val)
 
     Set<EAPVar> getFreeVars();
 
@@ -40,8 +45,8 @@ public interface EAPExpr extends EAPTerm {
 
     // Extract the (nested) "statically reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo -- EAPActiveThread.canStep checks canBeta on relevant foo, but could refactor some canBeta into getFoo)
     //boolean canFoo();
-    EAPExpr getConfigRedexCandidate();  // deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary
+    EAComp getConfigRedexCandidate();  // deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary
 
-    EAPExpr configStep();
+    EAComp configStep();
 }
 

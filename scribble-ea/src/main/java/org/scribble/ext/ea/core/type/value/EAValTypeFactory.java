@@ -1,7 +1,6 @@
 package org.scribble.ext.ea.core.type.value;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.process.EAPBoolVal;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 

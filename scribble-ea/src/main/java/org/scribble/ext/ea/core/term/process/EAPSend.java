@@ -1,8 +1,12 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
@@ -17,16 +21,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPSend implements EAPExpr {
+public class EAPSend implements EAComp {
 
     @NotNull
     public final Role dst;
     @NotNull
     public final Op op;
     @NotNull
-    public final EAPVal val;  // value, not expr
+    public final EAPExpr val;  // value, not expr
 
-    public EAPSend(@NotNull Role dst, @NotNull Op op, @NotNull EAPVal val) {
+    public EAPSend(@NotNull Role dst, @NotNull Op op, @NotNull EAPExpr val) {
         this.dst = dst;
         this.op = op;
         this.val = val;
@@ -68,7 +72,7 @@ public class EAPSend implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAComp beta() {
         throw new RuntimeException("Stuck: " + this);
         //return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
@@ -91,29 +95,29 @@ public class EAPSend implements EAPExpr {
     }*/
 
     @Override
-    public EAPExpr getConfigRedexCandidate() {
+    public EAComp getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr configStep() {
+    public EAComp configStep() {
         return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
 
     @Override
-    public EAPSend subs(@NotNull Map<EAPVar, EAPVal> m) {
-        EAPVal val1 = this.val.subs(m);
+    public EAPSend subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        EAPExpr val1 = this.val.subs(m);
         return EAPFactory.factory.send(this.dst, this.op, val1);
     }
 
     @Override
     public EAPSend fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPVal val1 = this.val.fsubs(m);
+        EAPExpr val1 = this.val.fsubs(m);
         return EAPFactory.factory.send(this.dst, this.op, val1);
     }
 
     @Override
-    public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
+    public EAComp recon(@NotNull EAComp old, EAComp neww) {
         return this.equals(old) ? neww : this;
     }
 

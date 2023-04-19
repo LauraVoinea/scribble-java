@@ -1,24 +1,27 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.*;
 
-public class EAPApp implements EAPExpr {
+public class EAPApp implements EAComp {
 
     // !!! vals -- use let for computation
     @NotNull
-    public final EAPVal left;  // Not just rec/lam, could be a var
+    public final EAPExpr left;  // Not just rec/lam, could be a var
     @NotNull
-    public final EAPVal right;
+    public final EAPExpr right;
 
-    public EAPApp(@NotNull EAPVal left, @NotNull EAPVal right) {
+    public EAPApp(@NotNull EAPExpr left, @NotNull EAPExpr right) {
         this.left = left;
         this.right = right;
     }
@@ -75,7 +78,7 @@ public class EAPApp implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAComp beta() {
         if (!canBeta()) {
             throw new RuntimeException("Stuck: " + this);
         }
@@ -91,21 +94,21 @@ public class EAPApp implements EAPExpr {
     /* Aux */
 
     @Override
-    public EAPApp subs(@NotNull Map<EAPVar, EAPVal> m) {
-        EAPVal left = this.left.subs(m);
-        EAPVal right = this.right.subs(m);
+    public EAPApp subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        EAPExpr left = this.left.subs(m);
+        EAPExpr right = this.right.subs(m);
         return EAPFactory.factory.app(left, right);
     }
 
     @Override
     public EAPApp fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPVal left = this.left.fsubs(m);
-        EAPVal right = this.right.fsubs(m);
+        EAPExpr left = this.left.fsubs(m);
+        EAPExpr right = this.right.fsubs(m);
         return EAPFactory.factory.app(left, right);
     }
 
     @Override
-    public EAPExpr recon(@NotNull EAPExpr old, EAPExpr neww) {
+    public EAComp recon(@NotNull EAComp old, EAComp neww) {
         //return this;  // XXX ?
         throw new RuntimeException("Needed? " + this);
     }
@@ -124,12 +127,12 @@ public class EAPApp implements EAPExpr {
     }
 
     @Override
-    public EAPExpr getConfigRedexCandidate() {
+    public EAComp getConfigRedexCandidate() {
         return this;
     }
 
     @Override
-    public EAPExpr configStep() {
+    public EAComp configStep() {
         return beta();
     }
 

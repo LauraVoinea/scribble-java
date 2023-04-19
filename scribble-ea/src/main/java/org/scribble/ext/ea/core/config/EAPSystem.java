@@ -7,7 +7,7 @@ import org.scribble.core.type.session.SigLit;
 import org.scribble.core.type.session.local.LRecv;
 import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LTypeFactory;
-import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.term.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALType;
@@ -105,7 +105,7 @@ public class EAPSystem {
         // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
         // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
 
-        EAPExpr foo = t.expr.getConfigRedexCandidate();
+        EAComp foo = t.expr.getConfigRedexCandidate();
 
         //System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 

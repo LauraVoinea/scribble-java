@@ -1,24 +1,22 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.process.EAComp;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAFuncType;
-import org.scribble.ext.ea.core.type.value.EAHandlersType;
 import org.scribble.ext.ea.core.type.value.EAValType;
-import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPRec implements EAPVal {
+public class EAPRec implements EAPExpr {
 
     @NotNull
     public final EAPFuncName f;
@@ -27,7 +25,7 @@ public class EAPRec implements EAPVal {
     @NotNull
     public final EAValType varType;  // A -- hardcode single param
     @NotNull
-    public final EAPExpr body;
+    public final EAComp body;
 
     @NotNull
     public final EALType S;
@@ -38,7 +36,7 @@ public class EAPRec implements EAPVal {
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
     public EAPRec(@NotNull EAPFuncName f, @NotNull EAPVar var,
-                  @NotNull EAValType varType, @NotNull EAPExpr body,
+                  @NotNull EAValType varType, @NotNull EAComp body,
                   @NotNull EALType S, @NotNull EALType T, @NotNull EAValType B) {
         this.f = f;
         this.var = var;
@@ -61,7 +59,7 @@ public class EAPRec implements EAPVal {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -85,19 +83,19 @@ public class EAPRec implements EAPVal {
     /* Aux */
 
     @Override
-    public EAPRec subs(@NotNull Map<EAPVar, EAPVal> m) {
-        Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
+    public EAPRec subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
-        EAPExpr body1 = body.subs(m1);
+        EAComp body1 = body.subs(m1);
         return EAPFactory.factory.rec(this.f, this.var, this.varType, body1,
                 this.S, this.T, this.B);
     }
 
     @Override
-    public EAPVal fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+    public EAPExpr fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
         Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);
         m1.remove(this.f);
-        EAPExpr body1 = body.fsubs(m1);
+        EAComp body1 = body.fsubs(m1);
         return EAPFactory.factory.rec(this.f, this.var, this.varType, body1,
                 this.S, this.T, this.B);
     }

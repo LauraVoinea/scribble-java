@@ -13,7 +13,13 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.core.type.session.local.LTypeFactoryImpl;
 import org.scribble.ext.ea.core.config.*;
-import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPHandlers;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
+import org.scribble.ext.ea.core.term.process.EAComp;
+import org.scribble.ext.ea.core.term.process.EAPLet;
+import org.scribble.ext.ea.core.term.process.EAPSend;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
@@ -417,7 +423,7 @@ public class EACommandLine extends CommandLine {
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Bool).end}");
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Bool).end}");
-        EAPExpr sendAB = parseM("let x: Bool <= return 3 < 2 in if x then B!l1(x) else B!l1(x)");
+        EAComp sendAB = parseM("let x: Bool <= return 3 < 2 in if x then B!l1(x) else B!l1(x)");
         EAPActiveThread tA = rf.activeThread(sendAB, s, A);
         LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigmaA = new LinkedHashMap<>();
         /*LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
@@ -1746,7 +1752,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("bbb: " + res);
     }
 
-    static EAPExpr parseM(String input) {
+    static EAComp parseM(String input) {
         Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {
@@ -1754,7 +1760,7 @@ public class EACommandLine extends CommandLine {
             CommonTree tree = (CommonTree) par.start().getTree();
             //System.out.println("aaa: " + tree.getClass() + "\n" + tree.getText() + " ,, " + tree.getChild(0) + " ,, " + tree.getChild(1));
 
-            EAPExpr res = new EAFuncNamesFixer().parse(new EAASTBuilder().visitM((CommonTree) tree.getChild(0)));
+            EAComp res = new EAFuncNamesFixer().parse(new EAASTBuilder().visitM((CommonTree) tree.getChild(0)));
             return res;
 
             //tree.token;
@@ -1774,7 +1780,7 @@ public class EACommandLine extends CommandLine {
         }
     }
 
-    static EAPVal parseV(String input) {
+    static EAPExpr parseV(String input) {
         Lexer lex = new EACalculusLexer(new ANTLRStringStream(input));
         EACalculusParser par = new EACalculusParser(new CommonTokenStream(lex));
         try {

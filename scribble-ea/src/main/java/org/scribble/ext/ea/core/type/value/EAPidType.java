@@ -1,6 +1,5 @@
 package org.scribble.ext.ea.core.type.value;
 
-import org.scribble.ext.ea.core.process.EAPUnit;
 import org.scribble.ext.ea.core.type.EAType;
 
 public class EAPidType implements EAValType {

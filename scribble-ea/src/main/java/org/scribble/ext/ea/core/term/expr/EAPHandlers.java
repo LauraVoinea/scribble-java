@@ -1,8 +1,11 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.term.EAPFactory;
+import org.scribble.ext.ea.core.term.EAPFuncName;
+import org.scribble.ext.ea.core.term.EAPTerm;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
 //
 
 
-public class EAPHandlers implements EAPVal {
+public class EAPHandlers implements EAPExpr {
 
     @NotNull
     public final Role role;
@@ -32,7 +35,7 @@ public class EAPHandlers implements EAPVal {
     @NotNull
     public final Map<Op, EAPHandler> Hs;  // Invariant: Op equals EAPHandler.op
 
-    protected EAPHandlers(
+    public EAPHandlers(
             @NotNull Role role, @NotNull LinkedHashMap<Op, EAPHandler> Hbar) {
         this.role = role;
         this.Hs = Collections.unmodifiableMap(Hbar.entrySet().stream().collect(
@@ -67,7 +70,7 @@ public class EAPHandlers implements EAPVal {
     }
 
     @Override
-    public EAPVal beta() {
+    public EAPExpr beta() {
         throw new RuntimeException("Stuck: " + this);
     }
 
@@ -91,10 +94,10 @@ public class EAPHandlers implements EAPVal {
     /* Aux */
 
     @Override
-    public EAPHandlers subs(@NotNull Map<EAPVar, EAPVal> m) {
+    public EAPHandlers subs(@NotNull Map<EAPVar, EAPExpr> m) {
         LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
         for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
-            Map<EAPVar, EAPVal> m1 = new HashMap<>(m);
+            Map<EAPVar, EAPExpr> m1 = new HashMap<>(m);
             Op k = e.getKey();
             Hs.put(k, e.getValue().subs(m));
         }
@@ -102,7 +105,7 @@ public class EAPHandlers implements EAPVal {
     }
 
     @Override
-    public EAPVal fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
+    public EAPExpr fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
         LinkedHashMap<Op, EAPHandler> Hs = new LinkedHashMap<>();
         for (Map.Entry<Op, EAPHandler> e : this.Hs.entrySet()) {
             Map<EAPFuncName, EAPRec> m1 = new HashMap<>(m);

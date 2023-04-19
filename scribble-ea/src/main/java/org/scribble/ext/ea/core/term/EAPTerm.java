@@ -1,11 +1,4 @@
-package org.scribble.ext.ea.core.process;
-
-import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAValType;
-import org.scribble.util.Pair;
-
-import java.util.Map;
+package org.scribble.ext.ea.core.term;
 
 // !!! "terms" vs. "term typing"
 public interface EAPTerm {

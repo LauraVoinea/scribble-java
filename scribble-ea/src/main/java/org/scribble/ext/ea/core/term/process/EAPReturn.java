@@ -1,26 +1,27 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPRec;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.expr.EAPVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
-import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
-import org.scribble.ext.ea.core.type.value.EAHandlersType;
 import org.scribble.ext.ea.core.type.value.EAValType;
 import org.scribble.ext.ea.util.EAPPair;
-import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
 
 // !!! encodable using suspend? apart from "GC" flavour
-public class EAPReturn implements EAPExpr {
+public class EAPReturn implements EAComp {
 
     @NotNull
-    public final EAPVal val;  // value, not expr
+    public final EAPExpr val;  // value, not expr
 
-    public EAPReturn(EAPVal val) {
+    public EAPReturn(EAPExpr val) {
         this.val = val;
     }
 
@@ -47,7 +48,7 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
-    public EAPExpr beta() {
+    public EAComp beta() {
         //throw new RuntimeException("Stuck: " + this);
         System.out.println("33333333: " + EAPFactory.factory.returnn(this.val.beta()));
         return EAPFactory.factory.returnn(this.val.beta());
@@ -56,19 +57,19 @@ public class EAPReturn implements EAPExpr {
     /* Aux */
 
     @Override
-    public EAPReturn subs(@NotNull Map<EAPVar, EAPVal> m) {
-        EAPVal val1 = this.val.subs(m);
+    public EAPReturn subs(@NotNull Map<EAPVar, EAPExpr> m) {
+        EAPExpr val1 = this.val.subs(m);
         return EAPFactory.factory.returnn(val1);
     }
 
     @Override
     public EAPReturn fsubs(@NotNull Map<EAPFuncName, EAPRec> m) {
-        EAPVal val1 = this.val.fsubs(m);
+        EAPExpr val1 = this.val.fsubs(m);
         return EAPFactory.factory.returnn(val1);
     }
 
     @Override
-    public EAPReturn recon(@NotNull EAPExpr old, EAPExpr neww) {
+    public EAPReturn recon(@NotNull EAComp old, EAComp neww) {
         return this;
     }
 
@@ -93,13 +94,13 @@ public class EAPReturn implements EAPExpr {
     }
 
     @Override
-    public EAPExpr getConfigRedexCandidate() {
+    public EAComp getConfigRedexCandidate() {
         //throw new RuntimeException("Shouldn't get here: " + this);
         return this;  // foo is a candidate
     }
 
     @Override
-    public EAPExpr configStep() {
+    public EAComp configStep() {
         //throw new RuntimeException("Shouldn't get in here: " + this);
         return EAPFactory.factory.returnn(this.val.beta());
     }

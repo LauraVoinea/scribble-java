@@ -3,7 +3,11 @@ package org.scribble.ext.ea.core.config;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.process.*;
+import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.expr.EAPHandler;
+import org.scribble.ext.ea.core.term.expr.EAPHandlers;
+import org.scribble.ext.ea.core.term.expr.EAPExpr;
+import org.scribble.ext.ea.core.term.process.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
@@ -29,13 +33,13 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
 
     @NotNull
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
-    public EAPVal state;  // Pre: ground
+    public EAPExpr state;  // Pre: ground
 
     protected EAPConfig(@NotNull EAPPid pid,
                         @NotNull EAPThreadState T,
                         @NotNull LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> handlers,
                         //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                        @NotNull EAPVal state) {
+                        @NotNull EAPExpr state) {
         this.pid = pid;
         this.T = T;
         this.sigma = Collections.unmodifiableMap(handlers.entrySet()
@@ -62,7 +66,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             throw new RuntimeException("Shouldn't get here: ");
         }
         EAPActiveThread t = (EAPActiveThread) this.T;
-        EAPExpr foo = t.expr.getConfigRedexCandidate();
+        EAComp foo = t.expr.getConfigRedexCandidate();
 
         // TODO refactor separate case by case (rather than grouping thread/sigma/config creation)
 
@@ -117,7 +121,7 @@ public class EAPConfig implements EAPRuntimeTerm {  // D extends EAPVal  // TODO
             EAPHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
 
             //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
-            EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
+            EAComp e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
 
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> newsigma2 =
                     new LinkedHashMap<>(c2.sigma);

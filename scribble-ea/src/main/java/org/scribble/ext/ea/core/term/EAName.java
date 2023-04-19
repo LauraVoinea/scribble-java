@@ -1,8 +1,7 @@
-package org.scribble.ext.ea.core.process;
+package org.scribble.ext.ea.core.term;
 
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.value.EAValType;
-import org.scribble.ext.ea.core.type.value.EAValTypeFactory;
 
 public interface EAName {  // A term (has `type`)
 
