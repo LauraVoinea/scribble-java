@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPIf implements EAComp {
+public class EAMIf implements EAComp {
 
     @NotNull
     public final EAExpr cond;
@@ -24,7 +24,7 @@ public class EAPIf implements EAComp {
     @NotNull
     public final EAComp elsee;
 
-    public EAPIf(@NotNull EAExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
+    public EAMIf(@NotNull EAExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
         this.cond = cond;
         this.then = then;
         this.elsee = elsee;
@@ -72,13 +72,13 @@ public class EAPIf implements EAComp {
     /* Aux */
 
     @Override
-    public EAPIf subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAMIf subs(@NotNull Map<EAEVar, EAExpr> m) {
         return EATermFactory.factory.iff(
                 this.cond.subs(m), this.then.subs(m), this.elsee.subs(m));
     }
 
     @Override
-    public EAPIf fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMIf fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         return EATermFactory.factory.iff(
                 this.cond.fsubs(m), this.then.fsubs(m), this.elsee.fsubs(m));
     }
@@ -123,7 +123,7 @@ public class EAPIf implements EAComp {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPIf them = (EAPIf) o;
+        EAMIf them = (EAMIf) o;
         return them.canEquals(this)
                 && this.cond.equals(them.cond)
                 && this.then.equals(them.then)
@@ -132,7 +132,7 @@ public class EAPIf implements EAComp {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPIf;
+        return o instanceof EAMIf;
     }
 
     @Override

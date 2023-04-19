@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
@@ -13,7 +13,7 @@ import org.scribble.ext.ea.util.EAPPair;
 
 import java.util.*;
 
-public class EAPApp implements EAComp {
+public class EAMApp implements EAComp {
 
     // !!! vals -- use let for computation
     @NotNull
@@ -21,7 +21,7 @@ public class EAPApp implements EAComp {
     @NotNull
     public final EAExpr right;
 
-    public EAPApp(@NotNull EAExpr left, @NotNull EAExpr right) {
+    public EAMApp(@NotNull EAExpr left, @NotNull EAExpr right) {
         this.left = left;
         this.right = right;
     }
@@ -94,14 +94,14 @@ public class EAPApp implements EAComp {
     /* Aux */
 
     @Override
-    public EAPApp subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAMApp subs(@NotNull Map<EAEVar, EAExpr> m) {
         EAExpr left = this.left.subs(m);
         EAExpr right = this.right.subs(m);
         return EATermFactory.factory.app(left, right);
     }
 
     @Override
-    public EAPApp fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMApp fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         EAExpr left = this.left.fsubs(m);
         EAExpr right = this.right.fsubs(m);
         return EATermFactory.factory.app(left, right);
@@ -147,7 +147,7 @@ public class EAPApp implements EAComp {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPApp them = (EAPApp) o;
+        EAMApp them = (EAMApp) o;
         return them.canEquals(this)
                 && this.left.equals(them.left)
                 && this.right.equals(them.right);
@@ -155,7 +155,7 @@ public class EAPApp implements EAComp {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPApp;
+        return o instanceof EAMApp;
     }
 
     @Override

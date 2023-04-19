@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.term.expr.*;
-import org.scribble.ext.ea.core.term.process.*;
+import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
@@ -61,28 +61,28 @@ public class EATermFactory {
     /* Computations */
 
     //public EAPLet let(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-    public EAPLet let(@NotNull EAEVar var, @NotNull EAVType varType,
+    public EAMLet let(@NotNull EAEVar var, @NotNull EAVType varType,
                       @NotNull EAComp init, @NotNull EAComp body) {
-        return new EAPLet(var, varType, init, body);
+        return new EAMLet(var, varType, init, body);
     }
 
-    public EAPIf iff(@NotNull EAExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
-        return new EAPIf(cond, then, elsee);
+    public EAMIf iff(@NotNull EAExpr cond, @NotNull EAComp then, @NotNull EAComp elsee) {
+        return new EAMIf(cond, then, elsee);
     }
 
-    public EAPApp app(@NotNull EAExpr left, @NotNull EAExpr right) {
-        return new EAPApp(left, right);
+    public EAMApp app(@NotNull EAExpr left, @NotNull EAExpr right) {
+        return new EAMApp(left, right);
     }
 
-    public EAPReturn returnn(@NotNull EAExpr val) {
-        return new EAPReturn(val);
+    public EAMReturn returnn(@NotNull EAExpr val) {
+        return new EAMReturn(val);
     }
 
-    public EAPSend send(@NotNull Role dst, @NotNull Op op, @NotNull EAExpr val) {
-        return new EAPSend(dst, op, val);
+    public EAMSend send(@NotNull Role dst, @NotNull Op op, @NotNull EAExpr val) {
+        return new EAMSend(dst, op, val);
     }
 
-    public EAPSuspend suspend(@NotNull EAExpr val, @NotNull EAExpr sval) {
-        return new EAPSuspend(val, sval);
+    public EAMSuspend suspend(@NotNull EAExpr val, @NotNull EAExpr sval) {
+        return new EAMSuspend(val, sval);
     }
 }

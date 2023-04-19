@@ -6,10 +6,10 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.config.EAPRuntimeFactory;
+import org.scribble.ext.ea.core.runtime.EARuntimeFactory;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.*;
-import org.scribble.ext.ea.core.term.process.*;
+import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 // Move to parsing
 class EAASTBuilder {
     static EATermFactory pf = EATermFactory.factory;
-    static EAPRuntimeFactory rf = EAPRuntimeFactory.factory;
+    static EARuntimeFactory rf = EARuntimeFactory.factory;
     static EATypeFactory tf = EATypeFactory.factory;
 
     /*public EAPTerm visit(CommonTree n) {  // Entry
@@ -49,14 +49,14 @@ class EAASTBuilder {
         throw new RuntimeException("Unknown node kind: " + n.getText());
     }
 
-    public EAPIf visitIf(CommonTree n) {
+    public EAMIf visitIf(CommonTree n) {
         EAExpr cond = visitV((CommonTree) n.getChild(0));
         EAComp then = visitM((CommonTree) n.getChild(1));
         EAComp elsee = visitM((CommonTree) n.getChild(2));
         return pf.iff(cond, then, elsee);
     }
 
-    public EAPLet visitLet(CommonTree n) {
+    public EAMLet visitLet(CommonTree n) {
         EAEVar var = visitVar((CommonTree) n.getChild(0));
         EAVType varType = visitA((CommonTree) n.getChild(1));
         EAComp e1 = visitM((CommonTree) n.getChild(2));
@@ -64,25 +64,25 @@ class EAASTBuilder {
         return pf.let(var, varType, e1, e2);
     }
 
-    public EAPSend visitSend(CommonTree n) {
+    public EAMSend visitSend(CommonTree n) {
         Role dst = visitRole((CommonTree) n.getChild(0));
         Op op = visitOp((CommonTree) n.getChild(1));
         EAExpr V = visitV((CommonTree) n.getChild(2));
         return pf.send(dst, op, V);
     }
 
-    public EAPSuspend visitSuspend(CommonTree n) {
+    public EAMSuspend visitSuspend(CommonTree n) {
         EAExpr V = visitV((CommonTree) n.getChild(0));
         EAExpr sV = visitV((CommonTree) n.getChild(1));
         return pf.suspend(V, sV);
     }
 
-    public EAPReturn visitReturn(CommonTree n) {
+    public EAMReturn visitReturn(CommonTree n) {
         EAExpr V = visitV((CommonTree) n.getChild(0));
         return pf.returnn(V);
     }
 
-    public EAPApp visitApp(CommonTree n) {
+    public EAMApp visitApp(CommonTree n) {
         EAExpr left = visitV((CommonTree) n.getChild(0));
         EAExpr right = visitV((CommonTree) n.getChild(1));
         return pf.app(left, right);

@@ -1,16 +1,16 @@
-package org.scribble.ext.ea.core.config;
+package org.scribble.ext.ea.core.runtime.process;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 @Deprecated
-public class EAPParallel implements EAPRuntimeTerm {
+public class EAPParallel implements EAProcess {
 
     @NotNull
-    public final List<EAPRuntimeTerm> terms;
+    public final List<EAProcess> terms;
 
-    protected EAPParallel(@NotNull List<EAPRuntimeTerm> terms) {
+    protected EAPParallel(@NotNull List<EAProcess> terms) {
         this.terms = Collections.unmodifiableList(new LinkedList<>(terms));
     }
 
@@ -32,7 +32,7 @@ public class EAPParallel implements EAPRuntimeTerm {
 
     @Override
     public int hashCode() {
-        int hash = EAPRuntimeTerm.PARALLEL;
+        int hash = EAProcess.PARALLEL;
         hash = 31 * hash + this.terms.hashCode();
         return hash;
 

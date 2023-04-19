@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPLet implements EAComp {
+public class EAMLet implements EAComp {
 
     @NotNull
     public final EAEVar var;
@@ -29,7 +29,7 @@ public class EAPLet implements EAComp {
     public final EAComp body;
 
     //public EAPLet(@NotNull EAPVar var, @NotNull EAPExpr init, @NotNull EAPExpr body) {
-    public EAPLet(@NotNull EAEVar var, @NotNull EAVType varType,
+    public EAMLet(@NotNull EAEVar var, @NotNull EAVType varType,
                   @NotNull EAComp init, @NotNull EAComp body) {
         this.var = var;
         this.varType = varType;
@@ -73,14 +73,14 @@ public class EAPLet implements EAComp {
         if (this.init.canBeta()) {
             return EATermFactory.factory.let(this.var, this.varType, this.init.beta(), this.body);
         } else {  // this.init instanceof EAPReturn && this.init.isGround()
-            return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
+            return this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
         }
     }
 
     /* Aux */
 
     @Override
-    public EAPLet subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAMLet subs(@NotNull Map<EAEVar, EAExpr> m) {
         EAComp init1 = this.init.subs(m);
         Map<EAEVar, EAExpr> m1 = new HashMap<>(m);
         m1.remove(this.var);
@@ -89,7 +89,7 @@ public class EAPLet implements EAComp {
     }
 
     @Override
-    public EAPLet fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMLet fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         EAComp init1 = this.init.fsubs(m);
         EAComp body1 = body.fsubs(m);
         return EATermFactory.factory.let(this.var, this.varType, init1, body1);
@@ -117,8 +117,8 @@ public class EAPLet implements EAComp {
     // foo return corresponds with beta "subject"
     @Override
     public EAComp getConfigRedexCandidate() {
-        if (this.init instanceof EAPReturn //&& ((EAPReturn) this.init).val.isGround()
-                && !((EAPReturn) this.init).val.canBeta()) {
+        if (this.init instanceof EAMReturn //&& ((EAPReturn) this.init).val.isGround()
+                && !((EAMReturn) this.init).val.canBeta()) {
             return this;
         } else {
             return this.init.getConfigRedexCandidate();
@@ -127,9 +127,9 @@ public class EAPLet implements EAComp {
 
     @Override
     public EAComp configStep() {  // Not beta because, e.g., send in init cannot beta (must foo)
-        if (this.init instanceof EAPReturn && //this.init.isGround()) {
+        if (this.init instanceof EAMReturn && //this.init.isGround()) {
                 !this.init.canBeta()) {
-            return this.body.subs(Map.of(this.var, ((EAPReturn) this.init).val));
+            return this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
         } else {
             return EATermFactory.factory.let(this.var, this.varType, this.init.configStep(), this.body);
         }
@@ -149,7 +149,7 @@ public class EAPLet implements EAComp {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPLet them = (EAPLet) o;
+        EAMLet them = (EAMLet) o;
         return them.canEquals(this)
                 && this.var.equals(them.var)
                 && this.varType.equals(them.varType)
@@ -159,7 +159,7 @@ public class EAPLet implements EAComp {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPLet;
+        return o instanceof EAMLet;
     }
 
     @Override

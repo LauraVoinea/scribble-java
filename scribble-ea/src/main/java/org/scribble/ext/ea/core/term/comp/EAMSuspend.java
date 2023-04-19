@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
@@ -17,7 +17,7 @@ import org.scribble.ext.ea.util.EAPPair;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPSuspend implements EAComp {
+public class EAMSuspend implements EAComp {
 
     @NotNull
     public final EAExpr val;  // value, not expr -- a Handler(S?) type
@@ -25,7 +25,7 @@ public class EAPSuspend implements EAComp {
     @NotNull
     public final EAExpr sval;
 
-    public EAPSuspend(@NotNull EAExpr val, @NotNull EAExpr sval) {
+    public EAMSuspend(@NotNull EAExpr val, @NotNull EAExpr sval) {
         this.val = val;
         this.sval = sval;
     }
@@ -33,7 +33,7 @@ public class EAPSuspend implements EAComp {
     @Override
     public EAPPair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
-        if (!EAPApp.isInType(pre)) {  // Could be a rec type
+        if (!EAMApp.isInType(pre)) {  // Could be a rec type
             throw new RuntimeException("Expected in type, not: " + pre);
         }
         EAVType t = this.val.type(gamma);
@@ -47,7 +47,7 @@ public class EAPSuspend implements EAComp {
         /*if (!(cast.S.equals(pre))) {
             throw new RuntimeException("Incompatible in type: " + pre + ", " + cast.S);
         }*/
-        EAPApp.subtype(cast.S, pre);
+        EAMApp.subtype(cast.S, pre);
 
         EAVType t_s = this.sval.type(gamma);
         if (!t_s.equals(gamma.svarType)) {
@@ -84,21 +84,21 @@ public class EAPSuspend implements EAComp {
     /* Aux */
 
     @Override
-    public EAPSuspend subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAMSuspend subs(@NotNull Map<EAEVar, EAExpr> m) {
         EAExpr val1 = this.val.subs(m);
         EAExpr sval1 = this.sval.subs(m);
         return EATermFactory.factory.suspend(val1, sval1);
     }
 
     @Override
-    public EAPSuspend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMSuspend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         EAExpr val1 = this.val.fsubs(m);
         EAExpr sval1 = this.sval.fsubs(m);
         return EATermFactory.factory.suspend(val1, sval1);
     }
 
     @Override
-    public EAPSuspend recon(@NotNull EAComp old, EAComp neww) {
+    public EAMSuspend recon(@NotNull EAComp old, EAComp neww) {
         return this;
     }
 
@@ -138,14 +138,14 @@ public class EAPSuspend implements EAComp {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPSuspend eaVar = (EAPSuspend) o;
+        EAMSuspend eaVar = (EAMSuspend) o;
         return eaVar.canEquals(this) && this.val.equals(eaVar.val)
                 && this.sval.equals(eaVar.sval);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPSuspend;
+        return o instanceof EAMSuspend;
     }
 
     @Override

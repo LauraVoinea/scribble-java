@@ -1,14 +1,14 @@
-package org.scribble.ext.ea.core.config;
+package org.scribble.ext.ea.core.runtime;
 
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 
-public class EAPIdle implements EAPThreadState {
+public class EATIdle implements EAThread {
 
-    public static final EAPIdle IDLE = new EAPIdle();
+    public static final EATIdle IDLE = new EATIdle();
 
-    protected EAPIdle() {
+    protected EATIdle() {
     }
 
     @Override
@@ -37,13 +37,13 @@ public class EAPIdle implements EAPThreadState {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPIdle eaVar = (EAPIdle) o;
+        EATIdle eaVar = (EATIdle) o;
         return eaVar.canEquals(this);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPIdle;
+        return o instanceof EATIdle;
     }
 
     @Override

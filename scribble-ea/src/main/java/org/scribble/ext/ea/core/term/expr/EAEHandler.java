@@ -3,7 +3,7 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.process.EAComp;
+import org.scribble.ext.ea.core.term.comp.EAComp;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;

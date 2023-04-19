@@ -1,6 +1,7 @@
-package org.scribble.ext.ea.core.config;
+package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.runtime.process.EAProcess;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
@@ -13,12 +14,12 @@ import java.util.Map;
 import java.util.Set;
 
 // s, s', ...  // FIXME no longer values (not EAPVal)
-public class EAPSid implements EAExpr, EARuntimeName {
+public class EASid implements EAExpr, EARuntimeName {
 
     @NotNull
     public final String id;
 
-    protected EAPSid(@NotNull String id) {
+    protected EASid(@NotNull String id) {
         this.id = id;
     }
 
@@ -45,7 +46,7 @@ public class EAPSid implements EAExpr, EARuntimeName {
     /* Aux */
 
     @Override
-    public EAPSid subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EASid subs(@NotNull Map<EAEVar, EAExpr> m) {
         return this;
     }
 
@@ -69,18 +70,18 @@ public class EAPSid implements EAExpr, EARuntimeName {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPSid eaVar = (EAPSid) o;
+        EASid eaVar = (EASid) o;
         return eaVar.canEquals(this) && this.id.equals(eaVar.id);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPSid;
+        return o instanceof EASid;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAPRuntimeTerm.SESSION_ID;
+        int hash = EAProcess.SESSION_ID;
         hash = 31 * hash + this.id.hashCode();
         return hash;
     }

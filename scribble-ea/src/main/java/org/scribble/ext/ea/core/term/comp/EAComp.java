@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAFuncName;

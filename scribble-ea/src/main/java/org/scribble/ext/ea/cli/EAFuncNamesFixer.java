@@ -1,11 +1,11 @@
 package org.scribble.ext.ea.cli;
 
 import org.scribble.core.type.name.Op;
-import org.scribble.ext.ea.core.config.EAPPid;
-import org.scribble.ext.ea.core.config.EAPSid;
+import org.scribble.ext.ea.core.runtime.EAPid;
+import org.scribble.ext.ea.core.runtime.EASid;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.*;
-import org.scribble.ext.ea.core.term.process.*;
+import org.scribble.ext.ea.core.term.comp.*;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -26,28 +26,28 @@ public class EAFuncNamesFixer {
     }
 
     protected EAComp visit(EAComp M, Set<EAFuncName> env) {
-        if (M instanceof EAPLet) {
-            EAPLet cast = (EAPLet) M;
+        if (M instanceof EAMLet) {
+            EAMLet cast = (EAMLet) M;
             EAEVar var = (EAEVar) visit(cast.var, env);
             EAComp init = visit(cast.init, env);
             EAComp body = visit(cast.body, env);
             return f.let(var, cast.varType, init, body);
-        } else if (M instanceof EAPIf) {
-            EAPIf cast = (EAPIf) M;
+        } else if (M instanceof EAMIf) {
+            EAMIf cast = (EAMIf) M;
             EAExpr cond = visit(cast.cond, env);
             EAComp then = visit(cast.then, env);
             EAComp elsee = visit(cast.elsee, env);
             return f.iff(cond, then, elsee);
-        } else if (M instanceof EAPSuspend) {
-            EAPSuspend cast = (EAPSuspend) M;
+        } else if (M instanceof EAMSuspend) {
+            EAMSuspend cast = (EAMSuspend) M;
             return f.suspend(visit(cast.val, env), visit(cast.sval, env));
-        } else if (M instanceof EAPApp) {
-            EAPApp cast = (EAPApp) M;
+        } else if (M instanceof EAMApp) {
+            EAMApp cast = (EAMApp) M;
             return f.app(visit(cast.left, env), visit(cast.right, env));
-        } else if (M instanceof EAPReturn) {
-            return f.returnn(visit(((EAPReturn) M).val, env));
-        } else if (M instanceof EAPSend) {
-            EAPSend cast = (EAPSend) M;
+        } else if (M instanceof EAMReturn) {
+            return f.returnn(visit(((EAMReturn) M).val, env));
+        } else if (M instanceof EAMSend) {
+            EAMSend cast = (EAMSend) M;
             return f.send(cast.dst, cast.op, visit(cast.val, env));
         } else {
             throw new RuntimeException("TODO: " + M);
@@ -76,7 +76,7 @@ public class EAFuncNamesFixer {
             EAComp body = visit(cast.body, tmp);
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
         } else if (V instanceof EAFuncName || V instanceof EAEUnit
-                || V instanceof EAPPid || V instanceof EAPSid
+                || V instanceof EAPid || V instanceof EASid
                 || V instanceof EAEIntVal || V instanceof EAEBinOp || V instanceof EAEBoolVal) {
             return V;
         } else {

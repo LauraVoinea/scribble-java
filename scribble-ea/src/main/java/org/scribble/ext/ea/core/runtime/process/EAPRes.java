@@ -1,13 +1,17 @@
-package org.scribble.ext.ea.core.config;
+package org.scribble.ext.ea.core.runtime.process;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.runtime.EAPid;
 
-public class EAPRes implements EAPRuntimeTerm {
+@Deprecated
+public class EAPRes implements EAProcess {
 
-    @NotNull public final EAPPid name;  // !!! pid vs. "name"?  "a" vs. "c"?
-    @NotNull public final EAPRuntimeTerm term;
+    @NotNull
+    public final EAPid name;  // !!! pid vs. "name"?  "a" vs. "c"?
+    @NotNull
+    public final EAProcess term;
 
-    protected EAPRes(@NotNull EAPPid name, @NotNull EAPRuntimeTerm term) {
+    protected EAPRes(@NotNull EAPid name, @NotNull EAProcess term) {
         this.name = name;
         this.term = term;
     }
@@ -31,7 +35,7 @@ public class EAPRes implements EAPRuntimeTerm {
 
     @Override
     public int hashCode() {
-        int hash = EAPRuntimeTerm.RESTRICTION;
+        int hash = EAProcess.RESTRICTION;
         hash = 31 * hash + this.name.hashCode();
         hash = 31 * hash + this.term.hashCode();
         return hash;

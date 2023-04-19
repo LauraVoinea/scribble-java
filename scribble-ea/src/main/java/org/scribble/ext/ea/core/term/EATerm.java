@@ -1,6 +1,6 @@
 package org.scribble.ext.ea.core.term;
 
-// !!! "terms" vs. "term typing"
+// (Pure) Values/Expressions (V, W) and Computations (M, N)
 public interface EATerm {
 
     int FUNC_NAME = 1609;  // TODO move

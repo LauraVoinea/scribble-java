@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.config;
+package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
@@ -7,7 +7,8 @@ import org.scribble.core.type.session.SigLit;
 import org.scribble.core.type.session.local.LRecv;
 import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LTypeFactory;
-import org.scribble.ext.ea.core.term.process.*;
+import org.scribble.ext.ea.core.runtime.process.EAPConfig;
+import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALType;
@@ -25,14 +26,14 @@ public class EAPSystem {
     @NotNull
     public final Delta annots;
     @NotNull
-    public final LinkedHashMap<EAPPid, EAPConfig> configs;
+    public final LinkedHashMap<EAPid, EAPConfig> configs;
 
     @NotNull
     protected final LTypeFactory lf;
 
     public EAPSystem(@NotNull LTypeFactory lf,
                      @NotNull Delta annots,
-                     @NotNull LinkedHashMap<EAPPid, EAPConfig> configs) {
+                     @NotNull LinkedHashMap<EAPid, EAPConfig> configs) {
         if (configs.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
             throw new RuntimeException("Invalid pid/config mapping: " + configs);
         }
@@ -47,9 +48,9 @@ public class EAPSystem {
     //public void type(Gamma gamma, Delta delta, Delta delta1) {
     public void type(Gamma gamma, Delta delta) {
         for (EAPConfig c : this.configs.values()) {
-            LinkedHashSet<Pair<EAPSid, Role>> eps = c.getEndpoints();
-            LinkedHashMap<Pair<EAPSid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);
-            for (Pair<EAPSid, Role> p : eps) {
+            LinkedHashSet<Pair<EASid, Role>> eps = c.getEndpoints();
+            LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);
+            for (Pair<EASid, Role> p : eps) {
                 if (!this.annots.map.containsKey(p)) {
                     throw new RuntimeException("Unknown endpoint: " + p);
                 }
@@ -82,7 +83,7 @@ public class EAPSystem {
     }*/
 
     // Return map can-step-pids -> "parter" pids (sync actions) -- cf. EAPConfig/EAPActiveThread.canStep
-    public Map<EAPPid, Set<EAPPid>> canStep() {
+    public Map<EAPid, Set<EAPid>> canStep() {
         return this.configs.entrySet().stream()
                 .filter(x -> x.getValue().canStep(this).left)
                 .collect(Collectors.toMap(
@@ -92,12 +93,12 @@ public class EAPSystem {
     }
 
     // Pre: p \in getReady ?
-    public EAPSystem reduce(EAPPid p) {  // n.b. beta is deterministic
+    public EAPSystem reduce(EAPid p) {  // n.b. beta is deterministic
         EAPConfig c = this.configs.get(p); // p.equals(c.pid)
         if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
-        EAPActiveThread t = (EAPActiveThread) c.T;
+        EATActive t = (EATActive) c.T;
         if (!t.expr.isGround()) {
             throw new RuntimeException("Stuck: " + t.expr + " ,, " + p + " " + c);
         }
@@ -110,19 +111,19 @@ public class EAPSystem {
         //System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 
         // !!! Delta (annots) unchanged
-        if (foo instanceof EAPSuspend || foo instanceof EAPReturn
-                || foo instanceof EAPApp || foo instanceof EAPLet || foo instanceof EAPIf) {
-            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
+        if (foo instanceof EAMSuspend || foo instanceof EAMReturn
+                || foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf) {
+            LinkedHashMap<EAPid, EAPConfig> configs = c.step(this);
             return new EAPSystem(this.lf, this.annots, configs);
         }
         // !!! Delta (annots) change
-        else if (foo instanceof EAPSend) {
-            LinkedHashMap<EAPPid, EAPConfig> configs = c.step(this);
+        else if (foo instanceof EAMSend) {
+            LinkedHashMap<EAPid, EAPConfig> configs = c.step(this);
 
-            EAPSend cast = (EAPSend) foo;
-            LinkedHashMap<Pair<EAPSid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
+            EAMSend cast = (EAMSend) foo;
+            LinkedHashMap<Pair<EASid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
 
-            EAPPair<EAPSid, Role> k1 = new EAPPair<>(t.sid, t.role);
+            EAPPair<EASid, Role> k1 = new EAPPair<>(t.sid, t.role);
             EALType l1 = this.annots.map.get(k1);
             LSend ls = this.lf.LSend(null, new SigLit(cast.op, Payload.EMPTY_PAYLOAD), cast.dst);  // from foo  // FIXME EMPTY_PAY
             Optional<EALType> opt1 = l1.step(ls);
@@ -132,7 +133,7 @@ public class EAPSystem {
             l1 = opt1.get();
             dmap.put(k1, l1);
 
-            Pair<EAPSid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
+            Pair<EASid, Role> k2 = new EAPPair<>(t.sid, cast.dst);
             EALType l2 = this.annots.map.get(k2);
             LRecv lr = this.lf.LRecv(null, t.role, new SigLit(cast.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
             Optional<EALType> opt2 = l2.step(lr);
@@ -149,7 +150,7 @@ public class EAPSystem {
         }
     }
 
-    public Map<EAPPid, EAPConfig> getConfigs() {
+    public Map<EAPid, EAPConfig> getConfigs() {
         return Collections.unmodifiableMap(this.configs);
     }
 

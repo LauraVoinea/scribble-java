@@ -2,7 +2,7 @@ package org.scribble.ext.ea.core.type.session.local;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.config.EAPSid;
+import org.scribble.ext.ea.core.runtime.EASid;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 public class Delta {
 
     @NotNull
-    public final Map<Pair<EAPSid, Role>, EALType> map;
+    public final Map<Pair<EASid, Role>, EALType> map;
 
     public Delta() {
         this(new LinkedHashMap<>());
     }
 
-    public Delta(@NotNull LinkedHashMap<Pair<EAPSid, Role>, EALType> map) {
+    public Delta(@NotNull LinkedHashMap<Pair<EASid, Role>, EALType> map) {
         this.map = Collections.unmodifiableMap(map.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));

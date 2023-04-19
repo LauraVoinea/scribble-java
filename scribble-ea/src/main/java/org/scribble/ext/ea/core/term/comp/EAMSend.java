@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EAPSend implements EAComp {
+public class EAMSend implements EAComp {
 
     @NotNull
     public final Role dst;
@@ -30,7 +30,7 @@ public class EAPSend implements EAComp {
     @NotNull
     public final EAExpr val;  // value, not expr
 
-    public EAPSend(@NotNull Role dst, @NotNull Op op, @NotNull EAExpr val) {
+    public EAMSend(@NotNull Role dst, @NotNull Op op, @NotNull EAExpr val) {
         this.dst = dst;
         this.op = op;
         this.val = val;
@@ -105,13 +105,13 @@ public class EAPSend implements EAComp {
     }
 
     @Override
-    public EAPSend subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAMSend subs(@NotNull Map<EAEVar, EAExpr> m) {
         EAExpr val1 = this.val.subs(m);
         return EATermFactory.factory.send(this.dst, this.op, val1);
     }
 
     @Override
-    public EAPSend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMSend fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         EAExpr val1 = this.val.fsubs(m);
         return EATermFactory.factory.send(this.dst, this.op, val1);
     }
@@ -132,7 +132,7 @@ public class EAPSend implements EAComp {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPSend them = (EAPSend) o;
+        EAMSend them = (EAMSend) o;
         return them.canEquals(this)
                 && this.dst.equals(them.dst)
                 && this.op.equals(them.op)
@@ -141,7 +141,7 @@ public class EAPSend implements EAComp {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPSend;
+        return o instanceof EAMSend;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.term.process;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
@@ -16,12 +16,12 @@ import java.util.Map;
 import java.util.Set;
 
 // !!! encodable using suspend? apart from "GC" flavour
-public class EAPReturn implements EAComp {
+public class EAMReturn implements EAComp {
 
     @NotNull
     public final EAExpr val;  // value, not expr
 
-    public EAPReturn(EAExpr val) {
+    public EAMReturn(EAExpr val) {
         this.val = val;
     }
 
@@ -57,19 +57,19 @@ public class EAPReturn implements EAComp {
     /* Aux */
 
     @Override
-    public EAPReturn subs(@NotNull Map<EAEVar, EAExpr> m) {
+    public EAMReturn subs(@NotNull Map<EAEVar, EAExpr> m) {
         EAExpr val1 = this.val.subs(m);
         return EATermFactory.factory.returnn(val1);
     }
 
     @Override
-    public EAPReturn fsubs(@NotNull Map<EAFuncName, EAERec> m) {
+    public EAMReturn fsubs(@NotNull Map<EAFuncName, EAERec> m) {
         EAExpr val1 = this.val.fsubs(m);
         return EATermFactory.factory.returnn(val1);
     }
 
     @Override
-    public EAPReturn recon(@NotNull EAComp old, EAComp neww) {
+    public EAMReturn recon(@NotNull EAComp old, EAComp neww) {
         return this;
     }
 
@@ -116,13 +116,13 @@ public class EAPReturn implements EAComp {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPReturn eaVar = (EAPReturn) o;
+        EAMReturn eaVar = (EAMReturn) o;
         return eaVar.canEquals(this) && this.val.equals(eaVar.val);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPReturn;
+        return o instanceof EAMReturn;
     }
 
     @Override
