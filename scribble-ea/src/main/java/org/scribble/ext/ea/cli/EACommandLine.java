@@ -135,18 +135,17 @@ public class EACommandLine extends CommandLine {
         tests();
 
         /* HERE HERE
-        //merge rhu1-refactorinterfaces -- i.e., latest scrib-core
+        // merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
-        - ...add state to return
-
+        - ...wild S' in suspend typing
         - ...need (self) handler firing when state satis some condition -- !!! how done in standard actors?
-        ...
+        - ...evolving state types? but tricky if state is config-wide (shared by multiple sessions)
+
+        - add state to return
         - refactor EAPVal as EAPPure -- separate packages for expr/pure -- distinguish actual val from pure
         - separate isGround/isValue -- cf. canBeta for exprs vs. is-stuck
         - fix canBeta contexts and isGround for all exprs
         - tidy foo vs. beta -- cf. some expr foo is just beta (some not, e.g., let)
-        ...
-        - evolving state types? but tricky if state is config-wide (shared by multiple sessions)
         */
 
         //new EACommandLine(args).run();
