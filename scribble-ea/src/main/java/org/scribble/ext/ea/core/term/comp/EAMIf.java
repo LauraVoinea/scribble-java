@@ -10,6 +10,7 @@ import org.scribble.util.Pair;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class EAMIf implements EAComp {
@@ -31,12 +32,14 @@ public class EAMIf implements EAComp {
     public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         Pair<EAVType, EALType> ttype = this.then.type(gamma, pre);
         Pair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
-        //subtype(ftype.S, pre);
-        if (!ttype.equals(etype)) {
+        ////subtype(ftype.S, pre);
+        //if (!ttype.equals(etype)) {
+        Optional<EAVType> u = EAVType.unify(ttype.left, etype.left);
+        if (!u.isPresent() || !ttype.right.equals(etype.right)) {
             throw new RuntimeException("Incompatible branches:\n"
                     + "\tfound=" + ttype + ", required=" + etype);
         }
-        return ttype;
+        return new Pair<>(u.get(), ttype.right);
     }
 
     @Override
@@ -64,6 +67,16 @@ public class EAMIf implements EAComp {
         } else {
             return ((EAEBoolVal) this.cond).val ? this.then : this.elsee;
         }
+    }
+
+    @Override
+    public EAComp getConfigRedexCandidate() {
+        return this;
+    }
+
+    @Override
+    public EAComp configReduce() {
+        return beta();
     }
 
     /* Aux */
@@ -98,16 +111,6 @@ public class EAMIf implements EAComp {
     public boolean isGround() {
         return this.cond.isGround() && this.then.isGround() && this.elsee.isGround();  // !!! bad naming
     }*/
-
-    @Override
-    public EAComp getConfigRedexCandidate() {
-        return this;
-    }
-
-    @Override
-    public EAComp configReduce() {
-        return beta();
-    }
 
     @Override
     public String toString() {

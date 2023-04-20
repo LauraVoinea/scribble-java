@@ -34,14 +34,6 @@ public class EAMApp implements EAComp {
         return t instanceof EALInType || t.unfoldAllOnce() instanceof EALInType;
     }
 
-    // found is expr, required is usually pre
-    public static void subtype(EALType found, EALType required) {
-        if (!found.equals(required) && !found.unfoldAllOnce().equals(required.unfoldAllOnce())) {
-            throw new RuntimeException("Incompatible pre type:\n"
-                    + "\tfound=" + found + ", required=" + required);
-        }
-    }
-
     @Override
     public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
         EAVType ltype = this.left.type(gamma);
@@ -54,7 +46,7 @@ public class EAMApp implements EAComp {
             throw new RuntimeException("Incompatible pre type:\n"
                     + "\tfound=" + ftype.S + ", required=" + pre);
         }*/
-        subtype(ftype.S, pre);
+        EALType.subtype(ftype.S, pre);
         EAVType rtype = this.right.type(gamma);
         if (!rtype.equals(ftype.A)) {
             throw new RuntimeException("Incompatible arg type:\n"
@@ -93,6 +85,16 @@ public class EAMApp implements EAComp {
         }
     }
 
+    @Override
+    public EAComp getConfigRedexCandidate() {
+        return this;
+    }
+
+    @Override
+    public EAComp configReduce() {
+        return beta();
+    }
+
     /* Aux */
 
     @Override
@@ -127,16 +129,6 @@ public class EAMApp implements EAComp {
     public boolean isGround() {
         return this.left.isGround() && this.right.isGround();
     }*/
-
-    @Override
-    public EAComp getConfigRedexCandidate() {
-        return this;
-    }
-
-    @Override
-    public EAComp configReduce() {
-        return beta();
-    }
 
     @Override
     public String toString() {

@@ -44,7 +44,7 @@ public class EAMSuspend implements EAComp {
         /*if (!(cast.S.equals(pre))) {
             throw new RuntimeException("Incompatible in type: " + pre + ", " + cast.S);
         }*/
-        EAMApp.subtype(cast.S, pre);
+        EALType.subtype(cast.S, pre);
 
         EAVType t_s = this.sval.type(gamma);
         if (!t_s.equals(gamma.svarType)) {
@@ -52,7 +52,9 @@ public class EAMSuspend implements EAComp {
         }
 
         EATypeFactory tf = EATypeFactory.factory;
-        return new Pair<>(tf.val.unit(), tf.local.end());  // !!! unit vs A. !!! end vs. S'
+
+        return new Pair<>(tf.val.wild(), tf.local.end());  // A as wild -- TODO S' wild
+        //return new Pair<>(gamma.svarType, tf.local.end());  // XXX suspend svar is side effect, not result
     }
 
     @Override
@@ -76,6 +78,21 @@ public class EAMSuspend implements EAComp {
     @Override
     public EAComp beta() {
         throw new RuntimeException("Stuck: " + this);
+    }
+
+    /*@Override
+    public boolean canFoo() {
+        return true;
+    }*/
+
+    @Override
+    public EAComp getConfigRedexCandidate() {
+        return this;
+    }
+
+    @Override
+    public EAComp configReduce() {
+        throw new RuntimeException("Shouldn't get in here.");
     }
 
     /* Aux */
@@ -108,21 +125,6 @@ public class EAMSuspend implements EAComp {
     public boolean isGround() {
         return this.val.isGround();
     }*/
-
-    /*@Override
-    public boolean canFoo() {
-        return true;
-    }*/
-
-    @Override
-    public EAComp getConfigRedexCandidate() {
-        return this;
-    }
-
-    @Override
-    public EAComp configReduce() {
-        throw new RuntimeException("Shouldn't get in here.");
-    }
 
     @Override
     public String toString() {

@@ -12,6 +12,10 @@ public class EAVTypeFactory {
 
     }
 
+    public EAVWildType wild() {
+        return EAVWildType.WILD;
+    }
+
     public EAVUnitType unit() {
         return EAVUnitType.UNIT;
     }

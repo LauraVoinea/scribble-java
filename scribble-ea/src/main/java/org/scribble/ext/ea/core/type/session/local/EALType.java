@@ -29,4 +29,14 @@ public interface EALType extends EAType {
     EALType unfold(RecVar rvar, EALType t);
 
     Optional<EALType> step(LType a);
+
+    // !!! currently not used consistently (added ad hoc from testing)
+    // Currently only unfolding -- so currently symmetric
+    // found is expr, required is usually pre
+    static void subtype(EALType found, EALType required) {
+        if (!(found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce()))) {
+            throw new RuntimeException("Incompatible pre type:\n"
+                    + "\tfound=" + found + ", required=" + required);
+        }
+    }
 }

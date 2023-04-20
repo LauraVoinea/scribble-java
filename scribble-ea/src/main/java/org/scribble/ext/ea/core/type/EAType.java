@@ -8,6 +8,7 @@ public interface EAType {
 
     int INT = 19867;
     int BOOL = 19889;
+    int WILD = 19891;
 
     boolean canEquals(Object o);
 }

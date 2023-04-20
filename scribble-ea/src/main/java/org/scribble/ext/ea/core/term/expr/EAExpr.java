@@ -34,6 +34,6 @@ public interface EAExpr extends EATerm {
         return getFreeVars().isEmpty();
     }
 
-    // A ground value -- implies isGround, !canEval
+    // A ground value -- implies isGround, !canEval -- currently all except binop
     boolean isValue();
 }

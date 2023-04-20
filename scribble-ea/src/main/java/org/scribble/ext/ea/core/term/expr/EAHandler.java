@@ -12,10 +12,7 @@ import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.util.Pair;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // TODO factor out with EAELam
 public class EAHandler {
@@ -65,7 +62,9 @@ public class EAHandler {
         EALType inferred = this.pre;
 
         Pair<EAVType, EALType> res = this.expr.type(gamma1, inferred);
-        if (!(res.left.equals(EAVUnitType.UNIT)) || !(res.right.equals(EALEndType.END))) {
+        //if (!u.isPresent() || !u.get().equals(EAVUnitType.UNIT) || !res.right.equals(EALEndType.END)) {
+        Optional<EAVType> u = EAVType.unify(res.left, this.svarType);
+        if (!u.isPresent() || !u.get().equals(this.svarType) || !res.right.equals(EALEndType.END)) {
             throw new RuntimeException("Type error: " + gamma1 + " | "
                     + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
         }

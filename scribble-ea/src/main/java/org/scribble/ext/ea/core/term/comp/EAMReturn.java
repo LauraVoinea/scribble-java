@@ -52,7 +52,20 @@ public class EAMReturn implements EAComp {
     @Override
     public EAComp beta() {
         //throw new RuntimeException("Stuck: " + this);
-        System.out.println("33333333: " + EATermFactory.factory.returnn(this.val.eval()));
+        //System.out.println("33333333: " + EATermFactory.factory.returnn(this.val.eval()));
+        return EATermFactory.factory.returnn(this.val.eval());
+    }
+
+    // foo
+    @Override
+    public EAComp getConfigRedexCandidate() {
+        //throw new RuntimeException("Shouldn't get here: " + this);
+        return this;  // basically for top-level return -- let-init return detected by EAMLet
+    }
+
+    @Override
+    public EAComp configReduce() {
+        //throw new RuntimeException("Shouldn't get in here: " + this);
         return EATermFactory.factory.returnn(this.val.eval());
     }
 
@@ -93,18 +106,6 @@ public class EAMReturn implements EAComp {
     @Override
     public boolean isGroundValueReturn() {
         return this.val.isValue();
-    }
-
-    @Override
-    public EAComp getConfigRedexCandidate() {
-        //throw new RuntimeException("Shouldn't get here: " + this);
-        return this;  // foo is a candidate
-    }
-
-    @Override
-    public EAComp configReduce() {
-        //throw new RuntimeException("Shouldn't get in here: " + this);
-        return EATermFactory.factory.returnn(this.val.eval());
     }
 
     @Override

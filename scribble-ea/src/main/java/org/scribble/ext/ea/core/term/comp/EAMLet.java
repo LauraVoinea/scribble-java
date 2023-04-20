@@ -78,7 +78,7 @@ public class EAMLet implements EAComp {
         }
     }
 
-    // foo return corresponds with beta "subject"
+    // foo (getConfigRedexCandidate) return corresponds with beta "subject"
     @Override
     public EAComp getConfigRedexCandidate() {
         /*if (this.init instanceof EAMReturn //&& ((EAPReturn) this.init).val.isGround()

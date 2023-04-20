@@ -39,7 +39,8 @@ public class EATActive implements EAThread {
         EAComp foo = this.expr.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAMReturn) {
-            if (this.expr instanceof EAMReturn && ((EAMReturn) this.expr).val.equals(EAEUnit.UNIT)) {
+            //if (this.expr instanceof EAMReturn && ((EAMReturn) this.expr).val.equals(EAEUnit.UNIT)) {
+            if (this.expr instanceof EAMReturn && this.expr.isGroundValueReturn()) {
                 return new Pair<>(true, Collections.emptySet());
             }
             // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additional beta case: let x <= return V where V.canBeta (return V is the foo)
@@ -84,7 +85,10 @@ public class EATActive implements EAThread {
                     + endpointToString(this.sid, this.role));
         }
         Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
-        if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
+        //if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
+        //if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
+        Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
+        if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
             throw new RuntimeException("Badly typed: " + this + " : "
                     + res.left + " <| " + res.right);
         }

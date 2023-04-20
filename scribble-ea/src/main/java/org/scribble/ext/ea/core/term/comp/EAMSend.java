@@ -77,18 +77,6 @@ public class EAMSend implements EAComp {
         //return EAPFactory.factory.returnn(EAPFactory.factory.unit());
     }
 
-    /* Aux */
-
-    @Override
-    public Set<EAEVar> getFreeVars() {
-        return this.val.getFreeVars();
-    }
-
-    /*@Override
-    public boolean isGround() {
-        return this.val.isGround();
-    }*/
-
     /*@Override
     public boolean canFoo() {
         return false;
@@ -103,6 +91,18 @@ public class EAMSend implements EAComp {
     public EAComp configReduce() {
         return EATermFactory.factory.returnn(EATermFactory.factory.unit());
     }
+
+    /* Aux */
+
+    @Override
+    public Set<EAEVar> getFreeVars() {
+        return this.val.getFreeVars();
+    }
+
+    /*@Override
+    public boolean isGround() {
+        return this.val.isGround();
+    }*/
 
     @Override
     public EAMSend subs(@NotNull Map<EAEVar, EAExpr> m) {

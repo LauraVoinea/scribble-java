@@ -72,13 +72,15 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
         // top-level return ()
         if (foo instanceof EAMReturn) {
-            if (t.expr.equals(foo)) {  // top level
+            if (t.expr.equals(foo)) {  // top level -- not really necessary to compare t.expr and foo, but checks foo working
                 LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
+                EAMReturn cast = (EAMReturn) t.expr;
 
                 EAThread t1 = EATIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-                EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+                //EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+                EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.val);
                 //res.configs.put(p, c1);
                 configs.put(this.pid, c1);
                 return configs;
@@ -270,7 +272,10 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
                 Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
                 Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
-                if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
+                //if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
+                //if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
+                Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
+                if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
                     throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);
                 }
             }
