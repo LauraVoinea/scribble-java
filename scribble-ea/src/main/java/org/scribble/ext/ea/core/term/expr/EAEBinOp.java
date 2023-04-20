@@ -2,7 +2,7 @@ package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVBoolType;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -52,7 +52,7 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
-    public EAVType type(Gamma gamma) {
+    public EAVType type(GammaState gamma) {
         switch (this.op) {
             case PLUS: {
                 EAVType ltype = this.left.type(gamma);

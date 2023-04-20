@@ -2,7 +2,7 @@ package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.runtime.process.EAProcess;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
 // s, s', ...
@@ -16,7 +16,7 @@ public class EASid implements EARuntimeName {
     }
 
     @Override
-    public EAVType type(Gamma gamma) {
+    public EAVType type(GammaState gamma) {
         throw new RuntimeException("CHECKME: N/A ?");  // !!!
     }
 

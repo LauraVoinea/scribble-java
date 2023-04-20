@@ -6,7 +6,7 @@ import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.util.Pair;
@@ -18,9 +18,9 @@ import java.util.Set;
 public interface EAComp extends EATerm {
 
     // CHECKME still needed? or deprecate
-    EALType infer(Gamma gamma);
+    EALType infer(GammaState gamma);
 
-    Pair<EAVType, EALType> type(Gamma gamma, EALType pre);
+    Pair<EAVType, EALType> type(GammaState gamma, EALType pre);
 
     // ->_M -- config independent M eval
     boolean canBeta();

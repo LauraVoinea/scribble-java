@@ -3,7 +3,7 @@ package org.scribble.ext.ea.core.runtime;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.runtime.process.EAProcess;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
 // a, b, ...
@@ -17,7 +17,7 @@ public class EAPid implements EARuntimeName {
     }
 
     @Override
-    public EAVType type(Gamma gamma) {
+    public EAVType type(GammaState gamma) {
         return EATypeFactory.factory.val.pid();
     }
 

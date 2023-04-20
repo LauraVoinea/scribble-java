@@ -3,7 +3,7 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAName;
 import org.scribble.ext.ea.core.term.EATerm;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.HashSet;
@@ -25,15 +25,15 @@ public class EAEVar implements EAExpr, EAName {
         throw new RuntimeException("Not supported");
     }
 
-    /* Aux */
-
     @Override
-    public EAVType type(Gamma gamma) {
-        if (gamma.map.containsKey(this)) {
-            return gamma.map.get(this);
+    public EAVType type(GammaState gamma) {
+        if (gamma.gamma.map.containsKey(this)) {
+            return gamma.gamma.map.get(this);
         }
         throw new RuntimeException("Unknown var: " + this + ", " + gamma);
     }
+
+    /* Aux */
 
     /*@Override
     public boolean isGround() {

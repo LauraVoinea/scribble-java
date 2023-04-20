@@ -6,7 +6,7 @@ import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -35,7 +35,7 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
         EAVType ltype = this.left.type(gamma);
         if (!(ltype instanceof EAVFuncType)) {
             throw new RuntimeException("Expected function type, not: "
@@ -56,7 +56,7 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EALType infer(Gamma gamma) {
+    public EALType infer(GammaState gamma) {
         EAVType ftype = this.left.type(gamma);
         if (!(ftype instanceof EAVFuncType)) {
             throw new RuntimeException("Couldn't infer type: " + ftype);

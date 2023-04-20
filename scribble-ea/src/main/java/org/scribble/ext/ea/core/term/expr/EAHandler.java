@@ -4,11 +4,10 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.comp.EAComp;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.util.Pair;
 
@@ -44,19 +43,19 @@ public class EAHandler {
         this.svarType = svarType;
     }
 
-    public void type(Gamma gamma) {
+    public void type(GammaState gamma) {
 
         if (!this.svarType.equals(gamma.svarType)) {
             throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + this.svarType);
         }
 
         //EATriple<EAPVar, EAValType, EAPExpr> v;
-        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, this.varType);
 
         tmp.put(this.svar, this.svarType);  // !!! map contains smap
 
-        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), this.svar, this.svarType);
+        GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), this.svarType);
 
         //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i
         EALType inferred = this.pre;

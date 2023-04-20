@@ -9,7 +9,7 @@ import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALOutType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
@@ -37,7 +37,7 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
         if (!(pre instanceof EALOutType)) {
             throw new RuntimeException("Expected out type: " + pre + ", " + this);
         }
@@ -58,7 +58,7 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public EALOutType infer(Gamma gamma) {
+    public EALOutType infer(GammaState gamma) {
         EAVType t = this.val.type(gamma);
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         cases.put(this.op, new Pair<>(t, EALEndType.END));  // !!! (potential) placeholder END

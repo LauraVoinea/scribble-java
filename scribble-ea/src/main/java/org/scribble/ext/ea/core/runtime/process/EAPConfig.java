@@ -10,12 +10,12 @@ import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -205,7 +205,8 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
     public void type(Gamma gamma1, Delta delta) {
 
         EAVType infer = this.state.infer();
-        Gamma gamma2 = new Gamma(new LinkedHashMap<>(gamma1.map), new LinkedHashMap<>(gamma1.fmap), null, infer);
+        GammaState gamma2 = new GammaState(new LinkedHashMap<>(gamma1.map), new LinkedHashMap<>(gamma1.fmap), infer);
+        //Gamma gamma2 = gamma1;
 
         LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
         if (this.T instanceof EATActive) { // !!! CHECKME
@@ -233,7 +234,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
     }
 
     // !!! TODO make sigma explicit (cf. TH-Handler)
-    protected void typeSigma(Gamma gamma, Delta delta) {
+    protected void typeSigma(GammaState gamma, Delta delta) {
         if (delta.map.size() != this.sigma.size()) {
             throw new RuntimeException("Invalid delta: " + delta + " |- " + this.sigma);
         }
@@ -264,13 +265,14 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
             for (Map.Entry<Op, EAHandler> x : h.Hs.entrySet()) {
                 Op op = x.getKey();
                 EAHandler rhs = x.getValue();
-                LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
+                LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
                 tmp.put(rhs.var, rhs.varType);
 
                 tmp.put(rhs.var, rhs.varType);
                 tmp.put(rhs.svar, rhs.svarType);
 
-                Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
+                GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), //gamma.svar,
+                        gamma.svarType);
                 Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
                 //if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
                 //if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {

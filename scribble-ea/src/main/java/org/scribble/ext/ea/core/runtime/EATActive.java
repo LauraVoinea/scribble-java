@@ -3,14 +3,12 @@ package org.scribble.ext.ea.core.runtime;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.runtime.process.EAPConfig;
 import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAEUnit;
 import org.scribble.ext.ea.core.term.comp.*;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -75,7 +73,7 @@ public class EATActive implements EAThread {
 
     // [TT-Sess]
     @Override
-    public void type(Gamma gamma, Delta delta) {
+    public void type(GammaState gamma, Delta delta) {
         if (delta.map.size() != 1) {
             throw new RuntimeException("Invalid Delta: " + delta);
         }

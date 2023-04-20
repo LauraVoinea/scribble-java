@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.term.expr;
 
 import org.scribble.ext.ea.core.term.EATerm;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
 import java.util.Map;
@@ -9,7 +9,8 @@ import java.util.Set;
 
 // "pure" exprs (no I/O)
 public interface EAExpr extends EATerm {
-    //EAPExpr {  !!! values should be exprs?
+
+    EAVType type(GammaState gamma);
 
     EAVType infer();  // not intended to work for single var -- for use on ground vals at config level
 
@@ -21,11 +22,11 @@ public interface EAExpr extends EATerm {
         throw new RuntimeException("Stuck: " + this);
     }
 
-    EAVType type(Gamma gamma);
+    /* Aux */
 
     EAExpr subs(Map<EAEVar, EAExpr> m);
 
-    EAExpr fsubs(Map<EAEFuncName, EAERec> m);
+    EAExpr fsubs(Map<EAEFuncName, EAERec> m);  // Hack
 
     Set<EAEVar> getFreeVars();
 

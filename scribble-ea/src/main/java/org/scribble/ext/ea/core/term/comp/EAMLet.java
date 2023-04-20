@@ -6,7 +6,7 @@ import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
@@ -39,24 +39,24 @@ public class EAMLet implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
         Pair<EAVType, EALType> p1 = this.init.type(gamma, pre);
         if (!this.varType.equals(p1.left)) {
             throw new RuntimeException("Bad type annotation: "
                     + this.varType + ", " + p1.left);
         }
-        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, p1.left);
-        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
+        GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), gamma.svarType);
         return this.body.type(gamma1, p1.right);
     }
 
     @Override
-    public EALType infer(Gamma gamma) {
+    public EALType infer(GammaState gamma) {
         EALType i = this.init.infer(gamma);
-        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, this.varType);
-        Gamma gamma1 = new Gamma(tmp, new LinkedHashMap<>(gamma.fmap), gamma.svar, gamma.svarType);
+        GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), gamma.svarType);
         EALType b = this.body.infer(gamma1);
         return i.concat(b);
     }

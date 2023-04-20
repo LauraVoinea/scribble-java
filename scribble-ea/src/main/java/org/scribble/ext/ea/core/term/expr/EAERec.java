@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.comp.EAComp;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -54,13 +54,13 @@ public class EAERec implements EAExpr {
     }
 
     @Override
-    public EAVType type(Gamma gamma) {
-        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.map);
+    public EAVType type(GammaState gamma) {
+        LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, this.varType);
-        LinkedHashMap<EAEFuncName, EAVFuncType> ftmp = new LinkedHashMap<>(gamma.fmap);
+        LinkedHashMap<EAEFuncName, EAVFuncType> ftmp = new LinkedHashMap<>(gamma.gamma.fmap);
         EAVFuncType ftype = EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
         ftmp.put(this.f, ftype);
-        Gamma gamma1 = new Gamma(tmp, ftmp, gamma.svar, gamma.svarType);
+        GammaState gamma1 = new GammaState(tmp, ftmp, gamma.svarType);
         Pair<EAVType, EALType> res = this.body.type(gamma1, this.S);
         Pair<EAVType, EALType> target = new Pair<>(this.B, this.S);
         if (!res.equals(target)) {

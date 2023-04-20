@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.runtime;
 
 import org.scribble.ext.ea.core.term.EATerm;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 
 public class EATIdle implements EAThread {
@@ -18,7 +18,7 @@ public class EATIdle implements EAThread {
 
     // [TT-Idle]
     @Override
-    public void type(Gamma gamma, Delta delta) {
+    public void type(GammaState gamma, Delta delta) {
         if (!delta.map.isEmpty()) {
             throw new RuntimeException("Invalid Delta: " + delta);
         }

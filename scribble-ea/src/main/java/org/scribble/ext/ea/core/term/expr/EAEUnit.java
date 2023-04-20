@@ -3,7 +3,7 @@ package org.scribble.ext.ea.core.term.expr;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVUnitType;
 
 import java.util.HashSet;
@@ -23,7 +23,7 @@ public class EAEUnit implements EAExpr {
     }
 
     @Override
-    public EAVUnitType type(Gamma gamma) {
+    public EAVUnitType type(GammaState gamma) {
         return EATypeFactory.factory.val.unit();
     }
 

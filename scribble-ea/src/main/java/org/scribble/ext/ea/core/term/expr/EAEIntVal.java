@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.term.expr;
 
 import org.scribble.ext.ea.core.term.EATerm;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
@@ -32,7 +32,7 @@ public class EAEIntVal implements EAExpr {
     /* Aux */
 
     @Override
-    public EAVType type(Gamma gamma) {
+    public EAVType type(GammaState gamma) {
         return EAVIntType.INT;
     }
 

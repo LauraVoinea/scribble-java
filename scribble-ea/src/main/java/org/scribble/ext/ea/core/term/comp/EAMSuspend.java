@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
@@ -28,7 +28,7 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
         if (!EAMApp.isInType(pre)) {  // Could be a rec type
             throw new RuntimeException("Expected in type, not: " + pre);
@@ -58,12 +58,12 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public EALInType infer(Gamma gamma) {
+    public EALInType infer(GammaState gamma) {
         EAVHandlersType ht;
         if (this.val instanceof EAEHandlers) {
             ht = (EAVHandlersType) this.val.type(gamma);
         } else if (this.val instanceof EAExpr) {
-            ht = (EAVHandlersType) gamma.map.get(this.val);
+            ht = (EAVHandlersType) gamma.gamma.map.get(this.val);
         } else {
             throw new RuntimeException("Shouldn't get here: " + gamma);
         }

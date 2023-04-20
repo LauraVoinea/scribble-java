@@ -6,7 +6,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.type.EATypeFactory;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
@@ -64,7 +64,7 @@ public class EAEHandlers implements EAExpr {
     }
 
     @Override
-    public EAVType type(Gamma gamma) {
+    public EAVType type(GammaState gamma) {
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         EAVType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
         for (Map.Entry<Op, EAHandler> e : this.Hs.entrySet()) {

@@ -10,6 +10,7 @@ import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.runtime.process.EAPConfig;
 import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.util.Pair;
@@ -44,8 +45,8 @@ public class EAPSystem {
     }
 
     // !!! TODO safety
-    //public void type(Gamma gamma, Delta delta, Delta delta1) {
     public void type(Gamma gamma, Delta delta) {
+        //public void type(GammaState gamma, Delta delta) {
         for (EAPConfig c : this.configs.values()) {
             LinkedHashSet<Pair<EASid, Role>> eps = c.getEndpoints();
             LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);

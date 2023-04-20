@@ -3,7 +3,7 @@ package org.scribble.ext.ea.core.term.comp;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.*;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.util.Pair;
@@ -29,7 +29,7 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(Gamma gamma, EALType pre) {
+    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
         Pair<EAVType, EALType> ttype = this.then.type(gamma, pre);
         Pair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
         ////subtype(ftype.S, pre);
@@ -43,7 +43,7 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public EALType infer(Gamma gamma) {
+    public EALType infer(GammaState gamma) {
         /*EAValType ftype = this.left.type(gamma);
         if (!(ftype instanceof EAFuncType)) {
             throw new RuntimeException("Couldn't infer type: " + ftype);

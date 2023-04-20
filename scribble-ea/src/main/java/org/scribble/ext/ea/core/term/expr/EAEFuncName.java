@@ -2,7 +2,7 @@ package org.scribble.ext.ea.core.term.expr;
 
 import org.scribble.core.type.name.Id;
 import org.scribble.ext.ea.core.term.EATerm;
-import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 
@@ -23,8 +23,8 @@ public class EAEFuncName extends Id implements EAExpr {
     }
 
     @Override
-    public EAVFuncType type(Gamma gamma) {
-        return gamma.fmap.get(this);
+    public EAVFuncType type(GammaState gamma) {
+        return gamma.gamma.fmap.get(this);
     }
 
     @Override
