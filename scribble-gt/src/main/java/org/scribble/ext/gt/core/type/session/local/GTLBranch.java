@@ -1,12 +1,15 @@
 package org.scribble.ext.gt.core.type.session.local;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
+import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTERecv;
+import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +20,7 @@ public class GTLBranch implements GTLType {
 
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
 
-    public final Role src;
+    public final Role src;  // Sender
     public final Map<Op, GTLType> cases;  // Pre: Unmodifiable
 
     protected GTLBranch(Role src, LinkedHashMap<Op, GTLType> cases) {
@@ -70,68 +73,43 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public Optional<GTLType> step(EAction a) {
-        /*if (a.subj.equals(this.src)) {
-           if (a.isSend()) {
-               SSend cast = (SSend) a;
-               if (cast.obj.equals(this.dst)
-                       && this.cases.keySet().contains(cast.mid)) {
-                   //return Optional.of(this.cases.get(cast.mid));
-                   LinkedHashMap<Op, GTLType> tmp = new LinkedHashMap<>(this.cases);
-                   return Optional.of(this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp));
-               }
-           }
-           return Optional.empty();
-        } else {
-            /*return done
-                ? Optional.of(this.fact.choice(this.src, this.dst, cs))
-                : Optional.empty();* /
-            Optional<LinkedHashMap<Op, GTLType>> nestedCases = stepCases(this.cases, a);
-            return nestedCases.map(x -> this.fact.choice(this.src, this.dst, x));
-        }*/
-        throw new RuntimeException("TODO");
+    public Optional<Pair<GTLType, Sigma>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+        if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)
+                || !sigma.map.get(a.peer).contains(a.toDynamicDual(self))) {
+            return Optional.empty();
+        }
+        GTERecv<DynamicActionKind> cast = (GTERecv<DynamicActionKind>) a;
+        if (!a.peer.equals(this.src) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
+                || cast.c != c || cast.n != n) {
+            return Optional.empty();
+        }
+        boolean[] found = {false};
+        List<GTESend<DynamicActionKind>> tmp = sigma.map.get(a.peer).stream().filter(x -> {
+            if (!found[0] && x.equals(a)) {
+                found[0] = true;
+                return true;
+            }
+            return false;
+        }).collect(Collectors.toList());
+        Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
+        map.put(this.src, tmp);
+        Sigma sigma1 = new Sigma(map);
+        return Optional.of(new Pair<>(this.cases.get(a.mid), sigma1));
     }
 
-    /*protected static Optional<LinkedHashMap<Op, GTLType>> stepCases(
-            Map<Op, GTLType> cases, SAction a) {
-        Set<Map.Entry<Op, GTLType>> es = cases.entrySet();
-        LinkedHashMap<Op, GTLType> cs = new LinkedHashMap<>();
-        boolean done = false;
-        for (Map.Entry<Op, GTLType> e : es) {
-            Op k = e.getKey();
-            GTLType v = e.getValue();
-            if (done) {
-                cs.put(k, v);
-            } else {
-                Optional<GTLType> step = e.getValue().step(a);
-                if (step.isPresent()) {
-                    cs.put(k, step.get());
-                    done = true;
-                } else {
-                    cs.put(k, v);
-                }
-            }
-        }
-        return done ? Optional.of(cs) : Optional.empty();
-    }*/
-
     @Override
-    public LinkedHashSet<EAction> getActs(EModelFactory mf, Set<Role> blocked) {
-        /*//Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
-        HashSet<Role> tmp = new HashSet<>(blocked);
-        tmp.add(this.src);
-        tmp.add(this.dst);
-        //this.cases.values().stream().flatMap(x -> x.getActs(tmp).stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-        LinkedHashSet<SAction> collect = new LinkedHashSet<>();
-        for (Map.Entry<Op, GTLType> e : this.cases.entrySet()) {
-            if (!blocked.contains(this.src)) {
-                SSend a = mf.SSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
-                collect.add(a);
-            }
-            collect.addAll(e.getValue().getActs(mf, tmp));
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+        Optional<GTESend<DynamicActionKind>> first = sigma.map.get(this.src)
+                .stream().filter(x -> x.c == c && x.n == n).findFirst();
+        if (first.isPresent()) {
+            GTESend<DynamicActionKind> m = first.get();
+            return Stream.of(m.toDynamicDual(this.src))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else {
+            return new LinkedHashSet<>();
         }
-        return collect;*/
-        throw new RuntimeException("TODO");
     }
 
     /* Aux */

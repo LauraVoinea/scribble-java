@@ -1,10 +1,13 @@
 package org.scribble.ext.gt.core.type.session.local;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -45,13 +48,15 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public Optional<GTLType> step(EAction a) {
-        throw new RuntimeException("TODO: " + this);
+    public Optional<Pair<GTLType, Sigma>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+        return unfold().step(self, a, sigma, c, n);
     }
 
     @Override
-    public LinkedHashSet<EAction> getActs(EModelFactory mf, Set<Role> blocked) {
-        return this.body.getActs(mf, blocked);
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+        return unfold().getActs(mf, self, blocked, sigma, c, n);
     }
 
     /* Aux */

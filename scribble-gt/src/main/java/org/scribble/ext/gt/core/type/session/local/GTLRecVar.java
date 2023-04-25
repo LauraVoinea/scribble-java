@@ -1,9 +1,12 @@
 package org.scribble.ext.gt.core.type.session.local;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.util.Pair;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -31,13 +34,15 @@ public class GTLRecVar implements GTLType {
     }
 
     @Override
-    public Optional<GTLType> step(EAction a) {
+    public Optional<Pair<GTLType, Sigma>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
         return Optional.empty();
     }
 
     @Override
-    public LinkedHashSet<EAction> getActs(EModelFactory mf, Set<Role> blocked) {
-        return new LinkedHashSet<>();
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+        throw new RuntimeException("Unsupported operation: " + this);
     }
 
     /* Aux */

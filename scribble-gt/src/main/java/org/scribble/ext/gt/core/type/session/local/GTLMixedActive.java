@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.local;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
@@ -9,6 +10,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeFactory;
@@ -63,96 +65,15 @@ public class GTLMixedActive implements GTLType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<GTLType> step(EAction a) {
-        /*LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
-        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-        Optional<Pair<Theta, GTGType>> optl = this.left.step(theta, a);
-        Optional<Pair<Theta, GTGType>> optr = this.right.step(theta, a);
-        if (optl.isPresent() && optr.isPresent()) {
-            // [RTAct]
-            // !!! CHECKME: check something re. this.p/q and a ?
-            return Optional.of(new Pair<>(
-                    theta,
-                    this.fact.activeMixedChoice(this.c, this.n,
-                            optl.get().right,
-                            optr.get().right,
-                            this.other, this.observer, cl, cr)));
-        } else if (optl.isPresent()) {
-            if (optr.isPresent() || this.committedRight.contains(a.subj)) {  // First cond is redundant
-                return Optional.empty();
-            }
-            Pair<Theta, GTGType> get = optl.get();
-            if (a.isReceive()) {
-                if (this.committedLeft.contains(a.obj) || a.subj.equals(this.observer)) {  // XXX this.p => q ?
-                    // [LRcv1]
-                    cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
-                } else {
-                    // [LRcv2]
-                }
-                return Optional.of(new Pair<>(
-                        theta,
-                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
-            } else if (a.isSend()) {  // [LSnd]
-                return Optional.of(new Pair<>(
-                        theta,
-                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
-
-            } else if (a instanceof GTSNewTimeout) {  // Hack
-                return Optional.of(new Pair<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.right, this.right, this.other, this.observer, cl, cr)));
-
-            } else {
-                throw new RuntimeException("TODO: " + a);
-            }
-        } else if (optr.isPresent()) {
-            Pair<Theta, GTGType> get = optr.get();  // May be empty for nested mixed choices in the "stuck" side
-            if (a.isSend()) {
-                // [RSnd]
-                if (optl.isPresent() || this.committedLeft.contains(a.subj)) {  // First cond is redundant
-                    return Optional.empty();
-                }
-                cr.add(a.subj);
-                return Optional.of(new Pair<>(
-                        theta,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
-            } else if (a.isReceive()) {
-                // [RRcv]
-                if (optl.isPresent()) {  // Redundant in this code
-                    return Optional.empty();
-                }
-                //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
-                cr.add(a.subj);
-                return Optional.of(new Pair<>(
-                        theta,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
-
-            } else if (a instanceof GTSNewTimeout) {  // Hack
-                return Optional.of(new Pair<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.right, this.other, this.observer, cl, cr)));
-
-            } else {
-                throw new RuntimeException("TODO: " + a);
-            }
-        } else {
-            return Optional.empty();
-        }*/
-        throw new RuntimeException("TODO");
+    public Optional<Pair<GTLType, Sigma>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+        throw new RuntimeException("TODO: " + this);
     }
 
     @Override
-    public LinkedHashSet<EAction> getActs(
-            EModelFactory mf, Set<Role> blocked) {  // XXX outer still OK to reduce if inner is fully ended?
-        /*Set<Role> bLeft = Stream.concat(blocked.stream(),
-                this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction> aLeft = this.left.getActs(mf, theta, bLeft);
-        Set<Role> bRight = Stream.concat(blocked.stream(),
-                this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction> aRight = this.right.getActs(mf, theta, bRight);
-        aLeft.addAll(aRight);
-        return aLeft;*/
-        throw new RuntimeException("TODO");
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
+        throw new RuntimeException("TODO: " + this);
     }
 
     /* Aux */

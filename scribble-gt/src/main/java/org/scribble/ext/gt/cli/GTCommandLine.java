@@ -186,14 +186,23 @@ public class GTCommandLine extends CommandLine {
         if (!as.isEmpty()) {
             System.out.println("Actions: " + as.entrySet().stream().map(
                     x -> x.getKey() + "=" + x.getValue()).collect(Collectors.joining(", ")));
-            System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
-            String read = KB.nextLine();
-            SAction<DynamicActionKind> a = null;
-            try {
-                a = as.get(Integer.parseInt(read));
-            } catch (NumberFormatException x) {
+            int enter = -1;
+            while (enter < 0) {
+                String read = "";
+                while (read.isEmpty()) {
+                    System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
+                    read = KB.nextLine();
+                }
+                try {
+                    enter = Integer.parseInt(read);
+                } catch (NumberFormatException x) {
+                    System.exit(0);
+                }
+            }
+            if (enter == 0) {
                 System.exit(0);
             }
+            SAction<DynamicActionKind> a = as.get(enter);
 
             Triple<Theta, GTGType, String> p = g.step(theta, a).get();  // a in as so step is non-empty
             System.out.println(indent + p.right);
@@ -204,6 +213,7 @@ public class GTCommandLine extends CommandLine {
                 bar(core, indent + "    ", p.left, p.mid, count++);
             }
         }
+
     }
 
     // top level depth = 0

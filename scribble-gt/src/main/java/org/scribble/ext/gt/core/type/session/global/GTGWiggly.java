@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.type.session.global;
 
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.MActionBase;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.Op;
@@ -62,7 +63,7 @@ public class GTGWiggly implements GTGType {
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src)) {
-            LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
+            //LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             return this.cases.get(this.op).project(rs, r);
         } else if (r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
@@ -92,7 +93,11 @@ public class GTGWiggly implements GTGType {
                     : new LinkedList<>();
 
             System.err.println("[WARNING] TODO local actions");
-            as.add(0, null); // !!! HERE HERE FIXME new GTESend<>();
+            GTESend<DynamicActionKind> m =
+                    new GTESend<>(MActionBase.DYNAMIC_ID, null, this.dst,
+                            //this.op, Payload.EMPTY_PAYLOAD, CCC, NNN);  // HERE HERE FIXME mf/ef?
+                            this.op, Payload.EMPTY_PAYLOAD, -1, 0);  // HERE HERE FIXME mf/ef?
+            as.add(0, m);
 
             tmp.put(this.src, as);
             sigma_k = new Sigma(tmp);

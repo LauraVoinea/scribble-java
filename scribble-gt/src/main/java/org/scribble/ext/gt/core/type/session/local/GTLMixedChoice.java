@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.local;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.SModelFactory;
@@ -7,9 +8,11 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,44 +60,15 @@ public class GTLMixedChoice implements GTLType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<GTLType> step(EAction a) {
-        /*LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
-        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-        Optional<GTLType> opt = this.left.step(a);
-        if (opt.isPresent()) {
-            GTLType get = opt.get();
-            if (a.isReceive()) {
-                cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
-            } else if (!a.isSend()) {
-                throw new RuntimeException("TODO: " + a);
-            }
-            return Optional.of(this.fact.mixedChoice(get, this.right, cl, cr));
-        } else {
-            GTLType get = this.right.step(a).get();  // Pre: a in getActs, so non-empty
-            if (a.isSend()) {
-                cr.add(a.subj);
-            } else if (a.isReceive()) {
-                cl.remove(a.subj);
-                cr.add(a.subj);
-            } else {
-                throw new RuntimeException("TODO: " + a);
-            }
-            return Optional.of(this.fact.mixedChoice(this.left, get, cl, cr));
-        }*/
-        throw new RuntimeException("TODO");
+    public Optional<Pair<GTLType, Sigma>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+        throw new RuntimeException("TODO: " + this);
     }
 
     @Override
-    public LinkedHashSet<EAction> getActs(EModelFactory mf, Set<Role> blocked) {
-        /*Set<Role> bLeft = Stream.concat(blocked.stream(),
-                this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction> aLeft = this.left.getActs(mf, bLeft);
-        Set<Role> bRight = Stream.concat(blocked.stream(),
-                this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction> aRight = this.right.getActs(mf, bRight);
-        aLeft.addAll(aRight);
-        return aLeft;*/
-        throw new RuntimeException("TODO");
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+        throw new RuntimeException("TODO: " + this);
     }
 
     /* Aux */

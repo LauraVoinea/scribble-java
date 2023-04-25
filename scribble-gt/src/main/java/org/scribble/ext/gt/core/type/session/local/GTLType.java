@@ -1,10 +1,14 @@
 package org.scribble.ext.gt.core.type.session.local;
 
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
+import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -18,11 +22,14 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int REC_HASH = 9887;
     int RECVAR_HASH = 9901;
 
+    int c_TOP = -1;
+
     @Override
     default GTLType unfold() {
         return unfoldContext(Collections.emptyMap());
     }
 
+    // Substitution inlined into this op -- probably better to separate unf/subs
     GTLType unfoldContext(Map<RecVar, GTLType> env);
 
     // this merge g  -- should be symmetric
@@ -30,12 +37,18 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     //return this.equals(t) ? Optional.of(this) : Optional.empty();
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
-    // a is deterministic (including "nested" steps)
-    Optional<GTLType> step(EAction a);
-
-    default LinkedHashSet<EAction> getActs(EModelFactory mf) {
-        return getActs(mf, Collections.emptySet());
+    // FIXME: Sigma may be local or remote depending on action
+    default Optional<Pair<GTLType, Sigma>> step(Role self, EAction<DynamicActionKind> a, Sigma sigma) {
+        return step(self, a, sigma, c_TOP, 0);  // n=0 constant
     }
 
-    LinkedHashSet<EAction> getActs(EModelFactory mf, Set<Role> blocked);
+    // GTESend, GTERecv
+    // a is deterministic (including "nested" steps)
+    Optional<Pair<GTLType, Sigma>> step(Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n);
+
+    default LinkedHashSet<EAction<DynamicActionKind>> getActs(EModelFactory mf, Role self, Sigma sigma, int c, int n) {
+        return getActs(mf, self, Collections.emptySet(), sigma, c, n);
+    }
+
+    LinkedHashSet<EAction<DynamicActionKind>> getActs(EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n);
 }

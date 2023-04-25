@@ -292,11 +292,12 @@ global protocol Proto1(role A, role B, role C) {
 }
 //*/
 
-//*
+
+/*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;
-        3() from A to C;
+        3() from A to C;  // HERE HERE cannot merge C after LHS finishes C?A -- problem is C is not committed
     } () or A->B () {
         2() from B to A;
         4() from A to C;
@@ -304,7 +305,41 @@ global protocol Proto1(role A, role B, role C) {
 }
 //*/
 
+/*
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
 
+        5() from B to A;
+        6() from B to C;  // OK -- prev line needed just to commit A (this line enough to merge C)
+    } () or A->B () {
+        2() from B to A;
+
+        4() from B to C;
+   }
+}
+//*/
+
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        //3() from A to C;
+
+        5() from B to A;
+        6() from A to C;  // OK with prev line, otherwise XXX
+        HERE HERE enforce all roles should have committing actions syntactically
+        ...first redo global WF as well-set (static initial only) and projectible (implying full partic -- run-time invar)
+
+    } () or A->B () {
+        2() from B to A;
+        4() from A to C;
+    }
+}
+//*/
+//
+//(A~>B:1{1.end} [] |>1,1:A->B [] B->A:2{2.A->C{4.end}})
+//[LRcv1]
+//(end [B] |>1,1:A->B [] B->A:2{2.A->C{4.end}})
 
 
 /*
