@@ -10,9 +10,13 @@ import java.util.Set;
 // "pure" exprs (no I/O)
 public interface EAExpr extends EATerm {
 
+    //HERE HERE make type/eval Optional/Either, deprecate canEval
+    //...build scrib zip and make scala/kotlin?
+
     EAVType type(GammaState gamma);
 
-    EAVType infer();  // not intended to work for single var -- for use on ground vals at config level
+    // var/funcname throw RuntimeException
+    EAVType infer();  // for use on ground vals at config level
 
     default boolean canEval() {
         return false;

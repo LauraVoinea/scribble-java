@@ -10,7 +10,6 @@ import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.runtime.process.EAPConfig;
 import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.util.Pair;
@@ -18,18 +17,16 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// TODO rename config(s)
 // cf. T-Session and (nested) T-Par (missing)
 // CHECKME: equiv to normal form with all \nu s at top?  sufficiently general?
 public class EAPSystem {
 
-    @NotNull
-    public final Delta annots;
-    @NotNull
-    public final LinkedHashMap<EAPid, EAPConfig> configs;
+    @NotNull public final Delta annots;
 
-    @NotNull
-    protected final LTypeFactory lf;
+    @NotNull public final Map<EAPid, EAPConfig> configs;
+    @NotNull protected final LinkedHashMap<EAPid, EAPConfig> _configs;
+
+    @NotNull protected final LTypeFactory lf;
 
     public EAPSystem(@NotNull LTypeFactory lf,
                      @NotNull Delta annots,
@@ -39,12 +36,13 @@ public class EAPSystem {
         }
         this.lf = lf;
         this.annots = annots;
-        this.configs = configs.entrySet().stream().collect(
+        this._configs = configs.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> null, LinkedHashMap::new));
+        this.configs = Collections.unmodifiableMap(this._configs);
     }
 
-    // !!! TODO safety
+    // !!! TODO "safety property"
     public void type(Gamma gamma, Delta delta) {
         //public void type(GammaState gamma, Delta delta) {
         for (EAPConfig c : this.configs.values()) {
@@ -150,9 +148,9 @@ public class EAPSystem {
         }
     }
 
-    public Map<EAPid, EAPConfig> getConfigs() {
+    /*public Map<EAPid, EAPConfig> getConfigs() {
         return Collections.unmodifiableMap(this.configs);
-    }
+    }*/
 
     @Override
     public String toString() {

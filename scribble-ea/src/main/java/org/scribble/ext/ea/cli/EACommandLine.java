@@ -96,8 +96,6 @@ public class EACommandLine extends CommandLine {
         System.out.println("\n---\nex2");
         ex2(lf, pf, rf, tf);
 
-        //HERE HERE continue testing suspend / return state typing
-
         System.out.println("\n---\nex4");
         ex4(lf, pf, rf, tf);
         System.out.println("\n---\nex5");
@@ -138,6 +136,8 @@ public class EACommandLine extends CommandLine {
         /* HERE HERE
         // merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
+        - ...coherence (etc.) -- cf. EAPSystem.annots
+        - ...Optional (cf. canX)
         - ...wild S' in suspend typing
         - ...need (self) handler firing when state satis some condition -- !!! how done in standard actors?
         - ...evolving state types? but tricky if state is config-wide (shared by multiple sessions)
