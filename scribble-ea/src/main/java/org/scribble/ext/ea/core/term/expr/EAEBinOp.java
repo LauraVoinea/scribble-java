@@ -1,13 +1,18 @@
 package org.scribble.ext.ea.core.term.expr;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVBoolType;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,13 +57,19 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
-    public EAVType type(GammaState gamma) {
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         switch (this.op) {
             case PLUS: {
-                EAVType ltype = this.left.type(gamma);
+                //EAVType ltype = this.left.type(gamma);
+                Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
+                if (t_l.isLeft()) {
+                    return Either.left(t_l.getLeft().get());
+                }
+                Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
+                EAVType ltype = p_l.left;
                 if (!(ltype.equals(EAVIntType.INT))) {
-                    throw new RuntimeException("Expected Int type, not: "
-                            + this.left + " : " + ltype + "\n" + gamma);
+                    //throw new RuntimeException("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma);
+                    return Either.left(new Exception("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma));
                 }
         /*EAFuncType ftype = (EAFuncType) ltype;
         /*if (!ftype.S.equals(pre)) {
@@ -66,25 +77,49 @@ public class EAEBinOp implements EAExpr {
                     + "\tfound=" + ftype.S + ", required=" + pre);
         }* /
         subtype(ftype.S, pre);*/
-                EAVType rtype = this.right.type(gamma);
-                if (!(rtype.equals(EAVIntType.INT))) {
-                    throw new RuntimeException("Incompatible arg type:\n"
-                            + "\tfound=" + rtype + ", required=" + EAVIntType.INT);
+                //EAVType rtype = this.right.type(gamma);
+                Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
+                if (t_r.isLeft()) {
+                    return Either.left(t_r.getLeft().get());
                 }
-                return EAVIntType.INT;
+                Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
+                EAVType rtype = p_r.left;
+                if (!(rtype.equals(EAVIntType.INT))) {
+                    //throw new RuntimeException("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT);
+                    return Either.left(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT));
+                }
+                //return EAVIntType.INT;
+                return Either.right(new Pair<>(
+                        EAVIntType.INT,
+                        new Tree<>("[..binop..]", List.of(p_l.right, p_r.right))));
             }
             case LT: {
-                EAVType ltype = this.left.type(gamma);
+                //EAVType ltype = this.left.type(gamma);
+                Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.right.type(gamma);
+                if (t_l.isLeft()) {
+                    return Either.left(t_l.getLeft().get());
+                }
+                Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
+                EAVType ltype = p_l.left;
                 if (!(ltype.equals(EAVIntType.INT))) {
-                    throw new RuntimeException("Expected Int type, not: "
-                            + this.left + " : " + ltype + "\n" + gamma);
+                    //throw new RuntimeException("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma);
+                    return Either.left(new Exception("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma));
                 }
-                EAVType rtype = this.right.type(gamma);
+                //EAVType rtype = this.right.type(gamma);
+                Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
+                if (t_r.isLeft()) {
+                    return Either.left(t_r.getLeft().get());
+                }
+                Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
+                EAVType rtype = p_r.left;
                 if (!(rtype.equals(EAVIntType.INT))) {
-                    throw new RuntimeException("Incompatible arg type:\n"
-                            + "\tfound=" + rtype + ", required=" + EAVIntType.INT);
+                    //throw new RuntimeException("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT);
+                    return Either.left(new Exception(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT)));
                 }
-                return EAVBoolType.BOOL;
+                //return EAVBoolType.BOOL;
+                return Either.right(new Pair<>(
+                        EAVBoolType.BOOL,
+                        new Tree<>("[..binop..]", List.of(p_l.right, p_r.right))));
             }
             default:
                 throw new RuntimeException("TODO: " + this);

@@ -3,6 +3,9 @@ package org.scribble.ext.ea.core.term.expr;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +16,7 @@ public interface EAExpr extends EATerm {
     //HERE HERE make type/eval Optional/Either, deprecate canEval
     //...build scrib zip and make scala/kotlin?
 
-    EAVType type(GammaState gamma);
+    Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma);
 
     // var/funcname throw RuntimeException
     EAVType infer();  // for use on ground vals at config level

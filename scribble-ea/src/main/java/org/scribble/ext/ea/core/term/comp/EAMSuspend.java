@@ -9,8 +9,11 @@ import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,33 +31,54 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
         if (!EAMApp.isInType(pre)) {  // Could be a rec type
-            throw new RuntimeException("Expected in type, not: " + pre);
+            //throw new RuntimeException("Expected in type, not: " + pre);
+            return Either.left(new Exception("Expected in type, not: " + pre));
         }
-        EAVType t = this.val.type(gamma);
+        //EAVType t = this.val.type(gamma);
+        Either<Exception, Pair<EAVType, Tree<String>>> r = this.val.type(gamma);
+        if (r.isLeft()) {
+            return Either.left(r.getLeft().get());
+        }
+        Pair<EAVType, Tree<String>> p = r.getRight().get();
+        EAVType t = p.left;
         if (!(t instanceof EAVHandlersType)) {
-            throw new RuntimeException("Expected handlers type, not: " + this);
+            //throw new RuntimeException("Expected handlers type, not: " + this);
+            return Either.left(new Exception("Expected handlers type, not: " + this));
         }
         EAVHandlersType cast = (EAVHandlersType) t;
         if (!cast.T.equals(gamma.svarType)) {
-            throw new RuntimeException("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType);
+            //throw new RuntimeException("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType);
+            return Either.left(new Exception("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType));
         }
         /*if (!(cast.S.equals(pre))) {
             throw new RuntimeException("Incompatible in type: " + pre + ", " + cast.S);
         }*/
-        EALType.subtype(cast.S, pre);
+        EALType.subtype(cast.S, pre);  // FIXME use Either
 
-        EAVType t_s = this.sval.type(gamma);
+        //EAVType t_s = this.sval.type(gamma);
+        Either<Exception, Pair<EAVType, Tree<String>>> r_s = this.sval.type(gamma);
+        if (r_s.isLeft()) {
+            return Either.left(r_s.getLeft().get());
+        }
+        Pair<EAVType, Tree<String>> p_s = r_s.getRight().get();
+        EAVType t_s = p_s.left;
         if (!t_s.equals(gamma.svarType)) {
-            throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + t_s);
+            //throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + t_s);
+            return Either.left(new Exception("Expected state type " + gamma.svarType + ", not: " + t_s));
         }
 
         EATypeFactory tf = EATypeFactory.factory;
 
-        return new Pair<>(tf.val.wild(), tf.local.end());  // A as wild -- TODO S' wild
-        //return new Pair<>(gamma.svarType, tf.local.end());  // XXX suspend svar is side effect, not result
+        //return new Pair<>(tf.val.wild(), tf.local.end());  // A as wild -- TODO S' wild
+        ////return new Pair<>(gamma.svarType, tf.local.end());  // XXX suspend svar is side effect, not result
+        return Either.right(new Pair<>(
+                new Pair<>(gamma.svarType, tf.local.end()),
+                new Tree<>("[T-Suspend]", List.of(p.right, p_s.right))
+        ));
     }
 
     @Override

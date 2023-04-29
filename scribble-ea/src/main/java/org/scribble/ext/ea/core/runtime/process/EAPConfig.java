@@ -4,11 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.runtime.*;
-import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.EAHandler;
+import org.scribble.ext.ea.core.term.EAName;
+import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.term.comp.*;
+import org.scribble.ext.ea.core.term.expr.EAHandler;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
@@ -16,6 +17,8 @@ import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -273,9 +276,15 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
                 GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), //gamma.svar,
                         gamma.svarType);
-                Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
-                //if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
-                //if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
+                //Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
+                Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = rhs.expr.type(gamma1, cast.cases.get(op).right);
+                if (t.isLeft()) {
+                    throw new RuntimeException(t.getLeft().get());
+                }
+                Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+                Pair<EAVType, EALType> res = pp.left;
+                ////if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
+                ////if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
                 Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
                 if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
                     throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);

@@ -9,6 +9,8 @@ import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.Collections;
@@ -82,9 +84,15 @@ public class EATActive implements EAThread {
             throw new RuntimeException("Unknown endpoint: "
                     + endpointToString(this.sid, this.role));
         }
-        Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
-        //if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
-        //if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
+        //Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.expr.type(gamma, pre);
+        if (t.isLeft()) {
+            throw new RuntimeException(t.getLeft().get());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+        Pair<EAVType, EALType> res = pp.left;
+        ////if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
+        ////if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
         Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
         if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
             throw new RuntimeException("Badly typed: " + this + " : "

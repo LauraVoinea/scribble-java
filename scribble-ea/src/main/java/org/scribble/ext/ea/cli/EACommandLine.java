@@ -31,6 +31,8 @@ import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.*;
 import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
 import org.scribble.ext.ea.parser.antlr.EACalculusParser;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
@@ -96,7 +98,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("\n---\nex2");
         ex2(lf, pf, rf, tf);
 
-        System.out.println("\n---\nex4");
+        /*System.out.println("\n---\nex4");
         ex4(lf, pf, rf, tf);
         System.out.println("\n---\nex5");
         ex5(lf, pf, rf, tf);
@@ -109,7 +111,7 @@ public class EACommandLine extends CommandLine {
         ex8(lf, pf, rf, tf);
 
         System.out.println("\n---\nex10");
-        ex10(lf, pf, rf, tf);
+        ex10(lf, pf, rf, tf);*/
     }
 
     private static void negtests() {
@@ -1741,7 +1743,14 @@ public class EACommandLine extends CommandLine {
         System.out.println(cA);
         System.out.println(cB);
 
-        System.out.println("Typing eA: " + out1 + " ,, " + sendAB.type(new GammaState(EAVUnitType.UNIT), out1));
+        ,,,HERE HERE factor out type checking procedure
+
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> typingA = sendAB.type(new GammaState(EAVUnitType.UNIT), out1);
+        if (typingA.isLeft()) {
+            throw new RuntimeException(typingA.getLeft().get());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> ppA = typingA.getRight().get();
+        System.out.println("Typing eA: " + out1 + " ,, " + ppA.left + "\n" + ppA.right);
 
         LinkedHashMap<Pair<EASid, Role>, EALType> env = new LinkedHashMap<>();
         env.put(new Pair<>(s, A), out1);
@@ -1751,7 +1760,13 @@ public class EACommandLine extends CommandLine {
         LinkedHashMap<EAName, EAVType> map = new LinkedHashMap<>();
         map.put(x, tf.val.unit());
         GammaState gamma = new GammaState(map, new LinkedHashMap<>(), EAVUnitType.UNIT);
-        System.out.println("Typing hB: " + hsB.type(gamma));
+
+        Either<Exception, Pair<EAVType, Tree<String>>> typingB = hsB.type(gamma);
+        if (typingB.isLeft()) {
+            throw new RuntimeException(typingB.getLeft().get());
+        }
+        Pair<EAVType, Tree<String>> ppB = typingB.getRight().get();
+        System.out.println("Typing hB: " + ppB.left + "\n" + ppB.right);
 
         env = new LinkedHashMap<>();
         env.put(new Pair<>(s, B), in1);

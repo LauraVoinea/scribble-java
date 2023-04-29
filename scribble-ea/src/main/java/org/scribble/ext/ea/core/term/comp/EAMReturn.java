@@ -12,8 +12,11 @@ import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,14 +31,19 @@ public class EAMReturn implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
         EALEndType end = EATypeFactory.factory.local.end();
         /*if (!pre.equals(end)) {  // !!! return is value/term typing wrapper, not (session) control flow
             throw new RuntimeException("Expected end type: " + pre);
         }*/
-        EAVType t = this.val.type(gamma);
-        //return new Pair<>(t, end);
-        return new Pair<>(t, pre);
+        //EAVType t = this.val.type(gamma);
+        Either<Exception, Pair<EAVType, Tree<String>>> t = this.val.type(gamma);
+        ////return new Pair<>(t, end);
+        //return new Pair<>(t, pre);
+        return t.mapRight(x -> new Pair<>(
+                new Pair<>(x.left, pre),
+                new Tree<>("[T-Return]", List.of(x.right))));
     }
 
     @Override

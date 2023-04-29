@@ -3,11 +3,12 @@ package org.scribble.ext.ea.core.term.comp;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
@@ -15,9 +16,12 @@ import org.scribble.ext.ea.core.type.session.local.EALOutType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,32 +41,53 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
         if (!(pre instanceof EALOutType)) {
-            throw new RuntimeException("Expected out type: " + pre + ", " + this);
+            //throw new RuntimeException("Expected out type: " + pre + ", " + this);
+            return Either.left(new Exception("Expected out type: " + pre + ", " + this));
         }
         EALOutType cast = (EALOutType) pre;
         // XXX FIXME self comm
         if (!cast.peer.equals(this.dst)) {
-            throw new RuntimeException("Incompatible peer: " + pre + ", " + this);
+            //throw new RuntimeException("Incompatible peer: " + pre + ", " + this);
+            return Either.left(new Exception("Incompatible peer: " + pre + ", " + this));
         }
         if (!cast.cases.containsKey(this.op)) {
-            throw new RuntimeException("Invalid op: " + pre + ", " + this);
+            //throw new RuntimeException("Invalid op: " + pre + ", " + this);
+            return Either.left(new Exception("Invalid op: " + pre + ", " + this));
         }
-        EAVType valType = this.val.type(gamma);
+        //EAVType valType = this.val.type(gamma);
+        Either<Exception, Pair<EAVType, Tree<String>>> t = this.val.type(gamma);
+        if (t.isLeft()) {
+            return Either.left(t.getLeft().get());
+        }
+        Pair<EAVType, Tree<String>> pp = t.getRight().get();
+        EAVType valType = pp.left;
         Pair<EAVType, EALType> p = cast.cases.get(this.op);
         if (!valType.equals(p.left)) {
-            throw new RuntimeException("Incompatible value type: " + valType + ", " + p.left);
+            //throw new RuntimeException("Incompatible value type: " + valType + ", " + p.left);
+            return Either.left(new Exception("Incompatible value type: " + valType + ", " + p.left));
         }
-        return new Pair<>(EATypeFactory.factory.val.unit(), p.right);
+        //return new Pair<>(EATypeFactory.factory.val.unit(), p.right);
+        return Either.right(new Pair<>(
+                new Pair<>(EATypeFactory.factory.val.unit(), p.right),
+                new Tree<>("[T-T-Send]", List.of(pp.right))
+        ));
     }
 
     @Override
     public EALOutType infer(GammaState gamma) {
-        EAVType t = this.val.type(gamma);
+        //EAVType t = this.val.type(gamma);
+        Either<Exception, Pair<EAVType, Tree<String>>> r = this.val.type(gamma);
+        if (r.isLeft()) {
+            throw new RuntimeException(r.getLeft().get());  // FIXME infer Either
+        }
+        Pair<EAVType, Tree<String>> p = r.getRight().get();
+        EAVType t = p.left;
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         cases.put(this.op, new Pair<>(t, EALEndType.END));  // !!! (potential) placeholder END
-        return EALTypeFactory.factory.out(this.dst, cases);
+        return EALTypeFactory.factory.out(this.dst, cases);  // ...p.right discarded
     }
 
     @Override

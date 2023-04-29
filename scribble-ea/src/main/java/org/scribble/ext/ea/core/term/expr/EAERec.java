@@ -9,6 +9,8 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.HashMap;
@@ -54,19 +56,26 @@ public class EAERec implements EAExpr {
     }
 
     @Override
-    public EAVType type(GammaState gamma) {
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, this.varType);
         LinkedHashMap<EAEFuncName, EAVFuncType> ftmp = new LinkedHashMap<>(gamma.gamma.fmap);
         EAVFuncType ftype = EATypeFactory.factory.val.func(this.varType, this.S, this.T, this.B);
         ftmp.put(this.f, ftype);
         GammaState gamma1 = new GammaState(tmp, ftmp, gamma.svarType);
-        Pair<EAVType, EALType> res = this.body.type(gamma1, this.S);
+        //Pair<EAVType, EALType> res = this.body.type(gamma1, this.S);
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> res1 = this.body.type(gamma1, this.S);
+        if (res1.isLeft()) {
+            return Either.left(res1.getLeft().get());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight().get();
+        Pair<EAVType, EALType> res = pp.left;
         Pair<EAVType, EALType> target = new Pair<>(this.B, this.S);
         if (!res.equals(target)) {
-            throw new RuntimeException("Typing error:\n\t" + res + "\n\t" + target);
+            //throw new RuntimeException("Typing error:\n\t" + res + "\n\t" + target);
+            return Either.left(new Exception("Typing error:\n\t" + res + "\n\t" + target));
         }
-        return ftype;
+        return Either.right(new Pair<>(ftype, new Tree<>("[TV-Rec]")));  // ...discarded pp.right
     }
 
 

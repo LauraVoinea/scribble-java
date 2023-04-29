@@ -1,21 +1,22 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.*;
+import org.scribble.ext.ea.core.term.EAName;
+import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
-import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
+import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EAMLet implements EAComp {
 
@@ -39,16 +40,26 @@ public class EAMLet implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
-        Pair<EAVType, EALType> p1 = this.init.type(gamma, pre);
+    //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
+        //Pair<EAVType, EALType> p1 = this.init.type(gamma, pre);
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.init.type(gamma, pre);
+        if (t.isLeft()) {
+            return t;
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+        Pair<EAVType, EALType> p1 = pp.left;
         if (!this.varType.equals(p1.left)) {
-            throw new RuntimeException("Bad type annotation: "
-                    + this.varType + ", " + p1.left);
+            //throw new RuntimeException("Bad type annotation: " + this.varType + ", " + p1.left);
+            return Either.left(new Exception("Bad type annotation: " + this.varType + ", " + p1.left));
         }
         LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, p1.left);
         GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), gamma.svarType);
-        return this.body.type(gamma1, p1.right);
+        return this.body.type(gamma1, p1.right).mapRight(x -> new Pair<>(
+                x.left,
+                new Tree<>("[T-Let]", List.of(pp.right, x.right))
+        ));
     }
 
     @Override

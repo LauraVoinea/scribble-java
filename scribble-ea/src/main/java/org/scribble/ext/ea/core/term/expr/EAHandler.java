@@ -9,6 +9,8 @@ import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -43,7 +45,8 @@ public class EAHandler {
         this.svarType = svarType;
     }
 
-    public void type(GammaState gamma) {
+    //public void type(GammaState gamma) {
+    public Either<Exception, Void> type(GammaState gamma) {
 
         if (!this.svarType.equals(gamma.svarType)) {
             throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + this.svarType);
@@ -60,13 +63,20 @@ public class EAHandler {
         //EALType inferred = this.expr.infer(gamma1);  // !!! FIXME re. [EV-Handler], S_i
         EALType inferred = this.pre;
 
-        Pair<EAVType, EALType> res = this.expr.type(gamma1, inferred);
-        //if (!u.isPresent() || !u.get().equals(EAVUnitType.UNIT) || !res.right.equals(EALEndType.END)) {
+        //Pair<EAVType, EALType> res = this.expr.type(gamma1, inferred);
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> res1 = this.expr.type(gamma1, inferred);
+        if (res1.isLeft()) {
+            return Either.left(res1.getLeft().get());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight().get();
+        Pair<EAVType, EALType> res = pp.left;
+        ////if (!u.isPresent() || !u.get().equals(EAVUnitType.UNIT) || !res.right.equals(EALEndType.END)) {
         Optional<EAVType> u = EAVType.unify(res.left, this.svarType);
         if (!u.isPresent() || !u.get().equals(this.svarType) || !res.right.equals(EALEndType.END)) {
-            throw new RuntimeException("Type error: " + gamma1 + " | "
-                    + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
+            //throw new RuntimeException("Type error: " + gamma1 + " | " + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right);
+            return Either.left(new Exception("Type error: " + gamma1 + " | " + inferred + " |>" + this.expr + ":" + res.left + " <|" + res.right));
         }
+        return Either.right(null);  // ...discarded pp.right
     }
 
     /* Aux */

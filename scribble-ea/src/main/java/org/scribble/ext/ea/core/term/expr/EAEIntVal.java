@@ -4,6 +4,9 @@ import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -32,8 +35,8 @@ public class EAEIntVal implements EAExpr {
     /* Aux */
 
     @Override
-    public EAVType type(GammaState gamma) {
-        return EAVIntType.INT;
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
+        return Either.right(new Pair<>(EAVIntType.INT, new Tree<>("[TV-Unit]")));
     }
 
     @Override

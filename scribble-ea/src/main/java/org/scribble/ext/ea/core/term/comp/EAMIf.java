@@ -6,12 +6,11 @@ import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class EAMIf implements EAComp {
 
@@ -29,17 +28,37 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
-        Pair<EAVType, EALType> ttype = this.then.type(gamma, pre);
-        Pair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
-        ////subtype(ftype.S, pre);
-        //if (!ttype.equals(etype)) {
+    //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
+        //Pair<EAVType, EALType> ttype = this.then.type(gamma, pre);
+        //Pair<EAVType, EALType> etype = this.elsee.type(gamma, pre);
+
+        // FIXME: type cond
+
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t_l = this.then.type(gamma, pre);
+        if (t_l.isLeft()) {
+            return Either.left(t_l.getLeft().get());
+        }
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t_r = this.elsee.type(gamma, pre);
+        if (t_r.isLeft()) {
+            return Either.left(t_r.getLeft().get());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp_l = t_l.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp_r = t_r.getRight().get();
+        Pair<EAVType, EALType> ttype = pp_l.left;
+        Pair<EAVType, EALType> etype = pp_r.left;
+        //////subtype(ftype.S, pre);
+        ////if (!ttype.equals(etype)) {
         Optional<EAVType> u = EAVType.unify(ttype.left, etype.left);
         if (!u.isPresent() || !ttype.right.equals(etype.right)) {
-            throw new RuntimeException("Incompatible branches:\n"
-                    + "\tfound=" + ttype + ", required=" + etype);
+            //throw new RuntimeException("Incompatible branches:\n\tfound=" + ttype + ", required=" + etype);
+            return Either.left(new Exception("Incompatible branches:\n\tfound=" + ttype + ", required=" + etype));
         }
-        return new Pair<>(u.get(), ttype.right);
+        //return new Pair<>(u.get(), ttype.right);
+        return Either.right(new Pair<>(
+                new Pair<>(u.get(), ttype.right),
+                new Tree<>("[T-If]", List.of(pp_l.right, pp_r.right))
+        ));
     }
 
     @Override

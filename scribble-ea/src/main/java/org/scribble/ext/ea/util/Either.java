@@ -12,49 +12,24 @@ public interface Either<L, R> {
         return new Left<>(left);
     }
 
-    static <L, R> Either<L, R> right(@NotNull R right) {
+    static <L, R> Either<L, R> right(R right) {  // Allow null for now, Either<L, Void>
         return new Right<>(right);
     }
 
-    default <T, U> Either<T, U> map(
-            Function<? super L, ? extends T> left, Function<? super R, ? extends U> right) {
-        //return isLeft() ? new Left<>(left.apply(getLeft().get())) : new Right<>(right.apply(getRight().get()));
-        return isLeft() ? mapLeft(left) : mapRight(right);
-    }
-
-    // "ifNotPresent"
-    default <T, U> Either<T, U> mapLeft(Function<? super L, ? extends T> left) {
-        //return map(left, x -> x);
-        return new Left<>(left.apply(getLeft().get()));
-    }
-
     // ifPresent
-    default <T, U> Either<T, U> mapRight(Function<? super R, ? extends U> right) {
-        //return map(x -> x, right);
-        return new Right<>(right.apply(getRight().get()));
+    default <U> Either<L, U> mapRight(Function<? super R, ? extends U> right) {
+        return isRight() ? new Right<>(right.apply(getRight().get())) : new Left<>(getLeft().get());
     }
 
-    default <T, U> Either<T, U> flatMap(
-            Function<? super L, ? extends Either<T, U>> left,
-            Function<? super R, ? extends Either<T, U>> right) {
-        //return isLeft() ? left.apply(getLeft().get()) : right.apply(getRight().get());
-        return isLeft() ? flatMapLeft(left) : flatMapRight(right);
-        //return flatMapLeft(left).flatMapRight(right);
-    }
-
-    // orElse
-    default <T, U> Either<T, U> flatMapLeft(
-            Function<? super L, ? extends Either<T, U>> left) {
-        //return flatMap(left, x -> Either.right(x));
-        return left.apply(getLeft().get());
-    }
+    // mapLeft -- isLeft ? map Left : unchanged Right
 
     // andThen
-    default <T, U> Either<T, U> flatMapRight(
-            Function<? super R, ? extends Either<T, U>> right) {
-        //return flatMap(x -> Either.left(x), right);
-        return right.apply(getRight().get());
+    default <U> Either<L, U> flatMapRight(
+            Function<? super R, ? extends Either<L, U>> right) {
+        return isRight() ? right.apply(getRight().get()) : new Left<>(getLeft().get());  // "join" inlined
     }
+
+    // flatMapLeft -- isLeft ? flatMap Left : unchanged Right
 
     boolean isLeft();
 
@@ -67,7 +42,7 @@ public interface Either<L, R> {
     /*static <L, R> Either<L, R> join(Either<L, Either<L, R>> outer) {
         return outer.isLeft()
                 ? new Left<>(outer.getLeft().get())
-                : outer.mapRight(x -> x.getRight().get());
+                : outer.getRight().get();  //outer.mapRight(x -> x.getRight().get());
     }*/
 }
 
@@ -108,13 +83,18 @@ class Left<L, R> implements Either<L, R> {
     public Optional<R> getRight() {
         return Optional.empty();
     }
+
+    @Override
+    public String toString() {
+        return "Left(" + this.left + ")";
+    }
 }
 
 class Right<L, R> implements Either<L, R> {
 
-    @NotNull private R right;
+    private R right;  // Allow null for now, Either<L, Void>
 
-    protected Right(@NotNull R right) {
+    protected Right(R right) {
         this.right = right;
     }
 
@@ -146,5 +126,10 @@ class Right<L, R> implements Either<L, R> {
     @Override
     public Optional<R> getRight() {
         return Optional.of(this.right);
+    }
+
+    @Override
+    public String toString() {
+        return "Right(" + this.right + ")";
     }
 }

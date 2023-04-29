@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.runtime.process.EAProcess;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 // s, s', ...
 public class EASid implements EARuntimeName {
@@ -16,8 +19,9 @@ public class EASid implements EARuntimeName {
     }
 
     @Override
-    public EAVType type(GammaState gamma) {
-        throw new RuntimeException("CHECKME: N/A ?");  // !!!
+    //public EAVType type(GammaState gamma) {
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
+        throw new RuntimeException("Deprecated?");  // !!!
     }
 
     /* Aux */

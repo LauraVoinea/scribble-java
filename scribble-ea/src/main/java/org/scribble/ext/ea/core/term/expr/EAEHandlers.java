@@ -13,6 +13,8 @@ import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.core.type.value.EAVTypeFactory;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -64,20 +66,30 @@ public class EAEHandlers implements EAExpr {
     }
 
     @Override
-    public EAVType type(GammaState gamma) {
+    //public EAVType type(GammaState gamma) {
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         EAVType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
         for (Map.Entry<Op, EAHandler> e : this.Hs.entrySet()) {
             Op k = e.getKey();
             EAHandler v = e.getValue();
             if (!A.equals(v.svarType)) {
-                throw new RuntimeException("Inconsistent state types: " + this);
+                //throw new RuntimeException("Inconsistent state types: " + this);
+                return Either.left(new Exception("Inconsistent state types: " + this));
             }
-            v.type(gamma);
+            //v.type(gamma);
+            Either<Exception, Void> t = v.type(gamma);
+            if (t.isLeft()) {
+                return Either.left(new Exception(t.getLeft().get()));
+            }
             cases.put(k, new Pair<>(v.varType, v.pre));
         }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
-        return EAVTypeFactory.factory.handlers(in, A);
+        //return EAVTypeFactory.factory.handlers(in, A);
+        return Either.right(new Pair<>(
+                EAVTypeFactory.factory.handlers(in, A),
+                new Tree<>("[TV-Handler]")  // ...EAHandler.type discards Tree
+        ));
     }
 
     /* Aux */

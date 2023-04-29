@@ -5,6 +5,9 @@ import org.scribble.ext.ea.core.runtime.process.EAProcess;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 // a, b, ...
 public class EAPid implements EARuntimeName {
@@ -17,8 +20,10 @@ public class EAPid implements EARuntimeName {
     }
 
     @Override
-    public EAVType type(GammaState gamma) {
-        return EATypeFactory.factory.val.pid();
+    //public EAVType type(GammaState gamma) {
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
+        //return Either.right(new Pair<>(EATypeFactory.factory.val.pid(), new Tree<>("..pid..")));
+        throw new RuntimeException("Deprecated?");
     }
 
     /* Aux */

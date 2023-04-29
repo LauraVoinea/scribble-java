@@ -5,6 +5,9 @@ import org.scribble.ext.ea.core.term.EAName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -26,11 +29,14 @@ public class EAEVar implements EAExpr, EAName {
     }
 
     @Override
-    public EAVType type(GammaState gamma) {
+    //public EAVType type(GammaState gamma) {
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         if (gamma.gamma.map.containsKey(this)) {
-            return gamma.gamma.map.get(this);
+            //return gamma.gamma.map.get(this);
+            return Either.right(new Pair<>(gamma.gamma.map.get(this), new Tree<>("..name..")));
         }
-        throw new RuntimeException("Unknown var: " + this + ", " + gamma);
+        //throw new RuntimeException("Unknown var: " + this + ", " + gamma);
+        return Either.left(new Exception("Unknown var: " + this + ", " + gamma));
     }
 
     /* Aux */

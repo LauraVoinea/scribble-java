@@ -5,6 +5,9 @@ import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -23,8 +26,8 @@ public class EAEFuncName extends Id implements EAExpr {
     }
 
     @Override
-    public EAVFuncType type(GammaState gamma) {
-        return gamma.gamma.fmap.get(this);
+    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
+        return Either.right(new Pair<>(gamma.gamma.fmap.get(this), new Tree<>("[..funcname..]")));
     }
 
     @Override
