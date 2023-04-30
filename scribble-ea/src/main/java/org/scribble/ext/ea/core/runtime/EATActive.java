@@ -13,10 +13,7 @@ import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class EATActive implements EAThread {
 
@@ -35,7 +32,7 @@ public class EATActive implements EAThread {
     //
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
-    public Pair<Boolean, Set<EAPid>> canConfigReduce(EASystem sys) {
+    public Pair<Boolean, Set<EAPid>> canActorReduce(EASystem sys) {
         EAComp foo = this.expr.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAMReturn) {
@@ -75,19 +72,21 @@ public class EATActive implements EAThread {
 
     // [TT-Sess]
     @Override
-    public void type(GammaState gamma, Delta delta) {
+    public Either<Exception, Tree<String>> type(GammaState gamma, Delta delta) {
         if (delta.map.size() != 1) {
-            throw new RuntimeException("Invalid Delta: " + delta);
+            //throw new RuntimeException("Invalid Delta: " + delta);
+            return Either.left(new Exception("Invalid Delta: " + delta));
         }
         EALType pre = delta.map.get(new Pair<>(this.sid, this.role));
         if (pre == null) {
-            throw new RuntimeException("Unknown endpoint: "
-                    + endpointToString(this.sid, this.role));
+            //throw new RuntimeException("Unknown endpoint: " + endpointToString(this.sid, this.role));
+            return Either.left(new Exception("Unknown endpoint: " + endpointToString(this.sid, this.role)));
         }
         //Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.expr.type(gamma, pre);
         if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft().get());
+            //throw new RuntimeException(t.getLeft().get());
+            return Either.left(t.getLeft().get());
         }
         Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
         Pair<EAVType, EALType> res = pp.left;
@@ -95,9 +94,10 @@ public class EATActive implements EAThread {
         ////if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
         Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
         if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
-            throw new RuntimeException("Badly typed: " + this + " : "
-                    + res.left + " <| " + res.right);
+            //throw new RuntimeException("Badly typed: " + this + " : " + res.left + " <| " + res.right);
+            return Either.left(new Exception("Badly typed: " + this + " : " + res.left + " <| " + res.right));
         }
+        return Either.right(new Tree<>("[TT-Sess]", pp.right));
     }
 
     /* aux */

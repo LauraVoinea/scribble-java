@@ -3,6 +3,8 @@ package org.scribble.ext.ea.core.runtime;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 
 public class EATIdle implements EAThread {
 
@@ -18,10 +20,12 @@ public class EATIdle implements EAThread {
 
     // [TT-Idle]
     @Override
-    public void type(GammaState gamma, Delta delta) {
+    public Either<Exception, Tree<String>> type(GammaState gamma, Delta delta) {
         if (!delta.map.isEmpty()) {
-            throw new RuntimeException("Invalid Delta: " + delta);
+            //throw new RuntimeException("Invalid Delta: " + delta);
+            return Either.left(new Exception("Invalid Delta: " + delta));
         }
+        return Either.right(new Tree<>("[TT-Idle]"));
     }
 
     /* aux */

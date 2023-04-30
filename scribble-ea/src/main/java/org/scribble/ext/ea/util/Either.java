@@ -16,20 +16,33 @@ public interface Either<L, R> {
         return new Right<>(right);
     }
 
-    // ifPresent
-    default <U> Either<L, U> mapRight(Function<? super R, ? extends U> right) {
-        return isRight() ? new Right<>(right.apply(getRight().get())) : new Left<>(getLeft().get());
-    }
+    /*default <T, U> Either<T, U> map(
+            Function<? super L, ? extends T> left,
+            Function<? super R, ? extends U> right) {
+        return isLeft() ? new Left<>(left.apply(getLeft().get())) : new Right(right.apply(getRight().get()));
+    }*/
 
     // mapLeft -- isLeft ? map Left : unchanged Right
 
-    // andThen
-    default <U> Either<L, U> flatMapRight(
-            Function<? super R, ? extends Either<L, U>> right) {
-        return isRight() ? right.apply(getRight().get()) : new Left<>(getLeft().get());  // "join" inlined
+    // ifPresent
+    default <U> Either<L, U> mapRight(Function<? super R, ? extends U> right) {
+        return isRight() ? new Right<>(right.apply(getRight().get())) : new Left<>(getLeft().get());
+        //return map(x -> x, right);
     }
 
+    /*default <T, U> Either<T, U> flatMap(
+            Function<? super L, ? extends Either<T, U>> left,
+            Function<? super R, ? extends Either<T, U>> right) {
+        return isLeft() ? left.apply(getLeft().get()) : right.apply(getRight().get());
+    }*/
+
     // flatMapLeft -- isLeft ? flatMap Left : unchanged Right
+
+    // andThen
+    default <U> Either<L, U> flatMapRight(Function<? super R, ? extends Either<L, U>> right) {
+        return isRight() ? right.apply(getRight().get()) : new Left<>(getLeft().get());  // "join" inlined
+        //return flatMap(x -> Either.left(x), right);
+    }
 
     boolean isLeft();
 

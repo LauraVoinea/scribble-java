@@ -72,7 +72,7 @@ public class EAMSend implements EAComp {
         //return new Pair<>(EATypeFactory.factory.val.unit(), p.right);
         return Either.right(new Pair<>(
                 new Pair<>(EATypeFactory.factory.val.unit(), p.right),
-                new Tree<>("[T-T-Send]", List.of(pp.right))
+                new Tree<>("[T-Send]", List.of(pp.right))
         ));
     }
 

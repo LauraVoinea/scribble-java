@@ -223,7 +223,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(env);
         EASystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(), new Delta());
+        sys.type();
 
         typeAndRun(sys, -1);
         //
@@ -301,7 +301,7 @@ public class EACommandLine extends CommandLine {
         System.out.println(env);
         EASystem sys = rf.system(lf, new Delta(env), cs);
         System.out.println(sys);
-        sys.type(new Gamma(), new Delta());
+        sys.type();
 
         typeAndRun(sys, -1);
         //
@@ -627,7 +627,7 @@ public class EACommandLine extends CommandLine {
         //env.put(new Pair<>(s, A), out1);
         //System.out.println(env);
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
-        sys.type(new Gamma(), new Delta());
+        sys.type();
 
         typeAndRun(sys, -1);
 
@@ -843,6 +843,7 @@ public class EACommandLine extends CommandLine {
         LinkedHashMap<Pair<EASid, Role>, EALType> env = newLinkedMap(sA, out1, sB, in1);
         EASystem sys = RF.system(LF, new Delta(env), cs);
         typeAndRun(sys, -1);
+        //typeAndRun(sys, -1, true);
     }
     //*/
 
@@ -896,7 +897,25 @@ public class EACommandLine extends CommandLine {
 
     static void typeCheckActor(EACActor c, Delta delta) {
         System.out.println("Typing actor: " + c + " ,, " + delta);
-        c.type(new Gamma(), delta);
+        Either<Exception, Tree<String>> t = c.type(new Gamma(), delta);
+        if (t.isLeft()) {
+            throw new RuntimeException(t.getLeft().get());
+        }
+    }
+
+    static void typeCheckSystem(EASystem sys) {
+        typeCheckSystem(sys, false);
+    }
+
+    static void typeCheckSystem(EASystem sys, boolean debug) {
+        Either<Exception, List<Tree<String>>> t = sys.type();
+        if (t.isLeft()) {
+            throw new RuntimeException(t.getLeft().get());
+        }
+        if (debug) {
+            System.out.println("Type checked system:");
+            t.getRight().get().forEach(x -> System.out.println(x.toString("  ")));
+        }
     }
 
     /* ... */
@@ -908,7 +927,7 @@ public class EACommandLine extends CommandLine {
     // steps -1 for unbounded
     static void typeAndRun(EASystem sys, int steps, boolean debug) {
         System.out.println("\nInitial system:\n" + sys);
-        sys.type(new Gamma(), new Delta());
+        typeCheckSystem(sys, debug);
 
         int rem = steps;
         Map<EAPid, Set<EAPid>> pids = sys.canStep();
@@ -918,7 +937,7 @@ public class EACommandLine extends CommandLine {
                 System.out.println();
                 System.out.println(sys);
             }
-            sys.type(new Gamma(), new Delta());
+            typeCheckSystem(sys, debug);
             pids = sys.canStep();
         }
 

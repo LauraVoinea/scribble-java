@@ -11,7 +11,10 @@ import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -43,20 +46,32 @@ public class EASystem {
     }
 
     // !!! TODO "safety property"
-    public void type(Gamma gamma, Delta delta) {
-        //public void type(GammaState gamma, Delta delta) {
+    public Either<Exception, List<Tree<String>>> type() {
+        Gamma empty = new Gamma();
+        List<Tree<String>> res = new LinkedList<>();
+        Set<Pair<EASid, Role>> todo = new HashSet<>(this.annots.map.keySet());
         for (EACActor c : this.actors.values()) {
             LinkedHashSet<Pair<EASid, Role>> eps = c.getEndpoints();
-            LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);
+            LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
             for (Pair<EASid, Role> p : eps) {
-                if (!this.annots.map.containsKey(p)) {
-                    throw new RuntimeException("Unknown endpoint: " + p);
+                if (!todo.contains(p)) {
+                    return Either.left(new Exception("Unknown endpoint or already used: " + p));
                 }
+                todo.remove(p);
                 // !!! TODO: Delta disjoint union op
                 tmp.put(p, this.annots.map.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
             }
-            c.type(gamma, new Delta(tmp));
+            Either<Exception, Tree<String>> t = c.type(empty, new Delta(tmp));
+            if (t.isLeft()) {
+                return Either.left(t.getLeft().get());
+            }
+            res.add(t.getRight().get());
         }
+        if (todo.stream().anyMatch(x -> !this.annots.map.get(x).equals(EALEndType.END))) {
+            return Either.left(new Exception("Endpoints not implemented: "
+                    + todo + "\n\tannots = " + this.annots));
+        }
+        return Either.right(res);
     }
 
     /*@Deprecated  // For now

@@ -54,7 +54,7 @@ public class EACActor implements EAConfig {
         if (!(this.T instanceof EATActive)) {
             return new Pair<>(false, Collections.emptySet());
         }
-        return ((EATActive) this.T).canConfigReduce(sys);
+        return ((EATActive) this.T).canActorReduce(sys);
     }
 
     // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
@@ -201,8 +201,7 @@ public class EACActor implements EAConfig {
         return !this.T.isIdle();
     }
 
-    public void type(Gamma gamma1, Delta delta) {
-
+    public Either<Exception, Tree<String>> type(Gamma gamma1, Delta delta) {
         EAVType infer = this.state.infer();
         GammaState gamma2 = new GammaState(new LinkedHashMap<>(gamma1.map), new LinkedHashMap<>(gamma1.fmap), infer);
         //Gamma gamma2 = gamma1;
@@ -212,19 +211,24 @@ public class EACActor implements EAConfig {
             EATActive at = (EATActive) this.T;
             Pair<EASid, Role> k = new Pair<>(at.sid, at.role);
             if (!delta.map.containsKey(k)) {
-                throw new RuntimeException("Unknown endpoint: " + k + " ,, " + delta.map);
+                //throw new RuntimeException("Unknown endpoint: " + k + " ,, " + delta.map);
+                return Either.left(new Exception("Unknown endpoint: " + k + " ,, " + delta.map));
             }
             tmp.put(k, delta.map.get(k));
         }
         Delta delta1 = new Delta(tmp);
-        this.T.type(gamma2, delta1);  // !!! TODO split delta_1, delta_2 ?
+        Either<Exception, Tree<String>> t = this.T.type(gamma2, delta1);// !!! TODO split delta_1, delta_2 ?
+        if (t.isLeft()) {
+            return t;
+        }
 
         tmp = new LinkedHashMap<>(delta.map);
         if (this.T instanceof EATActive) { // !!! CHECKME
             tmp.remove(delta1.map.keySet().iterator().next());
         }
         Delta delta2 = new Delta(tmp);
-        typeSigma(gamma2, delta2);
+        Either<Exception, Tree<String>> u = typeSigma(gamma2, delta2);
+        return u.mapRight(x -> new Tree("[T-Actor]", t.getRight().get(), x));
 
         /*EAValType stype = this.state.type(gamma);
         if (!stype.equals(gamma.svarType)) {
@@ -232,32 +236,40 @@ public class EACActor implements EAConfig {
         }*/
     }
 
-    // !!! TODO make sigma explicit (cf. TH-Handler)
-    protected void typeSigma(GammaState gamma, Delta delta) {
+    // Combines TH-Empty and TH-Handler
+    // !!! TODO make Sigma explicit class (cf. TH-Handler)
+    protected Either<Exception, Tree<String>> typeSigma(GammaState gamma, Delta delta) {
         if (delta.map.size() != this.sigma.size()) {
-            throw new RuntimeException("Invalid delta: " + delta + " |- " + this.sigma);
+            //throw new RuntimeException("Invalid delta: " + delta + " |- " + this.sigma);
+            return Either.left(new Exception("Invalid delta: " + delta + " |- " + this.sigma));
         }
 
+        List<Tree<String>> ds = new LinkedList<>();
         for (Map.Entry<Pair<EASid, Role>, EAEHandlers> e : this.sigma.entrySet()) {
             Pair<EASid, Role> k = e.getKey();
             if (!delta.map.containsKey(k)) {
-                throw new RuntimeException("Unknown endpoint: " + k + " : " + delta.map);
+                //throw new RuntimeException("Unknown endpoint: " + k + " : " + delta.map);
+                return Either.left(new Exception("Unknown endpoint: " + k + " : " + delta.map));
             }
             EALType T = delta.map.get(k).unfoldAllOnce();  // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
             if (!(T instanceof EALInType)) {
-                throw new RuntimeException("Invalid handler type: " + e + " :\n\t" + T);
+                //throw new RuntimeException("Invalid handler type: " + e + " :\n\t" + T);
+                return Either.left(new Exception("Invalid handler type: " + e + " :\n\t" + T));
             }
             EALInType cast = (EALInType) T;
             if (cast.peer.equals(k.right)) {
-                throw new RuntimeException("Self communication not allowed: " + k + " ,, " + cast);
+                //throw new RuntimeException("Self communication not allowed: " + k + " ,, " + cast);
+                return Either.left(new Exception("Self communication not allowed: " + k + " ,, " + cast));
             }
             //EAPHandlers h = this.sigma.get(k);
             EAEHandlers h = e.getValue();
             if (!cast.peer.equals(h.role)) {
-                throw new RuntimeException("Invalid handler type peer: " + e + " : " + T);
+                //throw new RuntimeException("Invalid handler type peer: " + e + " : " + T);
+                return Either.left(new Exception("Invalid handler type peer: " + e + " : " + T));
             }
             if (!cast.cases.keySet().equals(h.Hs.keySet())) {
-                throw new RuntimeException("Bad handler set: " + cast.cases + " |> " + h.Hs);
+                //throw new RuntimeException("Bad handler set: " + cast.cases + " |> " + h.Hs);
+                return Either.left(new Exception("Bad handler set: " + cast.cases + " |> " + h.Hs));
             }
 
             // !!! TH-Handler typing the nested handler expr (uses Delta) -- cf. typing handler value TV-Handler (uses "infer")
@@ -273,20 +285,24 @@ public class EACActor implements EAConfig {
                 GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), //gamma.svar,
                         gamma.svarType);
                 //Pair<EAVType, EALType> res = rhs.expr.type(gamma1, cast.cases.get(op).right);
-                Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = rhs.expr.type(gamma1, cast.cases.get(op).right);
+                Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t =
+                        rhs.expr.type(gamma1, cast.cases.get(op).right);
                 if (t.isLeft()) {
-                    throw new RuntimeException(t.getLeft().get());
+                    return Either.left(t.getLeft().get());
                 }
                 Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+                ds.add(pp.right);
                 Pair<EAVType, EALType> res = pp.left;
                 ////if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
                 ////if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {
                 Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
                 if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
-                    throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);
+                    //throw new RuntimeException("Badly typed: " + rhs.expr + " |> " + res);
+                    return Either.left(new RuntimeException("Badly typed: " + rhs.expr + " |> " + res));
                 }
             }
         }
+        return Either.right(new Tree<>("[TH-Handler]", ds));
     }
 
     /* Aux */
