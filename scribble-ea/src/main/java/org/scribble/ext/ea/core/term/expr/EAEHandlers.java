@@ -80,7 +80,7 @@ public class EAEHandlers implements EAExpr {
             //v.type(gamma);
             Either<Exception, Void> t = v.type(gamma);
             if (t.isLeft()) {
-                return Either.left(new Exception(t.getLeft().get()));
+                return Either.left(t.getLeft().get());
             }
             cases.put(k, new Pair<>(v.varType, v.pre));
         }

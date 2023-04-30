@@ -47,7 +47,7 @@ public class EAMApp implements EAComp {
         //EAVType ltype = this.left.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
         if (t_l.isLeft()) {
-            return Either.left(new Exception(t_l.getLeft().get()));
+            return Either.left(t_l.getLeft().get());
         }
         Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
         EAVType ltype = p_l.left;
@@ -64,7 +64,7 @@ public class EAMApp implements EAComp {
         //EAVType rtype = this.right.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
         if (t_r.isLeft()) {
-            return Either.left(new Exception(t_r.getLeft().get()));
+            return Either.left(t_r.getLeft().get());
         }
         Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
         EAVType rtype = p_r.left;
