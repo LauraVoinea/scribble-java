@@ -19,10 +19,15 @@ public class Delta {
         this(new LinkedHashMap<>());
     }
 
-    public Delta(@NotNull LinkedHashMap<Pair<EASid, Role>, EALType> map) {
+    public Delta(@NotNull LinkedHashMap<Pair<EASid, Role>, ? extends EALType> map) {
         this.map = Collections.unmodifiableMap(map.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+    }
+
+    @Override
+    public String toString() {
+        return this.map.toString();
     }
 
     /* equals, hashCode */

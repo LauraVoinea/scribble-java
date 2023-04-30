@@ -25,7 +25,7 @@ public class Gamma {
         this(new LinkedHashMap<>(), new LinkedHashMap<>());
     }
 
-    public Gamma(@NotNull LinkedHashMap<EAName, EAVType> map,
+    public Gamma(@NotNull LinkedHashMap<EAName, ? extends EAVType> map,
                  @NotNull LinkedHashMap<EAEFuncName, EAVFuncType> fmap) {
         this._map = map.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
