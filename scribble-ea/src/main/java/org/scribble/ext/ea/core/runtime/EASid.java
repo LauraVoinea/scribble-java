@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.runtime.process.EAProcess;
+import org.scribble.ext.ea.core.runtime.config.EAConfig;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.Either;
@@ -48,7 +48,7 @@ public class EASid implements EARuntimeName {
 
     @Override
     public int hashCode() {
-        int hash = EAProcess.SESSION_ID;
+        int hash = EAConfig.SESSION_ID;
         hash = 31 * hash + this.id.hashCode();
         return hash;
     }

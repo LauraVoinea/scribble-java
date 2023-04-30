@@ -1,7 +1,7 @@
 package org.scribble.ext.ea.core.runtime;
 
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.runtime.process.EAPConfig;
+import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.GammaState;
@@ -35,7 +35,7 @@ public class EATActive implements EAThread {
     //
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
-    public Pair<Boolean, Set<EAPid>> canConfigReduce(EAPSystem sys) {
+    public Pair<Boolean, Set<EAPid>> canConfigReduce(EASystem sys) {
         EAComp foo = this.expr.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAMReturn) {
@@ -47,9 +47,9 @@ public class EATActive implements EAThread {
             return new Pair<>(foo.canBeta(), Collections.emptySet());
         } else if (foo instanceof EAMSend) {
             EAMSend cast = (EAMSend) foo;
-            Optional<Map.Entry<EAPid, EAPConfig>> fst =
-                    sys.configs.entrySet().stream().filter(x -> {
-                                EAPConfig v = x.getValue();
+            Optional<Map.Entry<EAPid, EACActor>> fst =
+                    sys.actors.entrySet().stream().filter(x -> {
+                                EACActor v = x.getValue();
                                 return v.T.isIdle() && v.sigma.keySet().stream().anyMatch(y ->
                                         y.left.equals(this.sid) && y.right.equals(cast.dst)
                                                 && x.getValue().sigma.get(y).role.equals(this.role));

@@ -1,4 +1,4 @@
-package org.scribble.ext.ea.core.runtime.process;
+package org.scribble.ext.ea.core.runtime.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
@@ -24,25 +24,21 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// cf. T-Actor // TODO rename Actor
-public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO deprecate D
+// cf. T-Actor
+public class EACActor implements EAConfig {
 
-    @NotNull
-    public final EAPid pid;
-    @NotNull
-    public final EAThread T;
-    @NotNull
-    public final Map<Pair<EASid, Role>, EAEHandlers> sigma;  // !!! handlers specifically
+    @NotNull public final EAPid pid;  // No longer in formal defs but useful in implementation
+    @NotNull public final EAThread T;
+    @NotNull public final Map<Pair<EASid, Role>, EAEHandlers> sigma;  // !!! handlers specifically
 
-    @NotNull
+    @NotNull public EAExpr state;  // Pre: ground
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
-    public EAExpr state;  // Pre: ground
 
-    public EAPConfig(@NotNull EAPid pid,
-                     @NotNull EAThread T,
-                     @NotNull LinkedHashMap<Pair<EASid, Role>, EAEHandlers> handlers,
-                     //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                     @NotNull EAExpr state) {
+    public EACActor(@NotNull EAPid pid,
+                    @NotNull EAThread T,
+                    @NotNull LinkedHashMap<Pair<EASid, Role>, EAEHandlers> handlers,
+                    //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
+                    @NotNull EAExpr state) {
         this.pid = pid;
         this.T = T;
         this.sigma = Collections.unmodifiableMap(handlers.entrySet()
@@ -54,7 +50,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
     }
 
     // Return set is (sync) "dependencies" ("partner" pids) needed to step if any
-    public Pair<Boolean, Set<EAPid>> canReduce(EAPSystem sys) {
+    public Pair<Boolean, Set<EAPid>> canReduce(EASystem sys) {
         if (!(this.T instanceof EATActive)) {
             return new Pair<>(false, Collections.emptySet());
         }
@@ -64,7 +60,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
     // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
     // Pre: getFoo + foo OK -- cf. EAPActiveThread.canStep -- TODO optimise away getFoo
     // cf. EAPActiveThread.canStep
-    public LinkedHashMap<EAPid, EAPConfig> reduce(EAPSystem sys) {
+    public LinkedHashMap<EAPid, EACActor> reduce(EASystem sys) {
         if (!(this.T instanceof EATActive)) {
             throw new RuntimeException("Shouldn't get here: ");
         }
@@ -76,14 +72,14 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
         // top-level return ()
         if (foo instanceof EAMReturn) {
             if (t.expr.equals(foo)) {  // top level -- not really necessary to compare t.expr and foo, but checks foo working
-                LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+                LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
                 EAMReturn cast = (EAMReturn) t.expr;
 
                 EAThread t1 = EATIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 //EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
-                EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.val);
+                EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.val);
                 //res.configs.put(p, c1);
                 configs.put(this.pid, c1);
                 return configs;
@@ -92,25 +88,25 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
                 //throw new RuntimeException("Shouldn't get in here");
 
                 // TODO factor out with other LiftM beta cases
-                LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+                LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
                 EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-                EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+                EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
                 configs.put(this.pid, c1);
                 return configs;
             }
         } else if (foo instanceof EAMSend) {
 
-            LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+            LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
 
             EAThread t1;
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
             t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
             EAMSend cast = (EAMSend) foo;
 
-            Optional<Map.Entry<EAPid, EAPConfig>> fst =
-                    sys.configs.entrySet().stream().filter(x ->
+            Optional<Map.Entry<EAPid, EACActor>> fst =
+                    sys.actors.entrySet().stream().filter(x ->
                             x.getValue().sigma.keySet().stream().anyMatch(y ->
                                     y.left.equals(t.sid) && y.right.equals(cast.dst))
                     ).findFirst();
@@ -118,9 +114,9 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
                 throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo gets "potenitally reducible parts", such as sends -- but receive may not be ready yet (e.g., handler not installed yet)
                 // Currently PRE: `p` must have reducible step (i.e., send must have matching receive ready)
             }
-            Map.Entry<EAPid, EAPConfig> get = fst.get();
+            Map.Entry<EAPid, EACActor> get = fst.get();
             EAPid p2 = get.getKey();
-            EAPConfig c2 = get.getValue();
+            EACActor c2 = get.getValue();
             Map<Pair<EASid, Role>, EAEHandlers> sigma2 = c2.sigma;
             Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
             EAHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
@@ -139,7 +135,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-            EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+            EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
             //res.configs.put(p, c1);
             configs.put(this.pid, c1);
 
@@ -149,7 +145,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
         // Other non-beta cases
         else if (foo instanceof EAMSuspend) {
             if (t.expr.equals(foo)) {  // top level
-                LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+                LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
                 EAThread t1 = EATIdle.IDLE;
@@ -160,7 +156,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
                 //tmp.put(new Pair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
 
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
-                EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.sval);
+                EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.sval);
                 configs.put(this.pid, c1);
                 return configs;
             } else {
@@ -170,12 +166,12 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
         }
         // LiftM beta cases
         else if (foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf) {
-            LinkedHashMap<EAPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
+            LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-            EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+            EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
             configs.put(this.pid, c1);
             return configs;
         } /*else if (foo instanceof EAPLet) {
@@ -307,7 +303,7 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPConfig them = (EAPConfig) o;
+        EACActor them = (EACActor) o;
         return them.canEquals(this)
                 && this.pid.equals(them.pid)
                 && this.T.equals(them.T)
@@ -317,12 +313,12 @@ public class EAPConfig implements EAProcess {  // D extends EAPVal  // TODO depr
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPConfig;
+        return o instanceof EACActor;
     }
 
     @Override
     public int hashCode() {
-        int hash = EATerm.CONFIG;
+        int hash = EATerm.ACTOR;
         hash = 31 * hash + this.pid.hashCode();
         hash = 31 * hash + this.T.hashCode();
         hash = 31 * hash + this.sigma.hashCode();

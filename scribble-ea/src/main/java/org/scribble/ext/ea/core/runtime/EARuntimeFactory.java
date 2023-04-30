@@ -3,7 +3,7 @@ package org.scribble.ext.ea.core.runtime;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LTypeFactory;
-import org.scribble.ext.ea.core.runtime.process.EAPConfig;
+import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.comp.EAComp;
@@ -27,11 +27,11 @@ public class EARuntimeFactory {
         return new EASid(id);
     }
 
-    public EAPConfig config(EAPid pid, EAThread T,
-                            LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma,
-                            //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                            EAExpr state) {
-        return new EAPConfig(pid, T, sigma, state);
+    public EACActor config(EAPid pid, EAThread T,
+                           LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma,
+                           //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
+                           EAExpr state) {
+        return new EACActor(pid, T, sigma, state);
     }
 
     public EATIdle idle() {
@@ -43,9 +43,9 @@ public class EARuntimeFactory {
         return new EATActive(expr, sid, role);
     }
 
-    public EAPSystem system(@NotNull LTypeFactory lf,
-                            @NotNull Delta annots,
-                            @NotNull LinkedHashMap<EAPid, EAPConfig> cs) {
-        return new EAPSystem(lf, annots, cs);
+    public EASystem system(@NotNull LTypeFactory lf,
+                           @NotNull Delta annots,
+                           @NotNull LinkedHashMap<EAPid, EACActor> cs) {
+        return new EASystem(lf, annots, cs);
     }
 }

@@ -7,7 +7,7 @@ import org.scribble.core.type.session.SigLit;
 import org.scribble.core.type.session.local.LRecv;
 import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LTypeFactory;
-import org.scribble.ext.ea.core.runtime.process.EAPConfig;
+import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.Delta;
@@ -19,33 +19,33 @@ import java.util.stream.Collectors;
 
 // cf. T-Session and (nested) T-Par (missing)
 // CHECKME: equiv to normal form with all \nu s at top?  sufficiently general?
-public class EAPSystem {
+public class EASystem {
 
     @NotNull public final Delta annots;
 
-    @NotNull public final Map<EAPid, EAPConfig> configs;
-    @NotNull protected final LinkedHashMap<EAPid, EAPConfig> _configs;
+    @NotNull public final Map<EAPid, EACActor> actors;  // Pids no longer in formal defs but useful in implementation
+    @NotNull protected final LinkedHashMap<EAPid, EACActor> _actors;
 
     @NotNull protected final LTypeFactory lf;
 
-    public EAPSystem(@NotNull LTypeFactory lf,
-                     @NotNull Delta annots,
-                     @NotNull LinkedHashMap<EAPid, EAPConfig> configs) {
-        if (configs.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
-            throw new RuntimeException("Invalid pid/config mapping: " + configs);
+    public EASystem(@NotNull LTypeFactory lf,
+                    @NotNull Delta annots,
+                    @NotNull LinkedHashMap<EAPid, EACActor> actors) {
+        if (actors.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
+            throw new RuntimeException("Invalid pid/config mapping: " + actors);
         }
         this.lf = lf;
         this.annots = annots;
-        this._configs = configs.entrySet().stream().collect(
+        this._actors = actors.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> null, LinkedHashMap::new));
-        this.configs = Collections.unmodifiableMap(this._configs);
+        this.actors = Collections.unmodifiableMap(this._actors);
     }
 
     // !!! TODO "safety property"
     public void type(Gamma gamma, Delta delta) {
         //public void type(GammaState gamma, Delta delta) {
-        for (EAPConfig c : this.configs.values()) {
+        for (EACActor c : this.actors.values()) {
             LinkedHashSet<Pair<EASid, Role>> eps = c.getEndpoints();
             LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>(delta.map);
             for (Pair<EASid, Role> p : eps) {
@@ -82,7 +82,7 @@ public class EAPSystem {
 
     // Return map can-step-pids -> "parter" pids (sync actions) -- cf. EAPConfig/EAPActiveThread.canStep
     public Map<EAPid, Set<EAPid>> canStep() {
-        return this.configs.entrySet().stream()
+        return this.actors.entrySet().stream()
                 .filter(x -> x.getValue().canReduce(this).left)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -91,8 +91,8 @@ public class EAPSystem {
     }
 
     // Pre: p \in getReady ?
-    public EAPSystem reduce(EAPid p) {  // n.b. beta is deterministic
-        EAPConfig c = this.configs.get(p); // p.equals(c.pid)
+    public EASystem reduce(EAPid p) {  // n.b. beta is deterministic
+        EACActor c = this.actors.get(p); // p.equals(c.pid)
         if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
@@ -111,12 +111,12 @@ public class EAPSystem {
         // !!! Delta (annots) unchanged
         if (foo instanceof EAMSuspend || foo instanceof EAMReturn
                 || foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf) {
-            LinkedHashMap<EAPid, EAPConfig> configs = c.reduce(this);
-            return new EAPSystem(this.lf, this.annots, configs);
+            LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);
+            return new EASystem(this.lf, this.annots, configs);
         }
         // !!! Delta (annots) change
         else if (foo instanceof EAMSend) {
-            LinkedHashMap<EAPid, EAPConfig> configs = c.reduce(this);
+            LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);
 
             EAMSend cast = (EAMSend) foo;
             LinkedHashMap<Pair<EASid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
@@ -142,7 +142,7 @@ public class EAPSystem {
             dmap.put(k2, l2);
 
             Delta d1 = new Delta(dmap);
-            return new EAPSystem(this.lf, d1, configs);
+            return new EASystem(this.lf, d1, configs);
         } else {
             throw new RuntimeException("TODO " + foo);
         }
@@ -155,7 +155,7 @@ public class EAPSystem {
     @Override
     public String toString() {
         return "[annots=\n" + this.annots.map + "\nconfigs=\n"
-                + this.configs.entrySet().stream().map(x -> x.toString()).collect(Collectors.joining("\n"))
+                + this.actors.entrySet().stream().map(x -> x.toString()).collect(Collectors.joining("\n"))
                 + "]";
     }
 }

@@ -1,16 +1,16 @@
-package org.scribble.ext.ea.core.runtime.process;
+package org.scribble.ext.ea.core.runtime.config;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 @Deprecated
-public class EAPParallel implements EAProcess {
+public class EACParallel implements EAConfig {
 
     @NotNull
-    public final List<EAProcess> terms;
+    public final List<EAConfig> terms;
 
-    protected EAPParallel(@NotNull List<EAProcess> terms) {
+    protected EACParallel(@NotNull List<EAConfig> terms) {
         this.terms = Collections.unmodifiableList(new LinkedList<>(terms));
     }
 
@@ -20,19 +20,19 @@ public class EAPParallel implements EAProcess {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAPParallel them = (EAPParallel) o;
+        EACParallel them = (EACParallel) o;
         return them.canEquals(this)
                 && this.terms.equals(them.terms);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAPParallel;
+        return o instanceof EACParallel;
     }
 
     @Override
     public int hashCode() {
-        int hash = EAProcess.PARALLEL;
+        int hash = EAConfig.PARALLEL;
         hash = 31 * hash + this.terms.hashCode();
         return hash;
 

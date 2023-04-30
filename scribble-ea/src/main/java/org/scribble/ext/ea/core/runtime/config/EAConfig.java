@@ -1,7 +1,7 @@
-package org.scribble.ext.ea.core.runtime.process;
+package org.scribble.ext.ea.core.runtime.config;
 
 // Configs (C, D) -- hiding, parallel, configs
-public interface EAProcess {  // !!! "syntax" already contains "runtime names"
+public interface EAConfig {  // !!! "syntax" already contains "runtime names"
 
     int PARALLEL = 2161;
     int SESSION_ID = 2203;

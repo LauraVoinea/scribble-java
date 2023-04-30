@@ -23,9 +23,10 @@ public interface EATerm {
     int APP = 3853;
     int IF = 3863;
 
+    // Move to EAConfig
     int IDLE = 4481;
     int ACTIVE_THREAD = 4483;
-    int CONFIG = 4493;
+    int ACTOR = 4493;
 
     boolean canEquals(Object o);
 }
