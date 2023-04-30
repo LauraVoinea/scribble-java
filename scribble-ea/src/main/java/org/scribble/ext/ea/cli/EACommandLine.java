@@ -55,6 +55,22 @@ import java.util.*;
 //- newAP/spawn/register
 
 
+		/*%%   p (+) { l1(A) -> p & { ... }, l2(B) -> p (+) { l3(C) -> End } }
+%%   let () <=
+%%       if rand () then
+%%           p ! l1(V);
+%%           suspend h1 -- p (+) { l3(C) -> End }
+%%       else
+%%           p ! l2(W) -- p (+) { l3(C) -> End }
+%%   in
+%%   -- p (+) { l3(C) -> End }
+%%   print("still alive")*/
+
+
+
+
+
+
 // Includes assrt-core functionality (all extra args are currently for assrt-core)
 public class EACommandLine extends CommandLine {
 
@@ -80,16 +96,6 @@ public class EACommandLine extends CommandLine {
 
     public static void main(String[] args)
             throws CommandLineException, AntlrSourceException {
-		/*%%   p (+) { l1(A) -> p & { ... }, l2(B) -> p (+) { l3(C) -> End } }
-%%   let () <=
-%%       if rand () then
-%%           p ! l1(V);
-%%           suspend h1 -- p (+) { l3(C) -> End }
-%%       else
-%%           p ! l2(W) -- p (+) { l3(C) -> End }
-%%   in
-%%   -- p (+) { l3(C) -> End }
-%%   print("still alive")*/
 
         //CommandLine.main(args);  // !!! base CommandLine fully bypassed -- No main module used
         eamain();
@@ -509,7 +515,7 @@ public class EACommandLine extends CommandLine {
         typeAndRun(sys, -1);
     }
 
-    // XXX DEBUG loop
+    // XXX DEBUG loop -- cf. ex5a OK
     private static void ex5() {
         System.out.println("\n---ex5:");
 
@@ -941,7 +947,7 @@ public class EACommandLine extends CommandLine {
 
         //String input = "(A ! a((())))";
         String input = "let x: 1 <= A ! a((())) in suspend "
-                + "(handler A {b(x : 1) : A?{b(1).C!{c(1).end}} -> return (),c(y: 1) : end -> return ()})";
+                + "(handler A {b(x: 1): A?{b(1).C!{c(1).end}} -> return (), c(y: 1): end -> return ()})";
         EATerm res = parseM(input);
         System.out.println("bbb: " + res);
     }
