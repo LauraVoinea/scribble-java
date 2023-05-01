@@ -153,9 +153,9 @@ public class EAMLet implements EAComp {
 
     @Override
     public String toString() {
-        return "let " + this.var + " "
+        return "let " + this.var
                 //+ ConsoleColors.BLACK_UNDERLINED + ":" + this.varType + ConsoleColors.RESET
-                + ConsoleColors.toAnnotString(":" + this.varType)
+                + ConsoleColors.toAnnotString(": " + this.varType)
                 + " <= " + this.init + " in " + this.body;
     }
 

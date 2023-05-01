@@ -109,17 +109,17 @@ public class EACommandLine extends CommandLine {
 
         //System.out.println(parseV("2 + 3"));
 
-        //ex1();
-        //ex2();
+        ex1();
+        ex2();
 
         ex4();
-        //ex5a();
+        ex5a();
 
-        //ex6();
-        //ex7();
-        //ex8();
+        ex6();
+        ex7();
+        ex8();
 
-        //ex10();
+        ex10();
     }
 
     private static void negtests() {
@@ -188,7 +188,7 @@ public class EACommandLine extends CommandLine {
         Delta delta = new Delta(newLinkedMap(sA, EALEndType.END, sB, EALEndType.END));
         EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
 
-        typeAndRun(sys, -1, true);
+        typeAndRun(sys, -1);
     }
 
     // !!! Not WT -- testing (incompatible) state typing
@@ -734,7 +734,7 @@ public class EACommandLine extends CommandLine {
         EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
         // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
 
-        typeAndRun(sys, 100, true);
+        typeAndRun(sys, 100);
     }
 
     private static void ex2() {

@@ -115,7 +115,7 @@ public class EAHandler {
         return this.svar + ConsoleColors.toAnnotString(": " + this.svarType)
                 + ", " + this.op + "(" + this.var
                 + ConsoleColors.toAnnotString(": " + this.varType.toString())
-                + ") "
+                + ")"
                 + ConsoleColors.toAnnotString(": " + this.pre)
                 + " |-> " + this.expr;
     }
