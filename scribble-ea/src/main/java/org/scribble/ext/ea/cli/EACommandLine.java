@@ -133,15 +133,8 @@ public class EACommandLine extends CommandLine {
     }
 
     private static void eamain() {
-        LTypeFactoryImpl lf = new LTypeFactoryImpl();
 
-        EATermFactory pf = EATermFactory.factory;
-        EARuntimeFactory rf = EARuntimeFactory.factory;
-        EATypeFactory tf = EATypeFactory.factory;
-
-        //System.out.println(parseV("2 + 3"));
-
-        tests();
+        //new EACommandLine(args).run();
 
         /* HERE HERE  // merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
@@ -151,7 +144,7 @@ public class EACommandLine extends CommandLine {
         - ...Right @NotNull (no Void)
         - ...terms in derivations
 
-        - ...coherence (etc.) -- cf. EAPSystem.annots
+        - ...fidelity/coherence -- cf. EAPSystem.annots -- after async
         - ...Optional (cf. canX)
         - ...wild S' in suspend typing
         - ...need (self) handler firing when state satis some condition -- !!! how done in standard actors?
@@ -164,7 +157,10 @@ public class EACommandLine extends CommandLine {
         - tidy foo vs. beta -- cf. some expr foo is just beta (some not, e.g., let)
         */
 
-        //new EACommandLine(args).run();
+        //System.out.println(parseV("2 + 3"));
+
+        tests();
+
     }
 
     static void ex10() {

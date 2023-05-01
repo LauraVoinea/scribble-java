@@ -104,17 +104,21 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EAComp beta() {
-        if (!canBeta()) {
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        if (!canBeta()) {  // ...testing
             throw new RuntimeException("Stuck: " + this);
         }
-        if (this.left instanceof EAERec) {
+        if (this.left.isValue()) {
+            if (!(this.left instanceof EAERec)) {  // Currently only Rec (no Lam)
+                return Either.left(new Exception("Expected rec-val, not: " + this.left));
+            }
             EAERec rec = (EAERec) this.left;
-            return rec.body.fsubs(Map.of(rec.f, rec))
-                    .subs(Map.of(rec.var, this.right));
-        } else {
-            throw new RuntimeException("TODO: " + this);
+            return Either.right(Pair.of(
+                    rec.body.fsubs(Map.of(rec.f, rec)).subs(Map.of(rec.var, this.right)),
+                    new Tree<>("[B-App-Rec]")
+            ));
         }
+        return Either.left(new Exception("Stuck: " + this));
     }
 
     @Override
@@ -123,8 +127,11 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EAComp configReduce() {
-        return beta();
+    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+        return beta().mapRight(x -> Pair.of(
+                x.left,
+                new Tree<>("[E-Lift-App]", x.right)
+        ));
     }
 
     /* Aux */

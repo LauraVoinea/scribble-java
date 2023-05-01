@@ -28,7 +28,7 @@ public interface EALType extends EAType {
     @Deprecated
     EALType unfold(RecVar rvar, EALType t);
 
-    Optional<EALType> step(LType a);
+    Optional<EALType> step(LType a);  // TODO Either
 
     // !!! currently not used consistently (added ad hoc from testing)
     // Currently only unfolding -- so currently symmetric

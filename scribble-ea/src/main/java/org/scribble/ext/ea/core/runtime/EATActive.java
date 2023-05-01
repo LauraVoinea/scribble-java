@@ -17,12 +17,12 @@ import java.util.*;
 
 public class EATActive implements EAThread {
 
-    public final EAComp expr;
+    public final EAComp comp;
     public final EASid sid;
     public final Role role;
 
-    protected EATActive(EAComp expr, EASid sid, Role role) {
-        this.expr = expr;
+    protected EATActive(EAComp comp, EASid sid, Role role) {
+        this.comp = comp;
         this.sid = sid;
         this.role = role;
     }
@@ -33,11 +33,11 @@ public class EATActive implements EAThread {
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
     public Pair<Boolean, Set<EAPid>> canActorReduce(EASystem sys) {
-        EAComp foo = this.expr.getConfigRedexCandidate();
+        EAComp foo = this.comp.getConfigRedexCandidate();
         // top-level return ()
         if (foo instanceof EAMReturn) {
             //if (this.expr instanceof EAMReturn && ((EAMReturn) this.expr).val.equals(EAEUnit.UNIT)) {
-            if (this.expr instanceof EAMReturn && this.expr.isGroundValueReturn()) {
+            if (this.comp instanceof EAMReturn && this.comp.isGroundValueReturn()) {
                 return new Pair<>(true, Collections.emptySet());
             }
             // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additional beta case: let x <= return V where V.canBeta (return V is the foo)
@@ -84,7 +84,7 @@ public class EATActive implements EAThread {
             return Either.left(new Exception("Unknown endpoint: " + endpointToString(this.sid, this.role)));
         }
         //Pair<EAVType, EALType> res = this.expr.type(gamma, pre);
-        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.expr.type(gamma, pre);
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.comp.type(gamma, pre);
         if (t.isLeft()) {
             //throw new RuntimeException(t.getLeft().get());
             return Either.left(t.getLeft().get());
@@ -110,7 +110,7 @@ public class EATActive implements EAThread {
 
     @Override
     public String toString() {
-        return "(" + this.expr + ")@" + endpointToString(this.sid, this.role);
+        return "(" + this.comp + ")@" + endpointToString(this.sid, this.role);
     }
 
     /* equals/canEquals, hashCode */
@@ -132,7 +132,7 @@ public class EATActive implements EAThread {
     public int hashCode() {
         int hash = EATerm.ACTIVE_THREAD;
         hash = 31 * hash;
-        hash = 31 * this.expr.hashCode();
+        hash = 31 * this.comp.hashCode();
         hash = 31 * this.sid.hashCode();
         hash = 31 * this.role.hashCode();
         return hash;

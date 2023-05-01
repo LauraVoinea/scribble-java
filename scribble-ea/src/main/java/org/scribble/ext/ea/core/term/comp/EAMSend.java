@@ -100,9 +100,8 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public EAComp beta() {
-        throw new RuntimeException("Stuck: " + this);
-        //return EAPFactory.factory.returnn(EAPFactory.factory.unit());
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        return Either.left(new Exception("Stuck: " + this));
     }
 
     /*@Override
@@ -116,8 +115,11 @@ public class EAMSend implements EAComp {
     }
 
     @Override
-    public EAComp configReduce() {
-        return EATermFactory.factory.returnn(EATermFactory.factory.unit());
+    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+        return Either.right(Pair.of(
+                EATermFactory.factory.returnn(EATermFactory.factory.unit()),
+                new Tree<>("[E-Send]")
+        ));
     }
 
     /* Aux */

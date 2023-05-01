@@ -65,16 +65,16 @@ public class EACActor implements EAConfig {
             throw new RuntimeException("Shouldn't get here: ");
         }
         EATActive t = (EATActive) this.T;
-        EAComp foo = t.expr.getConfigRedexCandidate();
+        EAComp foo = t.comp.getConfigRedexCandidate();
 
         // TODO refactor separate case by case (rather than grouping thread/sigma/config creation)
 
         // top-level return ()
         if (foo instanceof EAMReturn) {
-            if (t.expr.equals(foo)) {  // top level -- not really necessary to compare t.expr and foo, but checks foo working
+            if (t.comp.equals(foo)) {  // top level -- not really necessary to compare t.expr and foo, but checks foo working
                 LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
-                EAMReturn cast = (EAMReturn) t.expr;
+                EAMReturn cast = (EAMReturn) t.comp;
 
                 EAThread t1 = EATIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
@@ -90,7 +90,14 @@ public class EACActor implements EAConfig {
                 // TODO factor out with other LiftM beta cases
                 LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
-                EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
+
+                Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
+                if (reduce.isLeft()) {
+                    throw new RuntimeException(reduce.getLeft().get());
+                }
+                Pair<EAComp, Tree<String>> p = reduce.getRight().get();
+
+                EAThread t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
                 configs.put(this.pid, c1);
@@ -100,9 +107,16 @@ public class EACActor implements EAConfig {
 
             LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
 
+            Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
+            if (reduce.isLeft()) {
+                throw new RuntimeException(reduce.getLeft().get());
+            }
+            Pair<EAComp, Tree<String>> p = reduce.getRight().get();
+
             EAThread t1;
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
+            t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
+
             EAMSend cast = (EAMSend) foo;
 
             Optional<Map.Entry<EAPid, EACActor>> fst =
@@ -144,7 +158,7 @@ public class EACActor implements EAConfig {
         }
         // Other non-beta cases
         else if (foo instanceof EAMSuspend) {
-            if (t.expr.equals(foo)) {  // top level
+            if (t.comp.equals(foo)) {  // top level
                 LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
@@ -169,7 +183,13 @@ public class EACActor implements EAConfig {
             LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-            EAThread t1 = EARuntimeFactory.factory.activeThread(t.expr.configReduce(), t.sid, t.role);
+            Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
+            if (reduce.isLeft()) {
+                throw new RuntimeException(reduce.getLeft().get());
+            }
+            Pair<EAComp, Tree<String>> p = reduce.getRight().get();
+
+            EAThread t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
             configs.put(this.pid, c1);

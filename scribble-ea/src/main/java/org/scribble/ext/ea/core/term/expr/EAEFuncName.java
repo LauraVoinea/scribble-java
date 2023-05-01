@@ -20,6 +20,8 @@ public class EAEFuncName extends Id implements EAExpr {
         super(text);
     }
 
+    /* ... */
+
     @Override
     public EAVType infer() {
         throw new RuntimeException("Not supported");
@@ -29,6 +31,13 @@ public class EAEFuncName extends Id implements EAExpr {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         return Either.right(new Pair<>(gamma.gamma.fmap.get(this), new Tree<>("[..funcname..]")));
     }
+
+    @Override
+    public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
+        return Either.left(new Exception("Stuck: " + this));
+    }
+
+    /* ... */
 
     @Override
     public EAExpr subs(Map<EAEVar, EAExpr> m) {

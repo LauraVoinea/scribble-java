@@ -35,6 +35,11 @@ public class EAEUnit implements EAExpr {
         ));
     }
 
+    @Override
+    public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
+        return Either.left(new Exception("Stuck: " + this));
+    }
+
     /* Aux */
 
     @Override

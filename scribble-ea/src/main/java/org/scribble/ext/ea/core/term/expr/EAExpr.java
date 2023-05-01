@@ -27,13 +27,12 @@ public interface EAExpr extends EATerm {
     // var/funcname throw RuntimeException
     EAVType infer();  // for use on ground vals at config level
 
+    @Deprecated
     default boolean canEval() {
         return false;
     }
 
-    default EAExpr eval() {
-        throw new RuntimeException("Stuck: " + this);
-    }
+    Either<Exception, Pair<EAExpr, Tree<String>>> eval();
 
     /* Aux */
 

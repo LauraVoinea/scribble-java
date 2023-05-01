@@ -79,15 +79,24 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public EAComp beta() {
-        if (!canBeta()) {
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        if (!canBeta()) {  // ...testing
             throw new RuntimeException("Stuck: " + this);
         }
-        if (this.cond.canEval()) {
-            return EATermFactory.factory.iff(this.cond.eval(), this.then, this.elsee);
-        } else {
-            return ((EAEBoolVal) this.cond).val ? this.then : this.elsee;
+        if (this.cond.isValue()) {
+            if (!(this.cond instanceof EAEBoolVal)) {
+                return Either.left(new Exception("Expected Bool condition, not: " + this.cond));
+            }
+            return Either.right(Pair.of(
+                    ((EAEBoolVal) this.cond).val ? this.then : this.elsee,
+                    new Tree<>("[..B-If..]")
+            ));
         }
+        Either<Exception, Pair<EAExpr, Tree<String>>> eval = this.cond.eval();
+        return eval.mapRight(x -> Pair.of(
+                EATermFactory.factory.iff(x.left, this.then, this.elsee),
+                new Tree<>("[..B-Ctx..]", x.right)
+        ));
     }
 
     @Override
@@ -96,8 +105,11 @@ public class EAMIf implements EAComp {
     }
 
     @Override
-    public EAComp configReduce() {
-        return beta();
+    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+        return beta().mapRight(x -> Pair.of(
+                x.left,
+                new Tree<>("[..E-Lift-If..]", x.right)
+        ));
     }
 
     /* Aux */

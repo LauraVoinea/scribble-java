@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.type.GammaState;
+import org.scribble.ext.ea.core.type.session.local.EALInType;
+import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVBoolType;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -30,6 +32,8 @@ public class EAEBinOp implements EAExpr {
         this.left = left;
         this.right = right;
     }
+
+    /* ... */
 
     /*// S^?
     public static boolean isInType(EALType t) {
@@ -58,32 +62,25 @@ public class EAEBinOp implements EAExpr {
 
     @Override
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
+        Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
+        if (t_l.isLeft()) {
+            return Either.left(t_l.getLeft().get());
+        }
+        Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
+        EAVType ltype = p_l.left;
+        Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
+        if (t_r.isLeft()) {
+            return Either.left(t_r.getLeft().get());
+        }
+        Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
+        EAVType rtype = p_r.left;
+
         switch (this.op) {
             case PLUS: {
-                //EAVType ltype = this.left.type(gamma);
-                Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
-                if (t_l.isLeft()) {
-                    return Either.left(t_l.getLeft().get());
-                }
-                Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
-                EAVType ltype = p_l.left;
                 if (!(ltype.equals(EAVIntType.INT))) {
                     //throw new RuntimeException("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma);
                     return Either.left(new Exception("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma));
                 }
-        /*EAFuncType ftype = (EAFuncType) ltype;
-        /*if (!ftype.S.equals(pre)) {
-            throw new RuntimeException("Incompatible pre type:\n"
-                    + "\tfound=" + ftype.S + ", required=" + pre);
-        }* /
-        subtype(ftype.S, pre);*/
-                //EAVType rtype = this.right.type(gamma);
-                Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
-                if (t_r.isLeft()) {
-                    return Either.left(t_r.getLeft().get());
-                }
-                Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
-                EAVType rtype = p_r.left;
                 if (!(rtype.equals(EAVIntType.INT))) {
                     //throw new RuntimeException("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT);
                     return Either.left(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT));
@@ -95,23 +92,10 @@ public class EAEBinOp implements EAExpr {
             }
             case LT: {
                 //EAVType ltype = this.left.type(gamma);
-                Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.right.type(gamma);
-                if (t_l.isLeft()) {
-                    return Either.left(t_l.getLeft().get());
-                }
-                Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
-                EAVType ltype = p_l.left;
                 if (!(ltype.equals(EAVIntType.INT))) {
                     //throw new RuntimeException("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma);
                     return Either.left(new Exception("Expected Int type, not: " + this.left + " : " + ltype + "\n" + gamma));
                 }
-                //EAVType rtype = this.right.type(gamma);
-                Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
-                if (t_r.isLeft()) {
-                    return Either.left(t_r.getLeft().get());
-                }
-                Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
-                EAVType rtype = p_r.left;
                 if (!(rtype.equals(EAVIntType.INT))) {
                     //throw new RuntimeException("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT);
                     return Either.left(new Exception(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT)));
@@ -123,18 +107,7 @@ public class EAEBinOp implements EAExpr {
             }
             default:
                 throw new RuntimeException("TODO: " + this);
-
         }
-    }
-
-    @Override
-    public EAExpr subs(Map<EAEVar, EAExpr> m) {
-        return EATermFactory.factory.binop(this.op, this.left.subs(m), this.right.subs(m));
-    }
-
-    @Override
-    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
-        return EATermFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
     }
 
     /*@Override
@@ -154,20 +127,26 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
-    public EAExpr eval() {
+    public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
         if (!canEval()) {
-            throw new RuntimeException("Stuck: " + this);
+            return Either.left(new Exception("Stuck: " + this));
         }
         switch (this.op) {
             case PLUS: {
                 EAEIntVal left = (EAEIntVal) this.left;
                 EAEIntVal right = (EAEIntVal) this.right;
-                return EATermFactory.factory.intt(left.val + right.val);
+                return Either.right(Pair.of(
+                        EATermFactory.factory.intt(left.val + right.val),
+                        new Tree<>("..binop[+]..")
+                ));
             }
             case LT: {
                 EAEIntVal left = (EAEIntVal) this.left;
                 EAEIntVal right = (EAEIntVal) this.right;
-                return EATermFactory.factory.bool(left.val < right.val);
+                return Either.right(Pair.of(
+                        EATermFactory.factory.bool(left.val < right.val),
+                        new Tree<>("..binop[<]..")
+                ));
             }
             default:
                 throw new RuntimeException("TODO: " + this);
@@ -175,6 +154,16 @@ public class EAEBinOp implements EAExpr {
     }
 
     /* Aux */
+
+    @Override
+    public EAExpr subs(Map<EAEVar, EAExpr> m) {
+        return EATermFactory.factory.binop(this.op, this.left.subs(m), this.right.subs(m));
+    }
+
+    @Override
+    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
+        return EATermFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
+    }
 
     /*@Override
     public EAPBExpr recon(@NotNull EAPBExpr old, EAPBExpr neww) {

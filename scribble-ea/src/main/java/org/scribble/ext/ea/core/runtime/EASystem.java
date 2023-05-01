@@ -112,14 +112,14 @@ public class EASystem {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
         EATActive t = (EATActive) c.T;
-        if (!t.expr.isGround()) {
-            throw new RuntimeException("Stuck: " + t.expr + " ,, " + p + " " + c);
+        if (!t.comp.isGround()) {
+            throw new RuntimeException("Stuck: " + t.comp + " ,, " + p + " " + c);
         }
 
         // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
         // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
 
-        EAComp foo = t.expr.getConfigRedexCandidate();
+        EAComp foo = t.comp.getConfigRedexCandidate();
 
         //System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 

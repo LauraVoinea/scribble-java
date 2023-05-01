@@ -102,8 +102,8 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public EAComp beta() {
-        throw new RuntimeException("Stuck: " + this);
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        return Either.left(new Exception("Stuck: " + this));
     }
 
     /*@Override
@@ -117,8 +117,8 @@ public class EAMSuspend implements EAComp {
     }
 
     @Override
-    public EAComp configReduce() {
-        throw new RuntimeException("Shouldn't get in here.");
+    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+        return Either.left(new Exception("Shouldn't get in here: " + this));
     }
 
     /* Aux */

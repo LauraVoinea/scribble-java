@@ -79,15 +79,21 @@ public class EAMLet implements EAComp {
     }
 
     @Override
-    public EAComp beta() {
-        if (!canBeta()) {
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        if (!canBeta()) {  // ...testing
             throw new RuntimeException("Stuck: " + this);
         }
-        if (this.init.canBeta()) {
-            return EATermFactory.factory.let(this.var, this.varType, this.init.beta(), this.body);
-        } else {  // this.init instanceof EAPReturn && this.init.isGround()
-            return this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
+        if (this.init.isGroundValueReturn()) {
+            return Either.right(Pair.of(
+                    this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val)),
+                    new Tree<>("[B-Let]")
+            ));
         }
+        Either<Exception, Pair<EAComp, Tree<String>>> beta = this.init.beta();
+        return beta.mapRight(x -> Pair.of(
+                EATermFactory.factory.let(this.var, this.varType, x.left, this.body),
+                new Tree<>("[B-Ctx-Let]", x.right)
+        ));
     }
 
     // foo (getConfigRedexCandidate) return corresponds with beta "subject"
@@ -103,14 +109,19 @@ public class EAMLet implements EAComp {
     }
 
     @Override
-    public EAComp configReduce() {  // Not beta because, e.g., send in init cannot beta (must foo)
-        /*if (this.init instanceof EAMReturn && //this.init.isGround()) {
-                !this.init.canBeta()) {*/
+    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+        // Not just beta because, e.g., Send in init cannot beta (must configReduce)
         if (this.init.isGroundValueReturn()) {
-            return this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
-        } else {
-            return EATermFactory.factory.let(this.var, this.varType, this.init.configReduce(), this.body);
+            return beta().mapRight(x -> Pair.of(
+                    x.left,
+                    new Tree<>("[E-Lift-Let]", x.right)
+            ));
         }
+        Either<Exception, Pair<EAComp, Tree<String>>> reduce = this.init.configReduce();
+        return reduce.mapRight(x -> Pair.of(
+                EATermFactory.factory.let(this.var, this.varType, x.left, this.body),
+                new Tree<>("[E-Lift-Let]")
+        ));
     }
 
     /* Aux */

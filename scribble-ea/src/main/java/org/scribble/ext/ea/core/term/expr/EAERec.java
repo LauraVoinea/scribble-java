@@ -79,6 +79,10 @@ public class EAERec implements EAExpr {
                 new Tree<>("[TV-Rec] " + toJudgementString(gamma, ftype))));  // ...discarded pp.right
     }
 
+    @Override
+    public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
+        return Either.left(new Exception("Stuck: " + this));
+    }
 
     /* Aux */
 

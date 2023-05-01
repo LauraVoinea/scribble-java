@@ -1,13 +1,12 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
-import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
@@ -57,24 +56,28 @@ public class EAMReturn implements EAComp {
         return this.val.canEval();
     }
 
+    // Currently hacked to allow eval of, e.g., return 2+3 -- cf. (plus 2) 3 as an M
     @Override
-    public EAComp beta() {
-        //throw new RuntimeException("Stuck: " + this);
-        //System.out.println("33333333: " + EATermFactory.factory.returnn(this.val.eval()));
-        return EATermFactory.factory.returnn(this.val.eval());
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        Either<Exception, Pair<EAExpr, Tree<String>>> eval = this.val.eval();
+        return eval.mapRight(x -> Pair.of(
+                EATermFactory.factory.returnn(x.left),
+                new Tree<>("[..B-Ctx-Ret..]", x.right)
+        ));
     }
 
-    // foo
     @Override
     public EAComp getConfigRedexCandidate() {
-        //throw new RuntimeException("Shouldn't get here: " + this);
         return this;  // basically for top-level return -- let-init return detected by EAMLet
     }
 
     @Override
-    public EAComp configReduce() {
-        //throw new RuntimeException("Shouldn't get in here: " + this);
-        return EATermFactory.factory.returnn(this.val.eval());
+    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+        //return EATermFactory.factory.returnn(this.val.eval());
+        return this.val.eval().mapRight(x -> Pair.of(
+                EATermFactory.factory.returnn(x.left),
+                new Tree<>("[..E-Lift-Ret..]", x.right)
+        ));
     }
 
     /* Aux */

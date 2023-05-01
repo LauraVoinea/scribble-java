@@ -42,6 +42,11 @@ public class EAEVar implements EAExpr, EAName {
         return Either.left(new Exception("Unknown var: " + this + ", " + gamma));
     }
 
+    @Override
+    public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
+        return Either.left(new Exception("Stuck: " + this));
+    }
+
     /* Aux */
 
     /*@Override
