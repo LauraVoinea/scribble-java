@@ -106,7 +106,7 @@ public class EASystem {
     }
 
     // Pre: p \in getReady ?
-    public EASystem reduce(EAPid p) {  // n.b. beta is deterministic
+    public Pair<EASystem, Tree<String>> reduce(EAPid p) {  // n.b. beta is deterministic
         EACActor c = this.actors.get(p); // p.equals(c.pid)
         if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
@@ -126,12 +126,14 @@ public class EASystem {
         // !!! Delta (annots) unchanged
         if (foo instanceof EAMSuspend || foo instanceof EAMReturn
                 || foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf) {
-            LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);
-            return new EASystem(this.lf, this.annots, configs);
+            //LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);
+            Pair<LinkedHashMap<EAPid, EACActor>, Tree<String>> reduce = c.reduce(this);
+            return Pair.of(new EASystem(this.lf, this.annots, reduce.left), reduce.right);
         }
         // !!! Delta (annots) change
         else if (foo instanceof EAMSend) {
-            LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);
+            //LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);
+            Pair<LinkedHashMap<EAPid, EACActor>, Tree<String>> reduce = c.reduce(this);
 
             EAMSend cast = (EAMSend) foo;
             LinkedHashMap<Pair<EASid, Role>, EALType> dmap = new LinkedHashMap<>(this.annots.map);
@@ -157,7 +159,7 @@ public class EASystem {
             dmap.put(k2, l2);
 
             Delta d1 = new Delta(dmap);
-            return new EASystem(this.lf, d1, configs);
+            return Pair.of(new EASystem(this.lf, d1, reduce.left), reduce.right);
         } else {
             throw new RuntimeException("TODO " + foo);
         }

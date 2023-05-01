@@ -57,10 +57,11 @@ public class EACActor implements EAConfig {
         return ((EATActive) this.T).canActorReduce(sys);
     }
 
+    // !!! TODO refactor deriv tags between here and EAComp.configReduction -- also add Thread/Top-Context tags (cf. E-Ctx-Let)
     // Deterministic w.r.t. "self" (cf. getFoo is singular) -- At least must be w.r.t. a given s for session safety -- could have multiple inbox msgs but currently installed handlers can only accept exactly one
     // Pre: getFoo + foo OK -- cf. EAPActiveThread.canStep -- TODO optimise away getFoo
     // cf. EAPActiveThread.canStep
-    public LinkedHashMap<EAPid, EACActor> reduce(EASystem sys) {
+    public Pair<LinkedHashMap<EAPid, EACActor>, Tree<String>> reduce(EASystem sys) {
         if (!(this.T instanceof EATActive)) {
             throw new RuntimeException("Shouldn't get here: ");
         }
@@ -82,7 +83,7 @@ public class EACActor implements EAConfig {
                 EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.val);
                 //res.configs.put(p, c1);
                 configs.put(this.pid, c1);
-                return configs;
+                return Pair.of(configs, new Tree<>("[E-Reset]"));
             } else {
                 ////t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
                 //throw new RuntimeException("Shouldn't get in here");
@@ -101,7 +102,7 @@ public class EACActor implements EAConfig {
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
                 configs.put(this.pid, c1);
-                return configs;
+                return Pair.of(configs, p.right);  // E-Lift already tagged
             }
         } else if (foo instanceof EAMSend) {
 
@@ -153,8 +154,7 @@ public class EACActor implements EAConfig {
             //res.configs.put(p, c1);
             configs.put(this.pid, c1);
 
-            return configs;
-
+            return Pair.of(configs, p.right);  // E-Comm already tagged (...maybe would be better here)
         }
         // Other non-beta cases
         else if (foo instanceof EAMSuspend) {
@@ -172,7 +172,7 @@ public class EACActor implements EAConfig {
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
                 EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.sval);
                 configs.put(this.pid, c1);
-                return configs;
+                return Pair.of(configs, new Tree<>("[E-Suspend]"));
             } else {
                 //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.beta(), t.sid, t.role);
                 throw new RuntimeException("Shouldn't get in here");
@@ -193,7 +193,7 @@ public class EACActor implements EAConfig {
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
             EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
             configs.put(this.pid, c1);
-            return configs;
+            return Pair.of(configs, p.right);  // E-Lift-... already tagged
         } /*else if (foo instanceof EAPLet) {
             LinkedHashMap<EAPPid, EAPConfig> configs = new LinkedHashMap<>(sys.configs);
             LinkedHashMap<Pair<EAPSid, Role>, EAPHandlers> sigma1 = new LinkedHashMap<>(this.sigma);

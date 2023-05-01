@@ -118,7 +118,7 @@ public class EAMSend implements EAComp {
     public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
         return Either.right(Pair.of(
                 EATermFactory.factory.returnn(EATermFactory.factory.unit()),
-                new Tree<>("[E-Send]")
+                new Tree<>("[E-Comm]")  // XXX !!! FIXME should be in EACActor, not here -- e.g., gets nested under E-Lift-Let
         ));
     }
 

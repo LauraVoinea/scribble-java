@@ -41,6 +41,7 @@ public interface EAComp extends EATerm {
     // ...deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary
     EAComp getConfigRedexCandidate();  // getFoo
 
+    // Maybe deriv tree labels belong more to EACActor.reduce than to the "candidates" as here
     //EAComp configReduce();
     Either<Exception, Pair<EAComp, Tree<String>>> configReduce();
 

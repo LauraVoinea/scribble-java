@@ -332,7 +332,7 @@ public class EACommandLine extends CommandLine {
 
         Delta delta = new Delta(newLinkedMap(sA, out1u, sB, recXB));
         EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        typeAndRun(sys, -1);  // quit straight away or after one
+        typeAndRun(sys, -1, true);  // quit straight away or after one
         //typeAndRun(sys, 100);  // run forever
     }
 
@@ -891,10 +891,13 @@ public class EACommandLine extends CommandLine {
         int rem = steps;
         Map<EAPid, Set<EAPid>> pids = sys.canStep();
         for (; !pids.isEmpty() && rem != 0; rem--) {
-            sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
+            //sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
+            Pair<EASystem, Tree<String>> reduce = sys.reduce(pids.keySet().iterator().next());
+            sys = reduce.left;
             if (debug) {
-                System.out.println();
-                System.out.println(sys);
+                System.out.println("\n" + sys);
+                System.out.println("\nReduced one step by:");
+                System.out.println(reduce.right.toString("  "));
             }
             typeCheckSystem(sys, debug);
             pids = sys.canStep();

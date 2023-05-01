@@ -126,10 +126,10 @@ public class EAERec implements EAExpr {
     @Override
     public String toString() {
         return "rec " + this.f + " "
-                + ConsoleColors.toAnnotString("{ " + this.S + "}")
-                + " (" + this.var + " "
-                + ConsoleColors.toAnnotString(":" + this.varType)
-                + ") :"
+                + ConsoleColors.toAnnotString("{" + this.S + "}")
+                + " (" + this.var
+                + ConsoleColors.toAnnotString(": " + this.varType)
+                + "): "
                 + ConsoleColors.toAnnotString(this.B.toString() + " {" + this.T + "}")
                 + " . " + this.body;
     }

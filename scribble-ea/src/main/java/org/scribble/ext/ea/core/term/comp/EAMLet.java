@@ -120,7 +120,7 @@ public class EAMLet implements EAComp {
         Either<Exception, Pair<EAComp, Tree<String>>> reduce = this.init.configReduce();
         return reduce.mapRight(x -> Pair.of(
                 EATermFactory.factory.let(this.var, this.varType, x.left, this.body),
-                new Tree<>("[E-Lift-Let]")
+                new Tree<>("[..E-Ctx-Let..]", x.right)
         ));
     }
 
