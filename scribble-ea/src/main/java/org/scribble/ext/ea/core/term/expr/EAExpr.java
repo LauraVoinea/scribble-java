@@ -1,7 +1,9 @@
 package org.scribble.ext.ea.core.term.expr;
 
 import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.comp.EAComp;
 import org.scribble.ext.ea.core.type.GammaState;
+import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
@@ -17,6 +19,10 @@ public interface EAExpr extends EATerm {
     //...build scrib zip and make scala/kotlin?
 
     Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma);
+
+    default String toJudgementString(GammaState gamma, EAVType A) {
+        return gamma + " \u22a2 " + this + " : " + A;
+    }
 
     // var/funcname throw RuntimeException
     EAVType infer();  // for use on ground vals at config level

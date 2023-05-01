@@ -86,9 +86,10 @@ public class EAEHandlers implements EAExpr {
         }
         EALInType in = EALTypeFactory.factory.in(this.role, cases);
         //return EAVTypeFactory.factory.handlers(in, A);
+        EAVHandlersType res = EAVTypeFactory.factory.handlers(in, A);
         return Either.right(new Pair<>(
-                EAVTypeFactory.factory.handlers(in, A),
-                new Tree<>("[TV-Handler]")  // ...EAHandler.type discards Tree
+                res,
+                new Tree<>("[TV-Handler] " + toJudgementString(gamma, res))  // ...EAHandler.type discards Tree
         ));
     }
 

@@ -75,7 +75,8 @@ public class EAERec implements EAExpr {
             //throw new RuntimeException("Typing error:\n\t" + res + "\n\t" + target);
             return Either.left(new Exception("Typing error:\n\t" + res + "\n\t" + target));
         }
-        return Either.right(new Pair<>(ftype, new Tree<>("[TV-Rec]")));  // ...discarded pp.right
+        return Either.right(Pair.of(ftype,
+                new Tree<>("[TV-Rec] " + toJudgementString(gamma, ftype))));  // ...discarded pp.right
     }
 
 

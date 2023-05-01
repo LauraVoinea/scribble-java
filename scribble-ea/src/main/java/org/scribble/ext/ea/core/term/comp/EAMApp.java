@@ -73,9 +73,10 @@ public class EAMApp implements EAComp {
             return Either.left(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + ftype.A));
         }
         //return new Pair<>(ftype.B, ftype.T);
-        return Either.right(new Pair<>(
-                new Pair<>(ftype.B, ftype.T),
-                new Tree<>("[T-App]", List.of(p_l.right, p_r.right))
+        return Either.right(Pair.of(
+                Pair.of(ftype.B, ftype.T),
+                new Tree<>("[T-App] " + toJudgementString(gamma, pre, ftype.B, ftype.T),
+                        List.of(p_l.right, p_r.right))
         ));
     }
 

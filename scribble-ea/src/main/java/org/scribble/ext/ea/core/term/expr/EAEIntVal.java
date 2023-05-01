@@ -36,7 +36,10 @@ public class EAEIntVal implements EAExpr {
 
     @Override
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
-        return Either.right(new Pair<>(EAVIntType.INT, new Tree<>("[TV-Unit]")));
+        return Either.right(Pair.of(
+                EAVIntType.INT,
+                new Tree<>("[TV-Unit] " + toJudgementString(gamma, EAVIntType.INT))
+        ));
     }
 
     @Override

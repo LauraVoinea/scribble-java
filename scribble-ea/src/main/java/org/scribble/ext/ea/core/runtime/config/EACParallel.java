@@ -1,6 +1,10 @@
 package org.scribble.ext.ea.core.runtime.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.type.Gamma;
+import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.util.Either;
+import org.scribble.ext.ea.util.Tree;
 
 import java.util.*;
 
@@ -12,6 +16,11 @@ public class EACParallel implements EAConfig {
 
     protected EACParallel(@NotNull List<EAConfig> terms) {
         this.terms = Collections.unmodifiableList(new LinkedList<>(terms));
+    }
+
+    @Override
+    public Either<Exception, Tree<String>> type(Gamma gamma, Delta delta) {
+        throw new RuntimeException("TODO");
     }
 
     /* equals/canEquals, hashCode */

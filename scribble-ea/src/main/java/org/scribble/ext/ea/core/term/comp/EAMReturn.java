@@ -33,7 +33,6 @@ public class EAMReturn implements EAComp {
     @Override
     //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
     public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
-        EALEndType end = EATypeFactory.factory.local.end();
         /*if (!pre.equals(end)) {  // !!! return is value/term typing wrapper, not (session) control flow
             throw new RuntimeException("Expected end type: " + pre);
         }*/
@@ -41,9 +40,10 @@ public class EAMReturn implements EAComp {
         Either<Exception, Pair<EAVType, Tree<String>>> t = this.val.type(gamma);
         ////return new Pair<>(t, end);
         //return new Pair<>(t, pre);
-        return t.mapRight(x -> new Pair<>(
-                new Pair<>(x.left, pre),
-                new Tree<>("[T-Return]", List.of(x.right))));
+        return t.mapRight(x -> Pair.of(
+                Pair.of(x.left, pre),
+                new Tree<>("[T-Return] " + toJudgementString(gamma, pre, x.left, pre),
+                        List.of(x.right))));
     }
 
     @Override

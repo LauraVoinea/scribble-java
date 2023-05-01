@@ -16,6 +16,7 @@ import org.scribble.ext.ea.core.type.session.local.EALOutType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.session.local.EALTypeFactory;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
@@ -70,9 +71,11 @@ public class EAMSend implements EAComp {
             return Either.left(new Exception("Incompatible value type: " + valType + ", " + p.left));
         }
         //return new Pair<>(EATypeFactory.factory.val.unit(), p.right);
-        return Either.right(new Pair<>(
-                new Pair<>(EATypeFactory.factory.val.unit(), p.right),
-                new Tree<>("[T-Send]", List.of(pp.right))
+        EAVUnitType B = EATypeFactory.factory.val.unit();
+        return Either.right(Pair.of(
+                Pair.of(B, p.right),
+                new Tree<>("[T-Send] " + toJudgementString(gamma, pre, B, p.right),
+                        List.of(pp.right))
         ));
     }
 

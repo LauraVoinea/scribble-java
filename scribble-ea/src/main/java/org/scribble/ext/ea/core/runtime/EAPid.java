@@ -18,7 +18,7 @@ public class EAPid implements EARuntimeName {
         this.id = id;
     }
 
-    @Override
+    //@Override
     //public EAVType type(GammaState gamma) {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         //return Either.right(new Pair<>(EATypeFactory.factory.val.pid(), new Tree<>("..pid..")));

@@ -25,6 +25,10 @@ public interface EAComp extends EATerm {
     //Pair<EAVType, EALType> type(GammaState gamma, EALType pre);
     Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre);
 
+    default String toJudgementString(GammaState gamma, EALType S, EAVType B, EALType T) {
+        return gamma + " | " + S + " \u25B9 " + this + ": " + B + " \u25c3 " + T;
+    }
+
     // ->_M -- config independent M eval
     boolean canBeta();
 

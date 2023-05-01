@@ -34,6 +34,7 @@ import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 //- key point: only "relevant" handlers available at any one time -- cf. prev EDP works (all handlers all the time)
@@ -74,6 +75,8 @@ import java.util.*;
 // Includes assrt-core functionality (all extra args are currently for assrt-core)
 public class EACommandLine extends CommandLine {
 
+    static final LinkedHashMap<Pair<EASid, Role>, EAEHandlers> EMPTY_SIGMA = newLinkedMap();
+
     static final LTypeFactoryImpl LF = new LTypeFactoryImpl();
 
     static final EATypeFactory TF = EATypeFactory.factory;
@@ -106,18 +109,17 @@ public class EACommandLine extends CommandLine {
 
         //System.out.println(parseV("2 + 3"));
 
-        ex1();
-        ex2();
+        //ex1();
+        //ex2();
 
         ex4();
-        ex5a();
+        //ex5a();
 
-        ex6();
-        ex7();
-        ex8();
+        //ex6();
+        //ex7();
+        //ex8();
 
-        /*System.out.println("\n---\nex10");
-        ex10(lf, pf, rf, tf);*/
+        //ex10();
     }
 
     private static void negtests() {
@@ -141,10 +143,9 @@ public class EACommandLine extends CommandLine {
 
         tests();
 
-        /* HERE HERE
-        // merge rhu1-refactorinterfaces -- i.e., latest scrib-core
+        /* HERE HERE  // merge rhu1-refactorinterfaces -- i.e., latest scrib-core
 
-        - ...sys/actor/thread typing return Optional
+        - ...sys/actor/thread typing return Either
         - ...testing summary
         - ...eval Optional/Either return
         - ...Right @NotNull (no Void)
@@ -166,67 +167,28 @@ public class EACommandLine extends CommandLine {
         //new EACommandLine(args).run();
     }
 
-    // TODO update
-    static void ex10(LTypeFactory lf, EATermFactory pf, EARuntimeFactory rf, EATypeFactory tf) {
-        Role A = new Role("A");
-        Role B = new Role("B");
-        EASid s = rf.sid("s");
-        EAPid p1 = rf.pid("p1");
-        EAPid p2 = rf.pid("p2");
-
-        //---------------
+    static void ex10() {
+        System.out.println("\n--ex10:");
 
         EAComp lethA = parseM("return 42");
-
-        //---------------
-        // config < A, idle, c[A] |-> let h = ... in ... >
-        EATActive tA = rf.activeThread(lethA, s, A);
-        LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaA = new LinkedHashMap<>();
-        EACActor cA = rf.config(p1, tA, sigmaA, pf.factory.intt(1));
-
-        System.out.println();
-        EALType out1 = parseSessionType("end");
-        LinkedHashMap<Pair<EASid, Role>, EALType> env = new LinkedHashMap<>();
-        env.put(new Pair<>(s, A), out1);
-        System.out.println("Typing cA: " + cA + " ,, " + env);
-        cA.type(new Gamma(), new Delta(env));
-
-        //---------------
-
         EAComp lethB = parseM("return 43");
 
-        //--------------
-        // config < B, idle, c[B] |-> let h = ... in ... } >
-        EATActive tB = rf.activeThread(lethB, s, B);
-        LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaB = new LinkedHashMap<>();
-        EACActor cB = rf.config(p2, tB, sigmaB, pf.factory.intt(2));
+        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), EMPTY_SIGMA, MF.intt(1));
+        EACActor cB = RF.config(p2, RF.activeThread(lethB, s, B), EMPTY_SIGMA, MF.intt(2));
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
 
-        System.out.println();
-        env = new LinkedHashMap<>();
-        EALType in1 = parseSessionType("end");
-        env.put(new Pair<>(s, B), in1);
-        System.out.println("Typing cB: " + cB + " ,, " + env);
-        cB.type(new Gamma(), new Delta(env));
+        //--------------
+
+        typeCheckActor(cA, new Delta(newLinkedMap(sA, EALEndType.END)));
+        typeCheckActor(cB, new Delta(newLinkedMap(sB, EALEndType.END)));
 
         // ----
 
-        System.out.println("\n---");
-        System.out.println("cA = " + cA);
-        System.out.println("cB = " + cB);
-        LinkedHashMap<EAPid, EACActor> cs = new LinkedHashMap<>();
-        cs.put(cA.pid, cA);
-        cs.put(cB.pid, cB);
+        Delta delta = new Delta(newLinkedMap(sA, EALEndType.END, sB, EALEndType.END));
+        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
 
-        env = new LinkedHashMap<>();
-        env.put(new Pair<>(s, A), out1);
-        env.put(new Pair<>(s, B), in1);
-        System.out.println(env);
-        EASystem sys = rf.system(lf, new Delta(env), cs);
-        System.out.println(sys);
-        sys.type();
-
-        typeAndRun(sys, -1);
-        //
+        typeAndRun(sys, -1, true);
     }
 
     // !!! Not WT -- testing (incompatible) state typing
@@ -354,8 +316,8 @@ public class EACommandLine extends CommandLine {
                         + "  }) "
                         + "in let hh : " + h1s + " <= [h ()] in suspend hh 0");
 
-        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), newLinkedMap(), MF.factory.intt(0));
-        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), newLinkedMap(), MF.factory.intt(0));
+        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), EMPTY_SIGMA, MF.factory.intt(0));
+        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), EMPTY_SIGMA, MF.factory.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -410,8 +372,8 @@ public class EACommandLine extends CommandLine {
                         + "  })"
                         + "in let hh : " + h1s + " <= [h ()] in suspend hh 0");
 
-        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), newLinkedMap(), MF.factory.intt(0));
-        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), newLinkedMap(), MF.factory.intt(0));
+        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), EMPTY_SIGMA, MF.factory.intt(0));
+        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), EMPTY_SIGMA, MF.factory.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -442,7 +404,7 @@ public class EACommandLine extends CommandLine {
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Bool).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} z1: 1, l1(x: Bool) |-> return 42 }");
 
-        EACActor cA = RF.config(p1, RF.activeThread(sendAB, s, A), newLinkedMap(), MF.unit());
+        EACActor cA = RF.config(p1, RF.activeThread(sendAB, s, A), EMPTY_SIGMA, MF.unit());
         EACActor cB = RF.config(p2, RF.idle(), newLinkedMap(sB, hsB), MF.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
@@ -492,8 +454,8 @@ public class EACommandLine extends CommandLine {
                         + "  }) "
                         + "in let hh: " + h1s + " <= [h ()] in suspend hh 43");
 
-        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), newLinkedMap(), MF.intt(0));
-        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), newLinkedMap(), MF.intt(0));
+        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), EMPTY_SIGMA, MF.intt(0));
+        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), EMPTY_SIGMA, MF.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -748,8 +710,8 @@ public class EACommandLine extends CommandLine {
                         + "  }) "
                         + "in let hh : " + h1s + " <= [h ()] in suspend hh 42");
 
-        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), newLinkedMap(), MF.intt(0));
-        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), newLinkedMap(), MF.intt(0));
+        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), EMPTY_SIGMA, MF.intt(0));
+        EACActor cB = RF.config(p2, RF.activeThread(leth, s, B), EMPTY_SIGMA, MF.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -772,7 +734,7 @@ public class EACommandLine extends CommandLine {
         EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
         // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
 
-        typeAndRun(sys, 100);
+        typeAndRun(sys, 100, true);
     }
 
     private static void ex2() {
@@ -790,7 +752,7 @@ public class EACommandLine extends CommandLine {
                         + "}");
 
         // TODO factor out a Sigma class, e.g., for typing
-        EACActor cA = RF.config(p1, RF.activeThread(let, s, A), newLinkedMap(), MF.unit());
+        EACActor cA = RF.config(p1, RF.activeThread(let, s, A), EMPTY_SIGMA, MF.unit());
         EACActor cB = RF.config(p2, idle, newLinkedMap(sB, hsB1), MF.intt(0));  // B step after active suspend
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
@@ -799,7 +761,7 @@ public class EACommandLine extends CommandLine {
 
         /*System.out.println("Typing eA: " + out1 + " ,, " + let.type(new GammaState(EAVUnitType.UNIT), out1));
         LinkedHashMap<EAName, EAVType> map = newLinkedMap(x, TF.val.unit());
-        GammaState gamma = new GammaState(map, newLinkedMap(), EAVIntType.INT);
+        GammaState gamma = new GammaState(map, EMPTY_SIGMA, EAVIntType.INT);
         System.out.println("Typing hB: " + hsB1.type(gamma));*/
 
         typeCheckActor(cA, new Delta(newLinkedMap(sA, out1)));
@@ -823,7 +785,7 @@ public class EACommandLine extends CommandLine {
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Int).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} d: 1, l1(x: Int) |-> return d }");
 
-        EACActor cA = RF.config(p1, RF.activeThread(sendAB, s, A), newLinkedMap(), MF.unit());
+        EACActor cA = RF.config(p1, RF.activeThread(sendAB, s, A), EMPTY_SIGMA, MF.unit());
         EACActor cB = RF.config(p2, RF.idle(), newLinkedMap(sB, hsB), MF.unit());  // B step after active suspend
         System.out.println("cA: " + cA);
         System.out.println("cB: " + cB);
@@ -914,7 +876,8 @@ public class EACommandLine extends CommandLine {
         }
         if (debug) {
             System.out.println("Type checked system:");
-            t.getRight().get().forEach(x -> System.out.println(x.toString("  ")));
+            System.out.println(t.getRight().get().stream()
+                    .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
         }
     }
 

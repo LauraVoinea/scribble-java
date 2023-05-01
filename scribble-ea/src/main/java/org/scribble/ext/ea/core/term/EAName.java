@@ -8,7 +8,7 @@ import org.scribble.util.Pair;
 
 public interface EAName {  // A term (has `type`)
 
-    // TODO leave abstract
+    /*// TODO leave abstract
     //default EAVType type(GammaState gamma) {
     default Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         EAVType res = gamma.gamma.map.get(this);
@@ -18,7 +18,7 @@ public interface EAName {  // A term (has `type`)
         }
         //return res;
         return Either.right(new Pair<>(res, new Tree<>("..name..")));
-    }
+    }*/
 
     boolean canEquals(Object o);
 }

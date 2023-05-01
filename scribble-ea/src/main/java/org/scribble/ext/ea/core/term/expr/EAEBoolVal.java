@@ -37,7 +37,10 @@ public class EAEBoolVal implements EAExpr {
     @Override
     //public EAVType type(GammaState gamma) {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
-        return Either.right(new Pair<>(EAVBoolType.BOOL, new Tree<>("[TV-Unit]")));
+        return Either.right(Pair.of(
+                EAVBoolType.BOOL,
+                new Tree<>("[TV-Unit] " + toJudgementString(gamma, EAVBoolType.BOOL))
+        ));
     }
 
     @Override

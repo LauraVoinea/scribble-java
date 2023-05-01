@@ -25,7 +25,8 @@ public class EATIdle implements EAThread {
             //throw new RuntimeException("Invalid Delta: " + delta);
             return Either.left(new Exception("Invalid Delta: " + delta));
         }
-        return Either.right(new Tree<>("[TT-Idle]"));
+        return Either.right(new Tree<>(
+                "[TT-Idle] " + toJudgementString(gamma, delta)));  // cf. weakening
     }
 
     /* aux */

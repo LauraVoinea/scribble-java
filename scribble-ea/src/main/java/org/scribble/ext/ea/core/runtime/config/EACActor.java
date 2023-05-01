@@ -201,9 +201,10 @@ public class EACActor implements EAConfig {
         return !this.T.isIdle();
     }
 
-    public Either<Exception, Tree<String>> type(Gamma gamma1, Delta delta) {
+    @Override
+    public Either<Exception, Tree<String>> type(Gamma gamma, Delta delta) {
         EAVType infer = this.state.infer();
-        GammaState gamma2 = new GammaState(new LinkedHashMap<>(gamma1.map), new LinkedHashMap<>(gamma1.fmap), infer);
+        GammaState gamma2 = new GammaState(new LinkedHashMap<>(gamma.map), new LinkedHashMap<>(gamma.fmap), infer);
         //Gamma gamma2 = gamma1;
 
         LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
@@ -228,13 +229,17 @@ public class EACActor implements EAConfig {
         }
         Delta delta2 = new Delta(tmp);
         Either<Exception, Tree<String>> u = typeSigma(gamma2, delta2);
-        return u.mapRight(x -> new Tree("[T-Actor]", t.getRight().get(), x));
+        return u.mapRight(x -> new Tree(
+                "[T-Actor] " + toJudgementString(gamma, delta),
+                t.getRight().get(), x));
 
         /*EAValType stype = this.state.type(gamma);
         if (!stype.equals(gamma.svarType)) {
             throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + stype);
         }*/
     }
+
+    /* ... */
 
     // Combines TH-Empty and TH-Handler
     // !!! TODO make Sigma explicit class (cf. TH-Handler)
@@ -302,7 +307,11 @@ public class EACActor implements EAConfig {
                 }
             }
         }
-        return Either.right(new Tree<>("[TH-Handler]", ds));
+        return Either.right(new Tree<>("[TH-Handler] " + toSigmaJudgementString(gamma, delta), ds));
+    }
+
+    public String toSigmaJudgementString(GammaState gamma, Delta delta) {
+        return gamma + "; " + delta + " \u22a2 " + this.sigma;
     }
 
     /* Aux */

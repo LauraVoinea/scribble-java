@@ -33,7 +33,10 @@ public class EAEVar implements EAExpr, EAName {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         if (gamma.gamma.map.containsKey(this)) {
             //return gamma.gamma.map.get(this);
-            return Either.right(new Pair<>(gamma.gamma.map.get(this), new Tree<>("..name..")));
+            EAVType A = gamma.gamma.map.get(this);
+            return Either.right(Pair.of(A,
+                    new Tree<>("[TV-Var] " + toJudgementString(gamma, A))
+            ));
         }
         //throw new RuntimeException("Unknown var: " + this + ", " + gamma);
         return Either.left(new Exception("Unknown var: " + this + ", " + gamma));

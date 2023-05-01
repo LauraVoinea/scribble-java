@@ -55,9 +55,11 @@ public class EAMIf implements EAComp {
             return Either.left(new Exception("Incompatible branches:\n\tfound=" + ttype + ", required=" + etype));
         }
         //return new Pair<>(u.get(), ttype.right);
-        return Either.right(new Pair<>(
-                new Pair<>(u.get(), ttype.right),
-                new Tree<>("[T-If]", List.of(pp_l.right, pp_r.right))
+        EAVType B = u.get();
+        return Either.right(Pair.of(
+                Pair.of(B, ttype.right),
+                new Tree<>("[T-If] " + toJudgementString(gamma, pre, B, ttype.right),
+                        List.of(pp_l.right, pp_r.right))
         ));
     }
 

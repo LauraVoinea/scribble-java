@@ -30,7 +30,9 @@ public class EAEUnit implements EAExpr {
     @Override
     //public EAVUnitType type(GammaState gamma) {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
-        return Either.right(new Pair<>(EATypeFactory.factory.val.unit(), new Tree<>("[TV-Unit]")));
+        return Either.right(Pair.of(EAVUnitType.UNIT,
+                new Tree<>("[TV-Unit] " + toJudgementString(gamma, EAVUnitType.UNIT))
+        ));
     }
 
     /* Aux */

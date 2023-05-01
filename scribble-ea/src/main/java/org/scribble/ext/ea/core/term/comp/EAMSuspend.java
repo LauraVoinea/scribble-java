@@ -5,6 +5,7 @@ import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.GammaState;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
@@ -75,9 +76,10 @@ public class EAMSuspend implements EAComp {
 
         //return new Pair<>(tf.val.wild(), tf.local.end());  // A as wild -- TODO S' wild
         ////return new Pair<>(gamma.svarType, tf.local.end());  // XXX suspend svar is side effect, not result
-        return Either.right(new Pair<>(
-                new Pair<>(gamma.svarType, tf.local.end()),
-                new Tree<>("[T-Suspend]", List.of(p.right, p_s.right))
+        return Either.right(Pair.of(
+                Pair.of(gamma.svarType, EALEndType.END),
+                new Tree<>("[T-Suspend] " + toJudgementString(gamma, pre, gamma.svarType, EALEndType.END),
+                        List.of(p.right, p_s.right))
         ));
     }
 

@@ -29,8 +29,8 @@ public class GammaState {
 
     @Override
     public String toString() {
-        return this.gamma + " ,, " //+ this.svar
-                + ": " + this.svarType;
+        return this.gamma + " ,, " //+ this.svar + ": "
+                + this.svarType;
     }
 
     /* equals, hashCode */

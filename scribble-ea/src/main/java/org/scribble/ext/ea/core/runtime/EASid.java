@@ -18,7 +18,7 @@ public class EASid implements EARuntimeName {
         this.id = id;
     }
 
-    @Override
+    //@Override
     //public EAVType type(GammaState gamma) {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         throw new RuntimeException("Deprecated?");  // !!!

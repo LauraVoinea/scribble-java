@@ -56,9 +56,10 @@ public class EAMLet implements EAComp {
         LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
         tmp.put(this.var, p1.left);
         GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), gamma.svarType);
-        return this.body.type(gamma1, p1.right).mapRight(x -> new Pair<>(
+        return this.body.type(gamma1, p1.right).mapRight(x -> Pair.of(
                 x.left,
-                new Tree<>("[T-Let]", List.of(pp.right, x.right))
+                new Tree<>("[T-Let] " + toJudgementString(gamma, pre, x.left.left, x.left.right),
+                        List.of(pp.right, x.right))
         ));
     }
 

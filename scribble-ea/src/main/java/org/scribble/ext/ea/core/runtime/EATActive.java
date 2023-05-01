@@ -77,7 +77,8 @@ public class EATActive implements EAThread {
             //throw new RuntimeException("Invalid Delta: " + delta);
             return Either.left(new Exception("Invalid Delta: " + delta));
         }
-        EALType pre = delta.map.get(new Pair<>(this.sid, this.role));
+        Pair<EASid, Role> c = Pair.of(this.sid, this.role);
+        EALType pre = delta.map.get(c);
         if (pre == null) {
             //throw new RuntimeException("Unknown endpoint: " + endpointToString(this.sid, this.role));
             return Either.left(new Exception("Unknown endpoint: " + endpointToString(this.sid, this.role)));
@@ -97,7 +98,8 @@ public class EATActive implements EAThread {
             //throw new RuntimeException("Badly typed: " + this + " : " + res.left + " <| " + res.right);
             return Either.left(new Exception("Badly typed: " + this + " : " + res.left + " <| " + res.right));
         }
-        return Either.right(new Tree<>("[TT-Sess]", pp.right));
+        return Either.right(new Tree<>(
+                "[TT-Sess] " + toJudgementString(gamma, delta), pp.right));
     }
 
     /* aux */
