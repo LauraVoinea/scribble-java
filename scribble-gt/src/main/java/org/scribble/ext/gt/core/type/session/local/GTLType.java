@@ -23,6 +23,7 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int RECVAR_HASH = 9901;
 
     int c_TOP = -1;
+    int n_INIT = 1;
 
     @Override
     default GTLType unfold() {
@@ -38,8 +39,8 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
     // FIXME: Sigma may be local or remote depending on action
-    default Optional<Pair<GTLType, Sigma>> step(Role self, EAction<DynamicActionKind> a, Sigma sigma) {
-        return step(self, a, sigma, c_TOP, 0);  // n=0 constant
+    default Optional<Pair<GTLType, Sigma>> stepTopLevel(Role self, EAction<DynamicActionKind> a, Sigma sigma) {
+        return step(self, a, sigma, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // GTESend, GTERecv

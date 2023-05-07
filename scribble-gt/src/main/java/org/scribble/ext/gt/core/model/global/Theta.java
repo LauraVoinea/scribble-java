@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.model.global;
 
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,10 +11,10 @@ import java.util.stream.Collectors;
 
 public class Theta {
 
-    public final Map<Integer, Integer> map;  // "next" -- the id for the next active instance
+    public final Map<Integer, Integer> map;  // "next" -- the id for the *NEXT* active instance, cf. GTLType.n_INIT
 
     public Theta(Set<Integer> init) {
-        this.map = init.stream().collect(Collectors.toMap(x -> x, x -> 1));
+        this.map = init.stream().collect(Collectors.toMap(x -> x, x -> GTLType.n_INIT));
     }
 
     public Theta(Map<Integer, Integer> map) {

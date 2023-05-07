@@ -95,8 +95,8 @@ public class GTGWiggly implements GTGType {
             System.err.println("[WARNING] TODO local actions");
             GTESend<DynamicActionKind> m =
                     new GTESend<>(MActionBase.DYNAMIC_ID, null, this.dst,
-                            //this.op, Payload.EMPTY_PAYLOAD, CCC, NNN);  // HERE HERE FIXME mf/ef?
-                            this.op, Payload.EMPTY_PAYLOAD, -1, 0);  // HERE HERE FIXME mf/ef?
+                            //this.op, Payload.EMPTY_PAYLOAD, CCC, NNN);  // HERE HERE projection needs c, n  // FIXME mf/ef?
+                            this.op, Payload.EMPTY_PAYLOAD, -1, 0);  // HERE HERE projection needs c, n  // FIXME mf/ef?
             as.add(0, m);
 
             tmp.put(this.src, as);
