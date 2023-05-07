@@ -2,6 +2,9 @@ package org.scribble.ext.gt.util;
 
 public class ConsoleColors {
 
+    public static final char WHITE_TRIANGLE = '\u25B7';
+    public static final char BLACK_TRIANGLE = '\u25B6';
+
     public static final String toAnnotString(String m) {
         //return ConsoleColors.BLACK_UNDERLINED + m + ConsoleColors.RESET;
         return "";

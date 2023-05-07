@@ -36,40 +36,7 @@ public class GTGMixedChoice implements GTGType {
         this.right = right;
     }
 
-    @Override
-    public GTGMixedChoice unfoldContext(Map<RecVar, GTGType> c) {
-        GTGType left = this.left.unfoldContext(c);
-        GTGType right = this.right.unfoldContext(c);
-        return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        Set<Integer> res = new HashSet<>();
-        res.add(this.c);
-        res.addAll(this.left.getTimeoutIds());
-        res.addAll(this.right.getTimeoutIds());
-        return res;
-    }
-
-    @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
-        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(rs, r);
-        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(rs, r);
-        if (optl.isEmpty() || optr.isEmpty()) {
-            return Optional.empty();
-        }
-        Sigma s0 = new Sigma(rs);
-        Pair<? extends GTLType, Sigma> get_l = optl.get();
-        Pair<? extends GTLType, Sigma> get_r = optr.get();
-        if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
-            return Optional.empty();
-        }
-        return !r.equals(this.other) && !r.equals(this.observer)
-                ? get_l.left.merge(get_r.left).map(x -> new Pair<>(x, s0))  // !!! refactor with GTGInteraction.merge
-                : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
-    }
+    /* ... */
 
     @Override
     public boolean isSinglePointed() {
@@ -97,6 +64,27 @@ public class GTGMixedChoice implements GTGType {
     public boolean isCoherent() {
         return this.left.isCoherent() && this.right.isCoherent();
     }
+
+    @Override
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(rs, r, c, n);
+        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(rs, r, c, n);
+        if (optl.isEmpty() || optr.isEmpty()) {
+            return Optional.empty();
+        }
+        Sigma s0 = new Sigma(rs);
+        Pair<? extends GTLType, Sigma> get_l = optl.get();
+        Pair<? extends GTLType, Sigma> get_r = optr.get();
+        if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
+            return Optional.empty();
+        }
+        return !r.equals(this.other) && !r.equals(this.observer)
+                ? get_l.left.merge(get_r.left).map(x -> new Pair<>(x, s0))  // !!! refactor with GTGInteraction.merge
+                : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
+    }
+
+    /* ... */
 
     // Pre: a in getActs
     // Deterministic w.r.t. a -- CHECKME: recursion
@@ -131,6 +119,24 @@ public class GTGMixedChoice implements GTGType {
         return res;
     }
 
+    /* Aux */
+
+    @Override
+    public GTGMixedChoice unfoldContext(Map<RecVar, GTGType> c) {
+        GTGType left = this.left.unfoldContext(c);
+        GTGType right = this.right.unfoldContext(c);
+        return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        Set<Integer> res = new HashSet<>();
+        res.add(this.c);
+        res.addAll(this.left.getTimeoutIds());
+        res.addAll(this.right.getTimeoutIds());
+        return res;
+    }
+
     @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.left.getOps());
@@ -138,11 +144,9 @@ public class GTGMixedChoice implements GTGType {
         return ops;
     }
 
-    /* Aux */
-
     @Override
     public String toString() {
-        return ConsoleColors.toMixedChoiceString("(" + this.left + " |>"
+        return ConsoleColors.toMixedChoiceString("(" + this.left + " " + ConsoleColors.WHITE_TRIANGLE
                 + this.c + ":" + this.other + "->" + this.observer
                 + " " + this.right + ")");
     }

@@ -24,6 +24,10 @@ public class Pair<T1, T2> {
         this.right = t2;
     }
 
+    public static <T1, T2> Pair<T1, T2> of(T1 t1, T2 t2) {
+        return new Pair<>(t1, t2);
+    }
+
     @Override
     public String toString() {
         return "(" + this.left + ", " + this.right + ")";

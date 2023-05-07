@@ -14,6 +14,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeFactory;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -80,7 +81,7 @@ public class GTLMixedActive implements GTLType {
 
     @Override
     public String toString() {
-        return "(" + this.left + " |>"
+        return "(" + this.left + " " + ConsoleColors.BLACK_TRIANGLE
                 + this.c + "," + this.n
                 + " " + this.right + ")";
     }

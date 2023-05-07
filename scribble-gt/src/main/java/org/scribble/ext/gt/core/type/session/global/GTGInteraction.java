@@ -36,33 +36,31 @@ public class GTGInteraction implements GTGType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    /* ... */
+
     @Override
-    public GTGInteraction unfoldContext(Map<RecVar, GTGType> c) {
-        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(c),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return new GTGInteraction(this.src, this.dst, cases);
+    public boolean isSinglePointed() {
+        return this.cases.values().stream().allMatch(GTGType::isSinglePointed);
     }
 
     @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                .flatMap(x -> x.getTimeoutIds().stream())
-                .collect(Collectors.toSet());
+    public boolean isGood() {
+        return this.cases.values().stream().allMatch(GTGType::isGood);
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
+    public boolean isCoherent() {
+        return this.cases.values().stream().allMatch(GTGType::isCoherent);
+    }
+
+    @Override
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src) || r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             Sigma sigma = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r);
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r, c, n);
                 if (opt.isEmpty()) {
                     return Optional.empty();
                 }
@@ -79,11 +77,11 @@ public class GTGInteraction implements GTGType {
                     : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
-                    this.cases.values().stream().map(x -> x.project(rs, r));
+                    this.cases.values().stream().map(x -> x.project(rs, r, c, n));
             Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
             // FIXME stream made twice... -- refactor with GTGWiggly
-            str = this.cases.values().stream().map(x -> x.project(rs, r));  // !!! XXX
+            str = this.cases.values().stream().map(x -> x.project(rs, r, c, n));  // !!! XXX
             return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }
@@ -123,20 +121,7 @@ public class GTGInteraction implements GTGType {
         return left.flatMap(x -> right.flatMap(x::merge));
     }
 
-    @Override
-    public boolean isSinglePointed() {
-        return this.cases.values().stream().allMatch(GTGType::isSinglePointed);
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.cases.values().stream().allMatch(GTGType::isGood);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(GTGType::isCoherent);
-    }
+    /* ... */
 
     @Override
     public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
@@ -242,14 +227,33 @@ public class GTGInteraction implements GTGType {
         return res;
     }
 
+    /* Aux */
+
+    @Override
+    public GTGInteraction unfoldContext(Map<RecVar, GTGType> c) {
+        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldContext(c),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGInteraction(this.src, this.dst, cases);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getTimeoutIds().stream())
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.cases.keySet());
         this.cases.values().forEach(x -> ops.addAll(x.getOps()));
         return ops;
     }
-
-    /* Aux */
 
     @Override
     public String toString() {

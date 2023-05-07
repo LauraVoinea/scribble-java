@@ -23,21 +23,7 @@ public class GTGRecVar implements GTGType {
         this.var = var;
     }
 
-    @Override
-    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
-        return c.getOrDefault(this.var, this);  // CHECKME this
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
-        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma(rs)));
-    }
+    /* ... */
 
     @Override
     public boolean isSinglePointed() {
@@ -55,6 +41,14 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma(rs)));
+    }
+
+    /* ... */
+
+    @Override
     public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         return Optional.empty();
     }
@@ -65,12 +59,23 @@ public class GTGRecVar implements GTGType {
         return new LinkedHashSet<>();
     }
 
+    /* Aux */
+
+    @Override
+    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
+        return c.getOrDefault(this.var, this);  // CHECKME this
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
     @Override
     public Set<Op> getOps() {
         return Collections.emptySet();
     }
 
-    /* Aux */
 
     @Override
     public String toString() {

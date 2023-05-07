@@ -22,6 +22,12 @@ public class GTESend<A extends ActionKind> extends ESend<A> implements GTEAction
     }
 
     @Override
+    public String toString() {
+        return "(" + this.obj + ", " + this.mid + ":" + this.payload
+                + ", " + c + ", " + n + ")";
+    }
+
+    @Override
     public int hashCode() {
         int hash = 14957;
         hash = 31 * hash + super.hashCode();

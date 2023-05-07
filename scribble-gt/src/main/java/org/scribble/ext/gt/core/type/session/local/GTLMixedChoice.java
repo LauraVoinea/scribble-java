@@ -75,7 +75,8 @@ public class GTLMixedChoice implements GTLType {
 
     @Override
     public String toString() {
-        return ConsoleColors.toMixedChoiceString(this.left + " |>" + this.c + " " + this.right);
+        return ConsoleColors.toMixedChoiceString(this.left + " " + ConsoleColors.WHITE_TRIANGLE
+                + this.c + " " + this.right);
     }
 
     /* hashCode, equals, canEquals */

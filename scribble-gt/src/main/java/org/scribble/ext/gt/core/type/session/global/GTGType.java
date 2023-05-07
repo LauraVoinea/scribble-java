@@ -25,24 +25,23 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     int REC_HASH = 1699;
     int RECVAR_HASH = 1709;
 
-    @Override
-    default GTGType unfold() {
-        return unfoldContext(Collections.emptyMap());
-    }
-
-    GTGType unfoldContext(Map<RecVar, GTGType> c);
-
-    Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r);
+    /* ... */
 
     boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
 
+    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
+
     boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
 
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
-    //boolean isLemma2();
-    //boolean isLemma3();
+    default Optional<Pair<? extends GTLType, Sigma>> projectTopLevel(Set<Role> rs, Role r) {
+        return project(rs, r, GTLType.c_TOP, GTLType.n_INIT);
+    }
 
-    Set<Integer> getTimeoutIds();
+    //Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r);
+
+    Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n);
+
+    /* ... */
 
     // a is deterministic (including "nested" steps)
     Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a);
@@ -54,6 +53,18 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     }
 
     LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked);
+
+    /* ... */
+
+    // CHECKME factor out subs?
+    @Override
+    default GTGType unfold() {
+        return unfoldContext(Collections.emptyMap());
+    }
+
+    GTGType unfoldContext(Map<RecVar, GTGType> c);
+
+    Set<Integer> getTimeoutIds();
 
     Set<Op> getOps();
 }

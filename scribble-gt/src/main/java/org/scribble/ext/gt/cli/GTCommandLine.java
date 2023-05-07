@@ -128,7 +128,7 @@ public class GTCommandLine extends CommandLine {
 
                 Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
                 for (Role r : rs) {
-                    System.out.println("project onto " + r + ": " + translate.project(rs, r).get());
+                    System.out.println("project onto " + r + ": " + translate.projectTopLevel(rs, r).get());
                 }
 
                 System.out.println("---");
@@ -226,12 +226,18 @@ public class GTCommandLine extends CommandLine {
             System.err.println("Not coherent: " + g);
             System.exit(0);
         }
+
+        System.out.println("\n" + indent + "Project " + g + ": ");
+
         for (Role r : rs) {
-            Optional<Pair<? extends GTLType, Sigma>> p = g.project(rs, r);
+            Optional<Pair<? extends GTLType, Sigma>> p = g.projectTopLevel(rs, r);
             if (!p.isPresent()) {
                 System.err.println("Couldn't project onto " + r + ": " + g);
                 System.exit(0);
             }
+
+            System.out.println(indent + "  onto " + r + ": " + p.get());
+
         }
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
@@ -239,7 +245,7 @@ public class GTCommandLine extends CommandLine {
                 .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());
 
-        System.out.println(indent + "as = " + as);
+        System.out.println("\n" + indent + "as = " + as);
         //String read = KB.nextLine();
 
         for (SAction<DynamicActionKind> a : as) {

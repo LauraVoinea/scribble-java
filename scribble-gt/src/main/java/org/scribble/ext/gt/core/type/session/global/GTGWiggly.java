@@ -60,18 +60,18 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src)) {
             //LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
-            return this.cases.get(this.op).project(rs, r);
+            return this.cases.get(this.op).project(rs, r, c, n);
         } else if (r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             Sigma sigma = null;
             Sigma sigma_k = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
                 Op op = e.getKey();
-                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r);
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r, c, n);
                 if (opt.isEmpty()) {
                     return Optional.empty();
                 }
@@ -95,8 +95,7 @@ public class GTGWiggly implements GTGType {
             System.err.println("[WARNING] TODO local actions");
             GTESend<DynamicActionKind> m =
                     new GTESend<>(MActionBase.DYNAMIC_ID, null, this.dst,
-                            //this.op, Payload.EMPTY_PAYLOAD, CCC, NNN);  // HERE HERE projection needs c, n  // FIXME mf/ef?
-                            this.op, Payload.EMPTY_PAYLOAD, -1, 0);  // HERE HERE projection needs c, n  // FIXME mf/ef?
+                            this.op, Payload.EMPTY_PAYLOAD, c, n);  // HERE HERE projection needs c, n  // FIXME mf/ef?
             as.add(0, m);
 
             tmp.put(this.src, as);
@@ -104,11 +103,11 @@ public class GTGWiggly implements GTGType {
             return Optional.of(new Pair<>(lf.branch(this.src, cases), sigma_k));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
-                    this.cases.values().stream().map(x -> x.project(rs, r));
+                    this.cases.values().stream().map(x -> x.project(rs, r, c, n));
             Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
             // FIXME stream made twice... -- duplicated from GTGInteraction
-            str = this.cases.values().stream().map(x -> x.project(rs, r));  // !!! XXX
+            str = this.cases.values().stream().map(x -> x.project(rs, r, c, n));  // !!! XXX
             return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }

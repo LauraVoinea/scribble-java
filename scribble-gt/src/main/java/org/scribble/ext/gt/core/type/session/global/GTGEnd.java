@@ -22,23 +22,10 @@ public class GTGEnd implements GTGType {
 
     protected GTGEnd() { }
 
-    @Override
-    public GTGEnd unfoldContext(Map<RecVar, GTGType> c) {
-        return this;
-    }
-
-    @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
-        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma(rs)));
-    }
+    /* ... */
 
     @Override
     public boolean isSinglePointed() {
-        return true;
-    }
-
-    @Override
-    public boolean isGood() {
         return true;
     }
 
@@ -48,14 +35,22 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public Set<Integer> getTimeoutIds() {
-        return Collections.emptySet();
+    public boolean isGood() {
+        return true;
     }
 
+    /*@Override
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
+        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma(rs)));
+    }*/
+
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
-        return Optional.empty();
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+        //return project(rs, r);
+        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma(rs)));
     }
+
+    /* ... */
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
@@ -63,11 +58,26 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public Set<Op> getOps() {
-        return Collections.emptySet();
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
+        return Optional.empty();
     }
 
     /* Aux */
+
+    @Override
+    public GTGEnd unfoldContext(Map<RecVar, GTGType> c) {
+        return this;
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Set<Op> getOps() {
+        return Collections.emptySet();
+    }
 
     @Override
     public String toString() {

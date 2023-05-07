@@ -11,6 +11,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -48,60 +49,12 @@ public class GTGMixedActive implements GTGType {
                 new LinkedHashSet<>(committedRight));
     }
 
-    @Override
-    public GTGMixedActive unfoldContext(Map<RecVar, GTGType> c) {
-        GTGType left = this.left.unfoldContext(c);
-        GTGType right = this.left.unfoldContext(c);
-        return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
-                new LinkedHashSet<>(this.committedLeft), new LinkedHashSet<>(this.committedRight));  // FIXME repeated copying
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        Set<Integer> res = new HashSet<>();
-        // !!! not adding this.c -- currently detect only inactive mixed
-        res.addAll(this.left.getTimeoutIds());
-        res.addAll(this.right.getTimeoutIds());
-        return res;
-    }
-
-    // Pre: this.committedLeft.contains(r) xor this.committedRight.contains(r)
-    @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
-        // Same as MixedChoice except with n
-        if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
-            return this.left.project(rs, r);
-        } else if (this.committedRight.contains(r) && !this.committedLeft.contains(r)) {
-            return this.right.project(rs, r);
-        } else { //if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
-            //throw new RuntimeException("TODO: ");  // p,q ??
-            GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r);
-            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r);
-            if (!(r.equals(this.other) || r.equals(this.observer))) {
-                Optional<Pair<? extends GTLType, Sigma>> merged =
-                        GTGMixedActive.mergePair(opt_l, opt_r);
-                System.out.println("aaaaaa: " + this + " ,, " + r + " \n " + opt_l + " ,, " + opt_r + "\n" + merged);
-                if (!merged.isPresent()) { //optl.isEmpty() || optr.isEmpty()) {
-                    return Optional.empty();
-                }
-            }
-            Pair<? extends GTLType, Sigma> get_l = opt_l.get();
-            Pair<? extends GTLType, Sigma> get_r = opt_r.get();
-            return Optional.of(new Pair<>(
-                    lf.mixedActive(this.c, this.n, get_l.left, get_r.left),
-                    get_l.right.circ(get_r.right)));
-        }
-    }
-
     // Does Sigma.circ -- cf. GTGInteraction
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
             Optional<Pair<? extends GTLType, Sigma>> right) {
         Optional<? extends GTLType> merge = GTGInteraction.merge(left.map(x -> x.left), right.map(x -> x.left));
-        System.out.println("bbbbb: " + merge);
         Optional<Sigma> sigma = left.flatMap(x -> right.map(y -> x.right.circ(y.right)));
-        System.out.println("cccccc: " + sigma);
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
 
@@ -136,6 +89,36 @@ public class GTGMixedActive implements GTGType {
         return (this.committedLeft.isEmpty() || this.committedRight.isEmpty())
                 && this.left.isCoherent() && this.right.isCoherent();
     }
+
+    // Pre: this.committedLeft.contains(r) xor this.committedRight.contains(r)
+    @Override
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+        // Same as MixedChoice except with n
+        if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
+            return this.left.project(rs, r, this.c, this.n);
+        } else if (this.committedRight.contains(r) && !this.committedLeft.contains(r)) {
+            return this.right.project(rs, r, this.c, this.n);
+        } else { //if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
+            //throw new RuntimeException("TODO: ");  // p,q ??
+            GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r, this.c, this.n);
+            if (!(r.equals(this.other) || r.equals(this.observer))) {
+                Optional<Pair<? extends GTLType, Sigma>> merged =
+                        GTGMixedActive.mergePair(opt_l, opt_r);
+                if (!merged.isPresent()) { //optl.isEmpty() || optr.isEmpty()) {
+                    return Optional.empty();
+                }
+            }
+            Pair<? extends GTLType, Sigma> get_l = opt_l.get();
+            Pair<? extends GTLType, Sigma> get_r = opt_r.get();
+            return Optional.of(new Pair<>(
+                    lf.mixedActive(this.c, this.n, get_l.left, get_r.left),
+                    get_l.right.circ(get_r.right)));
+        }
+    }
+
+    /* ... */
 
     // Pre: a in getActs
     // Deterministic w.r.t. a -- CHECKME: recursion
@@ -246,6 +229,25 @@ public class GTGMixedActive implements GTGType {
         return aLeft;
     }
 
+    /* Aux */
+
+    @Override
+    public GTGMixedActive unfoldContext(Map<RecVar, GTGType> c) {
+        GTGType left = this.left.unfoldContext(c);
+        GTGType right = this.left.unfoldContext(c);
+        return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
+                new LinkedHashSet<>(this.committedLeft), new LinkedHashSet<>(this.committedRight));  // FIXME repeated copying
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        Set<Integer> res = new HashSet<>();
+        // !!! not adding this.c -- currently detect only inactive mixed
+        res.addAll(this.left.getTimeoutIds());
+        res.addAll(this.right.getTimeoutIds());
+        return res;
+    }
+
     @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.left.getOps());
@@ -253,11 +255,9 @@ public class GTGMixedActive implements GTGType {
         return ops;
     }
 
-    /* Aux */
-
     @Override
     public String toString() {
-        return "(" + this.left + " " + this.committedLeft + " |>"
+        return "(" + this.left + " " + this.committedLeft + " " + ConsoleColors.BLACK_TRIANGLE
                 + this.c + "," + this.n
                 + ":" + this.other + "->" + this.observer
                 + " " + this.committedRight + " " + this.right + ")";

@@ -28,28 +28,7 @@ public class GTGRecursion implements GTGType {
         this.body = body;
     }
 
-    @Override
-    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
-        if (c.containsKey(this.var)) {
-            return this;
-        }
-        Map<RecVar, GTGType> nested = new HashMap<>(c);
-        nested.put(this.var, this);
-        return this.body.unfoldContext(nested);
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.body.getTimeoutIds();
-    }
-
-    @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
-        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return this.body.project(rs, r).map(x -> new Pair<>(
-                x.left.equals(this.var) ? lf.end() : lf.recursion(this.var, x.left),
-                x.right));
-    }
+    /* ... */
 
     @Override
     public boolean isSinglePointed() {
@@ -67,6 +46,18 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        return this.body.project(rs, r, c, n).map(x ->
+                x.left.equals(this.var)
+                        ? Pair.of(lf.end(), new Sigma(rs))
+                        : x
+        );
+    }
+
+    /* ... */
+
+    @Override
     public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
         Optional<Triple<Theta, GTGType, String>> step = unfold().step(theta, a);  // !!! cf. [Rec], unfold-subs after step
         return step.map(x -> new Triple<>(x.left, x.mid, "[Rec_" + this.var + "]" + x.right));
@@ -78,12 +69,28 @@ public class GTGRecursion implements GTGType {
         return this.body.getActs(mf, theta, blocked);
     }
 
+    /* Aux */
+
+    @Override
+    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
+        if (c.containsKey(this.var)) {
+            return this;
+        }
+        Map<RecVar, GTGType> nested = new HashMap<>(c);
+        nested.put(this.var, this);
+        return this.body.unfoldContext(nested);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.body.getTimeoutIds();
+    }
+
+
     @Override
     public Set<Op> getOps() {
         return this.body.getOps();
     }
-
-    /* Aux */
 
     @Override
     public String toString() {
