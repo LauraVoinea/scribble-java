@@ -58,15 +58,15 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
-        Optional<Triple<Theta, GTGType, String>> step = unfold().step(theta, a);  // !!! cf. [Rec], unfold-subs after step
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        Optional<Triple<Theta, GTGType, String>> step = unfold().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
         return step.map(x -> new Triple<>(x.left, x.mid, "[Rec_" + this.var + "]" + x.right));
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
-        return this.body.getActs(mf, theta, blocked);
+    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return this.body.getActs(mf, theta, blocked, c, n);
     }
 
     /* Aux */

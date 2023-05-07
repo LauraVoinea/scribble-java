@@ -90,7 +90,7 @@ public class GTGMixedChoice implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
             return Optional.empty();
         }
@@ -110,11 +110,11 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
         if (theta.map.containsKey(this.c)) {
-            Integer n = theta.map.get(this.c);
-            res.add(mf.SNewTimeout(this.c, n));
+            Integer m = theta.map.get(this.c);
+            res.add(mf.SNewTimeout(this.c, m));
         }
         return res;
     }

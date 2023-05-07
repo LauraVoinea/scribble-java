@@ -124,17 +124,17 @@ public class GTGMixedActive implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
         Optional<Triple<Theta, GTGType, String>> optl =
                 this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
                         ? Optional.empty()
-                        : this.left.step(theta, a);
+                        : this.left.step(theta, a, this.c, this.n);
         Optional<Triple<Theta, GTGType, String>> optr =
                 this.committedLeft.contains(a.subj)
                         ? Optional.empty()
-                        : this.right.step(theta, a);
+                        : this.right.step(theta, a, this.c, this.n);
         if (optl.isPresent() && optr.isPresent()) {
             // [RTAct]
             // !!! CHECKME: check something re. this.p/q and a ?
@@ -174,7 +174,7 @@ public class GTGMixedActive implements GTGType {
                 return Optional.of(new Triple<>(
                         get.left,
                         this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
-                        "[TO-HACK-L]" + get.right));
+                        "[..TO-HACK-L..]" + get.right));
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
@@ -206,7 +206,7 @@ public class GTGMixedActive implements GTGType {
                 return Optional.of(new Triple<>(
                         get.left,
                         this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
-                        "[TO-HACK-R]" + get.right));
+                        "[..TO-HACK-R..]" + get.right));
 
             } else {
                 throw new RuntimeException("TODO: " + a);
@@ -218,13 +218,13 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked) {  // XXX outer still OK to reduce if inner is fully ended?
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft);
+        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
         Set<Role> bRight = Stream.concat(blocked.stream(),
                 this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getActs(mf, theta, bRight);
+        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
         aLeft.addAll(aRight);
         return aLeft;
     }

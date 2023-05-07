@@ -49,13 +49,13 @@ public class GTGRecVar implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         return Optional.empty();
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         return new LinkedHashSet<>();
     }
 

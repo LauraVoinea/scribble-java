@@ -43,16 +43,20 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
+    default Optional<Triple<Theta, GTGType, String>> stepTopLevel(Theta theta, SAction<DynamicActionKind> a) {
+        return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
     // a is deterministic (including "nested" steps)
-    Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a);
+    Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n);
 
     //HERE HERE fix SAction kinds and add c, n
     // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
-    default LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta) {
-        return getActs(mf, theta, Collections.emptySet());
+    default LinkedHashSet<SAction<DynamicActionKind>> getActsTopLevel(GTSModelFactory mf, Theta theta) {
+        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
     }
 
-    LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked);
+    LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
 
     /* ... */
 

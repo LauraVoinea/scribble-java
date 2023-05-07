@@ -172,7 +172,7 @@ public class GTCommandLine extends CommandLine {
         List<Integer> tmp = new LinkedList<>();
         tmp.add(1);
         Map<Integer, SAction<DynamicActionKind>> as =
-                g.getActs(mf, theta).stream().collect(Collectors.toMap(
+                g.getActsTopLevel(mf, theta).stream().collect(Collectors.toMap(
                         x -> {
                             int i = tmp.remove(0);
                             tmp.add(i + 1);
@@ -204,7 +204,7 @@ public class GTCommandLine extends CommandLine {
             }
             SAction<DynamicActionKind> a = as.get(enter);
 
-            Triple<Theta, GTGType, String> p = g.step(theta, a).get();  // a in as so step is non-empty
+            Triple<Theta, GTGType, String> p = g.stepTopLevel(theta, a).get();  // a in as so step is non-empty
             System.out.println(indent + p.right);
             System.out.println(indent + "a = " + a);
             System.out.println(indent + "theta = " + p.left);
@@ -241,7 +241,7 @@ public class GTCommandLine extends CommandLine {
         }
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
-        Set<SAction<DynamicActionKind>> as = g.getActs(mf, theta).stream()
+        Set<SAction<DynamicActionKind>> as = g.getActsTopLevel(mf, theta).stream()
                 .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());
 
@@ -249,7 +249,7 @@ public class GTCommandLine extends CommandLine {
         //String read = KB.nextLine();
 
         for (SAction<DynamicActionKind> a : as) {
-            Triple<Theta, GTGType, String> p = g.step(theta, a).get();  // a in as so step is non-empty
+            Triple<Theta, GTGType, String> p = g.stepTopLevel(theta, a).get();  // a in as so step is non-empty
 
             boolean prune = false;
             Map<String, Integer> us = new HashMap<>(unfolds);

@@ -17,22 +17,29 @@ package org.scribble.ext.gt.core.model.global.action;
 
 import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.global.actions.SAction;
+import org.scribble.core.model.global.actions.SSend;
+import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 
-public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements GTSAction {
+public class GTSSend<A extends ActionKind> extends SSend<A> implements GTSAction {
 
     public final int c;
     public final int n;
 
-    public GTSNewTimeout(int c, int n) {
-        super(Role.EMPTY_ROLE, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
+    public GTSSend(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
+        super(subj, obj, mid, pay);
         this.c = c;
         this.n = n;
     }
 
     /* ... */
+
+    @Override
+    public boolean isSend() {
+        return true;
+    }
 
     @Override
     public int getC() {
@@ -46,14 +53,15 @@ public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements G
 
     @Override
     public String toString() {
-        return getCommSymbol() + " " + this.c + "," + this.n;
+        return this.subj + getCommSymbol() + this.obj + "(" + this.mid
+                + ", " + this.payload + ", " + this.c + ", " + this.n + ")";
     }
 
     /* ... */
 
     @Override
     public int hashCode() {
-        int hash = 33479;
+        int hash = 33487;
         hash = 31 * hash + super.hashCode();
         hash = 31 * hash + this.c;
         hash = 31 * hash + this.n;
@@ -65,21 +73,16 @@ public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements G
         if (this == o) {
             return true;
         }
-        if (!(o instanceof GTSNewTimeout)) {
+        if (!(o instanceof GTSSend)) {
             return false;
         }
-        GTSNewTimeout<?> them = (GTSNewTimeout<?>) o;
+        GTSSend<?> them = (GTSSend<?>) o;
         return super.equals(o)  // Does canEquals
                 && this.c == them.c && this.n == them.n;
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof GTSNewTimeout;
-    }
-
-    @Override
-    public String getCommSymbol() {
-        return "\u03BD";
+        return o instanceof GTSSend;
     }
 }

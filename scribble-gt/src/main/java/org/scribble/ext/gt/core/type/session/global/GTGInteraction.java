@@ -9,6 +9,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
@@ -124,12 +125,12 @@ public class GTGInteraction implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         if (this.src.equals(a.subj)) {
             if (a.isSend()) {  // [Snd]
-                SSend<DynamicActionKind> cast = (SSend<DynamicActionKind>) a;
-                if (cast.obj.equals(this.dst)
-                        && this.cases.containsKey(cast.mid)) {
+                GTSSend<DynamicActionKind> cast = (GTSSend<DynamicActionKind>) a;
+                if (cast.obj.equals(this.dst) && this.cases.containsKey(cast.mid)
+                        && cast.c == c && cast.n == n) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
                     return Optional.of(new Triple<>(
@@ -144,7 +145,7 @@ public class GTGInteraction implements GTGType {
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
                 : Optional.empty();*/
             Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> nestedCases =
-                    stepNested(this.cases, theta, a);
+                    stepNested(this.cases, theta, a, c, n);
             return nestedCases.map(x -> new Triple<>(
                     x.left,
                     this.fact.choice(this.src, this.dst, x.right),
@@ -154,14 +155,14 @@ public class GTGInteraction implements GTGType {
     }
 
     protected Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> stepNested(
-            Map<Op, GTGType> cases, Theta theta, SAction<DynamicActionKind> a) {
+            Map<Op, GTGType> cases, Theta theta, SAction<DynamicActionKind> a, int c1, int n1) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         Theta fst = null;
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
             GTGType c = e.getValue();
-            Optional<Triple<Theta, GTGType, String>> step = c.step(theta, a);
+            Optional<Triple<Theta, GTGType, String>> step = c.step(theta, a, c1, n1);
             if (step.isEmpty()) {
                 return Optional.empty();
             }
@@ -194,10 +195,10 @@ public class GTGInteraction implements GTGType {
         //throw new RuntimeException("Shouldn't get here: " + cases + " ,, " + a);  // cases non-empty
     }
 
-    // HERE HERE HERE SAction generics -> need GT SAction with
+    // HERE HERE HERE SAction generics -> need GTSAction with c, n
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);
@@ -209,11 +210,11 @@ public class GTGInteraction implements GTGType {
         Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             if (!blocked.contains(this.src)) {
-                SSend<DynamicActionKind> a = mf.SSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD);  // FIXME empty
+                SSend<DynamicActionKind> a = mf.GTSSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
                 res.add(a);
             }
             //collect.addAll(e.getValue().getActs(mf, theta, tmp));
-            coll.put(e.getKey(), e.getValue().getActs(mf, theta, tmp));
+            coll.put(e.getKey(), e.getValue().getActs(mf, theta, tmp, c, n));
         }
 
         // !!!

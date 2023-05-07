@@ -21,6 +21,20 @@ public class GTERecv<A extends ActionKind> extends ERecv<A> implements GTEAction
         this.n = n;
     }
 
+    /* ... */
+
+    @Override
+    public int getC() {
+        return this.c;
+    }
+
+    @Override
+    public int getN() {
+        return this.n;
+    }
+
+    /* ... */
+
     @Override
     public int hashCode() {
         int hash = 14969;

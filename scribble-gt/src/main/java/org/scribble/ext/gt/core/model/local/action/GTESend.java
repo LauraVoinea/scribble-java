@@ -21,11 +21,25 @@ public class GTESend<A extends ActionKind> extends ESend<A> implements GTEAction
         this.n = n;
     }
 
+    /* ... */
+
+    @Override
+    public int getC() {
+        return this.c;
+    }
+
+    @Override
+    public int getN() {
+        return this.n;
+    }
+
     @Override
     public String toString() {
-        return "(" + this.obj + ", " + this.mid + ":" + this.payload
-                + ", " + c + ", " + n + ")";
+        //return "(" + this.obj + ", " + this.mid + ":" + this.payload + ", " + c + ", " + n + ")";
+        return this.obj + getCommSymbol() + "(" + this.mid + this.payload + ", " + c + ", " + n + ")";
     }
+
+    /* ... */
 
     @Override
     public int hashCode() {

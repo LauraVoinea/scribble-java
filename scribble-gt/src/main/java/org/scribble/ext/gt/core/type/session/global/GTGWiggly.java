@@ -10,6 +10,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
@@ -135,12 +136,12 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a) {
+    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         if (this.dst.equals(a.subj)) {
             if (a.isReceive()) {  // [Rcv]
-                SRecv<?> cast = (SRecv<?>) a;
+                GTSRecv<DynamicActionKind> cast = (GTSRecv<DynamicActionKind>) a;
                 if (cast.obj.equals(this.src)
-                        && this.cases.containsKey(cast.mid)) {
+                        && this.cases.containsKey(cast.mid) && cast.c == c && cast.n == n) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
                     return Optional.of(new Triple<>(theta, this.cases.get(cast.mid), "[Rcv]"));
@@ -152,7 +153,7 @@ public class GTGWiggly implements GTGType {
                     ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
                     : Optional.empty();*/
             Optional<Triple<Theta, LinkedHashMap<Op, GTGType>, String>> nestedCases
-                    = stepNested(theta, a);
+                    = stepNested(theta, a, c, n);
             return nestedCases.map(x -> new Triple<>(
                     x.left,
                     this.fact.wiggly(this.src, this.dst, this.op, x.mid),
@@ -161,7 +162,7 @@ public class GTGWiggly implements GTGType {
     }
 
     protected Optional<Triple<Theta, LinkedHashMap<Op, GTGType>, String>> stepNested(
-            Theta theta, SAction<DynamicActionKind> a) {
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         /*//Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         for (Map.Entry<Op, GTGType> e : es) {
@@ -178,7 +179,7 @@ public class GTGWiggly implements GTGType {
             }
         }
         return Optional.of(cs);*/
-        Optional<Triple<Theta, GTGType, String>> step = this.cases.get(this.op).step(theta, a);
+        Optional<Triple<Theta, GTGType, String>> step = this.cases.get(this.op).step(theta, a, c, n);
         if (step.isPresent()) {
             Triple<Theta, GTGType, String> get = step.get();
             LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>(this.cases);
@@ -190,7 +191,7 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked) {
+    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.dst);
         LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
@@ -198,17 +199,17 @@ public class GTGWiggly implements GTGType {
         Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             Op op = e.getKey();
-            LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getActs(mf, theta, tmp);
+            LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getActs(mf, theta, tmp, c, n);
             coll.put(op, new LinkedHashSet<>(
                     as.stream().filter(x -> !x.subj.equals(this.src)).collect(Collectors.toSet())));
         }
 
         if (!blocked.contains(this.dst)) {
             // N.B. SRecv subj is this.dst
-            SRecv<DynamicActionKind> a = mf.SRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD);  // FIXME empty
+            SRecv<DynamicActionKind> a = mf.GTSRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
             res.add(a);
         }
-        this.cases.get(this.op).getActs(mf, theta, blocked).stream()
+        this.cases.get(this.op).getActs(mf, theta, blocked, c, n).stream()
                 .filter(x -> x.subj.equals(this.src)).forEach(x -> res.add(x));
 
         // !!!
