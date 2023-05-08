@@ -18,11 +18,11 @@ public class GTSModelFactoryImpl extends SModelFactoryImpl implements GTSModelFa
         super(mf);
     }
 
-    public <A extends ActionKind> SSend<A> GTSSend(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
+    public <A extends ActionKind> GTSSend<A> GTSSend(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
         return new GTSSend<>(subj, obj, mid, pay, c, n);
     }
 
-    public <A extends ActionKind> SRecv<A> GTSRecv(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
+    public <A extends ActionKind> GTSRecv<A> GTSRecv(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
         return new GTSRecv<>(subj, obj, mid, pay, c, n);
     }
 

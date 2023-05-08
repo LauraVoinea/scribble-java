@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scribble.ext.gt.core.model.global.action;
+package org.scribble.ext.gt.core.model.local.action;
 
 import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
+import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.model.endpoint.actions.ERecv;
+import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.type.name.MsgId;
+import org.scribble.core.model.global.actions.SSend;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 
-public class GTSRecv<A extends ActionKind> extends SRecv<A> implements GTSAction {
+public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements GTEAction {
 
     public final int c;
     public final int n;
 
-    public GTSRecv(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
-        super(subj, obj, mid, pay);
+    public GTENewTimeout(int id, ModelFactory mf, int c, int n) {
+        super(id, mf, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
         this.c = c;
         this.n = n;
     }
@@ -37,8 +43,18 @@ public class GTSRecv<A extends ActionKind> extends SRecv<A> implements GTSAction
     /* ... */
 
     @Override
-    public SAction<DynamicActionKind> toDynamic() {
-        return GTSAction.super.toDynamic();
+    public ESend<DynamicActionKind> toDynamic() {
+        return this.mf.local.DynamicESend(this.peer, this.mid, this.payload);
+    }
+
+    @Override
+    public ERecv<DynamicActionKind> toDynamicDual(Role self) {
+        return this.mf.local.DynamicERecv(self, this.mid, this.payload);
+    }
+
+    @Override
+    public SSend<StaticActionKind> toStaticGlobal(Role self) {
+        return this.mf.global.SSend(self, this.peer, this.mid, this.payload);
     }
 
     /* ... */
@@ -55,15 +71,14 @@ public class GTSRecv<A extends ActionKind> extends SRecv<A> implements GTSAction
 
     @Override
     public String toString() {
-        return this.subj + getCommSymbol() + this.obj + "(" + this.mid
-                + ", " + this.payload + ",  " + this.c + ", " + this.n + ")";
+        return getCommSymbol() + " " + this.c + "," + this.n;
     }
 
     /* ... */
 
     @Override
     public int hashCode() {
-        int hash = 33493;
+        int hash = 14983;
         hash = 31 * hash + super.hashCode();
         hash = 31 * hash + this.c;
         hash = 31 * hash + this.n;
@@ -75,16 +90,21 @@ public class GTSRecv<A extends ActionKind> extends SRecv<A> implements GTSAction
         if (this == o) {
             return true;
         }
-        if (!(o instanceof GTSRecv)) {
+        if (!(o instanceof GTENewTimeout)) {
             return false;
         }
-        GTSRecv<?> them = (GTSRecv<?>) o;
+        GTENewTimeout<?> them = (GTENewTimeout<?>) o;
         return super.equals(o)  // Does canEquals
                 && this.c == them.c && this.n == them.n;
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof GTSRecv;
+        return o instanceof GTENewTimeout;
+    }
+
+    @Override
+    public String getCommSymbol() {
+        return "\u03BD";
     }
 }

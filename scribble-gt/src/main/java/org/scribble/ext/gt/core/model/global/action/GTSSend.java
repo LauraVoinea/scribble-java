@@ -16,6 +16,7 @@
 package org.scribble.ext.gt.core.model.global.action;
 
 import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
@@ -34,6 +35,13 @@ public class GTSSend<A extends ActionKind> extends SSend<A> implements GTSAction
         this.n = n;
     }
 
+    /* ... */
+
+    @Override
+    public SAction<DynamicActionKind> toDynamic() {
+        return GTSAction.super.toDynamic();
+    }
+   
     /* ... */
 
     @Override

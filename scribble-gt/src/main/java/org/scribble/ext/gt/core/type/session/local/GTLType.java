@@ -25,18 +25,14 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int c_TOP = -1;
     int n_INIT = 1;
 
-    @Override
-    default GTLType unfold() {
-        return unfoldContext(Collections.emptyMap());
-    }
-
-    // Substitution inlined into this op -- probably better to separate unf/subs
-    GTLType unfoldContext(Map<RecVar, GTLType> env);
+    /* ... */
 
     // this merge g  -- should be symmetric
     Optional<? extends GTLType> merge(GTLType t);
     //return this.equals(t) ? Optional.of(this) : Optional.empty();
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
+
+    /* ... */
 
     // FIXME: Sigma may be local or remote depending on action
     default Optional<Pair<GTLType, Sigma>> stepTopLevel(Role self, EAction<DynamicActionKind> a, Sigma sigma) {
@@ -52,4 +48,14 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     }
 
     LinkedHashSet<EAction<DynamicActionKind>> getActs(EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n);
+
+    /* ... */
+
+    @Override
+    default GTLType unfold() {
+        return unfoldContext(Collections.emptyMap());
+    }
+
+    // Substitution inlined into this op -- probably better to separate unf/subs
+    GTLType unfoldContext(Map<RecVar, GTLType> env);
 }

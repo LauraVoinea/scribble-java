@@ -9,6 +9,7 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 
 public interface GTSModelFactory extends SModelFactory {
@@ -23,9 +24,9 @@ public interface GTSModelFactory extends SModelFactory {
         throw new RuntimeException("Deprecated");
     }
 
-    <A extends ActionKind> SSend<A> GTSSend(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n);
+    <A extends ActionKind> GTSSend<A> GTSSend(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n);
 
-    <A extends ActionKind> SRecv<A> GTSRecv(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n);
+    <A extends ActionKind> GTSRecv<A> GTSRecv(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n);
 
     <A extends ActionKind> GTSNewTimeout<A> SNewTimeout(int c, int n);
 }

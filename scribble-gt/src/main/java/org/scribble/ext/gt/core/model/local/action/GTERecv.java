@@ -1,12 +1,18 @@
 package org.scribble.ext.gt.core.model.local.action;
 
 import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.ERecv;
 import org.scribble.core.model.endpoint.actions.ESend;
+import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.action.GTSRecv;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 
 public class GTERecv<A extends ActionKind> extends ERecv<A> implements GTEAction {
 
@@ -19,6 +25,27 @@ public class GTERecv<A extends ActionKind> extends ERecv<A> implements GTEAction
         super(id, ef, peer, mid, pay);
         this.c = c;
         this.n = n;
+    }
+
+    /* ... */
+
+    @Override
+    public GTERecv<DynamicActionKind> toDynamic() {
+        return ((GTEModelFactory) this.mf.local)
+                .DynamicGTERecv(this.peer, this.mid, this.payload, this.c, this.n);
+    }
+
+    @Override
+    public GTESend<DynamicActionKind> toDynamicDual(Role self) {
+        return ((GTEModelFactory) this.mf.local)
+                .DynamicGTESend(self, this.mid, this.payload, this.c, this.n);
+    }
+
+    @Override
+    public GTSRecv<StaticActionKind> toStaticGlobal(Role self) {
+        return ((GTSModelFactory) this.mf.global)
+                .GTSRecv(self, this.peer, this.mid, this.payload, this.c, this.n);
+
     }
 
     /* ... */
