@@ -26,6 +26,10 @@ public class Triple<T1, T2, T3> {
         this.right = t3;
     }
 
+    public static <T1, T2, T3> Triple<T1, T2, T3> of(T1 t1, T2 t2, T3 t3) {
+        return new Triple(t1, t2, t3);
+    }
+
     @Override
     public String toString() {
         return "(" + this.left + ", " + this.mid + ", " + this.right + ")";

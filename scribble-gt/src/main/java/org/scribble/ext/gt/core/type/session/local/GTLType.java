@@ -1,13 +1,14 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -39,15 +40,20 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
         return step(self, a, sigma, GTLType.c_TOP, GTLType.n_INIT);
     }
 
-    // GTESend, GTERecv
+    // TODO GTEAction
     // a is deterministic (including "nested" steps)
-    Optional<Pair<GTLType, Sigma>> step(Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n);
+    Optional<Triple<GTLType, Sigma, Theta>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
-    default LinkedHashSet<EAction<DynamicActionKind>> getActs(EModelFactory mf, Role self, Sigma sigma, int c, int n) {
+    default LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Sigma sigma, Theta theta, int c, int n) {
         return getActs(mf, self, Collections.emptySet(), sigma, c, n);
     }
 
-    LinkedHashSet<EAction<DynamicActionKind>> getActs(EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n);
+    // TODO remove blocked
+    // TODO GTEAction
+    LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
 
     /* ... */
 

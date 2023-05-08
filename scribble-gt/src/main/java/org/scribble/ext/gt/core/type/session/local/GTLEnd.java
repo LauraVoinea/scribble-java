@@ -1,20 +1,19 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.ModelFactory;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.model.global.SModelFactory;
-import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.global.GTGEnd;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 // !!! No "fid"
 public class GTLEnd implements GTLType {
@@ -34,14 +33,14 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public Optional<Pair<GTLType, Sigma>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+    public Optional<Triple<GTLType, Sigma, Theta>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return Optional.empty();
     }
 
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         return new LinkedHashSet<>();
     }
 

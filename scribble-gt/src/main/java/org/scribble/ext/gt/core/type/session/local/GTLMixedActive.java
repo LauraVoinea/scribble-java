@@ -1,25 +1,20 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.core.type.session.global.GTGTypeFactory;
+import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.util.Pair;
+import org.scribble.ext.gt.util.Triple;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class GTLMixedActive implements GTLType {
 
@@ -66,15 +61,59 @@ public class GTLMixedActive implements GTLType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Pair<GTLType, Sigma>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
-        throw new RuntimeException("TODO: " + this);
+    public Optional<Triple<GTLType, Sigma, Theta>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+
+        /*if (!a.peer.equals(self)) {  // ...cf. "context" rule?
+            return Optional.empty();
+        }*/
+        Optional<Triple<GTLType, Sigma, Theta>> optl = this.left.step(self, a, sigma, theta, this.c, this.n);
+        Optional<Triple<GTLType, Sigma, Theta>> optr = this.right.step(self, a, sigma, theta, this.c, this.n);
+        if (optl.isPresent() && optr.isPresent()) {
+            throw new RuntimeException("TODO: " + optl.get() + " ,, " + optr.get());
+        } else if (optl.isPresent()) {
+            Triple<GTLType, Sigma, Theta> get = optl.get();
+            if (a.isSend()) {
+                // [LSnd]
+                throw new RuntimeException("TODO");
+            } else if (a.isReceive()) {
+                // [LRcv1] or [LRcv2]
+                throw new RuntimeException("TODO");
+            } else if (a instanceof GTENewTimeout) {
+                // [...ctx...] -- needed ?
+                throw new RuntimeException("TODO");
+            } else {
+                throw new RuntimeException("TODO");
+            }
+        } else if (optr.isPresent()) {
+            Triple<GTLType, Sigma, Theta> get = optr.get();
+            if (a.isSend()) {
+                // [RSnd]
+                throw new RuntimeException("TODO");
+            } else if (a.isReceive()) {
+                // [RRcv]
+                throw new RuntimeException("TODO");
+            } else if (a instanceof GTENewTimeout) {
+                // [...ctx...] -- needed ?
+                throw new RuntimeException("TODO");
+            } else {
+                throw new RuntimeException("TODO");
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
-        throw new RuntimeException("TODO: " + this);
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
+
+        // TODO remove blocked
+
+        LinkedHashSet<EAction<DynamicActionKind>> aLeft = this.left.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        LinkedHashSet<EAction<DynamicActionKind>> aRight = this.right.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        aLeft.addAll(aRight);
+        return aLeft;
     }
 
     /* Aux */

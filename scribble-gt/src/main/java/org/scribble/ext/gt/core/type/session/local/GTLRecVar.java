@@ -1,11 +1,13 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashSet;
@@ -34,14 +36,14 @@ public class GTLRecVar implements GTLType {
     }
 
     @Override
-    public Optional<Pair<GTLType, Sigma>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+    public Optional<Triple<GTLType, Sigma, Theta>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return Optional.empty();
     }
 
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 

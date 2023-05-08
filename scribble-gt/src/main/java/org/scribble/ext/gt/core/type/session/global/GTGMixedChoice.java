@@ -90,7 +90,9 @@ public class GTGMixedChoice implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+    public Optional<Triple<Theta, GTGType, String>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+       
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
             return Optional.empty();
         }
@@ -98,6 +100,9 @@ public class GTGMixedChoice implements GTGType {
         /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
         Theta theta1 = new Theta(tmp);*/
+        if (nu.c != c || nu.n != n) {
+            return Optional.empty();
+        }
         Theta theta1 = theta.inc(this.c);
 
         // FIXME use factory?

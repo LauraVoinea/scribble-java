@@ -144,7 +144,7 @@ public class GTGMixedActive implements GTGType {
                             optl.get().mid,
                             optr.get().mid,
                             this.other, this.observer, cl, cr),
-                    "[RTAct][..discard..]"));  // !!! Discard both opt strings
+                    "[RTAct][..discard..]"));  // ...discarded both opt strings
         } else if (optl.isPresent()) {
             if (optr.isPresent() || this.committedRight.contains(a.subj)) {  // First cond is redundant
                 return Optional.empty();
@@ -170,7 +170,7 @@ public class GTGMixedActive implements GTGType {
                         this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
                         "[LSnd]" + get.right));
 
-            } else if (a instanceof GTSNewTimeout) {  // Hack
+            } else if (a instanceof GTSNewTimeout) {  // HACK
                 return Optional.of(new Triple<>(
                         get.left,
                         this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
@@ -202,7 +202,7 @@ public class GTGMixedActive implements GTGType {
                         this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
                         "[RRcv]" + get.right));
 
-            } else if (a instanceof GTSNewTimeout) {  // Hack
+            } else if (a instanceof GTSNewTimeout) {  // HACK
                 return Optional.of(new Triple<>(
                         get.left,
                         this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
@@ -219,6 +219,7 @@ public class GTGMixedActive implements GTGType {
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
+
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
         LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);

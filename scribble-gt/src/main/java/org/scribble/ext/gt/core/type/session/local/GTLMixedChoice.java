@@ -8,10 +8,16 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
+import org.scribble.ext.gt.core.type.session.global.GTGMixedActive;
 import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -57,18 +63,34 @@ public class GTLMixedChoice implements GTLType {
     }
 
     // Pre: a in getActs
-    // Deterministic w.r.t. a -- CHECKME: recursion
-    // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Pair<GTLType, Sigma>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
-        throw new RuntimeException("TODO: " + this);
+    public Optional<Triple<GTLType, Sigma, Theta>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+
+        if (!(a instanceof GTENewTimeout)) {  // E.g., (rec) context rule may "attempt"
+            return Optional.empty();
+        }
+        GTENewTimeout<?> nu = (GTENewTimeout<?>) a;
+        if (nu.c != c || nu.n != n) {
+            return Optional.empty();
+        }
+        Theta theta1 = theta.inc(this.c);
+
+        // FIXME use factory?
+        GTLMixedActive active = new GTLMixedActive(nu.c, nu.n, this.left, this.right);
+
+        return Optional.of(Triple.of(active, sigma, theta1));
     }
 
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
-        throw new RuntimeException("TODO: " + this);
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c1, int n1) {
+        LinkedHashSet<EAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        if (theta.map.containsKey(this.c)) {
+            Integer m = theta.map.get(this.c);
+            res.add(mf.DynamicGTENewTimeout(this.c, m));
+        }
+        return res;
     }
 
     /* Aux */

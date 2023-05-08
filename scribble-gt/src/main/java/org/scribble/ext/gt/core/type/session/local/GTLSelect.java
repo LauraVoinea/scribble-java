@@ -1,15 +1,16 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.model.local.action.GTERecv;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -49,8 +50,8 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public Optional<Pair<GTLType, Sigma>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, int c, int n) {
+    public Optional<Triple<GTLType, Sigma, Theta>> step(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         if (!(a instanceof GTESend<?>) || !sigma.map.containsKey(self)) {
             return Optional.empty();
         }
@@ -66,12 +67,12 @@ public class GTLSelect implements GTLType {
         ).collect(Collectors.toList());
         map.put(self, tmp);
         Sigma sigma1 = new Sigma(map);
-        return Optional.of(new Pair<>(this.cases.get(a.mid), sigma1));
+        return Optional.of(Triple.of(this.cases.get(a.mid), sigma1, theta));
     }
 
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            EModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, int c, int n) {
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         if (!sigma.map.containsKey(self)) {
             throw new RuntimeException("Unknown sender: " + this);
         }
