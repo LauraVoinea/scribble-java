@@ -46,6 +46,11 @@ public class GTGRecVar implements GTGType {
         return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma(rs)));
     }
 
+    @Override
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        return Optional.empty();
+    }
+
     /* ... */
 
     @Override

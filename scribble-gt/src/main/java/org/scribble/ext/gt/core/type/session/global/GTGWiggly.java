@@ -41,23 +41,28 @@ public class GTGWiggly implements GTGType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    /* ... */
+
     @Override
-    public GTGWiggly unfoldContext(Map<RecVar, GTGType> c) {
-        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(c),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return new GTGWiggly(this.src, this.dst, this.op, cases);
+    public boolean isSinglePointed() {
+        /*Set<Op> labs1 = new HashSet<>(labs);
+        labs1.addAll(this.cases.keySet());
+        if (labs1.size() != labs.size() + this.cases.keySet().size()) {
+            return false;
+        }
+        return this.cases.values().stream().allMatch(x -> x.isStaticWF(labs1));*/
+        throw new RuntimeException("N/A");
     }
 
     @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                .flatMap(x -> x.getTimeoutIds().stream())
-                .collect(Collectors.toSet());
+    public boolean isGood() {
+        return this.cases.values().stream().allMatch(GTGType::isGood)
+                && this.cases.containsKey(this.op);  // !!!
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return this.cases.values().stream().allMatch(GTGType::isCoherent);
     }
 
     @Override
@@ -114,26 +119,23 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isSinglePointed() {
-        /*Set<Op> labs1 = new HashSet<>(labs);
-        labs1.addAll(this.cases.keySet());
-        if (labs1.size() != labs.size() + this.cases.keySet().size()) {
-            return false;
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        if (this.src.equals(r)) {
+            return this.cases.get(this.op).projectTheta(cs, r);
+        } else if (this.dst.equals(r)) {
+            return Optional.of(new Theta(cs));
+        } else {
+            // FIXME refactor merge
+            List<Optional<Theta>> distinct = this.cases.values().stream()
+                    .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
+            if (distinct.size() != 1) {
+                return Optional.empty();
+            }
+            return distinct.get(0);
         }
-        return this.cases.values().stream().allMatch(x -> x.isStaticWF(labs1));*/
-        throw new RuntimeException("N/A");
     }
 
-    @Override
-    public boolean isGood() {
-        return this.cases.values().stream().allMatch(GTGType::isGood)
-                && this.cases.containsKey(this.op);  // !!!
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(GTGType::isCoherent);
-    }
+    /* */
 
     @Override
     public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
@@ -224,6 +226,27 @@ public class GTGWiggly implements GTGType {
 
     }
 
+    /* Aux */
+
+    @Override
+    public GTGWiggly unfoldContext(Map<RecVar, GTGType> c) {
+        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldContext(c),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGWiggly(this.src, this.dst, this.op, cases);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getTimeoutIds().stream())
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.cases.keySet());
@@ -231,8 +254,6 @@ public class GTGWiggly implements GTGType {
         ops.add(this.op);  // Not assuming single-pointedness
         return ops;
     }
-
-    /* Aux */
 
     @Override
     public String toString() {

@@ -118,6 +118,43 @@ public class GTGMixedActive implements GTGType {
         }
     }
 
+    @Override
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        Optional<Theta> thetaL = this.left.projectTheta(cs, r);
+        if (!thetaL.isPresent()) {
+            return thetaL;
+        }
+        Optional<Theta> thetaR = this.left.projectTheta(cs, r);
+        if (!thetaR.isPresent()) {
+            return thetaR;
+        }
+        Theta left = thetaL.get();
+        Theta right = thetaR.get();
+        return max(left, right).map(x -> {
+            if (this.n > x.map.get(this.c)) {
+                HashMap<Integer, Integer> map = new HashMap<>(x.map);
+                map.put(this.c, this.n);
+                return new Theta(map);
+            }
+            return x;
+        });
+    }
+
+    public static Optional<Theta> max(Theta t1, Theta t2) {
+        if (!t1.map.keySet().equals(t2.map.keySet())) {
+            Optional.empty();
+        }
+        Map<Integer, Integer> map = new HashMap<>(t1.map);
+        for (Map.Entry<Integer, Integer> e : t2.map.entrySet()) {
+            int k = e.getKey();
+            int v = e.getValue();
+            if (v > map.get(k)) {
+                map.put(k, v);
+            }
+        }
+        return Optional.of(new Theta(map));
+    }
+
     /* ... */
 
     // Pre: a in getActs

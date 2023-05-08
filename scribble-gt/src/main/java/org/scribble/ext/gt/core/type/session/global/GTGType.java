@@ -39,7 +39,11 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     //Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r);
 
+    // rs for sigma_0
     Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n);
+
+    // cs for theta_0
+    Optional<Theta> projectTheta(Set<Integer> cs, Role r);
 
     /* ... */
 

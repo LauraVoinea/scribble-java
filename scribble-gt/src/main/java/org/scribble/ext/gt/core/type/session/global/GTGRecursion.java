@@ -55,6 +55,11 @@ public class GTGRecursion implements GTGType {
         );
     }
 
+    @Override
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        return Optional.of(new Theta(cs));
+    }
+
     /* ... */
 
     @Override

@@ -50,6 +50,11 @@ public class GTGEnd implements GTGType {
         return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma(rs)));
     }
 
+    @Override
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        return Optional.of(new Theta(cs));
+    }
+
     /* ... */
 
     @Override

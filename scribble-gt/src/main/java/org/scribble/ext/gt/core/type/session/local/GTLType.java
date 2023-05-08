@@ -36,8 +36,9 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     /* ... */
 
     // FIXME: Sigma may be local or remote depending on action
-    default Optional<Pair<GTLType, Sigma>> stepTopLevel(Role self, EAction<DynamicActionKind> a, Sigma sigma) {
-        return step(self, a, sigma, GTLType.c_TOP, GTLType.n_INIT);
+    default Optional<Triple<GTLType, Sigma, Theta>> stepTopLevel(
+            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
+        return step(self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTEAction
@@ -45,9 +46,9 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     Optional<Triple<GTLType, Sigma, Theta>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
-    default LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    default LinkedHashSet<EAction<DynamicActionKind>> getActsTopLevel(
             GTEModelFactory mf, Role self, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, Collections.emptySet(), sigma, c, n);
+        return getActs(mf, self, Collections.emptySet(), sigma, theta, c, n);
     }
 
     // TODO remove blocked

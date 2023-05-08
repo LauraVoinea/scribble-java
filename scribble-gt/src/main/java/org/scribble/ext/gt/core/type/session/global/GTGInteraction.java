@@ -87,6 +87,22 @@ public class GTGInteraction implements GTGType {
         }
     }
 
+    @Override
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        if (this.src.equals(r) || this.dst.equals(r)) {
+            return Optional.of(new Theta(cs));
+        }
+        // FIXME refactor merge
+        List<Optional<Theta>> distinct = this.cases.values().stream()
+                .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
+        if (distinct.size() != 1) {
+            return Optional.empty();
+        }
+        return distinct.get(0);
+    }
+
+    /* ... */
+
     // TODO refactor with GTMixedActive -- XXX mixed active needs to do Sigma.circ
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,

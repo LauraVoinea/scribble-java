@@ -84,6 +84,11 @@ public class GTGMixedChoice implements GTGType {
                 : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
     }
 
+    @Override
+    public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
+        return Optional.of(new Theta(cs));
+    }
+
     /* ... */
 
     // Pre: a in getActs
@@ -92,7 +97,7 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public Optional<Triple<Theta, GTGType, String>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-       
+
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
             return Optional.empty();
         }
