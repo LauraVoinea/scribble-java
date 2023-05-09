@@ -71,9 +71,6 @@ public class GTLMixedChoice implements GTLType {
             return Optional.empty();
         }
         GTENewTimeout<?> nu = (GTENewTimeout<?>) a;
-        if (nu.c != c || nu.n != n) {
-            return Optional.empty();
-        }
         Theta theta1 = theta.inc(this.c);
 
         // FIXME use factory?

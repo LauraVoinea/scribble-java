@@ -105,9 +105,6 @@ public class GTGMixedChoice implements GTGType {
         /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
         Theta theta1 = new Theta(tmp);*/
-        if (nu.c != c || nu.n != n) {
-            return Optional.empty();
-        }
         Theta theta1 = theta.inc(this.c);
 
         // FIXME use factory?
