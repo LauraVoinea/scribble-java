@@ -14,6 +14,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
@@ -228,6 +229,8 @@ public class GTCommandLine extends CommandLine {
         }
 
         System.out.println("\n" + indent + "Project " + g + ": ");
+
+        Map<Role, GTLConfig> cfgs = new HashMap<>();
 
         for (Role r : rs) {
             Optional<Pair<? extends GTLType, Sigma>> p = g.projectTopLevel(rs, r);

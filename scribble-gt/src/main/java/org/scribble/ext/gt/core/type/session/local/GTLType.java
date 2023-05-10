@@ -47,8 +47,8 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     default LinkedHashSet<EAction<DynamicActionKind>> getActsTopLevel(
-            GTEModelFactory mf, Role self, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, Collections.emptySet(), sigma, theta, c, n);
+            GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
+        return getActs(mf, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO remove blocked
