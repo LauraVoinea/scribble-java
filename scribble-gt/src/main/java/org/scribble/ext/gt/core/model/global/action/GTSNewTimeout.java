@@ -20,6 +20,8 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 
 public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements GTSAction {
 
@@ -30,6 +32,13 @@ public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements G
         super(Role.EMPTY_ROLE, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
         this.c = c;
         this.n = n;
+    }
+
+    /* ... */
+
+    @Override
+    public GTEAction project(GTEModelFactory mf) {
+        return mf.DynamicGTENewTimeout(this.c, this.n);
     }
 
     /* ... */

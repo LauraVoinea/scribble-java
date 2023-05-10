@@ -8,14 +8,19 @@ import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.GTLConfig;
+import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
@@ -127,10 +132,26 @@ public class GTCommandLine extends CommandLine {
 
                 System.out.println("---");
 
+                Theta theta = new Theta(translate.getTimeoutIds());
+
                 Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
+                Map<Role, GTLConfig> locals = new HashMap<>();
                 for (Role r : rs) {
-                    System.out.println("project onto " + r + ": " + translate.projectTopLevel(rs, r).get());
+                    Optional<Pair<? extends GTLType, Sigma>> opt = translate.projectTopLevel(rs, r);
+                    if (!opt.isPresent()) {
+                        System.err.println("Couldn't project onto " + r + ": " + g);
+                        System.exit(0);
+                    }
+
+                    Pair<? extends GTLType, Sigma> p = opt.get();
+                    if (!p.right.equals(new Sigma(rs))) {
+                        throw new RuntimeException("Shouldn't get here: " + p);
+                    }
+                    locals.put(r, new GTLConfig(r, p.left, p.right, theta));
+                    System.out.println("Project onto " + r + ": " + p.left);
                 }
+
+                GTLSystem sys = new GTLSystem(locals);
 
                 System.out.println("---");
 
@@ -138,10 +159,8 @@ public class GTCommandLine extends CommandLine {
                     System.err.println("Not single pointed: " + translate);
                 } else {
                     System.out.println("Initial g = " + translate);
-
-                    Theta theta = new Theta(translate.getTimeoutIds());
                     System.out.println("Initial theta = " + theta);
-                    foo(core, "", theta, translate, 2, new HashMap<>(), rs);
+                    foo(core, "", theta, translate, 2, new HashMap<>(), rs, sys);
                     //bar(core, "", theta, translate, 0);
                 }
             }
@@ -218,7 +237,7 @@ public class GTCommandLine extends CommandLine {
     }
 
     // top level depth = 0
-    private void foo(Core core, String indent, Theta theta, GTGType g, int depth, Map<String, Integer> unfolds, Set<Role> rs) {
+    private void foo(Core core, String indent, Theta theta, GTGType g, int depth, Map<String, Integer> unfolds, Set<Role> rs, GTLSystem sys) {
         if (!g.isGood()) {
             System.err.println("Not good: " + g);
             System.exit(0);
@@ -230,19 +249,24 @@ public class GTCommandLine extends CommandLine {
 
         System.out.println("\n" + indent + "Project " + g + ": ");
 
-        Map<Role, GTLConfig> cfgs = new HashMap<>();
-
+        Map<Role, GTLConfig> projs = new HashMap<>();
         for (Role r : rs) {
-            Optional<Pair<? extends GTLType, Sigma>> p = g.projectTopLevel(rs, r);
-            if (!p.isPresent()) {
+            Optional<Pair<? extends GTLType, Sigma>> opt = g.projectTopLevel(rs, r);
+            if (!opt.isPresent()) {
                 System.err.println("Couldn't project onto " + r + ": " + g);
                 System.exit(0);
             }
 
-            System.out.println(indent + "  onto " + r + ": " + p.get());
-
+            Pair<? extends GTLType, Sigma> p = opt.get();
+            /*if (!p.right.equals(new Sigma(rs))) {
+                throw new RuntimeException("Shouldn't get here: " + p);
+            }*/
+            projs.put(r, new GTLConfig(r, p.left, p.right, theta));
+            System.out.println(indent + "  onto " + r + ": " + p.left);
         }
+
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+        GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
         Set<SAction<DynamicActionKind>> as = g.getActsTopLevel(mf, theta).stream()
                 .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
@@ -270,10 +294,22 @@ public class GTCommandLine extends CommandLine {
             System.out.println(indent + "g = " + p.mid);
             System.out.println(indent + "theta = " + p.left);
             System.out.println(indent + "unfolds = " + us);
+
+            GTSAction cast = (GTSAction) a;
+            GTEAction a_r = cast.project(lmf);
+            System.out.println("---- " + a + " ,, " + a_r);
+
+            // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
+            Optional<GTLSystem> lstep = sys.step(a.subj, (EAction<DynamicActionKind>) a_r);
+            if (!lstep.isPresent()) {
+                throw new RuntimeException("Locals didn't reduce");
+            }
+
             if (!p.right.equals(GTGEnd.END) && !prune) {
-                foo(core, indent + "    ", p.left, p.mid, depth, us, rs);
+                foo(core, indent + "    ", p.left, p.mid, depth, us, rs, sys);
             }
         }
+
     }
 
     // FIXME refactor base scribble CLI methods (e.g., access Job)

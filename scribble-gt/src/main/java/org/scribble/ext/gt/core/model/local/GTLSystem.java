@@ -6,6 +6,7 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.Triple;
@@ -29,21 +30,28 @@ public class GTLSystem {
     }
 
     public Optional<GTLSystem> step(Role r, EAction<DynamicActionKind> a) {
-        if (!(this.configs.containsKey(r))) {
-            throw new RuntimeException("Unkown role: " + r);
+        if (a instanceof GTENewTimeout) {
+            // !!! N.B. r is Role.EMPTY_ROLE
+            // ...tau? (skip?) -- XXX then what is "projection" relation between G/L ?
+            // ...find the one (or more?) guy(s) that can locally do new-timeout -- then do the rest implicitly when reach?
+            throw new RuntimeException("TODO: " + a);
+        } else {
+            if (!(this.configs.containsKey(r))) {
+                throw new RuntimeException("Unkown role: " + r);
+            }
+            Optional<GTLConfig> step = this.configs.get(r).step(a);
+            if (!step.isPresent()) {
+                return Optional.empty();
+            }
+            GTLConfig get = step.get();
+            HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
+            tmp.put(r, get);
+            if (a instanceof GTESend) {
+                GTESend cast = (GTESend) a;
+                tmp.put(r, this.configs.get(r).enqueueMessage(cast));
+            }
+            return Optional.of(new GTLSystem(tmp));
         }
-        Optional<GTLConfig> step = this.configs.get(r).step(a);
-        if (!step.isPresent()) {
-            return Optional.empty();
-        }
-        GTLConfig get = step.get();
-        HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
-        tmp.put(r, get);
-        if (a instanceof GTESend) {
-            GTESend cast = (GTESend) a;
-            tmp.put(r, this.configs.get(r).enqueueMessage(cast));
-        }
-        return Optional.of(new GTLSystem(tmp));
     }
 
     /* ... */

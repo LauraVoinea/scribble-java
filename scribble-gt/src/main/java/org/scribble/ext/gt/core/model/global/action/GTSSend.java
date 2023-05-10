@@ -17,12 +17,15 @@ package org.scribble.ext.gt.core.model.global.action;
 
 import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 
 public class GTSSend<A extends ActionKind> extends SSend<A> implements GTSAction {
 
@@ -38,10 +41,15 @@ public class GTSSend<A extends ActionKind> extends SSend<A> implements GTSAction
     /* ... */
 
     @Override
+    public GTEAction project(GTEModelFactory mf) {
+        return mf.DynamicGTESend(this.obj, this.mid, this.payload, this.c, this.n);
+    }
+
+    @Override
     public SAction<DynamicActionKind> toDynamic() {
         return GTSAction.super.toDynamic();
     }
-   
+
     /* ... */
 
     @Override
