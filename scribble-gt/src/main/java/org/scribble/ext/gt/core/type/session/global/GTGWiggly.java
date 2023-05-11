@@ -107,13 +107,35 @@ public class GTGWiggly implements GTGType {
             sigma_k = new Sigma(tmp);
             return Optional.of(new Pair<>(lf.branch(this.src, cases), sigma_k));
         } else {
-            Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
+            /*Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(rs, r, c, n));
             Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
             // FIXME stream made twice... -- duplicated from GTGInteraction
             str = this.cases.values().stream().map(x -> x.project(rs, r, c, n));  // !!! XXX
-            return str.skip(1).reduce(fst, GTGInteraction::mergePair);
+            return str.skip(1).reduce(fst, GTGInteraction::mergePair);*/
+
+            Map<Op, Optional<Pair<? extends GTLType, Sigma>>> map =
+                    this.cases.entrySet().stream().collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            x -> x.getValue().project(rs, r, c, n)
+                    ));
+
+            List<Optional<? extends GTLType>> ts = map.values().stream().map(x -> x.map(y -> y.left)).collect(Collectors.toList());
+            Optional<? extends GTLType> fst = ts.get(0);
+            Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::merge);
+
+            Optional<Sigma> sig_k = map.get(this.op).map(x -> x.right);
+            Optional<Pair<? extends GTLType, Sigma>> res = merge.flatMap(x -> sig_k.map(z -> Pair.of(x, z)));
+            List<Optional<Sigma>> filt = map.entrySet().stream().filter(x -> !x.getKey().equals(this.op))
+                    .map(x -> x.getValue().map(y -> y.right)).collect(Collectors.toList());
+            if (filt.size() == 0) {
+                return res;
+            } else {
+                Optional<Sigma> fstsig = filt.get(0);
+                Optional<Sigma> reduce = filt.stream().skip(1).reduce(fstsig, GTGInteraction::mergeSigma);
+                return reduce.flatMap(y -> res);
+            }
         }
     }
 

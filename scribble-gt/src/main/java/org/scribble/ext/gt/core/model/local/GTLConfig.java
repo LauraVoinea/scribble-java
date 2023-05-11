@@ -6,6 +6,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.type.session.local.GTLRecursion;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.Triple;
 
@@ -48,6 +49,24 @@ public class GTLConfig {
         map.put(src, ms);
         Sigma sigma = new Sigma(map);
         return new GTLConfig(this.self, this.type, sigma, this.theta);
+    }
+
+    // !!! -- cf. equals
+    public boolean equiv(GTLConfig d) {
+        return this.self.equals(d.self) && GTLConfig.equiv(this.type, d.type)
+                && this.sigma.equals(d.sigma) && this.theta.equals(d.theta);
+    }
+
+    public static boolean equiv(GTLType t, GTLType u) {
+        if (t.equals(u)) {
+            return true;
+        } else if (t instanceof GTLRecursion) {
+            return t.unfold().equals(u);
+        } else if (u instanceof GTLRecursion) {
+            return t.equals(u.unfold());
+        } else {
+            return false;
+        }
     }
 
     @Override

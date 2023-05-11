@@ -61,13 +61,10 @@ public class GTLSystem {
 
     /* ... */
 
-    /*@Override
+    @Override
     public int hashCode() {
         int hash = 49123;
-        hash = 31 * hash + this.self.hashCode();
-        hash = 31 * hash + this.type.hashCode();
-        hash = 31 * hash + this.sigma.hashCode();
-        hash = 31 * hash + this.theta.hashCode();
+        hash = 31 * hash + this.configs.hashCode();
         return hash;
     }
 
@@ -76,9 +73,6 @@ public class GTLSystem {
         if (this == obj) return true;
         if (obj == null || !(obj instanceof GTLSystem)) return false;
         GTLSystem them = (GTLSystem) obj;
-        return this.self.equals(them.self)
-                && this.type.equals(them.type)
-                && this.sigma.equals(them.sigma)
-                && this.theta.equals(them.theta);
-    }*/
+        return this.configs.equals(them.configs);
+    }
 }

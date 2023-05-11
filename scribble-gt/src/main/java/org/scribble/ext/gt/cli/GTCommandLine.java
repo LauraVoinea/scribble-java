@@ -12,6 +12,7 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
@@ -21,7 +22,6 @@ import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
@@ -130,18 +130,18 @@ public class GTCommandLine extends CommandLine {
                 System.out.println(inlined);
                 GTGType translate = new GTGTypeTranslator2().translate(inlined.def);*/
                 GTGType translate = new GTGTypeTranslator3().translate(g.getDefChild().getBlockChild().getInteractSeqChild());
+                Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
 
-                System.out.println("---");
+               /* System.out.println("---");
 
                 Theta theta = new Theta(translate.getTimeoutIds());
 
-                Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
                 Set<Integer> cs = translate.getTimeoutIds();
                 Map<Role, GTLConfig> locals = new HashMap<>();
                 for (Role r : rs) {
                     Optional<Pair<? extends GTLType, Sigma>> opt = translate.projectTopLevel(rs, r);
                     if (!opt.isPresent()) {
-                        System.err.println("Couldn't project onto " + r + ": " + g);
+                        System.err.println("Couldn't project onto " + r + ": " + translate);
                         System.exit(0);
                     }
 
@@ -155,15 +155,18 @@ public class GTCommandLine extends CommandLine {
 
                 GTLSystem sys = new GTLSystem(locals);
 
-                System.out.println("---");
+                System.out.println("---");*/
 
                 if (!translate.isSinglePointed()) {
                     System.err.println("Not single pointed: " + translate);
                 } else {
-                    System.out.println("Initial g = " + translate);
+                    /*System.out.println("Initial g = " + translate);
                     System.out.println("Initial theta = " + theta);
-                    System.out.println("Initial locals = " + sys);
-                    foo(core, "", theta, translate, 2, new HashMap<>(), rs, cs, sys);
+                    System.out.println("Initial locals = " + sys);*/
+                    ////foo(core, "", theta, translate, 2, new HashMap<>(), rs, cs, sys);
+                    //Correspondence s = new Correspondence(rs, cs, theta, translate, sys);
+                    GTCorrespondence s = new GTCorrespondence(rs, translate);
+                    foo(core, "", s, 1, MAX, new HashMap<>(), 2);
                     //bar(core, "", theta, translate, 0);
                 }
             }
@@ -179,65 +182,97 @@ public class GTCommandLine extends CommandLine {
 		}*/
     }
 
-    private static final Scanner KB = new Scanner(System.in);
 
-    private void bar(Core core, String indent, Theta theta, GTGType g, int count) {
-        if (!g.isGood()) {
-            System.err.println("Not good: " + g);
-            System.exit(0);
-        }
-        if (!g.isCoherent()) {
-            System.err.println("Not coherent: " + g);
-            System.exit(0);
-        }
-        GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
 
-        List<Integer> tmp = new LinkedList<>();
-        tmp.add(1);
-        Map<Integer, SAction<DynamicActionKind>> as =
-                g.getActsTopLevel(mf, theta).stream().collect(Collectors.toMap(
-                        x -> {
-                            int i = tmp.remove(0);
-                            tmp.add(i + 1);
-                            return i;
-                        },
-                        x -> x,
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
 
-        if (!as.isEmpty()) {
-            System.out.println("Actions: " + as.entrySet().stream().map(
-                    x -> x.getKey() + "=" + x.getValue()).collect(Collectors.joining(", ")));
-            int enter = -1;
-            while (enter < 0) {
-                String read = "";
-                while (read.isEmpty()) {
-                    System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
-                    read = KB.nextLine();
-                }
-                try {
-                    enter = Integer.parseInt(read);
-                } catch (NumberFormatException x) {
-                    System.exit(0);
-                }
-            }
-            if (enter == 0) {
-                System.exit(0);
-            }
-            SAction<DynamicActionKind> a = as.get(enter);
 
-            Triple<Theta, GTGType, String> p = g.stepTopLevel(theta, a).get();  // a in as so step is non-empty
-            System.out.println(indent + p.right);
-            System.out.println(indent + "a = " + a);
-            System.out.println(indent + "theta = " + p.left);
-            System.out.println(indent + "g = " + p.mid);
-            if (!p.right.equals(GTGEnd.END)) {
-                bar(core, indent + "    ", p.left, p.mid, count++);
-            }
-        }
-
+    static String incIndent(String indent) {
+        return indent.equals("") ? "    " : indent + ".   ";
     }
+
+
+    // HERE HERE ...make Correspondence class, with check method
+    //        ... factor out Bounds
+    //        ... do local mixed-active
+
+    static final int MAX = 20;
+    static int mystep = 1;
+
+    private void foo(Core core, String indent, GTCorrespondence s,
+                     int step, int MAX,
+                     Map<String, Integer> unfolds, int depth) {  // FIXME factor out bounds (just plain recs?)
+
+        int mark = mystep;
+
+        System.out.println("\n" + indent + "Checking (" + mystep + "):\n" + s.toString(indent));
+        s.check(indent + "    ");
+
+        GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+        GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
+
+        Set<SAction<DynamicActionKind>> as = s.global.getActsTopLevel(mf, s.theta).stream()
+                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
+                .collect(Collectors.toSet());
+
+        if (mystep >= MAX) {
+            return;
+        }
+
+        System.out.println(indent + "Possible actions = " + as);
+        for (SAction<DynamicActionKind> a : as) {
+
+            System.out.println("\n" + indent + "(" + mark + "-" + step + ")\n" + indent + "Stepping global: " + a);
+            Triple<Theta, GTGType, String> g_step = s.global.stepTopLevel(s.theta, a).get();  // a in as so step is non-empty
+
+            //boolean prune = false;
+            Map<String, Integer> us = new HashMap<>(unfolds);
+            /*for (int i = g_step.right.indexOf('_'); i >= 0 && i < g_step.right.length();
+                 i = g_step.right.indexOf('_', i + 1)) {
+                String recvar = g_step.right.substring(i + 1, g_step.right.indexOf(']', i + 1));
+                int n = us.computeIfAbsent(recvar, x -> 0);
+                us.put(recvar, n + 1);
+                if (n + 1 > depth) {
+                    prune = true;
+                }
+            }*/
+
+            /*System.out.println(indent + g_step.right);
+            System.out.println(indent + "a = " + a);
+            System.out.println(indent + "g = " + g_step.mid);
+            System.out.println(indent + "theta = " + g_step.left);
+            System.out.println(indent + "unfolds = " + us);*/
+
+            GTSAction cast = (GTSAction) a;
+            GTEAction a_r = cast.project(lmf);
+
+            System.out.println(indent + "Stepping local: " + a_r);
+            // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
+            Optional<GTLSystem> l_step = s.local.step(a.subj, (EAction<DynamicActionKind>) a_r);
+            if (!l_step.isPresent()) {
+                throw new RuntimeException("Locals stuck...");
+            }
+            GTLSystem sys1 = l_step.get();
+
+            //System.out.println(indent + "locals = " + sys1);
+
+            mystep = mystep + 1;
+            step = step + 1;
+
+            GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1);
+            //if (!g_step.right.equals(GTGEnd.END) && !prune) {
+            foo(core, incIndent(indent), s1, 1, MAX, us, depth);
+            //}
+        }
+    }
+
+
+
+
+
+
+
+
+
 
     // top level depth = 0
     private void foo(Core core, String indent, Theta theta, GTGType g, int depth,
@@ -339,6 +374,82 @@ public class GTCommandLine extends CommandLine {
         }
 
     }
+
+
+
+
+
+
+
+    private static final Scanner KB = new Scanner(System.in);
+
+    private void bar(Core core, String indent, Theta theta, GTGType g, int count) {
+        if (!g.isGood()) {
+            System.err.println("Not good: " + g);
+            System.exit(0);
+        }
+        if (!g.isCoherent()) {
+            System.err.println("Not coherent: " + g);
+            System.exit(0);
+        }
+        GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+
+        List<Integer> tmp = new LinkedList<>();
+        tmp.add(1);
+        Map<Integer, SAction<DynamicActionKind>> as =
+                g.getActsTopLevel(mf, theta).stream().collect(Collectors.toMap(
+                        x -> {
+                            int i = tmp.remove(0);
+                            tmp.add(i + 1);
+                            return i;
+                        },
+                        x -> x,
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+
+        if (!as.isEmpty()) {
+            System.out.println("Actions: " + as.entrySet().stream().map(
+                    x -> x.getKey() + "=" + x.getValue()).collect(Collectors.joining(", ")));
+            int enter = -1;
+            while (enter < 0) {
+                String read = "";
+                while (read.isEmpty()) {
+                    System.out.print("Select action [Enter]: ");  // IntelliJ terminal seems to need a prior key press (for focus?) before the first Enter
+                    read = KB.nextLine();
+                }
+                try {
+                    enter = Integer.parseInt(read);
+                } catch (NumberFormatException x) {
+                    System.exit(0);
+                }
+            }
+            if (enter == 0) {
+                System.exit(0);
+            }
+            SAction<DynamicActionKind> a = as.get(enter);
+
+            Triple<Theta, GTGType, String> p = g.stepTopLevel(theta, a).get();  // a in as so step is non-empty
+            System.out.println(indent + p.right);
+            System.out.println(indent + "a = " + a);
+            System.out.println(indent + "theta = " + p.left);
+            System.out.println(indent + "g = " + p.mid);
+            if (!p.right.equals(GTGEnd.END)) {
+                bar(core, indent + "    ", p.left, p.mid, count++);
+            }
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+    /* ... */
 
     // FIXME refactor base scribble CLI methods (e.g., access Job)
     protected void runTasks()

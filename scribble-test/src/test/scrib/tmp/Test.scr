@@ -328,12 +328,41 @@ global protocol Proto1(role A, role B, role C) {
 
 
 // Testing fidelity
+//*
+global protocol Proto1(role A, role B) {
+    rec X {
+        choice at A {
+            1() from A to B;
+            2() from B to A;
+            continue X;
+        } or {
+            3() from A to B;
+            4() from B to A;
+        }
+    }
+}
+//*/
+
+/*
 global protocol Proto1(role A, role B, role C) {
     1() from A to B;
     2() from A to C;
     3() from B to A;
     4() from C to A;
 }
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    choice at A {
+        1() from A to B;
+        3() from A to C;  // Testing projection third-party (wiggly case)
+    } or {
+        2() from A to B;
+        3() from A to C;
+    }
+}
+//*/
 
 
 

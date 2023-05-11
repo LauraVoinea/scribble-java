@@ -51,7 +51,7 @@ public class GTGRecursion implements GTGType {
         return this.body.project(rs, r, c, n).map(x ->
                 x.left.equals(this.var)
                         ? Pair.of(lf.end(), new Sigma(rs))
-                        : x
+                        : Pair.of(lf.recursion(this.var, x.left), x.right)
         );
     }
 
