@@ -136,6 +136,7 @@ public class GTCommandLine extends CommandLine {
                 Theta theta = new Theta(translate.getTimeoutIds());
 
                 Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
+                Set<Integer> cs = translate.getTimeoutIds();
                 Map<Role, GTLConfig> locals = new HashMap<>();
                 for (Role r : rs) {
                     Optional<Pair<? extends GTLType, Sigma>> opt = translate.projectTopLevel(rs, r);
@@ -162,7 +163,7 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("Initial g = " + translate);
                     System.out.println("Initial theta = " + theta);
                     System.out.println("Initial locals = " + sys);
-                    foo(core, "", theta, translate, 2, new HashMap<>(), rs, sys);
+                    foo(core, "", theta, translate, 2, new HashMap<>(), rs, cs, sys);
                     //bar(core, "", theta, translate, 0);
                 }
             }
@@ -239,7 +240,12 @@ public class GTCommandLine extends CommandLine {
     }
 
     // top level depth = 0
-    private void foo(Core core, String indent, Theta theta, GTGType g, int depth, Map<String, Integer> unfolds, Set<Role> rs, GTLSystem sys) {
+    private void foo(Core core, String indent, Theta theta, GTGType g, int depth,
+                     Map<String, Integer> unfolds, Set<Role> rs, Set<Integer> cs, GTLSystem sys) {
+        if (!rs.equals(sys.configs.keySet())) {
+            throw new RuntimeException("Shouldn't get here");
+        }
+
         if (!g.isGood()) {
             System.err.println("Not good: " + g);
             System.exit(0);
@@ -258,13 +264,31 @@ public class GTCommandLine extends CommandLine {
                 System.err.println("Couldn't project onto " + r + ": " + g);
                 System.exit(0);
             }
+            Optional<Theta> opt_theta = g.projectTheta(cs, r);
+            if (!opt_theta.isPresent()) {
+                System.err.println("Couldn't project theta onto " + r + ": " + g);
+                System.exit(0);
+            }
 
             Pair<? extends GTLType, Sigma> p = opt.get();
+            Theta theta_r = opt_theta.get();
             /*if (!p.right.equals(new Sigma(rs))) {
                 throw new RuntimeException("Shouldn't get here: " + p);
             }*/
-            projs.put(r, new GTLConfig(r, p.left, p.right, theta));
-            System.out.println(indent + "  onto " + r + ": " + p.left);
+            GTLConfig cfg = new GTLConfig(r, p.left, p.right, theta_r);
+            projs.put(r, cfg);
+            System.out.println(indent + "  onto " + r + ": " + cfg);
+
+            GTLConfig local = sys.configs.get(r);
+            if (!cfg.type.equals(local.type)) {
+                throw new RuntimeException("Projected type doesn't correspond with local: " + local.type);
+            }
+            if (!cfg.sigma.equals(local.sigma)) {
+                throw new RuntimeException("Projected sigma doesn't correspond with local: " + local.sigma);
+            }
+            if (!cfg.theta.equals(local.theta)) {
+                throw new RuntimeException("Projected theta doesn't correspond with local: " + local.theta);
+            }
         }
 
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
@@ -310,7 +334,7 @@ public class GTCommandLine extends CommandLine {
             System.out.println(indent + "locals = " + sys1);
 
             if (!p.right.equals(GTGEnd.END) && !prune) {
-                foo(core, indent + "    ", p.left, p.mid, depth, us, rs, sys1);
+                foo(core, indent + "    ", p.left, p.mid, depth, us, rs, cs, sys1);
             }
         }
 
