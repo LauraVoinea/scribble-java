@@ -29,29 +29,34 @@ public class GTLSystem {
         ));
     }
 
-    public Optional<GTLSystem> step(Role r, EAction<DynamicActionKind> a) {
+    public Optional<GTLSystem> step(Role self, EAction<DynamicActionKind> a) {
         if (a instanceof GTENewTimeout) {
             // !!! N.B. r is Role.EMPTY_ROLE
             // ...tau? (skip?) -- XXX then what is "projection" relation between G/L ?
             // ...find the one (or more?) guy(s) that can locally do new-timeout -- then do the rest implicitly when reach?
             throw new RuntimeException("TODO: " + a);
         } else {
-            if (!(this.configs.containsKey(r))) {
-                throw new RuntimeException("Unkown role: " + r);
+            if (!(this.configs.containsKey(self))) {
+                throw new RuntimeException("Unkown role: " + self);
             }
-            Optional<GTLConfig> step = this.configs.get(r).step(a);
+            Optional<GTLConfig> step = this.configs.get(self).step(a);
             if (!step.isPresent()) {
                 return Optional.empty();
             }
             GTLConfig get = step.get();
             HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
-            tmp.put(r, get);
+            tmp.put(self, get);
             if (a instanceof GTESend) {
                 GTESend cast = (GTESend) a;
-                tmp.put(r, this.configs.get(r).enqueueMessage(cast));
+                tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
             }
             return Optional.of(new GTLSystem(tmp));
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.configs.toString();
     }
 
     /* ... */

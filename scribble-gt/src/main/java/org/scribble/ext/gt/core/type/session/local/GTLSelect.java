@@ -60,13 +60,14 @@ public class GTLSelect implements GTLType {
                 || cast.c != c || cast.n != n) {
             return Optional.empty();
         }
-        Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
+        /*Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
         List<GTESend<DynamicActionKind>> tmp = Stream.concat(
                 sigma.map.get(self).stream(),
                 Stream.of(cast)
         ).collect(Collectors.toList());
         map.put(self, tmp);
-        Sigma sigma1 = new Sigma(map);
+        Sigma sigma1 = new Sigma(map);*/
+        Sigma sigma1 = sigma;
         return Optional.of(Triple.of(this.cases.get(a.mid), sigma1, theta));
     }
 

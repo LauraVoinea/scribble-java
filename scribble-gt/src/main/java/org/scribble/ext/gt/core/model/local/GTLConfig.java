@@ -38,13 +38,22 @@ public class GTLConfig {
         return opt.map(x -> new GTLConfig(this.self, x.left, x.mid, x.right));
     }
 
-    public GTLConfig enqueueMessage(GTESend<DynamicActionKind> a) {
+    public GTLConfig enqueueMessage(Role src, GTESend<DynamicActionKind> a) {
+        if (!this.self.equals(a.peer)) {
+            throw new RuntimeException("Shouldn't get in here: " + a);
+        }
         Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(this.sigma.map);
-        List<GTESend<DynamicActionKind>> ms = new LinkedList<>(map.get(a.peer));
+        List<GTESend<DynamicActionKind>> ms = new LinkedList<>(map.get(src));
         ms.add(a);
-        map.put(a.peer, ms);
+        map.put(src, ms);
         Sigma sigma = new Sigma(map);
         return new GTLConfig(this.self, this.type, sigma, this.theta);
+    }
+
+    @Override
+    public String toString() {
+        return "<" + this.self + ", " + this.type + ", " + this.sigma + ", " +
+                this.theta + ">";
     }
 
     /* ... */

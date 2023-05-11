@@ -22,16 +22,16 @@ public class GTEModelFactoryImpl extends EModelFactoryImpl implements GTEModelFa
 
     @Override
     public GTESend<DynamicActionKind> DynamicGTESend(Role peer, MsgId<?> mid, Payload pay, int c, int n) {
-        return new GTESend<>(MActionBase.nextCount(), this.mf, peer, mid, pay, c, n);
+        return new GTESend<>(MActionBase.DYNAMIC_ID, this.mf, peer, mid, pay, c, n);
     }
 
     @Override
     public GTERecv<DynamicActionKind> DynamicGTERecv(Role peer, MsgId<?> mid, Payload pay, int c, int n) {
-        return new GTERecv<>(MActionBase.nextCount(), this.mf, peer, mid, pay, c, n);
+        return new GTERecv<>(MActionBase.DYNAMIC_ID, this.mf, peer, mid, pay, c, n);
     }
 
     @Override
     public GTENewTimeout<DynamicActionKind> DynamicGTENewTimeout(int c, int n) {
-        return new GTENewTimeout<>(MActionBase.nextCount(), this.mf, c, n);
+        return new GTENewTimeout<>(MActionBase.DYNAMIC_ID, this.mf, c, n);
     }
 }

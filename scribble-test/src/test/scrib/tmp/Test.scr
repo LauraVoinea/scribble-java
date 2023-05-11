@@ -320,6 +320,32 @@ global protocol Proto1(role A, role B, role C) {
 }
 //*/
 
+
+
+
+
+
+
+
+// Testing fidelity
+global protocol Proto1(role A, role B, role C) {
+    1() from A to B;
+    2() from A to C;
+    3() from B to A;
+    4() from C to A;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;
@@ -340,6 +366,30 @@ global protocol Proto1(role A, role B, role C) {
 //(A~>B:1{1.end} [] |>1,1:A->B [] B->A:2{2.A->C{4.end}})
 //[LRcv1]
 //(end [B] |>1,1:A->B [] B->A:2{2.A->C{4.end}})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*

@@ -26,6 +26,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.model.local.action.GTESend;
 
 public class GTSSend<A extends ActionKind> extends SSend<A> implements GTSAction {
 
@@ -41,7 +42,7 @@ public class GTSSend<A extends ActionKind> extends SSend<A> implements GTSAction
     /* ... */
 
     @Override
-    public GTEAction project(GTEModelFactory mf) {
+    public GTESend<DynamicActionKind> project(GTEModelFactory mf) {
         return mf.DynamicGTESend(this.obj, this.mid, this.payload, this.c, this.n);
     }
 

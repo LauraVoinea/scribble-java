@@ -21,6 +21,7 @@ import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
@@ -160,6 +161,7 @@ public class GTCommandLine extends CommandLine {
                 } else {
                     System.out.println("Initial g = " + translate);
                     System.out.println("Initial theta = " + theta);
+                    System.out.println("Initial locals = " + sys);
                     foo(core, "", theta, translate, 2, new HashMap<>(), rs, sys);
                     //bar(core, "", theta, translate, 0);
                 }
@@ -297,16 +299,18 @@ public class GTCommandLine extends CommandLine {
 
             GTSAction cast = (GTSAction) a;
             GTEAction a_r = cast.project(lmf);
-            System.out.println("---- " + a + " ,, " + a_r);
 
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
             Optional<GTLSystem> lstep = sys.step(a.subj, (EAction<DynamicActionKind>) a_r);
             if (!lstep.isPresent()) {
                 throw new RuntimeException("Locals didn't reduce");
             }
+            GTLSystem sys1 = lstep.get();
+
+            System.out.println(indent + "locals = " + sys1);
 
             if (!p.right.equals(GTGEnd.END) && !prune) {
-                foo(core, indent + "    ", p.left, p.mid, depth, us, rs, sys);
+                foo(core, indent + "    ", p.left, p.mid, depth, us, rs, sys1);
             }
         }
 

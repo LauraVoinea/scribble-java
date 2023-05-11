@@ -16,12 +16,14 @@
 package org.scribble.ext.gt.core.model.global.action;
 
 import org.scribble.core.model.ActionKind;
+import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 
 public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements GTSAction {
 
@@ -37,7 +39,7 @@ public class GTSNewTimeout<A extends ActionKind> extends SAction<A> implements G
     /* ... */
 
     @Override
-    public GTEAction project(GTEModelFactory mf) {
+    public GTENewTimeout<DynamicActionKind> project(GTEModelFactory mf) {
         return mf.DynamicGTENewTimeout(this.c, this.n);
     }
 

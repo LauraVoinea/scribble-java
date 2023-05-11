@@ -77,22 +77,27 @@ public class GTLBranch implements GTLType {
     @Override
     public Optional<Triple<GTLType, Sigma, Theta>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)
-                || !sigma.map.get(a.peer).contains(a.toDynamicDual(self))) {
+       
+        if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)) {
             return Optional.empty();
         }
         GTERecv<DynamicActionKind> cast = (GTERecv<DynamicActionKind>) a;
+        GTESend<DynamicActionKind> m = cast.toDynamicDual(self);
+        if (!sigma.map.get(a.peer).contains(m)) {
+            return Optional.empty();
+        }
+
         if (!a.peer.equals(this.src) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
                 || cast.c != c || cast.n != n) {
             return Optional.empty();
         }
         boolean[] found = {false};
         List<GTESend<DynamicActionKind>> tmp = sigma.map.get(a.peer).stream().filter(x -> {
-            if (!found[0] && x.equals(a)) {
+            if (!found[0] && x.equals(m)) {
                 found[0] = true;
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }).collect(Collectors.toList());
         Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
         map.put(this.src, tmp);

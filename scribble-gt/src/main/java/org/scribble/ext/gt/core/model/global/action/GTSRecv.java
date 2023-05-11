@@ -24,6 +24,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.model.local.action.GTERecv;
 
 public class GTSRecv<A extends ActionKind> extends SRecv<A> implements GTSAction {
 
@@ -39,7 +40,7 @@ public class GTSRecv<A extends ActionKind> extends SRecv<A> implements GTSAction
     /* ... */
 
     @Override
-    public GTEAction project(GTEModelFactory mf) {
+    public GTERecv<DynamicActionKind> project(GTEModelFactory mf) {
         return mf.DynamicGTERecv(this.obj, this.mid, this.payload, this.c, this.n);
     }
 
