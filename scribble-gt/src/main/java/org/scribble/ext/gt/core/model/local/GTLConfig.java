@@ -6,7 +6,9 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.type.session.local.GTLBranch;
 import org.scribble.ext.gt.core.type.session.local.GTLRecursion;
+import org.scribble.ext.gt.core.type.session.local.GTLSelect;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.Triple;
 
@@ -52,20 +54,82 @@ public class GTLConfig {
     }
 
     // !!! -- cf. equals
-    public boolean equiv(GTLConfig d) {
-        return this.self.equals(d.self) && GTLConfig.equiv(this.type, d.type)
-                && this.sigma.equals(d.sigma) && this.theta.equals(d.theta);
+    public boolean isSubtype(GTLConfig sub) {
+        return this.self.equals(sub.self) && GTLConfig.isSubtype(this.type, sub.type)
+                && this.sigma.equals(sub.sigma) && this.theta.equals(sub.theta);
     }
 
-    public static boolean equiv(GTLType t, GTLType u) {
-        if (t.equals(u)) {
+    // Works in this framework because starting from common global rec -- no need to compare completely arbitrary (un)foldings
+    static Map<GTLRecursion, List<GTLType>> unfoldings = new HashMap<>();  // strict (not reflexive)
+    //static Map<GTLType, Set<GTLType>> subtypes = new HashMap<>();  // Could use in conjunction with unfoldings...
+
+    // CHECKME: algorithmic MPST subtyping?
+    // terminates assuming contractive -- recs will eventually unfold into non-recs
+    public static boolean isSubtype(GTLType sup, GTLType sub) {
+        if (sup.equals(sub)) {  // GTLEnd, GTLRecVar
             return true;
-        } else if (t instanceof GTLRecursion) {
-            return t.unfold().equals(u);
-        } else if (u instanceof GTLRecursion) {
-            return t.equals(u.unfold());
-        } else {
-            return false;
+        } else if (sup instanceof GTLRecursion) {
+            //return t.unfold().equals(u);
+            //return isUnfolding((GTLRecursion) sup, sub);
+
+            GTLRecursion cast = (GTLRecursion) sup;
+            List<GTLType> tmp = unfoldings.computeIfAbsent(cast, k -> new LinkedList<>());
+            if (tmp.stream().anyMatch(x -> isSubtype(x, sub))) {
+                return true;
+            }
+            GTLType next;
+            if (tmp.isEmpty()) {
+                next = cast.unfold();
+            } else {
+                next = tmp.get(tmp.size() - 1).unfold();
+            }
+            tmp.add(next);
+            return isSubtype(next, sub);
+
+        } else if (sub instanceof GTLRecursion) {
+            //return isUnfolding((GTLRecursion) sub, sup);
+
+            GTLRecursion cast = (GTLRecursion) sub;
+            List<GTLType> tmp = unfoldings.computeIfAbsent(cast, k -> new LinkedList<>());
+            if (tmp.stream().anyMatch(x -> isSubtype(sup, x))) {
+                return true;
+            }
+            GTLType next;
+            if (tmp.isEmpty()) {
+                next = cast.unfold();
+            } else {
+                next = tmp.get(tmp.size() - 1).unfold();
+            }
+            tmp.add(next);
+            return isSubtype(sup, next);
+        }
+
+        if (sup instanceof GTLBranch) {
+            if (!(sub instanceof GTLBranch)) {
+                return false;
+            }
+            GTLBranch sup1 = (GTLBranch) sup;
+            GTLBranch sub1 = (GTLBranch) sub;
+            if (!sub1.cases.keySet().containsAll(sup1.cases.keySet())) {
+                return false;
+            }
+            return sup1.cases.keySet().stream()
+                    .allMatch(x -> isSubtype(sup1.cases.get(x), sub1.cases.get(x)));
+        } else if (sup instanceof GTLSelect) {
+            if (!(sub instanceof GTLSelect)) {
+                return false;
+            }
+            GTLSelect sup1 = (GTLSelect) sup;
+            GTLSelect sub1 = (GTLSelect) sub;
+            if (!sup1.cases.keySet().containsAll(sub1.cases.keySet())) {
+                return false;
+            }
+            return sub1.cases.keySet().stream()
+                    .allMatch(x -> isSubtype(sup1.cases.get(x), sub1.cases.get(x)));
+        }/* else if (sup instanceof GTLMixedChoice) {
+        } else if (sup instanceof GTLMixedActive) {
+        }*/ else {
+            throw new RuntimeException("TODO: " + sup);
         }
     }
 

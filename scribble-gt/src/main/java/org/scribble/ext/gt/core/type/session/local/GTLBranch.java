@@ -59,6 +59,7 @@ public class GTLBranch implements GTLType {
             Op x = it.next();
             if (this.cases.keySet().contains(x)) {  // Would be nice if get returned Optional... can map empty directly
                 if (cast.cases.keySet().contains(x)) {
+                    // case x in both branches: !!! currently recursively merging but could just simplify to equality
                     Optional<? extends GTLType> opt = this.cases.get(x).merge(cast.cases.get(x));
                     if (!opt.isPresent()) {
                         return Optional.empty();
@@ -77,7 +78,7 @@ public class GTLBranch implements GTLType {
     @Override
     public Optional<Triple<GTLType, Sigma, Theta>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-       
+
         if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)) {
             return Optional.empty();
         }

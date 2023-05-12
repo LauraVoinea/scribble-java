@@ -195,7 +195,7 @@ public class GTCommandLine extends CommandLine {
     //        ... factor out Bounds
     //        ... do local mixed-active
 
-    static final int MAX = 20;
+    static final int MAX = 100;
     static int mystep = 1;
 
     private void foo(Core core, String indent, GTCorrespondence s,
@@ -330,7 +330,7 @@ public class GTCommandLine extends CommandLine {
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
         Set<SAction<DynamicActionKind>> as = g.getActsTopLevel(mf, theta).stream()
-                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
+                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());
 
         System.out.println("\n" + indent + "as = " + as);
