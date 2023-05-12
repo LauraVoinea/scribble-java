@@ -10,17 +10,19 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GTGWiggly implements GTGType {
 
@@ -159,57 +161,42 @@ public class GTGWiggly implements GTGType {
     /* */
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         if (this.dst.equals(a.subj)) {
             if (a.isReceive()) {  // [Rcv]
                 GTSRecv<DynamicActionKind> cast = (GTSRecv<DynamicActionKind>) a;
                 if (cast.obj.equals(this.src)
                         && this.cases.containsKey(cast.mid) && cast.c == c && cast.n == n) {
-                    //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    return Optional.of(new Triple<>(theta, this.cases.get(cast.mid), "[Rcv]"));
+                    GTGType res = this.cases.get(cast.mid);
+                    return Either.right(Triple.of(
+                            theta, res, Tree.of(toStepJudgeString(
+                                    "[Rcv]", theta, this, cast, theta, res))));
                 }
             }
-            return Optional.empty();
+            return Either.left(newStuck(theta, this, (GTSAction) a));
         } else {  // [Cont2]
-            /*return done
-                    ? Optional.of(this.fact.wiggly(this.src, this.dst, this.op, cs))
-                    : Optional.empty();*/
-            Optional<Triple<Theta, LinkedHashMap<Op, GTGType>, String>> nestedCases
+            Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> nested
                     = stepNested(theta, a, c, n);
-            return nestedCases.map(x -> new Triple<>(
-                    x.left,
-                    this.fact.wiggly(this.src, this.dst, this.op, x.mid),
-                    "[Cont2]" + x.right));
+            return nested.mapRight(x -> {
+                GTGWiggly res = this.fact.wiggly(this.src, this.dst, this.op, x.mid);
+                return Triple.of(x.left, res, Tree.of(
+                        toStepJudgeString("[Cont2]", theta, this, (GTSAction) a, x.left, res),
+                        x.right));
+            });
         }
     }
 
-    protected Optional<Triple<Theta, LinkedHashMap<Op, GTGType>, String>> stepNested(
+    protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> stepNested(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        /*//Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
-        LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
-        for (Map.Entry<Op, GTGType> e : es) {
-            Op op = e.getKey();
-            GTGType c = e.getValue();
-            if (op.equals(this.op)) {
-                Optional<Pair<Theta, GTGType>> step = c.step(theta, a);
-                if (step.isEmpty()) {
-                    return Optional.empty();
-                }
-                cs.put(op, step.get().right);
-            } else {
-                cs.put(op, c);
-            }
-        }
-        return Optional.of(cs);*/
-        Optional<Triple<Theta, GTGType, String>> step = this.cases.get(this.op).step(theta, a, c, n);
-        if (step.isPresent()) {
-            Triple<Theta, GTGType, String> get = step.get();
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
+                this.cases.get(this.op).step(theta, a, c, n);
+        return step.mapRight(x -> {
             LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>(this.cases);
-            cs.put(op, get.mid);
-            return Optional.of(new Triple<>(get.left, cs, get.right));
-        }
-        return Optional.empty();
+            cs.put(op, x.mid);
+            return Triple.of(x.left, cs, x.right);
+        });
     }
 
     @Override

@@ -7,9 +7,12 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -58,13 +61,15 @@ public class GTGEnd implements GTGType {
     /* ... */
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         return new LinkedHashSet<>();
     }
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return Optional.empty();
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return Either.left(newStuck(theta, this, (GTSAction) a));
     }
 
     /* Aux */

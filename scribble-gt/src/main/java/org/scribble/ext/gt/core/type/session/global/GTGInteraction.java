@@ -9,10 +9,13 @@ import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -65,12 +68,15 @@ public class GTGInteraction implements GTGType {
                 if (opt.isEmpty()) {
                     return Optional.empty();
                 }
+
+                // TODO factor out with merge case (reduce over sigmas)
                 Pair<? extends GTLType, Sigma> p = opt.get();
                 if (sigma == null) {
                     sigma = p.right;
                 } else if (!sigma.equals(p.right)) {
                     return Optional.empty();
                 }
+
                 cases.put(e.getKey(), p.left);
             }
             return r.equals(this.src)
@@ -141,7 +147,8 @@ public class GTGInteraction implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         if (this.src.equals(a.subj)) {
             if (a.isSend()) {  // [Snd]
                 GTSSend<DynamicActionKind> cast = (GTSSend<DynamicActionKind>) a;
@@ -149,48 +156,52 @@ public class GTGInteraction implements GTGType {
                         && cast.c == c && cast.n == n) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    return Optional.of(new Triple<>(
-                            theta,
-                            this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp),
-                            "[Snd]"));
+                    GTGWiggly res = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp);
+                    return Either.right(new Triple<>(
+                            theta, res, Tree.of(toStepJudgeString(
+                            "[Snd]", theta, this, cast, theta, res))));
                 }
             }
-            return Optional.empty();
+            return Either.left(newStuck(theta, this, (GTSAction) a));
         } else if (!this.dst.equals(a.subj)) {  // [Cont1]
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
                 : Optional.empty();*/
-            Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> nestedCases =
+            Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> nested =
                     stepNested(this.cases, theta, a, c, n);
-            return nestedCases.map(x -> new Triple<>(
-                    x.left,
-                    this.fact.choice(this.src, this.dst, x.right),
-                    "[Cont1][..discard..]"));
+            return nested.mapRight(x -> {
+                GTGInteraction res = this.fact.choice(this.src, this.dst, x.mid);
+                return Triple.of(x.left, res,
+                        Tree.of(toStepJudgeString(
+                                "[Cont1]", theta, this, (GTSAction) a, x.left, res), x.right));
+            });
         }
-        return Optional.empty();
+        return Either.left(newStuck(theta, this, (GTSAction) a));
     }
 
-    protected Optional<Pair<Theta, LinkedHashMap<Op, GTGType>>> stepNested(
+    protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> stepNested(
             Map<Op, GTGType> cases, Theta theta, SAction<DynamicActionKind> a, int c1, int n1) {
         Set<Map.Entry<Op, GTGType>> es = cases.entrySet();
         Theta fst = null;
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
+        List<Tree<String>> trees = new LinkedList<>();
         for (Map.Entry<Op, GTGType> e : es) {
             Op op = e.getKey();
             GTGType c = e.getValue();
-            Optional<Triple<Theta, GTGType, String>> step = c.step(theta, a, c1, n1);
-            if (step.isEmpty()) {
-                return Optional.empty();
+            Either<Exception, Triple<Theta, GTGType, Tree<String>>> step = c.step(theta, a, c1, n1);
+            if (step.isLeft()) {
+                return Either.left(step.getLeft());
             }
-            Triple<Theta, GTGType, String> p = step.get();  // !!! discarding [rule]
+            Triple<Theta, GTGType, Tree<String>> p = step.getRight();
             if (fst == null) {
                 fst = p.left;
             } else if (!p.left.equals(fst)) {
-                return Optional.empty();
+                return Either.left(new Exception("Thetas not mergeable: " + fst + ", " + p.left));
             }
             cs.put(op, p.mid);
+            trees.add(p.right);
         }
-        return Optional.of(new Pair<>(fst, cs));
+        return Either.right(Triple.of(fst, cs, trees));
         /*boolean done = false;
         for (Map.Entry<Op, GTGType> e : es) {
             Op k = e.getKey();
@@ -211,10 +222,9 @@ public class GTGInteraction implements GTGType {
         //throw new RuntimeException("Shouldn't get here: " + cases + " ,, " + a);  // cases non-empty
     }
 
-    // HERE HERE HERE SAction generics -> need GTSAction with c, n
-
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);

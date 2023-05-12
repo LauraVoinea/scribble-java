@@ -7,9 +7,12 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -47,13 +50,24 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
-    default Optional<Triple<Theta, GTGType, String>> stepTopLevel(Theta theta, SAction<DynamicActionKind> a) {
+    default String toStepJudgeString(
+            String tag, Theta theta_l, GTGType left, GTSAction a, Theta theta_r, GTGType right) {
+        return tag + " " + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
+    }
+
+    default Exception newStuck(Theta theta, GTGType t, GTSAction a) {
+        return new Exception("Stuck: " + theta + ", " + t + " --" + a + "-->");
+    }
+
+    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTopLevel(
+            Theta theta, SAction<DynamicActionKind> a) {
         return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTSAction
     // a is deterministic (including "nested" steps)
-    Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n);
+    Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n);
 
     //HERE HERE fix SAction kinds and add c, n
     // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity

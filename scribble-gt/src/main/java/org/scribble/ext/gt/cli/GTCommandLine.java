@@ -27,6 +27,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
@@ -186,9 +187,9 @@ public class GTCommandLine extends CommandLine {
 
 
 
-    static String incIndent(String indent) {
-        return indent.equals("") ? "    " : indent + ".   ";
-    }
+
+
+
 
 
     // HERE HERE ...make Correspondence class, with check method
@@ -211,7 +212,7 @@ public class GTCommandLine extends CommandLine {
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
         Set<SAction<DynamicActionKind>> as = s.global.getActsTopLevel(mf, s.theta).stream()
-                .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout) x).n > depth))  // only bounds mixed...
+                .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());
 
         if (mystep >= MAX) {
@@ -221,8 +222,12 @@ public class GTCommandLine extends CommandLine {
         System.out.println(indent + "Possible actions = " + as);
         for (SAction<DynamicActionKind> a : as) {
 
-            System.out.println("\n" + indent + "(" + mark + "-" + step + ")\n" + indent + "Stepping global: " + a);
-            Triple<Theta, GTGType, String> g_step = s.global.stepTopLevel(s.theta, a).get();  // a in as so step is non-empty
+            System.out.println("\n" + indent + "(" + mark + "-" + step + ")\n"
+                    + indent + "Stepping global: " + a);
+            Triple<Theta, GTGType, Tree<String>> g_step =
+                    s.global.stepTopLevel(s.theta, a).getRight();  // a in as so step is non-empty
+
+            System.out.println("\n" + g_step.right.toString(indent) + "\n");
 
             //boolean prune = false;
             Map<String, Integer> us = new HashMap<>(unfolds);
@@ -263,6 +268,10 @@ public class GTCommandLine extends CommandLine {
             foo(core, incIndent(indent), s1, 1, MAX, us, depth);
             //}
         }
+    }
+
+    static String incIndent(String indent) {
+        return indent.equals("") ? "    " : indent + ".   ";
     }
 
 
@@ -337,12 +346,12 @@ public class GTCommandLine extends CommandLine {
         //String read = KB.nextLine();
 
         for (SAction<DynamicActionKind> a : as) {
-            Triple<Theta, GTGType, String> p = g.stepTopLevel(theta, a).get();  // a in as so step is non-empty
+            Triple<Theta, GTGType, Tree<String>> p = g.stepTopLevel(theta, a).getRight();  // a in as so step is non-empty
 
             boolean prune = false;
             Map<String, Integer> us = new HashMap<>(unfolds);
-            for (int i = p.right.indexOf('_'); i >= 0 && i < p.right.length(); i = p.right.indexOf('_', i + 1)) {
-                String recvar = p.right.substring(i + 1, p.right.indexOf(']', i + 1));
+            for (int i = p.right.val.indexOf('_'); i >= 0 && i < p.right.val.length(); i = p.right.val.indexOf('_', i + 1)) {
+                String recvar = p.right.val.substring(i + 1, p.right.val.indexOf(']', i + 1));
                 int n = us.computeIfAbsent(recvar, x -> 0);
                 us.put(recvar, n + 1);
                 if (n + 1 > depth) {
@@ -429,7 +438,7 @@ public class GTCommandLine extends CommandLine {
             }
             SAction<DynamicActionKind> a = as.get(enter);
 
-            Triple<Theta, GTGType, String> p = g.stepTopLevel(theta, a).get();  // a in as so step is non-empty
+            Triple<Theta, GTGType, Tree<String>> p = g.stepTopLevel(theta, a).getRight();  // a in as so step is non-empty
             System.out.println(indent + p.right);
             System.out.println(indent + "a = " + a);
             System.out.println(indent + "theta = " + p.left);

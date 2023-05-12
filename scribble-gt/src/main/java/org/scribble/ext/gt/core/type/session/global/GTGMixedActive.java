@@ -7,11 +7,14 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -161,101 +164,127 @@ public class GTGMixedActive implements GTGType {
     // Deterministic w.r.t. a -- CHECKME: recursion
     // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Triple<Theta, GTGType, String>> step(Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+
         LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-        Optional<Triple<Theta, GTGType, String>> optl =
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
                 this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                        ? Optional.empty()
+                        ? Either.left(newStuck(theta, this, (GTSAction) a))
                         : this.left.step(theta, a, this.c, this.n);
-        Optional<Triple<Theta, GTGType, String>> optr =
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
                 this.committedLeft.contains(a.subj)
-                        ? Optional.empty()
+                        ? Either.left(newStuck(theta, this, (GTSAction) a))
                         : this.right.step(theta, a, this.c, this.n);
-        if (optl.isPresent() && optr.isPresent()) {
+
+        if (optl.isRight() && optr.isRight()) {  // XXX FIXME need action equality
             // [RTAct]
-            // !!! CHECKME: check something re. this.p/q and a ?
-            return Optional.of(new Triple<>(
-                    theta,  // XXX FIXME wrong in rule
+
+            // FIXME check action equality and =LR
+
+            return Either.right(Triple.of(
+                    theta,
                     this.fact.activeMixedChoice(this.c, this.n,
-                            optl.get().mid,
-                            optr.get().mid,
+                            optl.getRight().mid,
+                            optr.getRight().mid,
                             this.other, this.observer, cl, cr),
-                    "[RTAct][..discard..]"));  // ...discarded both opt strings
-        } else if (optl.isPresent()) {
-            if (optr.isPresent() || this.committedRight.contains(a.subj)) {  // First cond is redundant
-                return Optional.empty();
+                    Tree.of("[RTAct][..discard..]")));  // ...discarded both opt strings
+
+        } else if (optl.isRight()) {
+
+            // FIXME first cond should be specific to a
+            if (optr.isRight() || this.committedRight.contains(a.subj)) {
+                return Either.left(newStuck(theta, this, (GTSAction) a));
             }
-            Triple<Theta, GTGType, String> get = optl.get();
+
+            Triple<Theta, GTGType, Tree<String>> get = optl.getRight();
             if (a.isReceive()) {
-                String rule;
+                String tag;
                 if (this.committedLeft.contains(a.obj) || a.subj.equals(this.observer)) {  // XXX this.p => q ?
                     // [LRcv1]
                     cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
-                    rule = "[LRcv1]";
+                    tag = "[LRcv1]";
                 } else {
                     // [LRcv2]
-                    rule = "[LRcv2]";
+                    tag = "[LRcv2]";
                 }
-                return Optional.of(new Triple<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
-                        rule));
+                Tree<String> rule = Tree.of(toStepJudgeString(
+                                tag, theta, this, (GTSAction) a, get.left, get.mid),
+                        get.right);
+                GTGMixedActive res = this.fact.activeMixedChoice(
+                        this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
+                return Either.right(Triple.of(get.left, res, rule));
             } else if (a.isSend()) {  // [LSnd]
-                return Optional.of(new Triple<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
-                        "[LSnd]" + get.right));
-
-            } else if (a instanceof GTSNewTimeout) {  // HACK
-                return Optional.of(new Triple<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr),
-                        "[..TO-HACK-L..]" + get.right));
+                GTGMixedActive res = this.fact.activeMixedChoice(
+                        this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
+                return Either.right(Triple.of(get.left, res, Tree.of(
+                        toStepJudgeString("[LSnd]", theta, this, (GTSAction) a, get.left, get.mid),
+                        get.right)));
+            } else if (a instanceof GTSNewTimeout) {  // !!!
+                GTGMixedActive res = this.fact.activeMixedChoice(
+                        this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
+                return Either.right(Triple.of(get.left, res, Tree.of(
+                        toStepJudgeString("[..Ctx1..]", theta, this, (GTSAction) a, get.left, get.mid),
+                        get.right)));
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
-        } else if (optr.isPresent()) {
-            Triple<Theta, GTGType, String> get = optr.get();  // May be empty for nested mixed choices in the "stuck" side
+
+        } else if (optr.isRight()) {
+            Triple<Theta, GTGType, Tree<String>> get = optr.getRight();  // May be empty for nested mixed choices in the "stuck" side
             if (a.isSend()) {
                 // [RSnd]
-                if (optl.isPresent() || this.committedLeft.contains(a.subj)) {  // First cond is redundant due to earlier
-                    return Optional.empty();
+
+                // FIXME check optl.isRight specifically against a (o/w OK)
+                if (optl.isRight() || this.committedLeft.contains(a.subj)) {
+                    return Either.left(newStuck(theta, this, (GTSAction) a));
                 }
+
                 cr.add(a.subj);
-                return Optional.of(new Triple<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
-                        "[RSnd]" + get.right));
+                GTGMixedActive res = this.fact.activeMixedChoice(
+                        this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
+                return Either.right(Triple.of(get.left, res, Tree.of(
+                        toStepJudgeString("[RSnd]", theta, this, (GTSAction) a, get.left, get.mid),
+                        get.right)));
             } else if (a.isReceive()) {
                 // [RRcv]
-                if (optl.isPresent()) {  // Redundant due to earlier
-                    return Optional.empty();
+
+                // FIXME check optl.isRight specifically against a (o/w OK)
+                if (optl.isRight()) {  // Redundant due to earlier
+                    return Either.left(newStuck(theta, this, (GTSAction) a));
                 }
+
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
-                return Optional.of(new Triple<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
-                        "[RRcv]" + get.right));
+                GTGMixedActive res = this.fact.activeMixedChoice(
+                        this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
+                return Either.right(Triple.of(get.left, res, Tree.of(
+                        toStepJudgeString("[RRcv]", theta, this, (GTSAction) a, get.left, get.mid),
+                        get.right)));
 
             } else if (a instanceof GTSNewTimeout) {  // HACK
-                return Optional.of(new Triple<>(
-                        get.left,
-                        this.fact.activeMixedChoice(this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr),
-                        "[..TO-HACK-R..]" + get.right));
+
+                // FIXME check optl.isRight specifically against a (o/w OK)
+
+                GTGMixedActive res = this.fact.activeMixedChoice(
+                        this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
+                return Either.right(Triple.of(get.left, res, Tree.of(
+                        toStepJudgeString("[..TO-HACK-R..]", theta, this, (GTSAction) a, get.left, get.mid),
+                        get.right)));
 
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
         } else {
-            return Optional.empty();
+            return Either.left(newStuck(theta, this, (GTSAction) a));
         }
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
+            int n) {  // XXX outer still OK to reduce if inner is fully ended?
 
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
