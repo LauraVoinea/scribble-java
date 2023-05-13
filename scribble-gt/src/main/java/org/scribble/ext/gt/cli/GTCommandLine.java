@@ -227,7 +227,7 @@ public class GTCommandLine extends CommandLine {
             Triple<Theta, GTGType, Tree<String>> g_step =
                     s.global.stepTopLevel(s.theta, a).getRight();  // a in as so step is non-empty
 
-            System.out.println("\n" + g_step.right.toString(indent) + "\n");
+            System.out.println(g_step.right.toString(indent + "   "));
 
             //boolean prune = false;
             Map<String, Integer> us = new HashMap<>(unfolds);
@@ -250,7 +250,7 @@ public class GTCommandLine extends CommandLine {
             GTSAction cast = (GTSAction) a;
             GTEAction a_r = cast.project(lmf);
 
-            System.out.println(indent + "Stepping local: " + a_r);
+            System.out.println(indent + "Stepping local " + a.subj + ": " + a_r);
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
             Optional<GTLSystem> l_step = s.local.step(a.subj, (EAction<DynamicActionKind>) a_r);
             if (!l_step.isPresent()) {

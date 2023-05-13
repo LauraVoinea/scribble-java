@@ -178,11 +178,8 @@ public class GTGMixedActive implements GTGType {
                         ? Either.left(newStuck(theta, this, (GTSAction) a))
                         : this.right.step(theta, a, this.c, this.n);
 
-        if (optl.isRight() && optr.isRight()) {  // XXX FIXME need action equality
+        if (optl.isRight() && optr.isRight()) {
             // [RTAct]
-
-            // FIXME check action equality and =LR
-
             return Either.right(Triple.of(
                     theta,
                     this.fact.activeMixedChoice(this.c, this.n,
@@ -192,12 +189,9 @@ public class GTGMixedActive implements GTGType {
                     Tree.of("[RTAct][..discard..]")));  // ...discarded both opt strings
 
         } else if (optl.isRight()) {
-
-            // FIXME first cond should be specific to a
             if (optr.isRight() || this.committedRight.contains(a.subj)) {
                 return Either.left(newStuck(theta, this, (GTSAction) a));
             }
-
             Triple<Theta, GTGType, Tree<String>> get = optl.getRight();
             if (a.isReceive()) {
                 String tag;
@@ -235,26 +229,21 @@ public class GTGMixedActive implements GTGType {
             Triple<Theta, GTGType, Tree<String>> get = optr.getRight();  // May be empty for nested mixed choices in the "stuck" side
             if (a.isSend()) {
                 // [RSnd]
-
-                // FIXME check optl.isRight specifically against a (o/w OK)
                 if (optl.isRight() || this.committedLeft.contains(a.subj)) {
                     return Either.left(newStuck(theta, this, (GTSAction) a));
                 }
-
                 cr.add(a.subj);
                 GTGMixedActive res = this.fact.activeMixedChoice(
                         this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
                 return Either.right(Triple.of(get.left, res, Tree.of(
                         toStepJudgeString("[RSnd]", theta, this, (GTSAction) a, get.left, get.mid),
                         get.right)));
+
             } else if (a.isReceive()) {
                 // [RRcv]
-
-                // FIXME check optl.isRight specifically against a (o/w OK)
                 if (optl.isRight()) {  // Redundant due to earlier
                     return Either.left(newStuck(theta, this, (GTSAction) a));
                 }
-
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
                 GTGMixedActive res = this.fact.activeMixedChoice(
@@ -264,9 +253,6 @@ public class GTGMixedActive implements GTGType {
                         get.right)));
 
             } else if (a instanceof GTSNewTimeout) {  // HACK
-
-                // FIXME check optl.isRight specifically against a (o/w OK)
-
                 GTGMixedActive res = this.fact.activeMixedChoice(
                         this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
                 return Either.right(Triple.of(get.left, res, Tree.of(

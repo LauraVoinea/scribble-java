@@ -52,7 +52,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     default String toStepJudgeString(
             String tag, Theta theta_l, GTGType left, GTSAction a, Theta theta_r, GTGType right) {
-        return tag + " " + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
+        return tag + "  " + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
     }
 
     default Exception newStuck(Theta theta, GTGType t, GTSAction a) {
