@@ -11,6 +11,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
@@ -50,15 +51,6 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
-    default String toStepJudgeString(
-            String tag, Theta theta_l, GTGType left, GTSAction a, Theta theta_r, GTGType right) {
-        return tag + "  " + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
-    }
-
-    default Exception newStuck(Theta theta, GTGType t, GTSAction a) {
-        return new Exception("Stuck: " + theta + ", " + t + " --" + a + "-->");
-    }
-
     default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTopLevel(
             Theta theta, SAction<DynamicActionKind> a) {
         return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
@@ -66,8 +58,23 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     // TODO GTSAction
     // a is deterministic (including "nested" steps)
+    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
     Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n);
+
+    // FIXME: add c, n
+    default Exception newStuck(int c, int n, Theta theta, GTGType t, GTSAction a) {
+        return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "
+                + theta + ", " + t + " --" + a + "-->");
+    }
+
+    // FIXME: add c, n
+    default String toStepJudgeString(
+            String tag, int c, int n, Theta theta_l, GTGType left, GTSAction a,
+            Theta theta_r, GTGType right) {
+        return tag + "  " + c + ", " + n + " " + ConsoleColors.VDASH + " "
+                + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
+    }
 
     //HERE HERE fix SAction kinds and add c, n
     // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity

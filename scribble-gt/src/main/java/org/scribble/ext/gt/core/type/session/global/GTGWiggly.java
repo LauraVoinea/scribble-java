@@ -169,20 +169,20 @@ public class GTGWiggly implements GTGType {
                 if (cast.obj.equals(this.src)
                         && this.cases.containsKey(cast.mid) && cast.c == c && cast.n == n) {
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    GTGType res = this.cases.get(cast.mid);
+                    GTGType succ = this.cases.get(cast.mid);
                     return Either.right(Triple.of(
-                            theta, res, Tree.of(toStepJudgeString(
-                                    "[Rcv]", theta, this, cast, theta, res))));
+                            theta, succ, Tree.of(toStepJudgeString(
+                                    "[Rcv]", c, n, theta, this, cast, theta, succ))));
                 }
             }
-            return Either.left(newStuck(theta, this, (GTSAction) a));
+            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
         } else {  // [Cont2]
             Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> nested
                     = stepNested(theta, a, c, n);
             return nested.mapRight(x -> {
-                GTGWiggly res = this.fact.wiggly(this.src, this.dst, this.op, x.mid);
-                return Triple.of(x.left, res, Tree.of(
-                        toStepJudgeString("[Cont2]", theta, this, (GTSAction) a, x.left, res),
+                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, x.mid);
+                return Triple.of(x.left, succ, Tree.of(
+                        toStepJudgeString("[Cont2]", c, n, theta, this, (GTSAction) a, x.left, succ),
                         x.right));
             });
         }

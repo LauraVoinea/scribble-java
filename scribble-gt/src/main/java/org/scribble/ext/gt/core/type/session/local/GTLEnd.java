@@ -7,6 +7,10 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -33,9 +37,9 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public Optional<Triple<GTLType, Sigma, Theta>> step(
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        return Optional.empty();
+        return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
     }
 
     @Override

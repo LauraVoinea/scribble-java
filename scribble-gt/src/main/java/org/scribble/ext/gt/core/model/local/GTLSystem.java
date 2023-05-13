@@ -9,7 +9,10 @@ import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +32,8 @@ public class GTLSystem {
         ));
     }
 
-    public Optional<GTLSystem> step(Role self, EAction<DynamicActionKind> a) {
+    public Either<Exception, Pair<GTLSystem, Tree<String>>> step(
+            Role self, EAction<DynamicActionKind> a) {
         if (a instanceof GTENewTimeout) {
             // !!! N.B. r is Role.EMPTY_ROLE
             // ...tau? (skip?) -- XXX then what is "projection" relation between G/L ?
@@ -39,18 +43,19 @@ public class GTLSystem {
             if (!(this.configs.containsKey(self))) {
                 throw new RuntimeException("Unkown role: " + self);
             }
-            Optional<GTLConfig> step = this.configs.get(self).step(a);
-            if (!step.isPresent()) {
-                return Optional.empty();
+            Either<Exception, Pair<GTLConfig, Tree<String>>> step =
+                    this.configs.get(self).step(a);
+            if (step.isLeft()) {
+                return Either.left(step.getLeft());
             }
-            GTLConfig get = step.get();
+            Pair<GTLConfig, Tree<String>> get = step.getRight();
             HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
-            tmp.put(self, get);
+            tmp.put(self, get.left);
             if (a instanceof GTESend) {
                 GTESend cast = (GTESend) a;
                 tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
             }
-            return Optional.of(new GTLSystem(tmp));
+            return Either.right(Pair.of(new GTLSystem(tmp), get.right));
         }
     }
 

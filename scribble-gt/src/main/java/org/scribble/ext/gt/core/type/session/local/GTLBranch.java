@@ -8,8 +8,12 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTERecv;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -76,21 +80,21 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public Optional<Triple<GTLType, Sigma, Theta>> step(
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)) {
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         GTERecv<DynamicActionKind> cast = (GTERecv<DynamicActionKind>) a;
         GTESend<DynamicActionKind> m = cast.toDynamicDual(self);
         if (!sigma.map.get(a.peer).contains(m)) {
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
 
         if (!a.peer.equals(this.src) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
                 || cast.c != c || cast.n != n) {
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         boolean[] found = {false};
         List<GTESend<DynamicActionKind>> tmp = sigma.map.get(a.peer).stream().filter(x -> {
@@ -103,7 +107,11 @@ public class GTLBranch implements GTLType {
         Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
         map.put(this.src, tmp);
         Sigma sigma1 = new Sigma(map);
-        return Optional.of(Triple.of(this.cases.get(a.mid), sigma1, theta));
+        GTLType succ = this.cases.get(a.mid);
+        return Either.right(Quad.of(succ, sigma1, theta, Tree.of(
+                toStepJudgeString("[Rcv]", c, n, theta, this, sigma,
+                        (GTEAction) a, theta, succ, sigma1)
+        )));
     }
 
     @Override

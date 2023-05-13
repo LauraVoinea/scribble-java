@@ -7,9 +7,9 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -58,21 +58,23 @@ public class GTLMixedActive implements GTLType {
     }
 
     // Pre: a in getActs
-    // Deterministic w.r.t. a -- CHECKME: recursion
-    // !!! TODO if all roles committed, can drop either l or r?
     @Override
-    public Optional<Triple<GTLType, Sigma, Theta>> step(
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         /*if (!a.peer.equals(self)) {  // ...cf. "context" rule?
             return Optional.empty();
         }*/
-        Optional<Triple<GTLType, Sigma, Theta>> optl = this.left.step(self, a, sigma, theta, this.c, this.n);
-        Optional<Triple<GTLType, Sigma, Theta>> optr = this.right.step(self, a, sigma, theta, this.c, this.n);
-        if (optl.isPresent() && optr.isPresent()) {
-            throw new RuntimeException("TODO: " + optl.get() + " ,, " + optr.get());
-        } else if (optl.isPresent()) {
-            Triple<GTLType, Sigma, Theta> get = optl.get();
+        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> optl =
+                this.left.step(self, a, sigma, theta, this.c, this.n);
+        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> optr =
+                this.right.step(self, a, sigma, theta, this.c, this.n);
+
+        if (optl.isRight() && optr.isRight()) {
+            throw new RuntimeException("TODO: " + optl.getRight() + " ,, " + optr.getRight());
+
+        } else if (optl.isRight()) {
+            Quad<GTLType, Sigma, Theta, Tree<String>> get = optl.getRight();
             if (a.isSend()) {
                 // [LSnd]
                 throw new RuntimeException("TODO");
@@ -85,8 +87,9 @@ public class GTLMixedActive implements GTLType {
             } else {
                 throw new RuntimeException("TODO");
             }
-        } else if (optr.isPresent()) {
-            Triple<GTLType, Sigma, Theta> get = optr.get();
+
+        } else if (optr.isRight()) {
+            Quad<GTLType, Sigma, Theta, Tree<String>> get = optr.getRight();
             if (a.isSend()) {
                 // [RSnd]
                 throw new RuntimeException("TODO");
@@ -99,8 +102,9 @@ public class GTLMixedActive implements GTLType {
             } else {
                 throw new RuntimeException("TODO");
             }
+
         } else {
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
     }
 

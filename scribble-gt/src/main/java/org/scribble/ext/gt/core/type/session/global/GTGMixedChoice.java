@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
@@ -94,29 +95,29 @@ public class GTGMixedChoice implements GTGType {
 
     /* ... */
 
-    // Pre: a in getActs
-    // Deterministic w.r.t. a -- CHECKME: recursion
-    // !!! TODO if all roles committed, can drop either l or r?
+    // c, n not checked?
     @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
 
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
-            return Either.left(newStuck(theta, this, (GTSAction) a));
+            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
         }
         GTSNewTimeout<?> cast = (GTSNewTimeout<?>) a;
         /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
         Theta theta1 = new Theta(tmp);*/
-        Theta theta1 = theta.inc(this.c);
+        if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
+            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+        }
 
-        // FIXME use factory?
-        GTGMixedActive active = new GTGMixedActive(cast.c, cast.n,
+        Theta theta1 = theta.inc(this.c);
+        GTGMixedActive succ = new GTGMixedActive(cast.c, cast.n,  // FIXME use factory?
                 this.left, this.right, this.other, this.observer,
                 new LinkedHashSet<>(), new LinkedHashSet<>());
 
-        return Either.right(Triple.of(theta1, active, Tree.of(toStepJudgeString(
-                "[Inst]", theta, this, cast, theta1, active))));
+        return Either.right(Triple.of(theta1, succ, Tree.of(toStepJudgeString(
+                "[Inst]", c, n, theta, this, cast, theta1, succ))));
     }
 
     @Override

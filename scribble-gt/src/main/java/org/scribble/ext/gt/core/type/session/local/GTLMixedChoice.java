@@ -12,12 +12,12 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.type.session.global.GTGMixedActive;
 import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -64,19 +64,23 @@ public class GTLMixedChoice implements GTLType {
 
     // Pre: a in getActs
     @Override
-    public Optional<Triple<GTLType, Sigma, Theta>> step(
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         if (!(a instanceof GTENewTimeout)) {  // E.g., (rec) context rule may "attempt"
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
-        GTENewTimeout<?> nu = (GTENewTimeout<?>) a;
+        GTENewTimeout<?> cast = (GTENewTimeout<?>) a;
+        if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
+        }
+
         Theta theta1 = theta.inc(this.c);
-
-        // FIXME use factory?
-        GTLMixedActive active = new GTLMixedActive(nu.c, nu.n, this.left, this.right);
-
-        return Optional.of(Triple.of(active, sigma, theta1));
+        GTLMixedActive succ = new GTLMixedActive(cast.c, cast.n, this.left, this.right);  // FIXME use factory?
+        return Either.right(Quad.of(succ, sigma, theta1, Tree.of(
+                toStepJudgeString("[..NewChan..]", c, n, theta, this,
+                        sigma, (GTEAction) a, theta1, succ, sigma)
+        )));
     }
 
     @Override

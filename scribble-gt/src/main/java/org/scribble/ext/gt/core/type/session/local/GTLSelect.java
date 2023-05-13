@@ -9,7 +9,11 @@ import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
@@ -50,15 +54,15 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public Optional<Triple<GTLType, Sigma, Theta>> step(
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         if (!(a instanceof GTESend<?>) || !sigma.map.containsKey(self)) {
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         GTESend<DynamicActionKind> cast = (GTESend<DynamicActionKind>) a;
         if (!a.peer.equals(this.dst) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
                 || cast.c != c || cast.n != n) {
-            return Optional.empty();
+            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         /*Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
         List<GTESend<DynamicActionKind>> tmp = Stream.concat(
@@ -68,7 +72,11 @@ public class GTLSelect implements GTLType {
         map.put(self, tmp);
         Sigma sigma1 = new Sigma(map);*/
         Sigma sigma1 = sigma;
-        return Optional.of(Triple.of(this.cases.get(a.mid), sigma1, theta));
+        GTLType succ = this.cases.get(a.mid);
+        return Either.right(Quad.of(succ, sigma1, theta, Tree.of(
+                toStepJudgeString("[Snd]", c, n, theta, this, sigma,
+                        (GTEAction) a, theta, succ, sigma1)
+        )));
     }
 
     @Override

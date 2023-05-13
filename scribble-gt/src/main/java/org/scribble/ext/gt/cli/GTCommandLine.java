@@ -27,6 +27,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
+import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.job.Job;
@@ -226,7 +227,6 @@ public class GTCommandLine extends CommandLine {
                     + indent + "Stepping global: " + a);
             Triple<Theta, GTGType, Tree<String>> g_step =
                     s.global.stepTopLevel(s.theta, a).getRight();  // a in as so step is non-empty
-
             System.out.println(g_step.right.toString(indent + "   "));
 
             //boolean prune = false;
@@ -252,18 +252,20 @@ public class GTCommandLine extends CommandLine {
 
             System.out.println(indent + "Stepping local " + a.subj + ": " + a_r);
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
-            Optional<GTLSystem> l_step = s.local.step(a.subj, (EAction<DynamicActionKind>) a_r);
-            if (!l_step.isPresent()) {
-                throw new RuntimeException("Locals stuck...");
+            Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
+                    s.local.step(a.subj, (EAction<DynamicActionKind>) a_r);
+            if (l_step.isLeft()) {
+                throw new RuntimeException("Locals stuck...", l_step.getLeft());
             }
-            GTLSystem sys1 = l_step.get();
+            Pair<GTLSystem, Tree<String>> sys1 = l_step.getRight();
+            System.out.println(sys1.right.toString(indent + "   "));
 
             //System.out.println(indent + "locals = " + sys1);
 
             mystep = mystep + 1;
             step = step + 1;
 
-            GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1);
+            GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
             foo(core, incIndent(indent), s1, 1, MAX, us, depth);
             //}
@@ -369,11 +371,12 @@ public class GTCommandLine extends CommandLine {
             GTEAction a_r = cast.project(lmf);
 
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
-            Optional<GTLSystem> lstep = sys.step(a.subj, (EAction<DynamicActionKind>) a_r);
-            if (!lstep.isPresent()) {
-                throw new RuntimeException("Locals didn't reduce");
+            Either<Exception, Pair<GTLSystem, Tree<String>>> lstep =
+                    sys.step(a.subj, (EAction<DynamicActionKind>) a_r);
+            if (lstep.isLeft()) {
+                throw new RuntimeException("Locals didn't reduce...", lstep.getLeft());
             }
-            GTLSystem sys1 = lstep.get();
+            GTLSystem sys1 = lstep.getRight().left;
 
             System.out.println(indent + "locals = " + sys1);
 

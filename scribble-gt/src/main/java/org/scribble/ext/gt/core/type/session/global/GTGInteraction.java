@@ -156,13 +156,12 @@ public class GTGInteraction implements GTGType {
                         && cast.c == c && cast.n == n) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    GTGWiggly res = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp);
-                    return Either.right(new Triple<>(
-                            theta, res, Tree.of(toStepJudgeString(
-                            "[Snd]", theta, this, cast, theta, res))));
+                    GTGWiggly succ = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp);
+                    return Either.right(new Triple<>(theta, succ, Tree.of(
+                            toStepJudgeString("[Snd]", c, n, theta, this, cast, theta, succ))));
                 }
             }
-            return Either.left(newStuck(theta, this, (GTSAction) a));
+            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
         } else if (!this.dst.equals(a.subj)) {  // [Cont1]
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
@@ -170,13 +169,13 @@ public class GTGInteraction implements GTGType {
             Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> nested =
                     stepNested(this.cases, theta, a, c, n);
             return nested.mapRight(x -> {
-                GTGInteraction res = this.fact.choice(this.src, this.dst, x.mid);
-                return Triple.of(x.left, res,
-                        Tree.of(toStepJudgeString(
-                                "[Cont1]", theta, this, (GTSAction) a, x.left, res), x.right));
+                GTGInteraction succ = this.fact.choice(this.src, this.dst, x.mid);
+                return Triple.of(x.left, succ, Tree.of(
+                        toStepJudgeString("[Cont1]", c, n, theta, this, (GTSAction) a, x.left, succ),
+                        x.right));
             });
         }
-        return Either.left(newStuck(theta, this, (GTSAction) a));
+        return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
     }
 
     protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> stepNested(

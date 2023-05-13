@@ -5,10 +5,13 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.GTSType;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -36,19 +39,31 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     /* ... */
 
     // FIXME: Sigma may be local or remote depending on action
-    default Optional<Triple<GTLType, Sigma, Theta>> stepTopLevel(
+    default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> stepTopLevel(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
         return step(self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTEAction
     // a is deterministic (including "nested" steps)
-    Optional<Triple<GTLType, Sigma, Theta>> step(
+    Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     default LinkedHashSet<EAction<DynamicActionKind>> getActsTopLevel(
             GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
         return getActs(mf, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
+    default Exception newStuck(int c, int n, Theta theta, GTLType t, GTEAction a) {
+        return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "
+                + theta + ", " + t + " --" + a + "-->");
+    }
+
+    default String toStepJudgeString(
+            String tag, int c, int n, Theta theta_l, GTLType left, Sigma sigma_l, GTEAction a,
+            Theta theta_r, GTLType right, Sigma sigma_r) {
+        return tag + "  " + c + ", " + n + " " + ConsoleColors.VDASH + " "
+                + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
     }
 
     // TODO remove blocked

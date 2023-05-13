@@ -171,11 +171,11 @@ public class GTGMixedActive implements GTGType {
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
                 this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                        ? Either.left(newStuck(theta, this, (GTSAction) a))
+                        ? Either.left(newStuck(c, n, theta, this, (GTSAction) a))
                         : this.left.step(theta, a, this.c, this.n);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
                 this.committedLeft.contains(a.subj)
-                        ? Either.left(newStuck(theta, this, (GTSAction) a))
+                        ? Either.left(newStuck(c, n, theta, this, (GTSAction) a))
                         : this.right.step(theta, a, this.c, this.n);
 
         if (optl.isRight() && optr.isRight()) {
@@ -190,7 +190,7 @@ public class GTGMixedActive implements GTGType {
 
         } else if (optl.isRight()) {
             if (optr.isRight() || this.committedRight.contains(a.subj)) {
-                return Either.left(newStuck(theta, this, (GTSAction) a));
+                return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
             }
             Triple<Theta, GTGType, Tree<String>> get = optl.getRight();
             if (a.isReceive()) {
@@ -203,23 +203,23 @@ public class GTGMixedActive implements GTGType {
                     // [LRcv2]
                     tag = "[LRcv2]";
                 }
-                Tree<String> rule = Tree.of(toStepJudgeString(
-                                tag, theta, this, (GTSAction) a, get.left, get.mid),
+                Tree<String> rule = Tree.of(
+                        toStepJudgeString(tag, c, n, theta, this, (GTSAction) a, get.left, get.mid),
                         get.right);
-                GTGMixedActive res = this.fact.activeMixedChoice(
+                GTGMixedActive succ = this.fact.activeMixedChoice(
                         this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, res, rule));
+                return Either.right(Triple.of(get.left, succ, rule));
             } else if (a.isSend()) {  // [LSnd]
-                GTGMixedActive res = this.fact.activeMixedChoice(
+                GTGMixedActive succ = this.fact.activeMixedChoice(
                         this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, res, Tree.of(
-                        toStepJudgeString("[LSnd]", theta, this, (GTSAction) a, get.left, get.mid),
+                return Either.right(Triple.of(get.left, succ, Tree.of(
+                        toStepJudgeString("[LSnd]", c, n, theta, this, (GTSAction) a, get.left, get.mid),
                         get.right)));
             } else if (a instanceof GTSNewTimeout) {  // !!!
-                GTGMixedActive res = this.fact.activeMixedChoice(
+                GTGMixedActive succ = this.fact.activeMixedChoice(
                         this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, res, Tree.of(
-                        toStepJudgeString("[..Ctx1..]", theta, this, (GTSAction) a, get.left, get.mid),
+                return Either.right(Triple.of(get.left, succ, Tree.of(
+                        toStepJudgeString("[..Ctx1..]", c, n, theta, this, (GTSAction) a, get.left, get.mid),
                         get.right)));
             } else {
                 throw new RuntimeException("TODO: " + a);
@@ -230,40 +230,40 @@ public class GTGMixedActive implements GTGType {
             if (a.isSend()) {
                 // [RSnd]
                 if (optl.isRight() || this.committedLeft.contains(a.subj)) {
-                    return Either.left(newStuck(theta, this, (GTSAction) a));
+                    return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
                 }
                 cr.add(a.subj);
-                GTGMixedActive res = this.fact.activeMixedChoice(
+                GTGMixedActive succ = this.fact.activeMixedChoice(
                         this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, res, Tree.of(
-                        toStepJudgeString("[RSnd]", theta, this, (GTSAction) a, get.left, get.mid),
+                return Either.right(Triple.of(get.left, succ, Tree.of(
+                        toStepJudgeString("[RSnd]", c, n, theta, this, (GTSAction) a, get.left, get.mid),
                         get.right)));
 
             } else if (a.isReceive()) {
                 // [RRcv]
                 if (optl.isRight()) {  // Redundant due to earlier
-                    return Either.left(newStuck(theta, this, (GTSAction) a));
+                    return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
                 }
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
-                GTGMixedActive res = this.fact.activeMixedChoice(
+                GTGMixedActive succ = this.fact.activeMixedChoice(
                         this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, res, Tree.of(
-                        toStepJudgeString("[RRcv]", theta, this, (GTSAction) a, get.left, get.mid),
+                return Either.right(Triple.of(get.left, succ, Tree.of(
+                        toStepJudgeString("[RRcv]", c, n, theta, this, (GTSAction) a, get.left, get.mid),
                         get.right)));
 
             } else if (a instanceof GTSNewTimeout) {  // HACK
-                GTGMixedActive res = this.fact.activeMixedChoice(
+                GTGMixedActive succ = this.fact.activeMixedChoice(
                         this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, res, Tree.of(
-                        toStepJudgeString("[..TO-HACK-R..]", theta, this, (GTSAction) a, get.left, get.mid),
+                return Either.right(Triple.of(get.left, succ, Tree.of(
+                        toStepJudgeString("[..TO-HACK-R..]", c, n, theta, this, (GTSAction) a, get.left, get.mid),
                         get.right)));
 
             } else {
                 throw new RuntimeException("TODO: " + a);
             }
         } else {
-            return Either.left(newStuck(theta, this, (GTSAction) a));
+            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
         }
     }
 

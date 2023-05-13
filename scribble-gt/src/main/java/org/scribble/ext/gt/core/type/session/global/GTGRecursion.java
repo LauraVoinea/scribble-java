@@ -68,10 +68,13 @@ public class GTGRecursion implements GTGType {
     @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step = unfold().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
-        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(toStepJudgeString(
-                "[Rec_" + this.var + "]",  // HACK for bounding execution
-                theta, this, (GTSAction) a, x.left, x.mid), x.right)));
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
+                unfold().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
+                toStepJudgeString(
+                        "[Rec_" + this.var + "]",  // HACK for bounding execution
+                        c, n, theta, this, (GTSAction) a, x.left, x.mid),
+                x.right)));
     }
 
     @Override
