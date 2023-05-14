@@ -37,14 +37,14 @@ public class EAMIf implements EAComp {
 
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t_l = this.then.type(gamma, pre);
         if (t_l.isLeft()) {
-            return Either.left(t_l.getLeft().get());
+            return Either.left(t_l.getLeft());
         }
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t_r = this.elsee.type(gamma, pre);
         if (t_r.isLeft()) {
-            return Either.left(t_r.getLeft().get());
+            return Either.left(t_r.getLeft());
         }
-        Pair<Pair<EAVType, EALType>, Tree<String>> pp_l = t_l.getRight().get();
-        Pair<Pair<EAVType, EALType>, Tree<String>> pp_r = t_r.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp_l = t_l.getRight();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp_r = t_r.getRight();
         Pair<EAVType, EALType> ttype = pp_l.left;
         Pair<EAVType, EALType> etype = pp_r.left;
         //////subtype(ftype.S, pre);
@@ -58,7 +58,7 @@ public class EAMIf implements EAComp {
         EAVType B = u.get();
         return Either.right(Pair.of(
                 Pair.of(B, ttype.right),
-                new Tree<>("[T-If] " + toJudgementString(gamma, pre, B, ttype.right),
+                new Tree<>("[T-If] " + toTypeJudgeString(gamma, pre, B, ttype.right),
                         List.of(pp_l.right, pp_r.right))
         ));
     }

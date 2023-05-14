@@ -80,7 +80,7 @@ public class EAEHandlers implements EAExpr {
             //v.type(gamma);
             Either<Exception, Void> t = v.type(gamma);
             if (t.isLeft()) {
-                return Either.left(t.getLeft().get());
+                return Either.left(t.getLeft());
             }
             cases.put(k, new Pair<>(v.varType, v.pre));
         }
@@ -89,13 +89,13 @@ public class EAEHandlers implements EAExpr {
         EAVHandlersType res = EAVTypeFactory.factory.handlers(in, A);
         return Either.right(new Pair<>(
                 res,
-                new Tree<>("[TV-Handler] " + toJudgementString(gamma, res))  // ...EAHandler.type discards Tree
+                new Tree<>("[TV-Handler] " + toTypeJudgeString(gamma, res))  // ...EAHandler.type discards Tree
         ));
     }
 
     @Override
     public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
-        return Either.left(new Exception("Stuck: " + this));
+        return Either.left(newStuck());
     }
 
     /* Aux */

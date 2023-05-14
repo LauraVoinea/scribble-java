@@ -47,7 +47,7 @@ public class EAMLet implements EAComp {
         if (t.isLeft()) {
             return t;
         }
-        Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight();
         Pair<EAVType, EALType> p1 = pp.left;
         if (!this.varType.equals(p1.left)) {
             //throw new RuntimeException("Bad type annotation: " + this.varType + ", " + p1.left);
@@ -58,7 +58,7 @@ public class EAMLet implements EAComp {
         GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), gamma.svarType);
         return this.body.type(gamma1, p1.right).mapRight(x -> Pair.of(
                 x.left,
-                new Tree<>("[T-Let] " + toJudgementString(gamma, pre, x.left.left, x.left.right),
+                new Tree<>("[T-Let] " + toTypeJudgeString(gamma, pre, x.left.left, x.left.right),
                         List.of(pp.right, x.right))
         ));
     }

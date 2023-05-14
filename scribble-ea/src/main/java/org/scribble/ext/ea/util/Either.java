@@ -2,7 +2,6 @@ package org.scribble.ext.ea.util;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 // L=error, R=result
@@ -12,7 +11,7 @@ public interface Either<L, R> {
         return new Left<>(left);
     }
 
-    static <L, R> Either<L, R> right(R right) {  // Allow null for now, Either<L, Void>
+    static <L, R> Either<L, R> right(R right) {  // Allow null for now, Either<L, Void>  // TODO @NotNull
         return new Right<>(right);
     }
 
@@ -26,7 +25,7 @@ public interface Either<L, R> {
 
     // ifPresent
     default <U> Either<L, U> mapRight(Function<? super R, ? extends U> right) {
-        return isRight() ? new Right<>(right.apply(getRight().get())) : new Left<>(getLeft().get());
+        return isRight() ? new Right<>(right.apply(getRight())) : new Left<>(getLeft());
         //return map(x -> x, right);
     }
 
@@ -40,7 +39,7 @@ public interface Either<L, R> {
 
     // andThen
     default <U> Either<L, U> flatMapRight(Function<? super R, ? extends Either<L, U>> right) {
-        return isRight() ? right.apply(getRight().get()) : new Left<>(getLeft().get());  // "join" inlined
+        return isRight() ? right.apply(getRight()) : new Left<>(getLeft());  // "join" inlined
         //return flatMap(x -> Either.left(x), right);
     }
 
@@ -48,9 +47,9 @@ public interface Either<L, R> {
 
     boolean isRight();
 
-    Optional<L> getLeft();
+    L getLeft();
 
-    Optional<R> getRight();
+    R getRight();
 
     /*static <L, R> Either<L, R> join(Either<L, Either<L, R>> outer) {
         return outer.isLeft()
@@ -88,13 +87,13 @@ class Left<L, R> implements Either<L, R> {
     }
 
     @Override
-    public Optional<L> getLeft() {
-        return Optional.of(this.left);
+    public L getLeft() {
+        return this.left;
     }
 
     @Override
-    public Optional<R> getRight() {
-        return Optional.empty();
+    public R getRight() {
+        throw new RuntimeException("Not Right: " + this);
     }
 
     @Override
@@ -132,13 +131,13 @@ class Right<L, R> implements Either<L, R> {
     }
 
     @Override
-    public Optional<L> getLeft() {
-        return Optional.empty();
+    public L getLeft() {
+        throw new RuntimeException("Not Left: " + this);
     }
 
     @Override
-    public Optional<R> getRight() {
-        return Optional.of(this.right);
+    public R getRight() {
+        return this.right;
     }
 
     @Override

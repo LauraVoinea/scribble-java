@@ -87,9 +87,9 @@ public class EATActive implements EAThread {
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.comp.type(gamma, pre);
         if (t.isLeft()) {
             //throw new RuntimeException(t.getLeft().get());
-            return Either.left(t.getLeft().get());
+            return Either.left(t.getLeft());
         }
-        Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight();
         Pair<EAVType, EALType> res = pp.left;
         ////if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {
         ////if (!res.equals(new Pair<>(gamma.svarType, EALEndType.END))) {

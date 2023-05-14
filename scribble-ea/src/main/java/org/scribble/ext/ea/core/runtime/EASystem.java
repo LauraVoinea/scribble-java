@@ -63,9 +63,9 @@ public class EASystem {
             }
             Either<Exception, Tree<String>> t = c.type(empty, new Delta(tmp));
             if (t.isLeft()) {
-                return Either.left(t.getLeft().get());
+                return Either.left(t.getLeft());
             }
-            res.add(t.getRight().get());
+            res.add(t.getRight());
         }
         if (todo.stream().anyMatch(x -> !this.annots.map.get(x).equals(EALEndType.END))) {
             return Either.left(new Exception("Endpoints not implemented: "

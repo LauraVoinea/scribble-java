@@ -5,6 +5,7 @@ import org.scribble.ext.ea.core.term.comp.EAComp;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
@@ -18,10 +19,14 @@ public interface EAExpr extends EATerm {
     //HERE HERE make type/eval Optional/Either, deprecate canEval
     //...build scrib zip and make scala/kotlin?
 
+    default Exception newStuck() {
+        return new Exception("Stuck: " + this);
+    }
+
     Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma);
 
-    default String toJudgementString(GammaState gamma, EAVType A) {
-        return gamma + " \u22a2 " + this + " : " + A;
+    default String toTypeJudgeString(GammaState gamma, EAVType A) {
+        return gamma + " " + ConsoleColors.VDASH + " " + this + " : " + A;
     }
 
     // var/funcname throw RuntimeException

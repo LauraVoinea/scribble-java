@@ -834,9 +834,9 @@ public class EACommandLine extends CommandLine {
         System.out.print("Typing computation: " + M);
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> typingA = M.type(gamma, pre);
         if (typingA.isLeft()) {
-            throw new RuntimeException(typingA.getLeft().get());
+            throw new RuntimeException(typingA.getLeft());
         }
-        Pair<Pair<EAVType, EALType>, Tree<String>> ppA = typingA.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> ppA = typingA.getRight();
         System.out.println(" " + pre + " ,, " + ppA.left + "\n" + ppA.right);
     }
 
@@ -844,9 +844,9 @@ public class EACommandLine extends CommandLine {
         System.out.print("Typing expr: " + e);
         Either<Exception, Pair<EAVType, Tree<String>>> t = e.type(gamma);
         if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft().get());
+            throw new RuntimeException(t.getLeft());
         }
-        Pair<EAVType, Tree<String>> p = t.getRight().get();
+        Pair<EAVType, Tree<String>> p = t.getRight();
         System.out.println(" " + p.left + "\n" + p.right);
         if (!p.left.equals(A)) {
             throw new RuntimeException("Type checking error, expected: " + A);
@@ -857,7 +857,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("Typing actor: " + c + " ,, " + delta);
         Either<Exception, Tree<String>> t = c.type(new Gamma(), delta);
         if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft().get());
+            throw new RuntimeException(t.getLeft());
         }
     }
 
@@ -868,11 +868,11 @@ public class EACommandLine extends CommandLine {
     static void typeCheckSystem(EASystem sys, boolean debug) {
         Either<Exception, List<Tree<String>>> t = sys.type();
         if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft().get());
+            throw new RuntimeException(t.getLeft());
         }
         if (debug) {
             System.out.println("Type checked system:");
-            System.out.println(t.getRight().get().stream()
+            System.out.println(t.getRight().stream()
                     .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
         }
     }

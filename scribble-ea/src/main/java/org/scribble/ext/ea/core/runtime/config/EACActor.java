@@ -94,9 +94,9 @@ public class EACActor implements EAConfig {
 
                 Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
                 if (reduce.isLeft()) {
-                    throw new RuntimeException(reduce.getLeft().get());
+                    throw new RuntimeException(reduce.getLeft());
                 }
-                Pair<EAComp, Tree<String>> p = reduce.getRight().get();
+                Pair<EAComp, Tree<String>> p = reduce.getRight();
 
                 EAThread t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
@@ -110,9 +110,9 @@ public class EACActor implements EAConfig {
 
             Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
             if (reduce.isLeft()) {
-                throw new RuntimeException(reduce.getLeft().get());
+                throw new RuntimeException(reduce.getLeft());
             }
-            Pair<EAComp, Tree<String>> p = reduce.getRight().get();
+            Pair<EAComp, Tree<String>> p = reduce.getRight();
 
             EAThread t1;
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
@@ -185,9 +185,9 @@ public class EACActor implements EAConfig {
 
             Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
             if (reduce.isLeft()) {
-                throw new RuntimeException(reduce.getLeft().get());
+                throw new RuntimeException(reduce.getLeft());
             }
-            Pair<EAComp, Tree<String>> p = reduce.getRight().get();
+            Pair<EAComp, Tree<String>> p = reduce.getRight();
 
             EAThread t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
@@ -251,7 +251,7 @@ public class EACActor implements EAConfig {
         Either<Exception, Tree<String>> u = typeSigma(gamma2, delta2);
         return u.mapRight(x -> new Tree(
                 "[T-Actor] " + toJudgementString(gamma, delta),
-                t.getRight().get(), x));
+                t.getRight(), x));
 
         /*EAValType stype = this.state.type(gamma);
         if (!stype.equals(gamma.svarType)) {
@@ -313,9 +313,9 @@ public class EACActor implements EAConfig {
                 Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t =
                         rhs.expr.type(gamma1, cast.cases.get(op).right);
                 if (t.isLeft()) {
-                    return Either.left(t.getLeft().get());
+                    return Either.left(t.getLeft());
                 }
-                Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight().get();
+                Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight();
                 ds.add(pp.right);
                 Pair<EAVType, EALType> res = pp.left;
                 ////if (!res.equals(new Pair<>(EAVUnitType.UNIT, EALEndType.END))) {

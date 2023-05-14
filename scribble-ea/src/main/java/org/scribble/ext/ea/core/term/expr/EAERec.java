@@ -66,9 +66,9 @@ public class EAERec implements EAExpr {
         //Pair<EAVType, EALType> res = this.body.type(gamma1, this.S);
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> res1 = this.body.type(gamma1, this.S);
         if (res1.isLeft()) {
-            return Either.left(res1.getLeft().get());
+            return Either.left(res1.getLeft());
         }
-        Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight();
         Pair<EAVType, EALType> res = pp.left;
         Pair<EAVType, EALType> target = new Pair<>(this.B, this.S);
         if (!res.equals(target)) {
@@ -76,12 +76,12 @@ public class EAERec implements EAExpr {
             return Either.left(new Exception("Typing error:\n\t" + res + "\n\t" + target));
         }
         return Either.right(Pair.of(ftype,
-                new Tree<>("[TV-Rec] " + toJudgementString(gamma, ftype))));  // ...discarded pp.right
+                new Tree<>("[TV-Rec] " + toTypeJudgeString(gamma, ftype))));  // ...discarded pp.right
     }
 
     @Override
     public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
-        return Either.left(new Exception("Stuck: " + this));
+        return Either.left(newStuck());
     }
 
     /* Aux */

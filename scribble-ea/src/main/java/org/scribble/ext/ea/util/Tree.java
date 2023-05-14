@@ -7,16 +7,26 @@ import java.util.List;
 
 public class Tree<T> {
 
-    private final T t;
+    private final T val;
     private List<Tree<T>> children;
 
-    public Tree(T t, Tree<T>... children) {
-        this(t, Arrays.asList(children));
+    // TODO deprecate
+    public Tree(T val, Tree<T>... children) {
+        this(val, Arrays.asList(children));
     }
 
-    public Tree(T t, List<Tree<T>> children) {
-        this.t = t;
+    // TODO make protected
+    public Tree(T val, List<Tree<T>> children) {
+        this.val = val;
         this.children = Collections.unmodifiableList(new LinkedList<>(children));
+    }
+
+    public <T> Tree<T> of(T val, Tree<T>... children) {
+        return new Tree(val, Arrays.asList(children));
+    }
+
+    public <T> Tree<T> of(T val, List<Tree<T>> children) {
+        return new Tree(val, children);
     }
 
     /*public Tree(T t) {
@@ -28,7 +38,7 @@ public class Tree<T> {
     }
 
     public T getLab() {
-        return this.t;
+        return this.val;
     }
 
     public List<Tree<T>> getChildren() {
@@ -41,7 +51,7 @@ public class Tree<T> {
     }
 
     public String toString(String indent) {
-        String res = indent + this.t;
+        String res = indent + this.val;
         for (Tree<T> c : this.children) {
             res = res + "\n" + c.toString(indent + "  ");
         }

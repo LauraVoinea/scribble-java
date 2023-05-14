@@ -41,7 +41,7 @@ public class EAMReturn implements EAComp {
         //return new Pair<>(t, pre);
         return t.mapRight(x -> Pair.of(
                 Pair.of(x.left, pre),
-                new Tree<>("[T-Return] " + toJudgementString(gamma, pre, x.left, pre),
+                new Tree<>("[T-Return] " + toTypeJudgeString(gamma, pre, x.left, pre),
                         List.of(x.right))));
     }
 

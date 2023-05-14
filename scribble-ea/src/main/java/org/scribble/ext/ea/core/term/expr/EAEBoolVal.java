@@ -34,7 +34,7 @@ public class EAEBoolVal implements EAExpr {
 
     @Override
     public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
-        return Either.left(new Exception("Stuck: " + this));
+        return Either.left(newStuck());
     }
 
     /* Aux */
@@ -44,7 +44,7 @@ public class EAEBoolVal implements EAExpr {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         return Either.right(Pair.of(
                 EAVBoolType.BOOL,
-                new Tree<>("[TV-Unit] " + toJudgementString(gamma, EAVBoolType.BOOL))
+                new Tree<>("[TV-Unit] " + toTypeJudgeString(gamma, EAVBoolType.BOOL))
         ));
     }
 

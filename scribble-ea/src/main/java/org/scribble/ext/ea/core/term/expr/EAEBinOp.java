@@ -64,15 +64,15 @@ public class EAEBinOp implements EAExpr {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
         if (t_l.isLeft()) {
-            return Either.left(t_l.getLeft().get());
+            return Either.left(t_l.getLeft());
         }
-        Pair<EAVType, Tree<String>> p_l = t_l.getRight().get();
+        Pair<EAVType, Tree<String>> p_l = t_l.getRight();
         EAVType ltype = p_l.left;
         Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
         if (t_r.isLeft()) {
-            return Either.left(t_r.getLeft().get());
+            return Either.left(t_r.getLeft());
         }
-        Pair<EAVType, Tree<String>> p_r = t_r.getRight().get();
+        Pair<EAVType, Tree<String>> p_r = t_r.getRight();
         EAVType rtype = p_r.left;
 
         switch (this.op) {
@@ -129,7 +129,7 @@ public class EAEBinOp implements EAExpr {
     @Override
     public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
         if (!canEval()) {
-            return Either.left(new Exception("Stuck: " + this));
+            return Either.left(newStuck());
         }
         switch (this.op) {
             case PLUS: {

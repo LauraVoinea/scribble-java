@@ -35,7 +35,7 @@ public class EAEVar implements EAExpr, EAName {
             //return gamma.gamma.map.get(this);
             EAVType A = gamma.gamma.map.get(this);
             return Either.right(Pair.of(A,
-                    new Tree<>("[TV-Var] " + toJudgementString(gamma, A))
+                    new Tree<>("[TV-Var] " + toTypeJudgeString(gamma, A))
             ));
         }
         //throw new RuntimeException("Unknown var: " + this + ", " + gamma);
@@ -44,7 +44,7 @@ public class EAEVar implements EAExpr, EAName {
 
     @Override
     public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
-        return Either.left(new Exception("Stuck: " + this));
+        return Either.left(newStuck());
     }
 
     /* Aux */

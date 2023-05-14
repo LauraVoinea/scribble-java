@@ -34,7 +34,7 @@ public class EAEFuncName extends Id implements EAExpr {
 
     @Override
     public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
-        return Either.left(new Exception("Stuck: " + this));
+        return Either.left(newStuck());
     }
 
     /* ... */

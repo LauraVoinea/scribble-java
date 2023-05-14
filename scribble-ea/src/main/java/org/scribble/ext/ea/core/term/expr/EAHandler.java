@@ -66,9 +66,9 @@ public class EAHandler {
         //Pair<EAVType, EALType> res = this.expr.type(gamma1, inferred);
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> res1 = this.expr.type(gamma1, inferred);
         if (res1.isLeft()) {
-            return Either.left(res1.getLeft().get());
+            return Either.left(res1.getLeft());
         }
-        Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight().get();
+        Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight();
         Pair<EAVType, EALType> res = pp.left;
         ////if (!u.isPresent() || !u.get().equals(EAVUnitType.UNIT) || !res.right.equals(EALEndType.END)) {
         Optional<EAVType> u = EAVType.unify(res.left, this.svarType);

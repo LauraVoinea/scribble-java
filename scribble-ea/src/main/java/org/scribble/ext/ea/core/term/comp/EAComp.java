@@ -9,6 +9,7 @@ import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
@@ -25,8 +26,9 @@ public interface EAComp extends EATerm {
     //Pair<EAVType, EALType> type(GammaState gamma, EALType pre);
     Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre);
 
-    default String toJudgementString(GammaState gamma, EALType S, EAVType B, EALType T) {
-        return gamma + " | " + S + " \u25B9 " + this + ": " + B + " \u25c3 " + T;
+    default String toTypeJudgeString(GammaState gamma, EALType S, EAVType B, EALType T) {
+        return gamma + " | " + S + " " + ConsoleColors.TRIANGLERIGHT + " "
+                + this + ": " + B + " " + ConsoleColors.TRIANGLELEFT + " " + T;
     }
 
     // ->_M -- config independent M eval

@@ -42,9 +42,9 @@ public class EAMSuspend implements EAComp {
         //EAVType t = this.val.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> r = this.val.type(gamma);
         if (r.isLeft()) {
-            return Either.left(r.getLeft().get());
+            return Either.left(r.getLeft());
         }
-        Pair<EAVType, Tree<String>> p = r.getRight().get();
+        Pair<EAVType, Tree<String>> p = r.getRight();
         EAVType t = p.left;
         if (!(t instanceof EAVHandlersType)) {
             //throw new RuntimeException("Expected handlers type, not: " + this);
@@ -63,9 +63,9 @@ public class EAMSuspend implements EAComp {
         //EAVType t_s = this.sval.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> r_s = this.sval.type(gamma);
         if (r_s.isLeft()) {
-            return Either.left(r_s.getLeft().get());
+            return Either.left(r_s.getLeft());
         }
-        Pair<EAVType, Tree<String>> p_s = r_s.getRight().get();
+        Pair<EAVType, Tree<String>> p_s = r_s.getRight();
         EAVType t_s = p_s.left;
         if (!t_s.equals(gamma.svarType)) {
             //throw new RuntimeException("Expected state type " + gamma.svarType + ", not: " + t_s);
@@ -78,7 +78,7 @@ public class EAMSuspend implements EAComp {
         ////return new Pair<>(gamma.svarType, tf.local.end());  // XXX suspend svar is side effect, not result
         return Either.right(Pair.of(
                 Pair.of(gamma.svarType, EALEndType.END),
-                new Tree<>("[T-Suspend] " + toJudgementString(gamma, pre, gamma.svarType, EALEndType.END),
+                new Tree<>("[T-Suspend] " + toTypeJudgeString(gamma, pre, gamma.svarType, EALEndType.END),
                         List.of(p.right, p_s.right))
         ));
     }

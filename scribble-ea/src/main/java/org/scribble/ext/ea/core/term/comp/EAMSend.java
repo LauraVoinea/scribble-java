@@ -61,9 +61,9 @@ public class EAMSend implements EAComp {
         //EAVType valType = this.val.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> t = this.val.type(gamma);
         if (t.isLeft()) {
-            return Either.left(t.getLeft().get());
+            return Either.left(t.getLeft());
         }
-        Pair<EAVType, Tree<String>> pp = t.getRight().get();
+        Pair<EAVType, Tree<String>> pp = t.getRight();
         EAVType valType = pp.left;
         Pair<EAVType, EALType> p = cast.cases.get(this.op);
         if (!valType.equals(p.left)) {
@@ -74,7 +74,7 @@ public class EAMSend implements EAComp {
         EAVUnitType B = EATypeFactory.factory.val.unit();
         return Either.right(Pair.of(
                 Pair.of(B, p.right),
-                new Tree<>("[T-Send] " + toJudgementString(gamma, pre, B, p.right),
+                new Tree<>("[T-Send] " + toTypeJudgeString(gamma, pre, B, p.right),
                         List.of(pp.right))
         ));
     }
@@ -84,9 +84,9 @@ public class EAMSend implements EAComp {
         //EAVType t = this.val.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> r = this.val.type(gamma);
         if (r.isLeft()) {
-            throw new RuntimeException(r.getLeft().get());  // FIXME infer Either
+            throw new RuntimeException(r.getLeft());  // FIXME infer Either
         }
-        Pair<EAVType, Tree<String>> p = r.getRight().get();
+        Pair<EAVType, Tree<String>> p = r.getRight();
         EAVType t = p.left;
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
         cases.put(this.op, new Pair<>(t, EALEndType.END));  // !!! (potential) placeholder END
