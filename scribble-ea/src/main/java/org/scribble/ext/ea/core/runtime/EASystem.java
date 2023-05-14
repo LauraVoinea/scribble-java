@@ -130,6 +130,7 @@ public class EASystem {
             Pair<LinkedHashMap<EAPid, EACActor>, Tree<String>> reduce = c.reduce(this);
             return Pair.of(new EASystem(this.lf, this.annots, reduce.left), reduce.right);
         }
+
         // !!! Delta (annots) change
         else if (foo instanceof EAMSend) {
             //LinkedHashMap<EAPid, EACActor> configs = c.reduce(this);

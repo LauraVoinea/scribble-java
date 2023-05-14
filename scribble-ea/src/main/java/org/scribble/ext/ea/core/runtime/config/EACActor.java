@@ -104,6 +104,7 @@ public class EACActor implements EAConfig {
                 configs.put(this.pid, c1);
                 return Pair.of(configs, p.right);  // E-Lift already tagged
             }
+
         } else if (foo instanceof EAMSend) {
 
             LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
@@ -119,33 +120,8 @@ public class EACActor implements EAConfig {
             t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
 
             EAMSend cast = (EAMSend) foo;
-
-            Optional<Map.Entry<EAPid, EACActor>> fst =
-                    sys.actors.entrySet().stream().filter(x ->
-                            x.getValue().sigma.keySet().stream().anyMatch(y ->
-                                    y.left.equals(t.sid) && y.right.equals(cast.dst))
-                    ).findFirst();
-            if (fst.isEmpty()) {
-                throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo gets "potenitally reducible parts", such as sends -- but receive may not be ready yet (e.g., handler not installed yet)
-                // Currently PRE: `p` must have reducible step (i.e., send must have matching receive ready)
-            }
-            Map.Entry<EAPid, EACActor> get = fst.get();
-            EAPid p2 = get.getKey();
-            EACActor c2 = get.getValue();
-            Map<Pair<EASid, Role>, EAEHandlers> sigma2 = c2.sigma;
-            Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
-            EAHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
-
-            //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
-            EAComp e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
-
-            LinkedHashMap<Pair<EASid, Role>, EAEHandlers> newsigma2 =
-                    new LinkedHashMap<>(c2.sigma);
-            newsigma2.remove(k2);
-            EATActive newt2 = EARuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
-            //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
-            //configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
-            configs.put(p2, EARuntimeFactory.factory.config(c2.pid, newt2, newsigma2, c2.state));
+            Pair<EAPid, EACActor> receive = receive(sys, t, cast);
+            configs.put(receive.left, receive.right);
 
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
@@ -156,6 +132,7 @@ public class EACActor implements EAConfig {
 
             return Pair.of(configs, p.right);  // E-Comm already tagged (...maybe would be better here)
         }
+
         // Other non-beta cases
         else if (foo instanceof EAMSuspend) {
             if (t.comp.equals(foo)) {  // top level
@@ -178,6 +155,7 @@ public class EACActor implements EAConfig {
                 throw new RuntimeException("Shouldn't get in here");
             }
         }
+
         // LiftM beta cases
         else if (foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf) {
             LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
@@ -205,6 +183,36 @@ public class EACActor implements EAConfig {
         }*/ else {
             throw new RuntimeException("TODO: " + foo);
         }
+    }
+
+    public Pair<EAPid, EACActor> receive(EASystem sys, EATActive t, EAMSend cast) {
+        Optional<Map.Entry<EAPid, EACActor>> fst =
+                sys.actors.entrySet().stream().filter(x ->
+                        x.getValue().sigma.keySet().stream().anyMatch(y ->
+                                y.left.equals(t.sid) && y.right.equals(cast.dst))
+                ).findFirst();
+        if (fst.isEmpty()) {
+            throw new RuntimeException("FIXME");  // !!! XXX HERE EAPExpr.getFoo gets "potenitally reducible parts", such as sends -- but receive may not be ready yet (e.g., handler not installed yet)
+            // Currently PRE: `p` must have reducible step (i.e., send must have matching receive ready)
+        }
+        Map.Entry<EAPid, EACActor> get = fst.get();
+        EAPid p2 = get.getKey();
+        EACActor c2 = get.getValue();
+        Map<Pair<EASid, Role>, EAEHandlers> sigma2 = c2.sigma;
+        Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
+        EAHandler vh = sigma2.get(k2).Hs.get(cast.op);  // non-null by pre?
+
+        //EAPExpr e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, EAPFactory.factory.intt(c2.state.get(k2))));
+        EAComp e2 = vh.expr.subs(Map.of(vh.var, cast.val, vh.svar, c2.state));
+
+        LinkedHashMap<Pair<EASid, Role>, EAEHandlers> newsigma2 =
+                new LinkedHashMap<>(c2.sigma);
+        newsigma2.remove(k2);
+        EATActive newt2 = EARuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
+        //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
+        //configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
+
+        return Pair.of(p2, EARuntimeFactory.factory.config(c2.pid, newt2, newsigma2, c2.state));
     }
 
     public LinkedHashSet<Pair<EASid, Role>> getEndpoints() {

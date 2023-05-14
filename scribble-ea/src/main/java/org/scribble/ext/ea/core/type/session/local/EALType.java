@@ -28,6 +28,7 @@ public interface EALType extends EAType {
     @Deprecated
     EALType unfold(RecVar rvar, EALType t);
 
+    // cf. LTS on Delta type envs
     Optional<EALType> step(LType a);  // TODO Either
 
     // !!! currently not used consistently (added ad hoc from testing)

@@ -5,6 +5,7 @@ public class ConsoleColors {
     public static final char VDASH = '\u22a2';
     public static final char TRIANGLERIGHT = '\u25B9';
     public static final char TRIANGLELEFT = '\u25c3';
+    public static final char RIGHTARROW = '\u2192';
 
     public static final String toAnnotString(String m) {
         return ConsoleColors.YELLOW + m + ConsoleColors.RESET;

@@ -1,6 +1,7 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.expr.EAERec;
@@ -14,6 +15,7 @@ import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
+import javax.swing.text.DefaultEditorKit;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,8 +37,13 @@ public interface EAComp extends EATerm {
     @Deprecated
     boolean canBeta();
 
+    // ->_M -- config independent M eval
     //EAComp beta();  // !!! CHECKME deterministic
     Either<Exception, Pair<EAComp, Tree<String>>> beta();  // CHECKME deterministic?
+
+    default String toBetaJudgeString(EAComp left, EAComp right) {
+        return left + " " + ConsoleColors.RIGHTARROW + "_M " + right;
+    }
 
     // Total
     // Extract the (nested) "statically reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo -- EAPActiveThread.canStep checks canBeta on relevant foo, but could refactor some canBeta into getFoo)
@@ -46,6 +53,10 @@ public interface EAComp extends EATerm {
     // Maybe deriv tree labels belong more to EACActor.reduce than to the "candidates" as here
     //EAComp configReduce();
     Either<Exception, Pair<EAComp, Tree<String>>> configReduce();
+
+    /*default String toConfigRed1JudgeString(EACActor left, EACActor right) {
+        return left ...
+    }*/
 
     /* Aux */
 
