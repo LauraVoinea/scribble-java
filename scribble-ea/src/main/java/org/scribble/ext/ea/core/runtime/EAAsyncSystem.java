@@ -182,17 +182,15 @@ public class EAAsyncSystem {
         queues1.put(s, get.mid);
 
         LinkedHashMap<Pair<EASid, Role>, EALType> dmap = EAUtil.copyOf(this.annots.map);
-
-        Pair<EASid, Role> k2 = new Pair<>(t.sid, cast.dst);
+        Pair<EASid, Role> k2 = new Pair<>(s, m.rcv);
         EALType l2 = this.annots.map.get(k2);
-        LRecv lr = this.lf.LRecv(null, t.role, new SigLit(cast.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
+        LRecv lr = this.lf.LRecv(null, m.snd, new SigLit(m.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
         Optional<EALType> opt2 = l2.step(lr);
         if (!opt2.isPresent()) {
-            throw new RuntimeException("TODO");
+            throw new RuntimeException("TODO Either Exception");
         }
         l2 = opt2.get();
         dmap.put(k2, l2);
-
         Delta delta1 = new Delta(dmap);
 
         return Either.right(Pair.of(
