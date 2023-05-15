@@ -49,10 +49,10 @@ public class EARuntimeFactory {
         return new EASystem(lf, annots, cs);
     }
 
-    public EAAsyncSystem asyncSystem(LTypeFactory lf, Delta annots,
+    public EAAsyncSystem asyncSystem(LTypeFactory lf, //Delta annots,
                                      LinkedHashMap<EAPid, EACActor> cs,
                                      LinkedHashMap<EASid, EAGlobalQueue> queues,
                                      AsyncDelta adelta) {
-        return new EAAsyncSystem(lf, annots, cs, queues, adelta);
+        return new EAAsyncSystem(lf, cs, queues, adelta);
     }
 }

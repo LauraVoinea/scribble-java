@@ -30,9 +30,9 @@ public class EAAsyncSystem {
 
     @NotNull protected final LTypeFactory lf;
 
-    @NotNull public final Delta annots;
-    //@NotNull public final ...Global...  // project, chec against original annots (implies safety), and type check actors
+    //@NotNull public final Delta annots;
 
+    //@NotNull public final ...Global...  // project, chec against original annots (implies safety), and type check actors
     @NotNull public final AsyncDelta adelta;
 
     // Unmod LinkedHashMaps
@@ -41,7 +41,7 @@ public class EAAsyncSystem {
 
     public EAAsyncSystem(
             LTypeFactory lf,
-            Delta annots,
+            //Delta annots,
             LinkedHashMap<EAPid, EACActor> actors,
             LinkedHashMap<EASid, EAGlobalQueue> queues,
             AsyncDelta adelta) {
@@ -53,7 +53,7 @@ public class EAAsyncSystem {
             throw new RuntimeException("Invalid sid/queue mapping: " + queues);
         }
         this.lf = lf;
-        this.annots = annots;
+        //this.annots = annots;
         this.actors = EAUtil.umodCopyOf(actors);
         this.queues = EAUtil.umodCopyOf(queues);
 
@@ -66,7 +66,8 @@ public class EAAsyncSystem {
     public Either<Exception, List<Tree<String>>> type() {
         Gamma empty = new Gamma();
         List<Tree<String>> res = new LinkedList<>();
-        Set<Pair<EASid, Role>> todo = new HashSet<>(this.annots.map.keySet());
+        //Set<Pair<EASid, Role>> todo = new HashSet<>(this.annots.map.keySet());
+        Set<Pair<EASid, Role>> todo = new HashSet<>(this.adelta.types.keySet());
         for (EACActor c : this.actors.values()) {
             LinkedHashSet<Pair<EASid, Role>> eps = c.getEndpoints();
             LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
@@ -76,7 +77,8 @@ public class EAAsyncSystem {
                 }
                 todo.remove(p);
                 // !!! TODO: Delta disjoint union op
-                tmp.put(p, this.annots.map.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
+                //tmp.put(p, this.annots.map.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
+                tmp.put(p, this.adelta.types.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
             }
             Either<Exception, Tree<String>> t = c.type(empty, new Delta(tmp));
             if (t.isLeft()) {
@@ -84,9 +86,11 @@ public class EAAsyncSystem {
             }
             res.add(t.getRight());
         }
-        if (todo.stream().anyMatch(x -> !this.annots.map.get(x).equals(EALEndType.END))) {
+        //if (todo.stream().anyMatch(x -> !this.annots.map.get(x).equals(EALEndType.END))) {
+        if (todo.stream().anyMatch(x -> !this.adelta.types.get(x).equals(EALEndType.END))) {
             return Either.left(new Exception("Endpoints not implemented: "
-                    + todo + "\n\tannots = " + this.annots));
+                    //+ todo + "\n\tannots = " + this.annots));
+                    + todo + "\n\tdelta = " + this.adelta));
         }
         return Either.right(res);
     }
@@ -133,7 +137,7 @@ public class EAAsyncSystem {
                 actors1.put(p, x.left);
                 LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.copyOf(this.queues);
                 return Triple.of(
-                        new EAAsyncSystem(this.lf, this.annots, actors1, queues, this.adelta),
+                        new EAAsyncSystem(this.lf, actors1, queues, this.adelta),
                         x.right,
                         null  // XXX TODO
                 );
@@ -156,17 +160,18 @@ public class EAAsyncSystem {
             LinkedHashMap<EASid, EAGlobalQueue> queues1 = EAUtil.copyOf(this.queues);
             queues1.put(s, get.mid);
 
-            LinkedHashMap<Pair<EASid, Role>, EALType> dmap = EAUtil.copyOf(this.annots.map);
+            LSend a = this.lf.LSend(null, new SigLit(cast.op, Payload.EMPTY_PAYLOAD), cast.dst);  // FIXME EMPTY_PAY
+
+            /*LinkedHashMap<Pair<EASid, Role>, EALType> dmap = EAUtil.copyOf(this.annots.map);
             Pair<EASid, Role> k1 = new Pair<>(s, active.role);
             EALType l1 = this.annots.map.get(k1);
-            LSend a = this.lf.LSend(null, new SigLit(cast.op, Payload.EMPTY_PAYLOAD), cast.dst);  // FIXME EMPTY_PAY
             Optional<EALType> opt1 = l1.step(a);
             if (!opt1.isPresent()) {
                 throw new RuntimeException("TODO Either Exception");
             }
             l1 = opt1.get();
             dmap.put(k1, l1);
-            Delta delta1 = new Delta(dmap);
+            Delta delta1 = new Delta(dmap);*/
 
             EAVType A = cast.val.infer();
             Either<Exception, Pair<AsyncDelta, Tree<String>>> astep =
@@ -177,7 +182,7 @@ public class EAAsyncSystem {
             Pair<AsyncDelta, Tree<String>> astep1 = astep.getRight();
 
             return Either.right(Triple.of(
-                    new EAAsyncSystem(this.lf, delta1, actors1, queues1,
+                    new EAAsyncSystem(this.lf, actors1, queues1,
                             astep1.left),
                     get.right,
                     astep1.right
@@ -210,17 +215,18 @@ public class EAAsyncSystem {
         LinkedHashMap<EASid, EAGlobalQueue> queues1 = EAUtil.copyOf(this.queues);
         queues1.put(s, get.mid);
 
-        LinkedHashMap<Pair<EASid, Role>, EALType> dmap = EAUtil.copyOf(this.annots.map);
+        LRecv a = this.lf.LRecv(null, m.snd, new SigLit(m.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
+
+        /*LinkedHashMap<Pair<EASid, Role>, EALType> dmap = EAUtil.copyOf(this.annots.map);
         Pair<EASid, Role> k2 = new Pair<>(s, m.rcv);
         EALType l2 = this.annots.map.get(k2);
-        LRecv a = this.lf.LRecv(null, m.snd, new SigLit(m.op, Payload.EMPTY_PAYLOAD));  // from foo  // FIXME EMPTY_PAY
         Optional<EALType> opt2 = l2.step(a);
         if (!opt2.isPresent()) {
             throw new RuntimeException("TODO Either Exception");
         }
         l2 = opt2.get();
         dmap.put(k2, l2);
-        Delta delta1 = new Delta(dmap);
+        Delta delta1 = new Delta(dmap);*/
 
         EAVType A = m.data.infer();
         Either<Exception, Pair<AsyncDelta, Tree<String>>> astep =
@@ -231,7 +237,7 @@ public class EAAsyncSystem {
         Pair<AsyncDelta, Tree<String>> astep1 = astep.getRight();
 
         return Either.right(Triple.of(
-                new EAAsyncSystem(this.lf, delta1, actors1, queues1,
+                new EAAsyncSystem(this.lf, actors1, queues1,
                         astep1.left),
                 get.right,
                 astep1.right
@@ -244,10 +250,10 @@ public class EAAsyncSystem {
 
     @Override
     public String toString() {
-        return "[annots=\n" + this.annots.map + "\nconfigs="
-                + "\n" + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
-                + "\n" + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
-                + "\n" + this.adelta
+        return "[" //+ annots=\n" + this.annots.map
+                + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n "))
+                + "\n " + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
+                + "\n " + this.adelta
                 + "]";
     }
 }

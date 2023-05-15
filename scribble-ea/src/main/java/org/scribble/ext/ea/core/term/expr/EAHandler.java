@@ -117,7 +117,7 @@ public class EAHandler {
                 + ConsoleColors.toAnnotString(": " + this.varType.toString())
                 + ")"
                 + ConsoleColors.toAnnotString(": " + this.pre)
-                + " |-> " + this.expr;
+                + " " + ConsoleColors.MAPSTO + " " + this.expr;
     }
 
     /* equals/canEquals, hashCode */

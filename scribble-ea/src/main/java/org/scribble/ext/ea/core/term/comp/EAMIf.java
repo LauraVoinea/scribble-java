@@ -87,16 +87,19 @@ public class EAMIf implements EAComp {
             if (!(this.cond instanceof EAEBoolVal)) {
                 return Either.left(new Exception("Expected Bool condition, not: " + this.cond));
             }
-            return Either.right(Pair.of(
-                    ((EAEBoolVal) this.cond).val ? this.then : this.elsee,
-                    new Tree<>("[..B-If..]")
+            EAComp res = ((EAEBoolVal) this.cond).val ? this.then : this.elsee;
+            return Either.right(Pair.of(res, Tree.of(
+                    toBetaJudgeString("[..B-If..]", this, res))
             ));
         }
         Either<Exception, Pair<EAExpr, Tree<String>>> eval = this.cond.eval();
-        return eval.mapRight(x -> Pair.of(
-                EATermFactory.factory.iff(x.left, this.then, this.elsee),
-                new Tree<>("[..B-Ctx..]", x.right)  // XXX FIXME refactor binop to Comp, only Let should be context  // !!! deprecate (only Let should be E-Context)
-        ));
+        return eval.mapRight(x -> {
+            EAMIf res = EATermFactory.factory.iff(x.left, this.then, this.elsee);
+            return Pair.of(res, Tree.of(
+                    toBetaJudgeString("[..B-Ctx..]", this, res),
+                    x.right)  // XXX FIXME refactor binop to Comp, only Let should be context  // !!! deprecate (only Let should be E-Context)
+            );
+        });
     }
 
     @Override

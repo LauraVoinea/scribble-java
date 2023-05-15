@@ -113,9 +113,9 @@ public class EAMApp implements EAComp {
                 return Either.left(new Exception("Expected rec-val, not: " + this.left));
             }
             EAERec rec = (EAERec) this.left;
-            return Either.right(Pair.of(
-                    rec.body.fsubs(Map.of(rec.f, rec)).subs(Map.of(rec.var, this.right)),
-                    new Tree<>("[B-App-Rec]")
+            EAComp res = rec.body.fsubs(Map.of(rec.f, rec)).subs(Map.of(rec.var, this.right));
+            return Either.right(Pair.of(res, Tree.of(
+                    toBetaJudgeString("[B-App-Rec]", this, res))
             ));
         }
         return Either.left(new Exception("Stuck: " + this));

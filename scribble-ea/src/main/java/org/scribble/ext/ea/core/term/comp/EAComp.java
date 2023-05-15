@@ -1,11 +1,8 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
-import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.runtime.EAGlobalQueue;
-import org.scribble.ext.ea.core.runtime.config.EACActor;
-import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.EATerm;
+import org.scribble.ext.ea.core.term.expr.EAEFuncName;
 import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
@@ -17,9 +14,7 @@ import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
-import javax.swing.text.DefaultEditorKit;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 // "Computation"
@@ -46,8 +41,9 @@ public interface EAComp extends EATerm {
     Either<Exception, Pair<EAComp, Tree<String>>> beta();  // CHECKME deterministic?
 
     // TODO factor out tag param
-    default String toBetaJudgeString(EAComp left, EAComp right) {
-        return left + " " + ConsoleColors.RIGHTARROW + "_M " + right;
+    default String toBetaJudgeString(String tag, EAComp left, EAComp right) {
+        return tag + "  " + left + " " + ConsoleColors.RIGHTARROW
+                + ConsoleColors.SUBSCRIPTBIGM + " " + right;
     }
 
     // basically using EAComp to "drive" eval steps in lieu of LTS action labels

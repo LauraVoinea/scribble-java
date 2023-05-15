@@ -773,7 +773,7 @@ public class EACommandLine extends CommandLine {
         //EASystem sys = RF.system(LF, delta, cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, delta, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
         typeAndRun(sys, -1, true);
     }
@@ -813,7 +813,7 @@ public class EACommandLine extends CommandLine {
         //EASystem sys = RF.system(LF, new Delta(env), cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, delta, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
         //typeAndRun(sys, -1);
         typeAndRun(sys, -1, true);
@@ -884,12 +884,14 @@ public class EACommandLine extends CommandLine {
     }
 
     static void typeCheckSystem(EASystem sys, boolean debug) {
+        if (debug) {
+            System.out.println("Type checking system:");
+        }
         Either<Exception, List<Tree<String>>> t = sys.type();
         if (t.isLeft()) {
             throw new RuntimeException(t.getLeft());
         }
         if (debug) {
-            System.out.println("Type checked system:");
             System.out.println(t.getRight().stream()
                     .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
         }
@@ -941,12 +943,14 @@ public class EACommandLine extends CommandLine {
     }
 
     static void typeCheckSystem(EAAsyncSystem sys, boolean debug) {
+        if (debug) {
+            System.out.println("Type checking system:");
+        }
         Either<Exception, List<Tree<String>>> t = sys.type();
         if (t.isLeft()) {
             throw new RuntimeException(t.getLeft());
         }
         if (debug) {
-            System.out.println("Type checked system:");
             System.out.println(t.getRight().stream()
                     .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
         }

@@ -63,10 +63,13 @@ public class EAMReturn implements EAComp {
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
         Either<Exception, Pair<EAExpr, Tree<String>>> eval = this.val.eval();
-        return eval.mapRight(x -> Pair.of(
-                EATermFactory.factory.returnn(x.left),
-                new Tree<>("[..B-Ctx-Ret..]", x.right)
-        ));
+        return eval.mapRight(x -> {
+            EAMReturn res = EATermFactory.factory.returnn(x.left);
+            return Pair.of(res, Tree.of(
+                    toBetaJudgeString("[..B-Ctx-Ret..]", this, res),
+                    x.right)
+            );
+        });
     }
 
     @Override

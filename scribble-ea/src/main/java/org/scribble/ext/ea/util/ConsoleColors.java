@@ -7,6 +7,9 @@ public class ConsoleColors {
     public static final char TRIANGLELEFT = '\u25c3';
     public static final char RIGHTARROW = '\u2192';
     public static final char DOUBLEVLINE = '\u2016';
+    public static final char SUBSCRIPTBIGM = '\u1d39';
+    public static final char MAPSTO = '\u21a6';
+    public static final char LLEFTARROW = '\u21d0';
 
     public static final String toAnnotString(String m) {
         return ConsoleColors.YELLOW + m + ConsoleColors.RESET;

@@ -84,16 +84,19 @@ public class EAMLet implements EAComp {
             throw new RuntimeException("Stuck: " + this);
         }
         if (this.init.isGroundValueReturn()) {
-            return Either.right(Pair.of(
-                    this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val)),
-                    new Tree<>("[B-Let]")
+            EAComp res = this.body.subs(Map.of(this.var, ((EAMReturn) this.init).val));
+            return Either.right(Pair.of(res, Tree.of(
+                    toBetaJudgeString("[B-Let]", this, res))
             ));
         }
         Either<Exception, Pair<EAComp, Tree<String>>> beta = this.init.beta();
-        return beta.mapRight(x -> Pair.of(
-                EATermFactory.factory.let(this.var, this.varType, x.left, this.body),
-                new Tree<>("[B-Ctx-Let]", x.right)
-        ));
+        return beta.mapRight(x -> {
+            EAMLet res = EATermFactory.factory.let(this.var, this.varType, x.left, this.body);
+            return Pair.of(res, Tree.of(
+                    toBetaJudgeString("[B-Ctx-Let]", this, res),
+                    x.right)
+            );
+        });
     }
 
     // foo (getConfigRedexCandidate) return corresponds with beta "subject"
@@ -167,7 +170,7 @@ public class EAMLet implements EAComp {
         return "let " + this.var
                 //+ ConsoleColors.BLACK_UNDERLINED + ":" + this.varType + ConsoleColors.RESET
                 + ConsoleColors.toAnnotString(": " + this.varType)
-                + " <= " + this.init + " in " + this.body;
+                + " " + ConsoleColors.LLEFTARROW + " " + this.init + " in " + this.body;
     }
 
     /* equals/canEquals, hashCode */
