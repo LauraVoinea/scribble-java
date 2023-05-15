@@ -3,6 +3,8 @@ package org.scribble.ext.ea.core.term.comp;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.runtime.EAGlobalQueue;
+import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
@@ -21,10 +23,7 @@ import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EAMSend implements EAComp {
 
@@ -110,15 +109,15 @@ public class EAMSend implements EAComp {
     }*/
 
     @Override
-    public EAComp getConfigRedexCandidate() {
+    public EAComp getStepSubexprE() {
         return this;
     }
 
     @Override
-    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
         return Either.right(Pair.of(
                 EATermFactory.factory.returnn(EATermFactory.factory.unit()),
-                new Tree<>("[E-Comm]")  // XXX !!! FIXME should be in EACActor, not here -- e.g., gets nested under E-Lift-Let
+                Tree.of("[..E-Ctx-Leaf-Send..]")  // cf. lift/context -> beta rules
         ));
     }
 

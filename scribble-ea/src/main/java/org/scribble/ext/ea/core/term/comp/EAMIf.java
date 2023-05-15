@@ -95,21 +95,21 @@ public class EAMIf implements EAComp {
         Either<Exception, Pair<EAExpr, Tree<String>>> eval = this.cond.eval();
         return eval.mapRight(x -> Pair.of(
                 EATermFactory.factory.iff(x.left, this.then, this.elsee),
-                new Tree<>("[..B-Ctx..]", x.right)
+                new Tree<>("[..B-Ctx..]", x.right)  // XXX FIXME refactor binop to Comp, only Let should be context
         ));
     }
 
     @Override
-    public EAComp getConfigRedexCandidate() {
+    public EAComp getStepSubexprE() {
         return this;
     }
 
     @Override
-    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
         return beta().mapRight(x -> Pair.of(
                 x.left,
-                new Tree<>("[..E-Lift-If..]", x.right)
-        ));
+                x.right)  // No E-Ctx, only Let is context (FG-CBV); Lift done by EACActor
+        );
     }
 
     /* Aux */

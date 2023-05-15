@@ -21,7 +21,7 @@ import java.util.Set;
 public class EAMSuspend implements EAComp {
 
     @NotNull
-    public final EAExpr val;  // value, not expr -- a Handler(S?) type
+    public final EAExpr val;  // value, not expr -- a Handler(S?) type (yes, val or var)
 
     @NotNull
     public final EAExpr sval;
@@ -112,13 +112,13 @@ public class EAMSuspend implements EAComp {
     }*/
 
     @Override
-    public EAComp getConfigRedexCandidate() {
+    public EAComp getStepSubexprE() {
         return this;
     }
 
     @Override
-    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
-        return Either.left(new Exception("Shouldn't get in here: " + this));
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
+        throw new RuntimeException("Shouldn't get in here: " + this);
     }
 
     /* Aux */

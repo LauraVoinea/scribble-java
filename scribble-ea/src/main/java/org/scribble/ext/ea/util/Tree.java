@@ -21,7 +21,7 @@ public class Tree<T> {
         this.children = Collections.unmodifiableList(new LinkedList<>(children));
     }
 
-    public <T> Tree<T> of(T val, Tree<T>... children) {
+    public static <T> Tree<T> of(T val, Tree<T>... children) {
         return new Tree(val, Arrays.asList(children));
     }
 

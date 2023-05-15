@@ -47,11 +47,12 @@ public interface EAExpr extends EATerm {
 
     Set<EAEVar> getFreeVars();
 
-    // !!! cf. "isValue" (cf. EAEBinOp)
+    // CHECKME mostly redundant? -- just analogy to EAComp.isGround
+    // ground expression (potentially eligible for reduction step) !!! cf. "isValue" (cf. EAEBinOp)
     default boolean isGround() {  // FIXME override hack for var when it's actually an fname
         return getFreeVars().isEmpty();
     }
 
-    // A ground value -- implies isGround, !canEval -- currently all except binop
+    // A ground value (reduction finished) -- implies isGround, !canEval -- currently all except binop
     boolean isValue();
 }

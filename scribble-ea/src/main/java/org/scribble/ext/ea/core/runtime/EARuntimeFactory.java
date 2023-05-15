@@ -11,6 +11,7 @@ import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class EARuntimeFactory {
 
@@ -28,7 +29,7 @@ public class EARuntimeFactory {
     }
 
     public EACActor config(EAPid pid, EAThread T,
-                           LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma,
+                           Map<Pair<EASid, Role>, EAEHandlers> sigma,
                            //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
                            EAExpr state) {
         return new EACActor(pid, T, sigma, state);

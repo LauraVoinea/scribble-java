@@ -17,8 +17,7 @@ import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.Either;
-import org.scribble.ext.ea.util.Tree;
+import org.scribble.ext.ea.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -26,6 +25,8 @@ import java.util.stream.Collectors;
 
 // cf. T-Actor
 public class EACActor implements EAConfig {
+
+    private static EARuntimeFactory RF = EARuntimeFactory.factory;
 
     @NotNull public final EAPid pid;  // No longer in formal defs but useful in implementation
     @NotNull public final EAThread T;
@@ -36,9 +37,14 @@ public class EACActor implements EAConfig {
 
     public EACActor(@NotNull EAPid pid,
                     @NotNull EAThread T,
-                    @NotNull LinkedHashMap<Pair<EASid, Role>, EAEHandlers> handlers,
+                    @NotNull Map<Pair<EASid, Role>, EAEHandlers> handlers,
                     //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
                     @NotNull EAExpr state) {
+
+        if (!(handlers instanceof LinkedHashMap)) {
+            throw new RuntimeException("Required LinkedHashMap for handlers");
+        }
+
         this.pid = pid;
         this.T = T;
         this.sigma = Collections.unmodifiableMap(handlers.entrySet()
@@ -66,7 +72,7 @@ public class EACActor implements EAConfig {
             throw new RuntimeException("Shouldn't get here: ");
         }
         EATActive t = (EATActive) this.T;
-        EAComp foo = t.comp.getConfigRedexCandidate();
+        EAComp foo = t.comp.getStepSubexprE();
 
         // TODO refactor separate case by case (rather than grouping thread/sigma/config creation)
 
@@ -92,7 +98,7 @@ public class EACActor implements EAConfig {
                 LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-                Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
+                Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.contextStepE();
                 if (reduce.isLeft()) {
                     throw new RuntimeException(reduce.getLeft());
                 }
@@ -109,7 +115,7 @@ public class EACActor implements EAConfig {
 
             LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
 
-            Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
+            Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.contextStepE();
             if (reduce.isLeft()) {
                 throw new RuntimeException(reduce.getLeft());
             }
@@ -161,7 +167,7 @@ public class EACActor implements EAConfig {
             LinkedHashMap<EAPid, EACActor> configs = new LinkedHashMap<>(sys.actors);
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
-            Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.configReduce();
+            Either<Exception, Pair<EAComp, Tree<String>>> reduce = t.comp.contextStepE();
             if (reduce.isLeft()) {
                 throw new RuntimeException(reduce.getLeft());
             }
@@ -214,6 +220,179 @@ public class EACActor implements EAConfig {
 
         return Pair.of(p2, EARuntimeFactory.factory.config(c2.pid, newt2, newsigma2, c2.state));
     }
+
+    /* ... */
+
+    // Reduction without labels (so no explicit action to "direct" eval -- usually more convenient)
+    public Either<Exception, Triple<EACActor, EAGlobalQueue, Tree<String>>> stepAsync1(
+            EAComp e, EAGlobalQueue queue) {
+
+        if (!(this.T instanceof EATActive)) {
+            return Either.left(newStuck0("Not active", this));
+        }
+        EATActive active = (EATActive) this.T;
+
+        if (e instanceof EAMSend) {  // [E-Send]
+            Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();
+            return step.mapRight(x -> {
+                EAMSend cast = (EAMSend) e;
+                EAGlobalQueue app = queue.append(new EAMsg(active.role, cast.dst, cast.op, cast.val));
+                EATActive res = RF.activeThread(x.left, active.sid, active.role);
+                EACActor succ = RF.config(this.pid, res, this.sigma, this.state);
+                return Triple.of(succ, app, Tree.of(
+                        toStepJudge1String("[E-Send]", this, queue, succ, app),
+                        x.right));
+            });
+
+        } else {
+            throw new RuntimeException("TODO: " + e);
+        }
+    }
+
+    public static Exception newStuck1(String txt, EACActor C, EAGlobalQueue queue) {
+        return new Exception("Stuck: " + (!txt.isEmpty() ? txt + ": " : "")
+                + C + " " + ConsoleColors.DOUBLEVLINE + " " + queue);
+    }
+
+    public static String toStepJudge1String(
+            String tag, EACActor C1, EAGlobalQueue q1, EACActor C2, EAGlobalQueue q2) {
+        return tag + "  " + C1 + " " + ConsoleColors.DOUBLEVLINE + " " + q1 + " "
+                + ConsoleColors.RIGHTARROW + " " + C2 + " "
+                + ConsoleColors.DOUBLEVLINE + " " + q2;
+    }
+
+    // No queue -- also context squashed
+    public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync0(EAComp e) {
+
+        if (!(this.T instanceof EATActive)) {
+            return Either.left(newStuck0("Not active", this));
+        }
+        EATActive active = (EATActive) this.T;
+
+        if (e instanceof EAMReturn) {  // [E-Reset]
+            if (!active.comp.equals(e)) {
+                return Either.left(newStuck0("return not top-level", this));
+            }
+            if (!e.isGroundValueReturn()) {
+                return Either.left(newStuck0("return not ground", this));
+            }
+            EACActor res = RF.config(this.pid, RF.idle(), this.sigma, this.state);
+            return Either.right(Pair.of(res, Tree.of(
+                    toStepJudge0String("[E-Reset]", this, res)
+            )));
+
+        } else if (e instanceof EAMSuspend) {  // [E-Suspend]
+            EAMSuspend cast = (EAMSuspend) e;
+            if (!(cast.isGround())) {
+                return Either.left(newStuck0("suspend not ground", this));
+            }
+            if (!(cast.val instanceof EAEHandlers)) {
+                return Either.left(newStuck0("Invalid value for suspend", this));
+            }
+            EAEHandlers h = (EAEHandlers) cast.val;
+            Map<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
+            sigma1.put(Pair.of(active.sid, active.role), h);
+            //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
+            EACActor res = RF.config(this.pid, RF.idle(), sigma1, cast.sval);
+            return Either.right(Pair.of(res, Tree.of(
+                    toStepJudge0String("[E-Suspend]", this, res)
+            )));
+
+        } else if (e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf) {  // [E-Lift]
+            Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();  // checks ground
+            return step.mapRight(x -> {
+                EATActive res = RF.activeThread(x.left, active.sid, active.role);
+                EACActor succ = RF.config(this.pid, res, this.sigma, this.state);
+                return Pair.of(succ, Tree.of(
+                        toStepJudge0String("[E-Lift]", this, succ),
+                        x.right
+                ));
+            });
+
+        } else {
+            throw new RuntimeException("TODO: " + e);
+        }
+    }
+
+    public static Exception newStuck0(String txt, EACActor C) {
+        return new Exception("Stuck: " + (!txt.isEmpty() ? txt + ": " : "") + C);
+    }
+
+    public static String toStepJudge0String(String tag, EACActor C1, EACActor C2) {
+        return tag + "  " + C1 + " " + ConsoleColors.DOUBLEVLINE + " "
+                + ConsoleColors.RIGHTARROW + " " + C2 + " "
+                + ConsoleColors.DOUBLEVLINE;
+    }
+
+    // Pre: m \in queue
+    public Either<Exception, Triple<EACActor, EAGlobalQueue, Tree<String>>> react(
+            EAMsg m, EAGlobalQueue queue) {  // [E-React]
+
+        if (!this.T.isIdle()) {
+            return Either.left(newStuck1("Not idle", this, queue));
+        }
+        Optional<EAMsg> fst = queue.getFirst(m.snd, m.rcv);
+        if (!fst.isPresent() || !fst.get().equals(m)) {
+            return Either.left(newStuck1("Cannot receive: " + m, this, queue));
+        }
+
+        Pair<EASid, Role> k = Pair.of(queue.sid, m.rcv);
+        EAEHandlers V = this.sigma.get(k);
+        if (!V.role.equals(m.snd)) {
+            return Either.left(newStuck1(
+                    "Sender of " + m + " doesn't match handlers role: " + V,
+                    this,
+                    queue));
+        }
+        if (!V.Hs.containsKey(m.op)) {
+            return Either.left(newStuck1("No handler for " + m.op + " in: " + V,
+                    this,
+                    queue));
+        }
+        EAHandler h = V.Hs.get(m.op);
+
+        Map<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
+        sigma1.remove(k);
+        //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
+        EATActive res = RF.activeThread(h.expr, k.left, k.right);
+        EACActor succ = RF.config(this.pid, res, sigma1, this.state);
+
+        EAGlobalQueue queue1 = queue.remove(m);
+        return Either.right(Triple.of(succ, queue1, Tree.of(
+                toStepJudge1String("[E-React]", this, queue, succ, queue1)
+        )));
+    }
+
+    // EAComp is "candidate subexpr" (under some context) -- max one because FG-CBV?
+// EAMsg is for receives
+    public Either<EAComp, Set<EAMsg>> getStepSubexprsE(EAGlobalQueue queue) {
+        // idle thread
+        if (this.T.isIdle()) {
+            Set<EAMsg> ms = EAUtil.setOf();
+            for (Map.Entry<Pair<EASid, Role>, EAEHandlers> e : this.sigma.entrySet()) {
+                Pair<EASid, Role> k = e.getKey();
+                EAEHandlers v = e.getValue();
+                queue.getFirst(v.role, k.right).ifPresent(ms::add);
+            }
+            return Either.right(ms);
+        }
+
+        EATActive active = (EATActive) this.T;
+
+        // Q context -- n.b. FG-CBV, only one case applies (deterministic)
+        if (active.comp.isGroundValueReturn()) {
+            return Either.left(active.comp);
+        }
+
+        // E context -- n.b. FG-CBV, only one case applies (deterministic)
+        EAComp e = active.comp.getStepSubexprE();
+        return Either.left(e);
+
+        // M context
+        // TODO -- Also EATActive, or another? -- another: with contextM that uses contextE for its expr
+    }
+
+    /* ... */
 
     public LinkedHashSet<Pair<EASid, Role>> getEndpoints() {
         LinkedHashSet<Pair<EASid, Role>> res = new LinkedHashSet<>();
@@ -270,7 +449,7 @@ public class EACActor implements EAConfig {
     /* ... */
 
     // Combines TH-Empty and TH-Handler
-    // !!! TODO make Sigma explicit class (cf. TH-Handler)
+// !!! TODO make Sigma explicit class (cf. TH-Handler)
     protected Either<Exception, Tree<String>> typeSigma(GammaState gamma, Delta delta) {
         if (delta.map.size() != this.sigma.size()) {
             //throw new RuntimeException("Invalid delta: " + delta + " |- " + this.sigma);

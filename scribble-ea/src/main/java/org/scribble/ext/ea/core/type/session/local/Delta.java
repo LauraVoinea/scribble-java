@@ -25,6 +25,8 @@ public class Delta {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    /* ... */
+
     @Override
     public String toString() {
         return this.map.toString();

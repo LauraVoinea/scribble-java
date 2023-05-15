@@ -33,7 +33,7 @@ public class EATActive implements EAThread {
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
     public Pair<Boolean, Set<EAPid>> canActorReduce(EASystem sys) {
-        EAComp foo = this.comp.getConfigRedexCandidate();
+        EAComp foo = this.comp.getStepSubexprE();
         // top-level return ()
         if (foo instanceof EAMReturn) {
             //if (this.expr instanceof EAMReturn && ((EAMReturn) this.expr).val.equals(EAEUnit.UNIT)) {

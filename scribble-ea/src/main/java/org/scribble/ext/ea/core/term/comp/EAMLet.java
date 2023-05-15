@@ -98,26 +98,26 @@ public class EAMLet implements EAComp {
 
     // foo (getConfigRedexCandidate) return corresponds with beta "subject"
     @Override
-    public EAComp getConfigRedexCandidate() {
+    public EAComp getStepSubexprE() {
         /*if (this.init instanceof EAMReturn //&& ((EAPReturn) this.init).val.isGround()
                 && !((EAMReturn) this.init).val.canEval()) {*/
         if (this.init.isGroundValueReturn()) {
             return this;
         } else {
-            return this.init.getConfigRedexCandidate();
+            return this.init.getStepSubexprE();
         }
     }
 
     @Override
-    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
         // Not just beta because, e.g., Send in init cannot beta (must configReduce)
         if (this.init.isGroundValueReturn()) {
             return beta().mapRight(x -> Pair.of(
                     x.left,
-                    new Tree<>("[E-Lift-Let]", x.right)
-            ));
+                    x.right)
+            );
         }
-        Either<Exception, Pair<EAComp, Tree<String>>> reduce = this.init.configReduce();
+        Either<Exception, Pair<EAComp, Tree<String>>> reduce = this.init.contextStepE();
         return reduce.mapRight(x -> Pair.of(
                 EATermFactory.factory.let(this.var, this.varType, x.left, this.body),
                 new Tree<>("[..E-Ctx-Let..]", x.right)

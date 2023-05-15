@@ -1,6 +1,8 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.runtime.EAGlobalQueue;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
@@ -17,6 +19,7 @@ import org.scribble.util.Pair;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 // !!! encodable using suspend? apart from "GC" flavour
@@ -67,12 +70,12 @@ public class EAMReturn implements EAComp {
     }
 
     @Override
-    public EAComp getConfigRedexCandidate() {
+    public EAComp getStepSubexprE() {
         return this;  // basically for top-level return -- let-init return detected by EAMLet
     }
 
     @Override
-    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
         //return EATermFactory.factory.returnn(this.val.eval());
         return this.val.eval().mapRight(x -> Pair.of(
                 EATermFactory.factory.returnn(x.left),

@@ -119,7 +119,7 @@ public class EASystem {
         // for p: config.step(sys) -> Map<EAPPid, EAPConfig> -- all updated configs, including p's
         // ...maybe take `qs` for partner configs as param here -- cf. EAPConfig.canStep Set<Pid>
 
-        EAComp foo = t.comp.getConfigRedexCandidate();
+        EAComp foo = t.comp.getStepSubexprE();
 
         //System.out.println("\naaa: " + p + " ,, " + foo.getClass() + " ,, " + foo);
 

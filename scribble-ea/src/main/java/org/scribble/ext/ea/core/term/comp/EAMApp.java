@@ -122,16 +122,16 @@ public class EAMApp implements EAComp {
     }
 
     @Override
-    public EAComp getConfigRedexCandidate() {
+    public EAComp getStepSubexprE() {
         return this;
     }
 
     @Override
-    public Either<Exception, Pair<EAComp, Tree<String>>> configReduce() {
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
         return beta().mapRight(x -> Pair.of(
                 x.left,
-                new Tree<>("[E-Lift-App]", x.right)
-        ));
+                x.right)  // No E-Ctx, only Let is context (FG-CBV); Lift done by EACActor
+        );
     }
 
     /* Aux */
