@@ -40,7 +40,7 @@ public class Gamma {
 
     @Override
     public String toString() {
-        return this.map + " ,, " + this.fmap;
+        return this.map + ", " + this.fmap;
     }
 
     /* equals, hashCode */

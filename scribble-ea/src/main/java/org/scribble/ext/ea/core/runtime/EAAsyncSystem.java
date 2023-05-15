@@ -87,17 +87,30 @@ public class EAAsyncSystem {
     /* ... */
 
     public Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> getSteppable() {
-        return this.actors.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                x -> this.queues.entrySet().stream().collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        y -> x.getValue().getStepSubexprsE(y.getValue())
-                ))
-        ));
+        Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> res = EAUtil.mapOf();
+        for (Map.Entry<EAPid, EACActor> ep : this.actors.entrySet()) {
+            EAPid pid = ep.getKey();
+            EACActor C = ep.getValue();
+            for (Map.Entry<EASid, EAGlobalQueue> es : this.queues.entrySet()) {
+                EASid sid = es.getKey();
+                EAGlobalQueue queue = es.getValue();
+                Optional<Either<EAComp, EAMsg>> opt = C.getStepSubexprsE(queue);
+                if (opt.isPresent()) {
+                    Either<EAComp, EAMsg> e = opt.get();
+                    Map<EASid, Either<EAComp, EAMsg>> tmp = res.computeIfAbsent(pid, x -> EAUtil.mapOf());
+                    if (e.isLeft()) {
+                        tmp.put(sid, Either.left(e.getLeft()));
+                    } else {
+                        tmp.put(sid, Either.right(e.getRight()));
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     // [E-Send], [E-Suspend], [E-Reset], [E-Lift]
-    public Either<Exception, Pair<EAAsyncSystem, Tree<String>>> step0(
+    public Either<Exception, Pair<EAAsyncSystem, Tree<String>>> step(
             EAPid p, EASid s, EAComp e) {  // n.b. beta is deterministic
 
         EACActor c = this.actors.get(p); // p.equals(c.pid)
@@ -111,8 +124,7 @@ public class EAAsyncSystem {
             return step.mapRight(x -> {
                 LinkedHashMap<EAPid, EACActor> actors1 = EAUtil.copyOf(this.actors);
                 actors1.put(p, x.left);
-                LinkedHashMap<EASid, EAGlobalQueue> queues =
-                        (LinkedHashMap<EASid, EAGlobalQueue>) this.queues;
+                LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.copyOf(this.queues);
                 return Pair.of(
                         new EAAsyncSystem(this.lf, this.annots, actors1, queues),
                         x.right
@@ -163,7 +175,7 @@ public class EAAsyncSystem {
     }
 
     // [E-React]
-    public Either<Exception, Pair<EAAsyncSystem, Tree<String>>> step(
+    public Either<Exception, Pair<EAAsyncSystem, Tree<String>>> react(
             EAPid p, EASid s, EAMsg m) {
 
         EACActor c = this.actors.get(p); // p.equals(c.pid)
@@ -175,7 +187,6 @@ public class EAAsyncSystem {
             return Either.left(react.getLeft());
         }
         Triple<EACActor, EAGlobalQueue, Tree<String>> get = react.getRight();
-
         LinkedHashMap<EAPid, EACActor> actors1 = EAUtil.copyOf(this.actors);
         actors1.put(p, get.left);
         LinkedHashMap<EASid, EAGlobalQueue> queues1 = EAUtil.copyOf(this.queues);
@@ -206,7 +217,8 @@ public class EAAsyncSystem {
     @Override
     public String toString() {
         return "[annots=\n" + this.annots.map + "\nconfigs=\n"
-                + this.actors.entrySet().stream().map(x -> x.toString()).collect(Collectors.joining("\n"))
+                + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
+                + "\n" + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
                 + "]";
     }
 }

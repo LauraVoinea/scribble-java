@@ -28,6 +28,7 @@ import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
 import org.scribble.ext.ea.parser.antlr.EACalculusParser;
+import org.scribble.ext.ea.util.EAUtil;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.AntlrSourceException;
@@ -110,16 +111,16 @@ public class EACommandLine extends CommandLine {
         //System.out.println(parseV("2 + 3"));
 
         ex1();
-        ex2();
+        /*ex2();
 
-        ex4();
+        /*ex4();
         ex5a();
 
         ex6();
         ex7();
         ex8();
 
-        ex10();
+        ex10();*/
     }
 
     private static void negtests() {
@@ -766,8 +767,13 @@ public class EACommandLine extends CommandLine {
         // ----
 
         Delta delta = new Delta(newLinkedMap(sA, out1, sB, in1));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        typeAndRun(sys, -1);
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
+
+        //EASystem sys = RF.system(LF, delta, cs);
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        EAAsyncSystem sys = RF.asyncSystem(LF, delta, cs, queues);
+
+        typeAndRun(sys, -1, true);
     }
     //*/
 
@@ -776,7 +782,8 @@ public class EACommandLine extends CommandLine {
         System.out.println("\n---ex1:");
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Int).end}");
-        EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");
+        //EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");  // TODO refactor binop
+        EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 in B!l1(x)");
 
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Int).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} d: 1, l1(x: Int) |-> return d }");
@@ -799,12 +806,17 @@ public class EACommandLine extends CommandLine {
 
         LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
         LinkedHashMap<Pair<EASid, Role>, EALType> env = newLinkedMap(sA, out1, sB, in1);
-        EASystem sys = RF.system(LF, new Delta(env), cs);
-        typeAndRun(sys, -1);
-        //typeAndRun(sys, -1, true);
+
+        //EASystem sys = RF.system(LF, new Delta(env), cs);
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        EAAsyncSystem sys = RF.asyncSystem(LF, new Delta(env), cs, queues);
+
+        //typeAndRun(sys, -1);
+        typeAndRun(sys, -1, true);
     }
     //*/
 
+    // TODO deprecate -- cf. EAUtil
     static <K, V> LinkedHashMap<K, V> newLinkedMap() {
         return new LinkedHashMap<>();
     }
@@ -861,6 +873,8 @@ public class EACommandLine extends CommandLine {
         }
     }
 
+    /* ... */
+
     static void typeCheckSystem(EASystem sys) {
         typeCheckSystem(sys, false);
     }
@@ -876,8 +890,6 @@ public class EACommandLine extends CommandLine {
                     .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
         }
     }
-
-    /* ... */
 
     static void typeAndRun(EASystem sys, int steps) {
         typeAndRun(sys, steps, false);
@@ -901,6 +913,83 @@ public class EACommandLine extends CommandLine {
             }
             typeCheckSystem(sys, debug);
             pids = sys.canStep();
+        }
+
+        if (!debug) {
+            System.out.println();
+            System.out.println("Result steps(" + steps + "):");
+            System.out.println(sys);
+        }
+
+        if (steps == -1) {
+            if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
+                throw new RuntimeException("Stuck: " + sys);
+            }
+        } else if (rem != 0) {
+            throw new RuntimeException("Stuck rem=" + rem + ": " + sys);
+        }
+    }
+
+    /* ... */
+
+    static void typeCheckSystem(EAAsyncSystem sys) {
+        typeCheckSystem(sys, false);
+    }
+
+    static void typeCheckSystem(EAAsyncSystem sys, boolean debug) {
+        Either<Exception, List<Tree<String>>> t = sys.type();
+        if (t.isLeft()) {
+            throw new RuntimeException(t.getLeft());
+        }
+        if (debug) {
+            System.out.println("Type checked system:");
+            System.out.println(t.getRight().stream()
+                    .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
+        }
+    }
+
+    static void typeAndRun(EAAsyncSystem sys, int steps) {
+        typeAndRun(sys, steps, false);
+    }
+
+    // steps -1 for unbounded
+    static void typeAndRun(EAAsyncSystem sys, int steps, boolean debug) {
+        System.out.println("\nInitial system:\n" + sys);
+        typeCheckSystem(sys, debug);
+
+        int rem = steps;
+        Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pids = sys.getSteppable();
+        for (; !pids.isEmpty() && rem != 0; pids = sys.getSteppable()) {
+
+            Map.Entry<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pid =
+                    pids.entrySet().iterator().next();  // FIXME HERE HERE first pid -> all
+            EAPid p = pid.getKey();
+            Map.Entry<EASid, Either<EAComp, EAMsg>> sid = pid.getValue().entrySet().iterator().next();
+            EASid s = sid.getKey();
+            Either<EAComp, EAMsg> a = sid.getValue();
+            Either<Exception, Pair<EAAsyncSystem, Tree<String>>> step;
+            if (a.isLeft()) {
+                EAComp e = a.getLeft();
+                System.out.println("\nStepping " + s + "@" + p + ": " + e);
+                step = sys.step(p, s, e);
+            } else {
+                EAMsg m = a.getRight();
+                System.out.println("\nReacting " + s + "@" + p + ": " + m);
+                step = sys.react(p, s, m);
+            }
+            if (step.isLeft()) {
+                throw new RuntimeException(step.getLeft());
+            }
+            Pair<EAAsyncSystem, Tree<String>> get = step.getRight();
+
+            sys = get.left;
+            if (debug) {
+                System.out.println(sys);
+                System.out.println("  Reduced one step by:");
+                System.out.println(get.right.toString("    "));
+            }
+            typeCheckSystem(sys, debug);
+            rem--;
         }
 
         if (!debug) {

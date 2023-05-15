@@ -20,7 +20,7 @@ public class EARuntimeFactory {
     protected EARuntimeFactory() {
     }
 
-    public EAPid pid(@NotNull String id) {
+    public EAPid pid(String id) {
         return new EAPid(id);
     }
 
@@ -39,14 +39,18 @@ public class EARuntimeFactory {
         return EATIdle.IDLE;
     }
 
-    public EATActive activeThread(
-            @NotNull EAComp expr, @NotNull EASid sid, @NotNull Role role) {
+    public EATActive activeThread(EAComp expr, EASid sid, Role role) {
         return new EATActive(expr, sid, role);
     }
 
-    public EASystem system(@NotNull LTypeFactory lf,
-                           @NotNull Delta annots,
-                           @NotNull LinkedHashMap<EAPid, EACActor> cs) {
+    public EASystem system(LTypeFactory lf, Delta annots,
+                           LinkedHashMap<EAPid, EACActor> cs) {
         return new EASystem(lf, annots, cs);
+    }
+
+    public EAAsyncSystem asyncSystem(LTypeFactory lf, Delta annots,
+                                     LinkedHashMap<EAPid, EACActor> cs,
+                                     LinkedHashMap<EASid, EAGlobalQueue> queues) {
+        return new EAAsyncSystem(lf, annots, cs, queues);
     }
 }

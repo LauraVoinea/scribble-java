@@ -2,6 +2,7 @@ package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAUtil;
 
 import java.util.Collections;
@@ -51,7 +52,7 @@ public class EAGlobalQueue {
 
     @Override
     public String toString() {
-        return this.ms.toString();
+        return this.sid.toString() + ConsoleColors.TRIANGLERIGHT + this.ms;
     }
 
     /* equals, hashCode */

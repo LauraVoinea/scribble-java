@@ -193,6 +193,7 @@ public class EACActor implements EAConfig {
         }
     }
 
+    // ...should refactor so c2 below is `this` (not the sender)
     public Pair<EAPid, EACActor> receive(EASystem sys, EATActive t, EAMSend cast) {
         Optional<Map.Entry<EAPid, EACActor>> fst =
                 sys.actors.entrySet().stream().filter(x ->
@@ -242,7 +243,7 @@ public class EACActor implements EAConfig {
                 EAGlobalQueue app = queue.append(new EAMsg(active.role, cast.dst, cast.op, cast.val));
                 EATActive res = RF.activeThread(x.left, active.sid, active.role);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
-                        (LinkedHashMap<Pair<EASid, Role>, EAEHandlers>) this.sigma;
+                        EAUtil.copyOf(this.sigma);
                 EACActor succ = RF.config(this.pid, res, sigma, this.state);
                 return Triple.of(succ, app, Tree.of(
                         toStepJudge1String("[E-Send]", this, queue, succ, app),
@@ -283,7 +284,7 @@ public class EACActor implements EAConfig {
                 return Either.left(newStuck0("return not ground", this));
             }
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
-                    (LinkedHashMap<Pair<EASid, Role>, EAEHandlers>) this.sigma;
+                    EAUtil.copyOf(this.sigma);
             EACActor res = RF.config(this.pid, RF.idle(), sigma, this.state);
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Reset]", this, res)
@@ -311,7 +312,7 @@ public class EACActor implements EAConfig {
             return step.mapRight(x -> {
                 EATActive res = RF.activeThread(x.left, active.sid, active.role);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
-                        (LinkedHashMap<Pair<EASid, Role>, EAEHandlers>) this.sigma;
+                        EAUtil.copyOf(this.sigma);
                 EACActor succ = RF.config(this.pid, res, sigma, this.state);
                 return Pair.of(succ, Tree.of(
                         toStepJudge0String("[E-Lift]", this, succ),
@@ -329,9 +330,7 @@ public class EACActor implements EAConfig {
     }
 
     public static String toStepJudge0String(String tag, EACActor C1, EACActor C2) {
-        return tag + "  " + C1 + " " + ConsoleColors.DOUBLEVLINE + " "
-                + ConsoleColors.RIGHTARROW + " " + C2 + " "
-                + ConsoleColors.DOUBLEVLINE;
+        return tag + "  " + C1 + " " + ConsoleColors.RIGHTARROW + " " + C2;
     }
 
     // Pre: m \in queue
@@ -360,11 +359,12 @@ public class EACActor implements EAConfig {
                     queue));
         }
         EAHandler h = V.Hs.get(m.op);
+        EAComp subs = h.expr.subs(Map.of(h.var, m.data, h.svar, this.state));
 
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
         sigma1.remove(k);
         //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
-        EATActive res = RF.activeThread(h.expr, k.left, k.right);
+        EATActive res = RF.activeThread(subs, k.left, k.right);
         EACActor succ = RF.config(this.pid, res, sigma1, this.state);
 
         EAGlobalQueue queue1 = queue.remove(m);
@@ -375,7 +375,7 @@ public class EACActor implements EAConfig {
 
     // EAComp is async "candidate subexpr" (under some context) -- max one because FG-CBV?
     // EAMsg is for receives
-    public Either<EAComp, EAMsg> getStepSubexprsE(EAGlobalQueue queue) {
+    public Optional<Either<EAComp, EAMsg>> getStepSubexprsE(EAGlobalQueue queue) {
         // idle thread
         if (this.T.isIdle()) {
             Set<EAMsg> ms = EAUtil.setOf();
@@ -390,19 +390,24 @@ public class EACActor implements EAConfig {
             if (ms.size() > 1) {
                 throw new RuntimeException("Shouldn't get in here? " + ms);
             }
-            return Either.right(ms.iterator().next());
+            return ms.isEmpty()
+                    ? Optional.empty()
+                    : Optional.of(Either.right(ms.iterator().next()));
         }
 
         EATActive active = (EATActive) this.T;
+        if (!active.sid.equals(queue.sid)) {
+            return Optional.empty();
+        }
 
         // Q context -- n.b. FG-CBV, only one case applies (deterministic)
         if (active.comp.isGroundValueReturn()) {
-            return Either.left(active.comp);
+            return Optional.of(Either.left(active.comp));
         }
 
         // E context -- n.b. FG-CBV, only one case applies (deterministic)
         EAComp e = active.comp.getStepSubexprE();
-        return Either.left(e);
+        return Optional.of(Either.left(e));
 
         // M context
         // TODO -- Also EATActive, or another? -- another: with contextM that uses contextE for its expr
