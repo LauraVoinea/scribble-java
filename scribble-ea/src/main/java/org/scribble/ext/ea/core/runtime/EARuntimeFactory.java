@@ -29,7 +29,7 @@ public class EARuntimeFactory {
     }
 
     public EACActor config(EAPid pid, EAThread T,
-                           Map<Pair<EASid, Role>, EAEHandlers> sigma,
+                           LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma,
                            //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
                            EAExpr state) {
         return new EACActor(pid, T, sigma, state);

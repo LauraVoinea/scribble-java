@@ -30,6 +30,8 @@ public class EACActor implements EAConfig {
 
     @NotNull public final EAPid pid;  // No longer in formal defs but useful in implementation
     @NotNull public final EAThread T;
+
+    // Unmod LinkedHashMap -- TODO factor out Sigma class
     @NotNull public final Map<Pair<EASid, Role>, EAEHandlers> sigma;  // !!! handlers specifically
 
     @NotNull public EAExpr state;  // Pre: ground
@@ -37,13 +39,13 @@ public class EACActor implements EAConfig {
 
     public EACActor(@NotNull EAPid pid,
                     @NotNull EAThread T,
-                    @NotNull Map<Pair<EASid, Role>, EAEHandlers> handlers,
+                    @NotNull LinkedHashMap<Pair<EASid, Role>, EAEHandlers> handlers,
                     //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
                     @NotNull EAExpr state) {
 
-        if (!(handlers instanceof LinkedHashMap)) {
+        /*if (!(handlers instanceof LinkedHashMap)) {
             throw new RuntimeException("Required LinkedHashMap for handlers");
-        }
+        }*/
 
         this.pid = pid;
         this.T = T;
@@ -224,6 +226,7 @@ public class EACActor implements EAConfig {
     /* ... */
 
     // Reduction without labels (so no explicit action to "direct" eval -- usually more convenient)
+    // [E-Send]
     public Either<Exception, Triple<EACActor, EAGlobalQueue, Tree<String>>> stepAsync1(
             EAComp e, EAGlobalQueue queue) {
 
@@ -238,7 +241,9 @@ public class EACActor implements EAConfig {
                 EAMSend cast = (EAMSend) e;
                 EAGlobalQueue app = queue.append(new EAMsg(active.role, cast.dst, cast.op, cast.val));
                 EATActive res = RF.activeThread(x.left, active.sid, active.role);
-                EACActor succ = RF.config(this.pid, res, this.sigma, this.state);
+                LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
+                        (LinkedHashMap<Pair<EASid, Role>, EAEHandlers>) this.sigma;
+                EACActor succ = RF.config(this.pid, res, sigma, this.state);
                 return Triple.of(succ, app, Tree.of(
                         toStepJudge1String("[E-Send]", this, queue, succ, app),
                         x.right));
@@ -262,6 +267,7 @@ public class EACActor implements EAConfig {
     }
 
     // No queue -- also context squashed
+    // [E-Reset], [E-Suspend], [E-Lift]
     public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync0(EAComp e) {
 
         if (!(this.T instanceof EATActive)) {
@@ -276,7 +282,9 @@ public class EACActor implements EAConfig {
             if (!e.isGroundValueReturn()) {
                 return Either.left(newStuck0("return not ground", this));
             }
-            EACActor res = RF.config(this.pid, RF.idle(), this.sigma, this.state);
+            LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
+                    (LinkedHashMap<Pair<EASid, Role>, EAEHandlers>) this.sigma;
+            EACActor res = RF.config(this.pid, RF.idle(), sigma, this.state);
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Reset]", this, res)
             )));
@@ -290,7 +298,7 @@ public class EACActor implements EAConfig {
                 return Either.left(newStuck0("Invalid value for suspend", this));
             }
             EAEHandlers h = (EAEHandlers) cast.val;
-            Map<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
+            LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
             sigma1.put(Pair.of(active.sid, active.role), h);
             //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
             EACActor res = RF.config(this.pid, RF.idle(), sigma1, cast.sval);
@@ -302,7 +310,9 @@ public class EACActor implements EAConfig {
             Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();  // checks ground
             return step.mapRight(x -> {
                 EATActive res = RF.activeThread(x.left, active.sid, active.role);
-                EACActor succ = RF.config(this.pid, res, this.sigma, this.state);
+                LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
+                        (LinkedHashMap<Pair<EASid, Role>, EAEHandlers>) this.sigma;
+                EACActor succ = RF.config(this.pid, res, sigma, this.state);
                 return Pair.of(succ, Tree.of(
                         toStepJudge0String("[E-Lift]", this, succ),
                         x.right
@@ -351,7 +361,7 @@ public class EACActor implements EAConfig {
         }
         EAHandler h = V.Hs.get(m.op);
 
-        Map<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
+        LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
         sigma1.remove(k);
         //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
         EATActive res = RF.activeThread(h.expr, k.left, k.right);
@@ -363,18 +373,24 @@ public class EACActor implements EAConfig {
         )));
     }
 
-    // EAComp is "candidate subexpr" (under some context) -- max one because FG-CBV?
-// EAMsg is for receives
-    public Either<EAComp, Set<EAMsg>> getStepSubexprsE(EAGlobalQueue queue) {
+    // EAComp is async "candidate subexpr" (under some context) -- max one because FG-CBV?
+    // EAMsg is for receives
+    public Either<EAComp, EAMsg> getStepSubexprsE(EAGlobalQueue queue) {
         // idle thread
         if (this.T.isIdle()) {
             Set<EAMsg> ms = EAUtil.setOf();
             for (Map.Entry<Pair<EASid, Role>, EAEHandlers> e : this.sigma.entrySet()) {
                 Pair<EASid, Role> k = e.getKey();
+                if (!k.left.equals(queue.sid)) {
+                    continue;
+                }
                 EAEHandlers v = e.getValue();
                 queue.getFirst(v.role, k.right).ifPresent(ms::add);
             }
-            return Either.right(ms);
+            if (ms.size() > 1) {
+                throw new RuntimeException("Shouldn't get in here? " + ms);
+            }
+            return Either.right(ms.iterator().next());
         }
 
         EATActive active = (EATActive) this.T;

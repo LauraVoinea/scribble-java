@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class EAGlobalQueue {
 
-    @NotNull public final EASid sid;
+    @NotNull public final EASid sid;  // !!! n.b. below List is the actual \delta
     @NotNull public final List<EAMsg> ms;
 
     public EAGlobalQueue(EASid sid) {

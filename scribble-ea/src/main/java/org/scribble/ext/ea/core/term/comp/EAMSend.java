@@ -3,8 +3,6 @@ package org.scribble.ext.ea.core.term.comp;
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.ea.core.runtime.EAGlobalQueue;
-import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
@@ -23,7 +21,10 @@ import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class EAMSend implements EAComp {
 
@@ -100,7 +101,7 @@ public class EAMSend implements EAComp {
 
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
-        return Either.left(new Exception("Stuck: " + this));
+        return Either.left(newStuck(this.toString()));
     }
 
     /*@Override
@@ -115,6 +116,9 @@ public class EAMSend implements EAComp {
 
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
+        if (!this.val.isValue()) {  // basically checks isGround
+            return Either.left(newStuck("not value: " + this));
+        }
         return Either.right(Pair.of(
                 EATermFactory.factory.returnn(EATermFactory.factory.unit()),
                 Tree.of("[..E-Ctx-Leaf-Send..]")  // cf. lift/context -> beta rules

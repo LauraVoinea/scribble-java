@@ -60,10 +60,13 @@ public interface EAComp extends EATerm {
     Either<Exception, Pair<EAComp, Tree<String>>> contextStepE();
     // ...separate above to contextStepE-Leaf(no Tree<String>) and Lift(Tree<String> for beta)
 
+    default Exception newStuck(String txt) {
+        return new Exception("Stuck: " + txt);
+    }
 
-    /*default String toConfigRed1JudgeString(EACActor left, EACActor right) {
-        return left ...
-    }*/
+    default String toStepEJudgeString(String tag, EAComp e1, EAComp e2) {
+        return tag + "  " + e1 + " " + ConsoleColors.RIGHTARROW + " " + e2;
+    }
 
     /* Aux */
 

@@ -95,7 +95,7 @@ public class EAMIf implements EAComp {
         Either<Exception, Pair<EAExpr, Tree<String>>> eval = this.cond.eval();
         return eval.mapRight(x -> Pair.of(
                 EATermFactory.factory.iff(x.left, this.then, this.elsee),
-                new Tree<>("[..B-Ctx..]", x.right)  // XXX FIXME refactor binop to Comp, only Let should be context
+                new Tree<>("[..B-Ctx..]", x.right)  // XXX FIXME refactor binop to Comp, only Let should be context  // !!! deprecate (only Let should be E-Context)
         ));
     }
 
