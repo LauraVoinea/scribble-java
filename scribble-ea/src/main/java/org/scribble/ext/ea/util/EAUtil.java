@@ -1,6 +1,7 @@
 package org.scribble.ext.ea.util;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EAUtil {
 
@@ -102,5 +103,25 @@ public class EAUtil {
 
     public static <K, V> Map<K, V> umodCopyOf(Map<K, V> m) {
         return umod(copyOf(m));
+    }
+
+    /* ... */
+
+    public static <K, V> LinkedHashMap<K, List<V>> copyOfList(Map<K, List<V>> m) {
+        return m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> EAUtil.copyOf(x.getValue()),
+                (x, y) -> {
+                    throw new RuntimeException("Key conflict: " + x + ", " + y);
+                },
+                LinkedHashMap::new
+        ));
+    }
+
+    public static <K, V> Map<K, List<V>> umodCopyOfList(Map<K, List<V>> m) {
+        return EAUtil.umod(m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> EAUtil.umodCopyOf(x.getValue())
+        )));
     }
 }

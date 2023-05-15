@@ -7,6 +7,7 @@ import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.comp.EAComp;
+import org.scribble.ext.ea.core.type.session.local.AsyncDelta;
 import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.util.Pair;
 
@@ -50,7 +51,8 @@ public class EARuntimeFactory {
 
     public EAAsyncSystem asyncSystem(LTypeFactory lf, Delta annots,
                                      LinkedHashMap<EAPid, EACActor> cs,
-                                     LinkedHashMap<EASid, EAGlobalQueue> queues) {
-        return new EAAsyncSystem(lf, annots, cs, queues);
+                                     LinkedHashMap<EASid, EAGlobalQueue> queues,
+                                     AsyncDelta adelta) {
+        return new EAAsyncSystem(lf, annots, cs, queues, adelta);
     }
 }

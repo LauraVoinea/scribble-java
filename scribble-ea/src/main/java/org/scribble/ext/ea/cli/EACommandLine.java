@@ -31,6 +31,7 @@ import org.scribble.ext.ea.parser.antlr.EACalculusParser;
 import org.scribble.ext.ea.util.EAUtil;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
+import org.scribble.ext.ea.util.Triple;
 import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
@@ -771,7 +772,8 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        EAAsyncSystem sys = RF.asyncSystem(LF, delta, cs, queues);
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, delta, cs, queues, adelta);
 
         typeAndRun(sys, -1, true);
     }
@@ -807,9 +809,11 @@ public class EACommandLine extends CommandLine {
         LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
         LinkedHashMap<Pair<EASid, Role>, EALType> env = newLinkedMap(sA, out1, sB, in1);
 
+        Delta delta = new Delta(env);
         //EASystem sys = RF.system(LF, new Delta(env), cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        EAAsyncSystem sys = RF.asyncSystem(LF, new Delta(env), cs, queues);
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, delta, cs, queues, adelta);
 
         //typeAndRun(sys, -1);
         typeAndRun(sys, -1, true);
@@ -967,7 +971,7 @@ public class EACommandLine extends CommandLine {
             Map.Entry<EASid, Either<EAComp, EAMsg>> sid = pid.getValue().entrySet().iterator().next();
             EASid s = sid.getKey();
             Either<EAComp, EAMsg> a = sid.getValue();
-            Either<Exception, Pair<EAAsyncSystem, Tree<String>>> step;
+            Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step;
             if (a.isLeft()) {
                 EAComp e = a.getLeft();
                 System.out.println("\nStepping " + s + "@" + p + ": " + e);
@@ -980,13 +984,17 @@ public class EACommandLine extends CommandLine {
             if (step.isLeft()) {
                 throw new RuntimeException(step.getLeft());
             }
-            Pair<EAAsyncSystem, Tree<String>> get = step.getRight();
+            Triple<EAAsyncSystem, Tree<String>, Tree<String>> get = step.getRight();
 
             sys = get.left;
             if (debug) {
                 System.out.println(sys);
                 System.out.println("  Reduced one step by:");
-                System.out.println(get.right.toString("    "));
+                System.out.println(get.mid.toString("    "));
+                if (get.right != null) {  // XXX TODO
+                    System.out.println("  Delta stepped by:");
+                    System.out.println(get.right.toString("    "));
+                }
             }
             typeCheckSystem(sys, debug);
             rem--;
