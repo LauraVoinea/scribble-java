@@ -261,4 +261,26 @@ public class EAAsyncSystem {
                 + "\n" + indent + " " + this.adelta
                 + "]";
     }
+
+    /* equals/canEquals, hashCode */
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EAAsyncSystem them = (EAAsyncSystem) o;
+        return this.adelta.equals(them.adelta)
+                && this.actors.equals(them.actors)
+                && this.queues.equals(them.queues);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 71809;
+        hash = 31 * hash + this.adelta.hashCode();
+        hash = 31 * hash + this.actors.hashCode();
+        hash = 31 * hash + this.queues.hashCode();
+        return hash;
+
+    }
 }

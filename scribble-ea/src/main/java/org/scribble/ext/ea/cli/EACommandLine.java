@@ -117,8 +117,8 @@ public class EACommandLine extends CommandLine {
 
         Map<String, Function<Boolean, Optional<Exception>>> tests = EAUtil.mapOf();
         tests.put("ex1", EACommandLine::ex1);
-        tests.put("ex2", EACommandLine::ex2);
-        //tests.put("ex4", EACommandLine::ex4);  // FIXME rec bounding
+        //tests.put("ex2", EACommandLine::ex2);
+        tests.put("ex4", EACommandLine::ex4);  // FIXME rec bounding
 
         for (Map.Entry<String, Function<Boolean, Optional<Exception>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -753,7 +753,7 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, 10, debug);
+        return typeAndRunD(sys, debug, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
     private static Optional<Exception> ex2(boolean debug) {
@@ -792,7 +792,7 @@ public class EACommandLine extends CommandLine {
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
         //typeAndRun(sys, -1, true);
-        return typeAndRunD(sys, -1, true);
+        return typeAndRunD(sys, true, new Bounds(-1));
     }
     //*/
 
@@ -841,7 +841,7 @@ public class EACommandLine extends CommandLine {
 
         //typeAndRun(sys, -1);
         //typeAndRun(sys, -1, true);
-        return typeAndRunD(sys, -1, debug);
+        return typeAndRunD(sys, debug, new Bounds(-1));
     }
     //*/
 
@@ -993,26 +993,45 @@ public class EACommandLine extends CommandLine {
         return Optional.empty();
     }
 
-    static int state = 0;
+    //static int state = 0;
+
+    static class Bounds {
+
+        public final int maxDepth;  // -1 for unbounded
+        private int state = 0;
+        private final Set<EAAsyncSystem> seen = EAUtil.setOf();  // TODO make state id map
+
+        public Bounds(int maxDepth) { this.maxDepth = maxDepth; }
+
+        public int getState() { return state++; }
+
+        public void addSys(EAAsyncSystem sys) { this.seen.add(sys); }
+
+        public boolean isDone(int depth, EAAsyncSystem sys) {
+            return (this.maxDepth >= 0 && depth >= this.maxDepth) || this.seen.contains(sys);
+        }
+    }
 
     // max -1 for unbounded
-    static Optional<Exception> typeAndRunD(EAAsyncSystem sys, int max, boolean debug) {
-        state = 0;
-        System.out.println("\n(" + state + ") Initial system:\n" + sys);
-        return typeAndRunDAux(sys, 0, max, debug, "");
+    static Optional<Exception> typeAndRunD(EAAsyncSystem sys, boolean debug, Bounds bounds) {
+        //state = 0;
+        System.out.println("\n(" + bounds.state + ") Initial system:\n" + sys);
+        return typeAndRunDAux(sys, 0, debug, "", bounds);
     }
 
     static Optional<Exception> typeAndRunDAux(
-            EAAsyncSystem sys, int depth, int max, boolean debug, String indent) {
+            EAAsyncSystem sys, int depth, boolean debug, String indent, Bounds bounds) {
 
         Optional<Exception> opt = typeCheckSystem(sys, debug, indent);
         if (opt.isPresent()) {
             return opt;
         }
 
-        if (max >= 0 && depth >= max) {
+        if (bounds.isDone(depth, sys)) {
+            System.out.println(indent + "Pruned: " + depth);
             return Optional.empty();
         }
+        bounds.addSys(sys);
 
         Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pids = sys.getSteppable();
         System.out.println(indent + "Steppable: " + pids);
@@ -1029,7 +1048,7 @@ public class EACommandLine extends CommandLine {
             return Optional.empty();
         }
 
-        int stmp = state;
+        int stmp = bounds.state;
         int i = 0;
         for (Map.Entry<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pid : pids.entrySet()) {
             EAPid p = pid.getKey();
@@ -1051,13 +1070,13 @@ public class EACommandLine extends CommandLine {
                 throw new RuntimeException(step.getLeft());
             }
             Triple<EAAsyncSystem, Tree<String>, Tree<String>> get = step.getRight();
-            state++;
+            bounds.state++;
             i++;
 
             String indent1 = incIndent(indent);
             EAAsyncSystem sys1 = get.left;
             if (debug) {
-                System.out.println(indent1 + "(" + state + ")\n" + sys1.toString(indent1));
+                System.out.println(indent1 + "(" + bounds.state + ")\n" + sys1.toString(indent1));
                 System.out.println(indent1 + "Reduced one step by:");
                 System.out.println(get.mid.toString(indent1));
                 if (get.right != null) {  // XXX TODO
@@ -1065,7 +1084,7 @@ public class EACommandLine extends CommandLine {
                     System.out.println(get.right.toString(indent1));
                 }
             }
-            Optional<Exception> run = typeAndRunDAux(sys1, depth + 1, max, debug, incIndent(indent));
+            Optional<Exception> run = typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds);
             if (run.isPresent()) {
                 return run;
             }

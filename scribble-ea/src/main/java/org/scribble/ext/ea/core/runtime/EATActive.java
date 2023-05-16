@@ -119,8 +119,9 @@ public class EATActive implements EAThread {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EATActive eaVar = (EATActive) o;
-        return eaVar.canEquals(this);
+        EATActive them = (EATActive) o;
+        return this.canEquals(this) && this.comp.equals(them.comp)
+                && this.sid.equals(them.sid) && this.role.equals(them.role);
     }
 
     @Override
