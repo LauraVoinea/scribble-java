@@ -28,14 +28,12 @@ import org.scribble.ext.ea.core.type.value.EAVIntType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
 import org.scribble.ext.ea.parser.antlr.EACalculusParser;
-import org.scribble.ext.ea.util.EAUtil;
-import org.scribble.ext.ea.util.Either;
-import org.scribble.ext.ea.util.Tree;
-import org.scribble.ext.ea.util.Triple;
+import org.scribble.ext.ea.util.*;
 import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -107,11 +105,28 @@ public class EACommandLine extends CommandLine {
         //testParser();
     }
 
+    static String log(String log, String name, boolean pass) {
+        return log + "\n" + name + (pass ? " Pass" : ConsoleColors.colour(ConsoleColors.RED, " FAIL"));
+    }
+
     private static void tests() {
 
         //System.out.println(parseV("2 + 3"));
 
-        ex1();
+        String log = "";
+
+        Map<String, Function<Boolean, Optional<Exception>>> tests = EAUtil.mapOf();
+        tests.put("ex1", EACommandLine::ex1);
+        tests.put("ex2", EACommandLine::ex2);
+
+        for (Map.Entry<String, Function<Boolean, Optional<Exception>>> e : tests.entrySet()) {
+            String name = e.getKey();
+            log = log(log, name, runTest(name, e.getValue(), true));
+        }
+
+        System.out.println("\nSummary:" + log);
+
+        /*ex1();
         //ex2();
 
         /*ex4();
@@ -735,8 +750,8 @@ public class EACommandLine extends CommandLine {
         typeAndRun(sys, 100);
     }
 
-    private static void ex2() {
-        System.out.println("\n--ex2:");
+    private static Optional<Exception> ex2(boolean debug) {
+        //System.out.println("\n--ex2:");
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).B!{l2(1).end}}");
         EAMLet let = (EAMLet) parseM("let x: 1 <= B!l1(()) in B!l2(())");
@@ -752,18 +767,13 @@ public class EACommandLine extends CommandLine {
         // TODO factor out a Sigma class, e.g., for typing
         EACActor cA = RF.config(p1, RF.activeThread(let, s, A), EMPTY_SIGMA, MF.unit());
         EACActor cB = RF.config(p2, idle, newLinkedMap(sB, hsB1), MF.intt(0));  // B step after active suspend
-        System.out.println("cA = " + cA);
-        System.out.println("cB = " + cB);
+        /*System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);*/
 
         // ----
 
-        /*System.out.println("Typing eA: " + out1 + " ,, " + let.type(new GammaState(EAVUnitType.UNIT), out1));
-        LinkedHashMap<EAName, EAVType> map = newLinkedMap(x, TF.val.unit());
-        GammaState gamma = new GammaState(map, EMPTY_SIGMA, EAVIntType.INT);
-        System.out.println("Typing hB: " + hsB1.type(gamma));*/
-
-        typeCheckActor(cA, new Delta(newLinkedMap(sA, out1)));
-        typeCheckActor(cB, new Delta(newLinkedMap(sB, in1)));
+        /*typeCheckActor(cA, new Delta(newLinkedMap(sA, out1)));
+        typeCheckActor(cB, new Delta(newLinkedMap(sB, in1)));*/
 
         // ----
 
@@ -776,13 +786,24 @@ public class EACommandLine extends CommandLine {
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
         //typeAndRun(sys, -1, true);
-        typeAndRunD(sys, -1, true);
+        return typeAndRunD(sys, -1, true);
     }
     //*/
 
+    private static boolean runTest(
+            String name, Function<Boolean, Optional<Exception>> test, boolean debug) {
+        System.out.println("\n-- " + name + ":");
+        Optional<Exception> apply = test.apply(debug);
+        if (apply.isPresent()) {
+            System.err.println(apply.get());
+            return false;
+        }
+        return true;
+    }
+
     //*
-    private static void ex1() {
-        System.out.println("\n---ex1:");
+    private static Optional<Exception> ex1(boolean debug) {
+        //System.out.println("\n---ex1:");
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Int).end}");
         //EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");  // TODO refactor binop
@@ -793,17 +814,13 @@ public class EACommandLine extends CommandLine {
 
         EACActor cA = RF.config(p1, RF.activeThread(sendAB, s, A), EMPTY_SIGMA, MF.unit());
         EACActor cB = RF.config(p2, RF.idle(), newLinkedMap(sB, hsB), MF.unit());  // B step after active suspend
-        System.out.println("cA: " + cA);
-        System.out.println("cB: " + cB);
+        /*System.out.println("cA: " + cA);
+        System.out.println("cB: " + cB);*/
 
         // ---
 
-        /*typeCheckComp(new GammaState(EAVUnitType.UNIT), sendAB, out1);
-        GammaState gamma = new GammaState(newLinkedMap(x, TF.val.unit()), new LinkedHashMap<>(), EAVUnitType.UNIT);
-        typeCheckExpr(gamma, hsB, TF.val.handlers(in1, TF.val.unit()));*/
-
-        typeCheckActor(cA, new Delta(newLinkedMap(sA, out1)));
-        typeCheckActor(cB, new Delta(newLinkedMap(sB, in1)));
+        /*typeCheckActor(cA, new Delta(newLinkedMap(sA, out1)));
+        typeCheckActor(cB, new Delta(newLinkedMap(sB, in1)));*/
 
         // ---
 
@@ -818,7 +835,7 @@ public class EACommandLine extends CommandLine {
 
         //typeAndRun(sys, -1);
         //typeAndRun(sys, -1, true);
-        typeAndRunD(sys, -1, true);
+        return typeAndRunD(sys, -1, debug);
     }
     //*/
 
@@ -953,35 +970,42 @@ public class EACommandLine extends CommandLine {
         typeCheckSystem(sys, debug, "");
     }
 
-    static void typeCheckSystem(EAAsyncSystem sys, boolean debug, String indent) {
+    static Optional<Exception> typeCheckSystem(
+            EAAsyncSystem sys, boolean debug, String indent) {
         if (debug) {
             System.out.println(indent + "Type checking system:");
         }
         Either<Exception, List<Tree<String>>> t = sys.type();
         if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft());
+            return Optional.of(t.getLeft());
         }
         if (debug) {
             System.out.println(t.getRight().stream()
                     .map(x -> x.toString(indent + "  "))
                     .collect(Collectors.joining("\n\n")));
         }
+        return Optional.empty();
     }
 
     static int state = 0;
 
     // max -1 for unbounded
-    static void typeAndRunD(EAAsyncSystem sys, int max, boolean debug) {
+    static Optional<Exception> typeAndRunD(EAAsyncSystem sys, int max, boolean debug) {
         state = 0;
         System.out.println("\n(" + state + ") Initial system:\n" + sys);
-        typeAndRunDAux(sys, 0, max, debug, "");
+        return typeAndRunDAux(sys, 0, max, debug, "");
     }
 
-    static void typeAndRunDAux(EAAsyncSystem sys, int depth, int max, boolean debug, String indent) {
-        typeCheckSystem(sys, debug, indent);
+    static Optional<Exception> typeAndRunDAux(
+            EAAsyncSystem sys, int depth, int max, boolean debug, String indent) {
+
+        Optional<Exception> opt = typeCheckSystem(sys, debug, indent);
+        if (opt.isPresent()) {
+            return opt;
+        }
 
         if (max >= 0 && depth >= max) {
-            return;
+            return Optional.empty();
         }
 
         Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pids = sys.getSteppable();
@@ -994,8 +1018,9 @@ public class EACommandLine extends CommandLine {
                 System.out.println(sys);
             }
             if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
-                throw new RuntimeException(indent + "Stuck: " + sys);
+                return Optional.of(new Exception(indent + "Stuck: " + sys));
             }
+            return Optional.empty();
         }
 
         int stmp = state;
@@ -1021,6 +1046,7 @@ public class EACommandLine extends CommandLine {
             }
             Triple<EAAsyncSystem, Tree<String>, Tree<String>> get = step.getRight();
             state++;
+            i++;
 
             String indent1 = incIndent(indent);
             EAAsyncSystem sys1 = get.left;
@@ -1033,9 +1059,12 @@ public class EACommandLine extends CommandLine {
                     System.out.println(get.right.toString(indent1));
                 }
             }
-            typeAndRunDAux(sys1, depth + 1, max, debug, incIndent(indent));
-            i++;
+            Optional<Exception> run = typeAndRunDAux(sys1, depth + 1, max, debug, incIndent(indent));
+            if (run.isPresent()) {
+                return run;
+            }
         }
+        return Optional.empty();
     }
 
     static String incIndent(String m) {

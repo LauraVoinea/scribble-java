@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 // Move to parsing
-class EAASTBuilder {
+public class EAASTBuilder {
     static EATermFactory pf = EATermFactory.factory;
     static EARuntimeFactory rf = EARuntimeFactory.factory;
     static EATypeFactory tf = EATypeFactory.factory;
