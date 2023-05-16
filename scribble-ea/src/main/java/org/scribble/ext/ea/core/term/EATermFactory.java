@@ -53,8 +53,8 @@ public class EATermFactory {
         return new EAEBoolVal(val);
     }
 
-    public EAEBinOp binop(@NotNull EAOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
-        return new EAEBinOp(op, left, right);
+    public EAMBinOp binop(@NotNull EAOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
+        return new EAMBinOp(op, left, right);
     }
 
 

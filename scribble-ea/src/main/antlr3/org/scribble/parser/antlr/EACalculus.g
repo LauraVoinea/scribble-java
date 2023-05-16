@@ -50,8 +50,8 @@ tokens
    */
 
    // Higher is higher prec
-   V_PLUS;
-   V_COMP;
+   M_PLUS;
+   M_COMP;
 
    V_UNIT;
    V_HANDLERS;
@@ -283,7 +283,7 @@ start:
 
 // Parser rule non-terms must be lower case
 nV:
-    nVarith (options{greedy=true;}:  //https://stackoverflow.com/questions/7954142/antlr-decision-can-match-input-using-multiple-alternatives
+/*    nVarith (options{greedy=true;}:  //https://stackoverflow.com/questions/7954142/antlr-decision-can-match-input-using-multiple-alternatives
     '<' nVarith)*
 ->
     ^(V_COMP nVarith+)
@@ -297,6 +297,7 @@ nVarith:
 ;
 
 nVprimary:
+*/
     '()'
 ->
     ^(V_UNIT)
@@ -378,6 +379,14 @@ nM:
     '(' nM ')'
 ->
     nM
+|
+    '<' nV nV
+->
+    ^(M_COMP nV nV)
+|
+    '+' nV nV
+->
+    ^(M_PLUS nV nV)
 |
     LET_KW var ':' type '<=' nM IN_KW nM
 ->

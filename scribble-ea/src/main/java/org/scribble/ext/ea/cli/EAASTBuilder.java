@@ -45,6 +45,10 @@ public class EAASTBuilder {
                 return visitApp(n);
             case "M_IF":
                 return visitIf(n);
+            case "M_PLUS":
+                return visitPlus(n);
+            case "M_COMP":
+                return visitComp(n);
         }
         throw new RuntimeException("Unknown node kind: " + n.getText());
     }
@@ -120,32 +124,27 @@ public class EAASTBuilder {
                 EAComp body = visitM((CommonTree) n.getChild(6));
                 return pf.rec(f, var, varType, body, S, T, B);
             }
-            case "V_PLUS":
-                return visitPlus(n);
-            case "V_COMP":
-                return visitComp(n);
             default:
                 throw new RuntimeException("Unknown V: " + n);
         }
     }
 
-    // FIXME other comp ops
-    public EAExpr visitComp(CommonTree n) {
+    // TODO other comp ops
+    public EAComp visitComp(CommonTree n) {
         List<Object> cs = n.getChildren();
-        EAExpr curr = visitV((CommonTree) cs.get(0));
-        for (int i = 1; i < cs.size(); i++) {
-            curr = EATermFactory.factory.binop(EAOp.LT, curr, visitV((CommonTree) cs.get(i)));
-        }
-        return curr;
+        EAExpr v = visitV((CommonTree) cs.get(0));
+        EAExpr w = visitV((CommonTree) cs.get(1));
+        return EATermFactory.factory.binop(EAOp.LT, v, w);
     }
 
-    public EAExpr visitPlus(CommonTree n) {
+    public EAComp visitPlus(CommonTree n) {
         List<Object> cs = n.getChildren();
-        EAExpr curr = visitV((CommonTree) cs.get(0));
-        for (int i = 1; i < cs.size(); i++) {
-            curr = EATermFactory.factory.binop(EAOp.PLUS, curr, visitV((CommonTree) cs.get(i)));
-        }
-        return curr;
+        EAExpr v = visitV((CommonTree) cs.get(0));
+        EAExpr w = visitV((CommonTree) cs.get(1));
+        return EATermFactory.factory.binop(EAOp.PLUS, v, w);
+        /*for (int i = 2; i < cs.size(); i++) {
+            res = EATermFactory.factory.binop(EAOp.PLUS, res, visitV((CommonTree) cs.get(i)));
+        }*/
     }
 
     public EAEVar visitVar(CommonTree n) {

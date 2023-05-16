@@ -801,7 +801,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("\n-- " + name + ":");
         Optional<Exception> apply = test.apply(debug);
         if (apply.isPresent()) {
-            System.err.println(apply.get());
+            apply.get().printStackTrace();
             return false;
         }
         return true;
@@ -813,7 +813,7 @@ public class EACommandLine extends CommandLine {
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Int).end}");
         //EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");  // TODO refactor binop
-        EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 in B!l1(x)");
+        EAMLet sendAB = (EAMLet) parseM("let x: Int <= + 41 1 in B!l1(x)");
 
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Int).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} d: 1, l1(x: Int) |-> return d }");

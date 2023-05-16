@@ -121,10 +121,13 @@ public class EAMLet implements EAComp {
             );
         }
         Either<Exception, Pair<EAComp, Tree<String>>> reduce = this.init.contextStepE();
-        return reduce.mapRight(x -> Pair.of(
-                EATermFactory.factory.let(this.var, this.varType, x.left, this.body),
-                new Tree<>("[..E-Ctx-Let..]", x.right)
-        ));
+        return reduce.mapRight(x -> {
+            EAMLet res = EATermFactory.factory.let(this.var, this.varType, x.left, this.body);
+            return Pair.of(res, Tree.of(
+                    toStepEJudgeString("[..E-Ctx-Let..]", this, res),
+                    x.right)
+            );
+        });
     }
 
     /* Aux */

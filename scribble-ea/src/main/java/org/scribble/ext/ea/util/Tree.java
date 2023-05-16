@@ -25,7 +25,7 @@ public class Tree<T> {
         return new Tree(val, Arrays.asList(children));
     }
 
-    public <T> Tree<T> of(T val, List<Tree<T>> children) {
+    public static <T> Tree<T> of(T val, List<Tree<T>> children) {
         return new Tree(val, children);
     }
 

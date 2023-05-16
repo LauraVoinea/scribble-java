@@ -268,7 +268,7 @@ public class EACActor implements EAConfig {
     }
 
     // No queue -- also context squashed
-    // [E-Reset], [E-Suspend], [E-Lift]
+    // [E-Reset], [E-Suspend], [E-Lift] -- also [..E-binop..]
     public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync0(EAComp e) {
 
         if (!(this.T instanceof EATActive)) {
@@ -307,7 +307,8 @@ public class EACActor implements EAConfig {
                     toStepJudge0String("[E-Suspend]", this, res)
             )));
 
-        } else if (e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf) {  // [E-Lift]
+        } else if (e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf  // [E-Lift]
+                || e instanceof EAMBinOp) {  // also [E-Lift]
             Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();  // checks ground
             return step.mapRight(x -> {
                 EATActive res = RF.activeThread(x.left, active.sid, active.role);

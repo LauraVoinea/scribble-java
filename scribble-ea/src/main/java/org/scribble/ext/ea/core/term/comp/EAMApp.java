@@ -43,7 +43,8 @@ public class EAMApp implements EAComp {
 
     @Override
     //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
-    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(
+            GammaState gamma, EALType pre) {
         //EAVType ltype = this.left.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
         if (t_l.isLeft()) {
@@ -75,7 +76,7 @@ public class EAMApp implements EAComp {
         //return new Pair<>(ftype.B, ftype.T);
         return Either.right(Pair.of(
                 Pair.of(ftype.B, ftype.T),
-                new Tree<>("[T-App] " + toTypeJudgeString(gamma, pre, ftype.B, ftype.T),
+                Tree.of("[T-App] " + toTypeJudgeString(gamma, pre, ftype.B, ftype.T),
                         List.of(p_l.right, p_r.right))
         ));
     }

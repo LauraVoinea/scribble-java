@@ -24,7 +24,8 @@ public interface EAComp extends EATerm {
     EALType infer(GammaState gamma);
 
     //Pair<EAVType, EALType> type(GammaState gamma, EALType pre);
-    Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre);
+    Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(
+            GammaState gamma, EALType pre);
 
     // TODO factor out tag param
     default String toTypeJudgeString(GammaState gamma, EALType S, EAVType B, EALType T) {

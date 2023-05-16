@@ -34,7 +34,8 @@ public class EAMReturn implements EAComp {
 
     @Override
     //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
-    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(
+            GammaState gamma, EALType pre) {
         /*if (!pre.equals(end)) {  // !!! return is value/term typing wrapper, not (session) control flow
             throw new RuntimeException("Expected end type: " + pre);
         }*/

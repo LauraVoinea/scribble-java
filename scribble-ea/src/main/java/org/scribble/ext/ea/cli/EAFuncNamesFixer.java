@@ -49,6 +49,9 @@ public class EAFuncNamesFixer {
         } else if (M instanceof EAMSend) {
             EAMSend cast = (EAMSend) M;
             return f.send(cast.dst, cast.op, visit(cast.val, env));
+        } else if (M instanceof EAMBinOp) {
+            EAMBinOp cast = (EAMBinOp) M;
+            return f.binop(cast.op, visit(cast.left, env), visit(cast.right, env));
         } else {
             throw new RuntimeException("TODO: " + M);
         }
@@ -77,7 +80,7 @@ public class EAFuncNamesFixer {
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
         } else if (V instanceof EAEFuncName || V instanceof EAEUnit
                 || V instanceof EAPid || V instanceof EASid
-                || V instanceof EAEIntVal || V instanceof EAEBinOp || V instanceof EAEBoolVal) {
+                || V instanceof EAEIntVal || V instanceof EAEBoolVal) {
             return V;
         } else {
             throw new RuntimeException("TODO: " + V);

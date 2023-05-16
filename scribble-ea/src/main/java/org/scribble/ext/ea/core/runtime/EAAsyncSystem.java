@@ -129,7 +129,8 @@ public class EAAsyncSystem {
         // Session typing (annots) unchanged -- s not used
         if (e instanceof EAMSuspend  // [E-Suspend]
                 || e instanceof EAMReturn  // [E-Reset]
-                || e instanceof EAMApp || e instanceof EAMLet || e instanceof EAMIf)  // [E-Lift]
+                || e instanceof EAMApp || e instanceof EAMLet || e instanceof EAMIf  // [E-Lift]
+                || e instanceof EAMBinOp)  // also [E-Lift]
         {
             Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync0(e);
             return step.mapRight(x -> {

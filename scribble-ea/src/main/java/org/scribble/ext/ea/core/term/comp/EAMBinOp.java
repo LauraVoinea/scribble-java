@@ -1,10 +1,11 @@
-package org.scribble.ext.ea.core.term.expr;
+package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
+import org.scribble.ext.ea.core.term.expr.*;
 import org.scribble.ext.ea.core.type.GammaState;
-import org.scribble.ext.ea.core.type.session.local.EALInType;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVBoolType;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
@@ -18,16 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EAEBinOp implements EAExpr {
+// V op W -- V/W should be c/x (not, e.g., funcs)
+// cf. EAMApp V W -- 1+2 vs. ((plus) 1) 2)
+public class EAMBinOp implements EAComp {
 
-    @NotNull
-    public final EAOp op;
-    @NotNull
-    public final EAExpr left;
-    @NotNull
-    public final EAExpr right;
+    @NotNull public final EAOp op;
+    @NotNull public final EAExpr left;
+    @NotNull public final EAExpr right;
 
-    public EAEBinOp(@NotNull EAOp op, @NotNull EAExpr left, @NotNull EAExpr right) {
+    public EAMBinOp(EAOp op, EAExpr left, EAExpr right) {
         this.op = op;
         this.left = left;
         this.right = right;
@@ -35,33 +35,15 @@ public class EAEBinOp implements EAExpr {
 
     /* ... */
 
-    /*// S^?
-    public static boolean isInType(EALType t) {
-        return t instanceof EALInType || t.unfoldAllOnce() instanceof EALInType;
-    }*/
-
-    /*// found is expr, required is usually pre
-    public static void subtype(EALType found, EALType required) {
-        if (!found.equals(required) && !found.unfoldAllOnce().equals(required.unfoldAllOnce())) {
-            throw new RuntimeException("Incompatible pre type:\n"
-                    + "\tfound=" + found + ", required=" + required);
-        }
-    }*/
-
     @Override
-    public EAVType infer() {
-        switch (this.op) {
-            case PLUS:
-                return EAVIntType.INT;
-            case LT:
-                return EAVBoolType.BOOL;
-            default:
-                throw new RuntimeException("Unknown op: " + this.op);
-        }
+    public EALType infer(GammaState gamma) {
+        return EALEndType.END;  // No need to do `cat`, left/right are vals (not comps)
     }
 
     @Override
-    public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(
+            GammaState gamma, EALType pre) {
+
         Either<Exception, Pair<EAVType, Tree<String>>> t_l = this.left.type(gamma);
         if (t_l.isLeft()) {
             return Either.left(t_l.getLeft());
@@ -86,10 +68,14 @@ public class EAEBinOp implements EAExpr {
                     return Either.left(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT));
                 }
                 //return EAVIntType.INT;
-                return Either.right(new Pair<>(
-                        EAVIntType.INT,
-                        new Tree<>("[..binop..]", List.of(p_l.right, p_r.right))));
+                return Either.right(Pair.of(
+                        Pair.of(EAVIntType.INT, pre),
+                        Tree.of(
+                                "[..binop..]" + toTypeJudgeString(gamma, pre, EAVIntType.INT, pre),
+                                List.of(p_l.right, p_r.right))
+                ));
             }
+
             case LT: {
                 //EAVType ltype = this.left.type(gamma);
                 if (!(ltype.equals(EAVIntType.INT))) {
@@ -101,22 +87,21 @@ public class EAEBinOp implements EAExpr {
                     return Either.left(new Exception(new Exception("Incompatible arg type:\n\tfound=" + rtype + ", required=" + EAVIntType.INT)));
                 }
                 //return EAVBoolType.BOOL;
-                return Either.right(new Pair<>(
-                        EAVBoolType.BOOL,
-                        new Tree<>("[..binop..]", List.of(p_l.right, p_r.right))));
+                return Either.right(Pair.of(
+                        Pair.of(EAVBoolType.BOOL, pre),
+                        Tree.of(
+                                "[..binop..] " + toTypeJudgeString(gamma, pre, EAVBoolType.BOOL, pre),
+                                List.of(p_l.right, p_r.right))
+                ));
             }
+
             default:
                 throw new RuntimeException("TODO: " + this);
         }
     }
 
-    /*@Override
-    public EALType infer(Gamma gamma) {
-        return EALEndType.END;  // No need to do `cat`, left/right are vals (not exprs)
-    }*/
-
     @Override
-    public boolean canEval() {
+    public boolean canBeta() {
         switch (this.op) {
             case PLUS:
             case LT:
@@ -126,26 +111,29 @@ public class EAEBinOp implements EAExpr {
         }
     }
 
+    // V op W ->_M return (eval(op, V, W))
     @Override
-    public Either<Exception, Pair<EAExpr, Tree<String>>> eval() {
-        if (!canEval()) {
-            return Either.left(newStuck());
+    public Either<Exception, Pair<EAComp, Tree<String>>> beta() {
+        if (!canBeta()) {  // ...testing
+            throw new RuntimeException("Stuck: " + this);
         }
         switch (this.op) {
             case PLUS: {
                 EAEIntVal left = (EAEIntVal) this.left;
                 EAEIntVal right = (EAEIntVal) this.right;
-                return Either.right(Pair.of(
-                        EATermFactory.factory.intt(left.val + right.val),
-                        new Tree<>("..binop[+]..")
+                EAMReturn res = EATermFactory.factory.returnn(
+                        EATermFactory.factory.intt(left.val + right.val));
+                return Either.right(Pair.of(res, Tree.of(
+                        toBetaJudgeString("[..binop[+]..]", this, res))
                 ));
             }
             case LT: {
                 EAEIntVal left = (EAEIntVal) this.left;
                 EAEIntVal right = (EAEIntVal) this.right;
-                return Either.right(Pair.of(
-                        EATermFactory.factory.bool(left.val < right.val),
-                        new Tree<>("..binop[<]..")
+                EAMReturn res = EATermFactory.factory.returnn(
+                        EATermFactory.factory.bool(left.val < right.val));
+                return Either.right(Pair.of(res, Tree.of(
+                        toBetaJudgeString("[..binop[<]..]", this, res))
                 ));
             }
             default:
@@ -153,22 +141,40 @@ public class EAEBinOp implements EAExpr {
         }
     }
 
+    /* ... */
+
+    @Override
+    public EAComp getStepSubexprE() {
+        return this;
+    }
+
+    @Override
+    public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
+        return beta().mapRight(x -> Pair.of(
+                x.left,
+                x.right)  // No E-Ctx, only Let is context (FG-CBV); Lift done by EACActor
+        );
+    }
+
     /* Aux */
 
     @Override
-    public EAExpr subs(Map<EAEVar, EAExpr> m) {
-        return EATermFactory.factory.binop(this.op, this.left.subs(m), this.right.subs(m));
+    public EAComp subs(Map<EAEVar, EAExpr> m) {
+        return EATermFactory.factory.binop(this.op, this.left.subs(m),
+                this.right.subs(m));
     }
 
     @Override
-    public EAExpr fsubs(Map<EAEFuncName, EAERec> m) {
-        return EATermFactory.factory.binop(this.op, this.left.fsubs(m), this.right.fsubs(m));
+    public EAComp fsubs(@NotNull Map<EAEFuncName, EAERec> m) {
+        return EATermFactory.factory.binop(this.op, this.left.fsubs(m),
+                this.right.fsubs(m));
     }
 
-    /*@Override
-    public EAPBExpr recon(@NotNull EAPBExpr old, EAPBExpr neww) {
-        return EAPFactory.factory.binop(this.op, thisleft + right.val);
-    }*/
+    @Override
+    public EAComp recon(@NotNull EAComp old, @NotNull EAComp neww) {
+        //return EAPFactory.factory.binop(this.op, thisleft + right.val);
+        throw new RuntimeException("Deprecated: " + this);
+    }
 
     @Override
     public Set<EAEVar> getFreeVars() {
@@ -179,25 +185,9 @@ public class EAEBinOp implements EAExpr {
     }
 
     @Override
-    public boolean isValue() {
-        return false;
-    }
-
-    /*@Override
     public boolean isGround() {
         return this.left.isGround() && this.right.isGround();
-        //return false;
-    }*/
-
-    /*@Override
-    public EAPBExpr getFoo() {
-        return this;
     }
-
-    @Override
-    public EAPBExpr foo() {
-        return beta();
-    }*/
 
     @Override
     public String toString() {
@@ -210,7 +200,7 @@ public class EAEBinOp implements EAExpr {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAEBinOp them = (EAEBinOp) o;
+        EAMBinOp them = (EAMBinOp) o;
         return them.canEquals(this)
                 && this.left.equals(them.left)
                 && this.right.equals(them.right);
@@ -218,7 +208,7 @@ public class EAEBinOp implements EAExpr {
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EAEBinOp;
+        return o instanceof EAMBinOp;
     }
 
     @Override
