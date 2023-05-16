@@ -117,8 +117,9 @@ public class EACommandLine extends CommandLine {
 
         Map<String, Function<Boolean, Optional<Exception>>> tests = EAUtil.mapOf();
         tests.put("ex1", EACommandLine::ex1);
-        //tests.put("ex2", EACommandLine::ex2);
-        tests.put("ex4", EACommandLine::ex4);  // FIXME rec bounding
+        tests.put("ex2", EACommandLine::ex2);
+        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding
+        tests.put("ex5", EACommandLine::ex5);
 
         for (Map.Entry<String, Function<Boolean, Optional<Exception>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -437,8 +438,8 @@ public class EACommandLine extends CommandLine {
         typeAndRun(sys, -1);
     }
 
-    private static void ex5a() {
-        System.out.println("\n--ex5");
+    private static Optional<Exception> ex5(boolean debug) {
+        //System.out.println("\n--ex5");
 
         String recXAs = "mu X . B?{l2(1).B!{l1(1).X}, l3(1).end}";
         String out1us = "B!{l1(1)." + recXAs + "}";
@@ -487,12 +488,18 @@ public class EACommandLine extends CommandLine {
         // ----
 
         Delta delta = new Delta(newLinkedMap(sA, out1u, sB, recXB));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        typeAndRun(sys, -1);
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
+
+        //EASystem sys = RF.system(LF, delta, cs);
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRunD(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
-    // XXX DEBUG loop -- cf. ex5a OK
-    private static void ex5() {
+    // XXX DEBUG loop -- cf. ex5 OK
+    private static void ex5bugged() {
         System.out.println("\n---ex5:");
 
         String recXAs = "mu X . B?{l2(1).B!{l1(1).X}, l3(1).end}";
