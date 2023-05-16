@@ -118,6 +118,7 @@ public class EACommandLine extends CommandLine {
         Map<String, Function<Boolean, Optional<Exception>>> tests = EAUtil.mapOf();
         tests.put("ex1", EACommandLine::ex1);
         tests.put("ex2", EACommandLine::ex2);
+        //tests.put("ex4", EACommandLine::ex4);  // FIXME rec bounding
 
         for (Map.Entry<String, Function<Boolean, Optional<Exception>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -692,8 +693,8 @@ public class EACommandLine extends CommandLine {
         }*/
     }
 
-    private static void ex4() {
-        System.out.println("\n--ex4:");
+    private static Optional<Exception> ex4(boolean debug) {
+        //System.out.println("\n--ex4:");
 
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X}}";
         String out1us = "B!{l1(1)." + recXAs + "}";
@@ -744,10 +745,15 @@ public class EACommandLine extends CommandLine {
         // ----
 
         Delta delta = new Delta(newLinkedMap(sA, out1u, sB, recXB));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
 
-        typeAndRun(sys, 100);
+        //EASystem sys = RF.system(LF, delta, cs);
+        // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRunD(sys, 10, debug);
     }
 
     private static Optional<Exception> ex2(boolean debug) {
