@@ -1025,7 +1025,7 @@ public class EACommandLine extends CommandLine {
             String indent1 = incIndent(indent);
             EAAsyncSystem sys1 = get.left;
             if (debug) {
-                System.out.println("\n" + indent1 + "(" + state + ")\n" + sys1.toString(indent1));
+                System.out.println(indent1 + "(" + state + ")\n" + sys1.toString(indent1));
                 System.out.println(indent1 + "Reduced one step by:");
                 System.out.println(get.mid.toString(indent1));
                 if (get.right != null) {  // XXX TODO
@@ -1039,7 +1039,7 @@ public class EACommandLine extends CommandLine {
     }
 
     static String incIndent(String m) {
-        return m.isEmpty() ? "    " : m + ".   ";
+        return m.isEmpty() ? ".   " : m + ".   ";
     }
 
     static void typeAndRun(EAAsyncSystem sys, int steps) {
