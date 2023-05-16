@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 public class EAUtil {
 
+    /* ... */
+
     public static <K, V> LinkedHashMap<K, V> mapOf() {
         return new LinkedHashMap<>();
     }
@@ -81,6 +83,21 @@ public class EAUtil {
         return new LinkedHashMap<>(c);
     }
 
+    /* ... */
+
+    public static <K, V> LinkedHashMap<K, List<V>> copyOfList(Map<K, List<V>> m) {
+        return m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> copyOf(x.getValue()),
+                (x, y) -> {
+                    throw new RuntimeException("Key conflict: " + x + ", " + y);
+                },
+                LinkedHashMap::new
+        ));
+    }
+
+    /* ... */
+
     public static <T> List<T> umod(List<T> c) {
         return Collections.unmodifiableList(c);
     }
@@ -92,6 +109,20 @@ public class EAUtil {
     public static <K, V> Map<K, V> umod(Map<K, V> m) {
         return Collections.unmodifiableMap(m);
     }
+
+    public static <T> List<T> umodListOf() {
+        return umod(listOf());
+    }
+
+    public static <T> Set<T> umodSetOf() {
+        return umod(setOf());
+    }
+
+    public static <K, V> Map<K, V> umodMapOf() {
+        return umod(mapOf());
+    }
+
+    /* ... */
 
     public static <T> List<T> umodCopyOf(List<T> c) {
         return umod(copyOf(c));
@@ -107,21 +138,10 @@ public class EAUtil {
 
     /* ... */
 
-    public static <K, V> LinkedHashMap<K, List<V>> copyOfList(Map<K, List<V>> m) {
-        return m.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                x -> EAUtil.copyOf(x.getValue()),
-                (x, y) -> {
-                    throw new RuntimeException("Key conflict: " + x + ", " + y);
-                },
-                LinkedHashMap::new
-        ));
-    }
-
     public static <K, V> Map<K, List<V>> umodCopyOfList(Map<K, List<V>> m) {
-        return EAUtil.umod(m.entrySet().stream().collect(Collectors.toMap(
+        return umod(m.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> EAUtil.umodCopyOf(x.getValue())
+                x -> umodCopyOf(x.getValue())
         )));
     }
 }

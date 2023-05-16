@@ -112,7 +112,7 @@ public class EACommandLine extends CommandLine {
         //System.out.println(parseV("2 + 3"));
 
         ex1();
-        /*ex2();
+        //ex2();
 
         /*ex4();
         ex5a();
@@ -775,7 +775,8 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        typeAndRun(sys, -1, true);
+        //typeAndRun(sys, -1, true);
+        typeAndRunD(sys, -1, true);
     }
     //*/
 
@@ -816,11 +817,14 @@ public class EACommandLine extends CommandLine {
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
         //typeAndRun(sys, -1);
-        typeAndRun(sys, -1, true);
+        //typeAndRun(sys, -1, true);
+        typeAndRunD(sys, -1, true);
     }
     //*/
 
-    // TODO deprecate -- cf. EAUtil
+
+
+    // TODO deprecate following -- cf. EAUtil
     static <K, V> LinkedHashMap<K, V> newLinkedMap() {
         return new LinkedHashMap<>();
     }
@@ -843,6 +847,9 @@ public class EACommandLine extends CommandLine {
     static <K, V> LinkedHashMap<K, V> newLinkedMap(K k1, V v1, K k2, V v2, K k3, V v3) {
         return newLinkedMap(List.of(k1, k2, k3), List.of(v1, v2, v3));
     }
+
+
+
 
     /* ... */
 
@@ -943,8 +950,12 @@ public class EACommandLine extends CommandLine {
     }
 
     static void typeCheckSystem(EAAsyncSystem sys, boolean debug) {
+        typeCheckSystem(sys, debug, "");
+    }
+
+    static void typeCheckSystem(EAAsyncSystem sys, boolean debug, String indent) {
         if (debug) {
-            System.out.println("Type checking system:");
+            System.out.println(indent + "Type checking system:");
         }
         Either<Exception, List<Tree<String>>> t = sys.type();
         if (t.isLeft()) {
@@ -952,8 +963,83 @@ public class EACommandLine extends CommandLine {
         }
         if (debug) {
             System.out.println(t.getRight().stream()
-                    .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
+                    .map(x -> x.toString(indent + "  "))
+                    .collect(Collectors.joining("\n\n")));
         }
+    }
+
+    static int state = 0;
+
+    // max -1 for unbounded
+    static void typeAndRunD(EAAsyncSystem sys, int max, boolean debug) {
+        state = 0;
+        System.out.println("\n(" + state + ") Initial system:\n" + sys);
+        typeAndRunDAux(sys, 0, max, debug, "");
+    }
+
+    static void typeAndRunDAux(EAAsyncSystem sys, int depth, int max, boolean debug, String indent) {
+        typeCheckSystem(sys, debug, indent);
+
+        if (max >= 0 && depth >= max) {
+            return;
+        }
+
+        Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pids = sys.getSteppable();
+        System.out.println(indent + "Steppable: " + pids);
+
+        if (pids.isEmpty()) {
+            if (!debug) {
+                System.out.println();
+                System.out.println(indent + "Result steps(" + depth + "):");
+                System.out.println(sys);
+            }
+            if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
+                throw new RuntimeException(indent + "Stuck: " + sys);
+            }
+        }
+
+        int stmp = state;
+        int i = 0;
+        for (Map.Entry<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pid : pids.entrySet()) {
+            EAPid p = pid.getKey();
+            Map.Entry<EASid, Either<EAComp, EAMsg>> sid = pid.getValue().entrySet().iterator().next();
+            EASid s = sid.getKey();
+            Either<EAComp, EAMsg> a = sid.getValue();
+            Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step;
+            System.out.print("\n" + indent + "(" + stmp + "-" + i + ") ");
+            if (a.isLeft()) {
+                EAComp e = a.getLeft();
+                System.out.println("Stepping " + s + "@" + p + ": " + e);
+                step = sys.step(p, s, e);
+            } else {
+                EAMsg m = a.getRight();
+                System.out.println("Reacting " + s + "@" + p + ": " + m);
+                step = sys.react(p, s, m);
+            }
+            if (step.isLeft()) {
+                throw new RuntimeException(step.getLeft());
+            }
+            Triple<EAAsyncSystem, Tree<String>, Tree<String>> get = step.getRight();
+            state++;
+
+            String indent1 = incIndent(indent);
+            EAAsyncSystem sys1 = get.left;
+            if (debug) {
+                System.out.println("\n" + indent1 + "(" + state + ")\n" + sys1.toString(indent1));
+                System.out.println(indent1 + "Reduced one step by:");
+                System.out.println(get.mid.toString(indent1));
+                if (get.right != null) {  // XXX TODO
+                    System.out.println(indent1 + "Delta stepped by:");
+                    System.out.println(get.right.toString(indent1));
+                }
+            }
+            typeAndRunDAux(sys1, depth + 1, max, debug, incIndent(indent));
+            i++;
+        }
+    }
+
+    static String incIndent(String m) {
+        return m.isEmpty() ? "    " : m + ".   ";
     }
 
     static void typeAndRun(EAAsyncSystem sys, int steps) {

@@ -250,10 +250,14 @@ public class EAAsyncSystem {
 
     @Override
     public String toString() {
-        return "[" //+ annots=\n" + this.annots.map
-                + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n "))
-                + "\n " + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
-                + "\n " + this.adelta
+        return toString("");
+    }
+
+    public String toString(String indent) {
+        return indent + "[" //+ annots=\n" + this.annots.map
+                + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n" + indent + " "))
+                + "\n" + indent + " " + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
+                + "\n" + indent + " " + this.adelta
                 + "]";
     }
 }
