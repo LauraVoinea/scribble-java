@@ -11,6 +11,7 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.ModuleName;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
@@ -28,6 +29,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.job.Job;
@@ -168,7 +170,8 @@ public class GTCommandLine extends CommandLine {
                     ////foo(core, "", theta, translate, 2, new HashMap<>(), rs, cs, sys);
                     //Correspondence s = new Correspondence(rs, cs, theta, translate, sys);
                     GTCorrespondence s = new GTCorrespondence(rs, translate);
-                    foo(core, "", s, 1, MAX, new HashMap<>(), 2);
+                    Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+                    foo(core, "", s, 1, MAX, new HashMap<>(), 2, com);
                     //bar(core, "", theta, translate, 0);
                 }
             }
@@ -202,7 +205,8 @@ public class GTCommandLine extends CommandLine {
 
     private void foo(Core core, String indent, GTCorrespondence s,
                      int step, int MAX,
-                     Map<String, Integer> unfolds, int depth) {  // FIXME factor out bounds (just plain recs?)
+                     Map<String, Integer> unfolds, int depth,  // FIXME factor out bounds (just plain recs?)
+                     Set<Op> com) {
 
         int mark = mystep;
 
@@ -252,8 +256,11 @@ public class GTCommandLine extends CommandLine {
 
             System.out.println(indent + "Stepping local " + a.subj + ": " + a_r);
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
+
             Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
-                    s.local.step(a.subj, (EAction<DynamicActionKind>) a_r);
+                    s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+            //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
+
             if (l_step.isLeft()) {
                 throw new RuntimeException("Locals stuck...", l_step.getLeft());
             }
@@ -267,7 +274,7 @@ public class GTCommandLine extends CommandLine {
 
             GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            foo(core, incIndent(indent), s1, 1, MAX, us, depth);
+            foo(core, incIndent(indent), s1, 1, MAX, us, depth, com);
             //}
         }
     }
@@ -372,7 +379,7 @@ public class GTCommandLine extends CommandLine {
 
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
             Either<Exception, Pair<GTLSystem, Tree<String>>> lstep =
-                    sys.step(a.subj, (EAction<DynamicActionKind>) a_r);
+                    sys.step(null, a.subj, (EAction<DynamicActionKind>) a_r);
             if (lstep.isLeft()) {
                 throw new RuntimeException("Locals didn't reduce...", lstep.getLeft());
             }

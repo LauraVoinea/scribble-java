@@ -3,6 +3,7 @@ package org.scribble.ext.gt.core.model.local;
 import org.jetbrains.annotations.Unmodifiable;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -33,18 +34,17 @@ public class GTLSystem {
     }
 
     public Either<Exception, Pair<GTLSystem, Tree<String>>> step(
-            Role self, EAction<DynamicActionKind> a) {
-        if (a instanceof GTENewTimeout) {
-            // !!! N.B. r is Role.EMPTY_ROLE
+            Set<Op> com, Role self, EAction<DynamicActionKind> a) {
+        if (a instanceof GTENewTimeout) {  // !!! N.B. self is Role.EMPTY_ROLE
             // ...tau? (skip?) -- XXX then what is "projection" relation between G/L ?
             // ...find the one (or more?) guy(s) that can locally do new-timeout -- then do the rest implicitly when reach?
-            throw new RuntimeException("TODO: " + a);
+            throw new RuntimeException("TODO: " + self + " ,, " + a);
         } else {
             if (!(this.configs.containsKey(self))) {
                 throw new RuntimeException("Unkown role: " + self);
             }
             Either<Exception, Pair<GTLConfig, Tree<String>>> step =
-                    this.configs.get(self).step(a);
+                    this.configs.get(self).step(com, a);
             if (step.isLeft()) {
                 return Either.left(step.getLeft());
             }

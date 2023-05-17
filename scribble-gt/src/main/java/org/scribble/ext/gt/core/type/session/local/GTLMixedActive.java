@@ -2,6 +2,7 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -60,15 +61,15 @@ public class GTLMixedActive implements GTLType {
     // Pre: a in getActs
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         /*if (!a.peer.equals(self)) {  // ...cf. "context" rule?
             return Optional.empty();
         }*/
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> optl =
-                this.left.step(self, a, sigma, theta, this.c, this.n);
+                this.left.step(com, self, a, sigma, theta, this.c, this.n);
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> optr =
-                this.right.step(self, a, sigma, theta, this.c, this.n);
+                this.right.step(com, self, a, sigma, theta, this.c, this.n);
 
         if (optl.isRight() && optr.isRight()) {
             throw new RuntimeException("TODO: " + optl.getRight() + " ,, " + optr.getRight());
@@ -77,10 +78,32 @@ public class GTLMixedActive implements GTLType {
             Quad<GTLType, Sigma, Theta, Tree<String>> get = optl.getRight();
             if (a.isSend()) {
                 // [LSnd]
-                throw new RuntimeException("TODO");
+                GTLMixedActive succ = this.fact.mixedActive(
+                        this.c, this.n, get.fst, this.right);
+                return Either.right(Quad.of(succ, get.snd, get.thrd, Tree.of(
+                        toStepJudgeString("[LSnd]", c, n, theta, this,
+                                sigma, (GTEAction) a, get.thrd, succ, get.snd),
+                        get.frth
+                )));
             } else if (a.isReceive()) {
                 // [LRcv1] or [LRcv2]
-                throw new RuntimeException("TODO");
+                GTLType succ;
+                String tag;
+                Op op = (Op) a.getMid();
+                if (com.contains(op)) {
+                    succ = get.fst;
+                    tag = "[LRcv1]";
+                } else {
+                    succ = this.fact.mixedActive(
+                            this.c, this.n, get.fst, this.right);
+                    tag = "[LRcv2]";
+                }
+                return Either.right(Quad.of(succ, get.snd, get.thrd, Tree.of(
+                        toStepJudgeString(tag, c, n, theta, this,
+                                sigma, (GTEAction) a, get.thrd, succ, get.snd),
+                        get.frth
+                )));
+
             } else if (a instanceof GTENewTimeout) {
                 // [...ctx...] -- needed ?
                 throw new RuntimeException("TODO");
@@ -92,10 +115,18 @@ public class GTLMixedActive implements GTLType {
             Quad<GTLType, Sigma, Theta, Tree<String>> get = optr.getRight();
             if (a.isSend()) {
                 // [RSnd]
-                throw new RuntimeException("TODO");
+                return Either.right(Quad.of(get.fst, get.snd, get.thrd, Tree.of(
+                        toStepJudgeString("[RSnd]", c, n, theta, this,
+                                sigma, (GTEAction) a, get.thrd, get.fst, get.snd),
+                        get.frth
+                )));
             } else if (a.isReceive()) {
-                // [RRcv]
-                throw new RuntimeException("TODO");
+                // [RRcv] -- same as RSnd?
+                return Either.right(Quad.of(get.fst, get.snd, get.thrd, Tree.of(
+                        toStepJudgeString("[RRcv]", c, n, theta, this,
+                                sigma, (GTEAction) a, get.thrd, get.fst, get.snd),
+                        get.frth
+                )));
             } else if (a instanceof GTENewTimeout) {
                 // [...ctx...] -- needed ?
                 throw new RuntimeException("TODO");

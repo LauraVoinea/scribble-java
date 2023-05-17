@@ -107,6 +107,21 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        return this.body.getCommittingTop();
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        return this.body.getCommittingLeft(obs, com);
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        return this.body.getCommittingRight(obs, com);
+    }
+
+    @Override
     public String toString() {
         return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }

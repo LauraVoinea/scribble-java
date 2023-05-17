@@ -1,11 +1,11 @@
 package org.scribble.ext.gt.util;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GTUtil {
+
+    /* ... */
 
     public static <K, V> LinkedHashMap<K, V> mapOf() {
         return new LinkedHashMap<>();
@@ -42,5 +42,124 @@ public class GTUtil {
         LinkedList<T> res = new LinkedList<>();
         res.addAll(Arrays.asList(ts));
         return res;
+    }
+
+    /* ... */
+
+    public static <K, V> LinkedHashMap<K, V> put(Map<K, V> m, K k1, V v1) {
+        LinkedHashMap<K, V> res = new LinkedHashMap<>(m);
+        res.put(k1, v1);
+        return res;
+    }
+
+    public static <K, V> LinkedHashMap<K, V> put(Map<K, V> m, K k1, V v1, K k2, V v2) {
+        LinkedHashMap<K, V> res = new LinkedHashMap<>(m);
+        res.put(k1, v1);
+        res.put(k2, v2);
+        return res;
+    }
+
+    public static <T> LinkedHashSet<T> add(Set<T> ts, T... add) {
+        LinkedHashSet<T> res = new LinkedHashSet<>(ts);
+        res.addAll(Arrays.asList(add));
+        return res;
+    }
+
+    // !!! listOf(myset) is copyOf, not List<List<...>>
+    public static <T> LinkedList<T> app(List<T> ts, T... app) {
+        LinkedList<T> res = new LinkedList<>(ts);
+        res.addAll(Arrays.asList(app));
+        return res;
+    }
+
+    /* ... */
+
+    public static <T> LinkedList<T> copyOf(List<T> c) {
+        return new LinkedList<>(c);
+    }
+
+    public static <T> LinkedHashSet<T> copyOf(Set<T> c) {
+        return new LinkedHashSet<>(c);
+    }
+
+    public static <K, V> LinkedHashMap<K, V> copyOf(Map<K, V> c) {
+        return new LinkedHashMap<>(c);
+    }
+
+    /* ... */
+
+    public static <K, V> LinkedHashMap<K, List<V>> copyOfList(Map<K, List<V>> m) {
+        return m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> copyOf(x.getValue()),
+                (x, y) -> {
+                    throw new RuntimeException("Key conflict: " + x + ", " + y);
+                },
+                LinkedHashMap::new
+        ));
+    }
+
+    /* ... */
+
+    public static <T> List<T> umod(List<T> c) {
+        return Collections.unmodifiableList(c);
+    }
+
+    public static <T> Set<T> umod(Set<T> c) {
+        return Collections.unmodifiableSet(c);
+    }
+
+    public static <K, V> Map<K, V> umod(Map<K, V> m) {
+        return Collections.unmodifiableMap(m);
+    }
+
+    public static <T> List<T> umodListOf() {
+        return umod(listOf());
+    }
+
+    public static <T> Set<T> umodSetOf() {
+        return umod(setOf());
+    }
+
+    public static <K, V> Map<K, V> umodMapOf() {
+        return umod(mapOf());
+    }
+
+    /* ... */
+
+    public static <T> List<T> umodCopyOf(List<T> c) {
+        return umod(copyOf(c));
+    }
+
+    public static <T> Set<T> umodCopyOf(Set<T> c) {
+        return umod(copyOf(c));
+    }
+
+    public static <K, V> Map<K, V> umodCopyOf(Map<K, V> m) {
+        return umod(copyOf(m));
+    }
+
+    /* ... */
+
+    public static <K, V> Map<K, List<V>> umodCopyOfList(Map<K, List<V>> m) {
+        return umod(m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> umodCopyOf(x.getValue())
+        )));
+    }
+
+    /* ... */
+
+    // "ordered" s1; s2
+    public static <T> LinkedHashSet<T> union(Set<T> s1, Set<T> s2) {
+        LinkedHashSet<T> res = copyOf(s1);
+        res.addAll(s2);
+        return res;
+    }
+
+    /* ... */
+
+    public static <T> Set<T> umodUnion(Set<T> s1, Set<T> s2) {
+        return umod(union(s1, s2));
     }
 }

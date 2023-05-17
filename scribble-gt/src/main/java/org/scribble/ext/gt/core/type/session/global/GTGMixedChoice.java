@@ -13,10 +13,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -154,6 +151,23 @@ public class GTGMixedChoice implements GTGType {
         Set<Op> ops = new HashSet<>(this.left.getOps());
         ops.addAll(this.right.getOps());
         return ops;
+    }
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        Set<Op> res = this.left.getCommittingLeft(this.observer, com);
+        res.addAll(this.right.getCommittingRight(this.observer, com));
+        return res;
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        return getCommittingTop();
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        return getCommittingTop();
     }
 
     @Override

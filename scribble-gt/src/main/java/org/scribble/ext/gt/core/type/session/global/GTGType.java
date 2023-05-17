@@ -11,10 +11,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -78,12 +75,14 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     //HERE HERE fix SAction kinds and add c, n
     // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
-    default LinkedHashSet<SAction<DynamicActionKind>> getActsTopLevel(GTSModelFactory mf, Theta theta) {
+    default LinkedHashSet<SAction<DynamicActionKind>> getActsTopLevel(
+            GTSModelFactory mf, Theta theta) {
         return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
     }
 
     // TODO GTSAction
-    LinkedHashSet<SAction<DynamicActionKind>> getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
+    LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
 
     /* ... */
 
@@ -98,4 +97,20 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Set<Integer> getTimeoutIds();
 
     Set<Op> getOps();
+
+    // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
+    default Set<Op> getCommittingTop() {
+        return getCommittingTop(GTUtil.setOf());
+    }
+
+    Set<Op> getCommittingTop(Set<Role> com);
+    //{ return GTUtil.mapOf(); }
+
+    // com does NOT contain obs by default
+    Set<Op> getCommittingLeft(Role obs, Set<Role> com);
+    //{ return GTUtil.mapOf(); }
+
+    // com does NOT contain obs by default
+    Set<Op> getCommittingRight(Role obs, Set<Role> com);
+    //{ return GTUtil.mapOf(); }
 }

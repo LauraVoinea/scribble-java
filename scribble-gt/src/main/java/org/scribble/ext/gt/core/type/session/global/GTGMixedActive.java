@@ -282,6 +282,21 @@ public class GTGMixedActive implements GTGType {
         return aLeft;
     }
 
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        throw new RuntimeException("Unsupported operation: " + this);
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        throw new RuntimeException("Unsupported operation: " + this);
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        throw new RuntimeException("Unsupported operation: " + this);
+    }
+
     /* Aux */
 
     @Override

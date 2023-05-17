@@ -332,6 +332,12 @@ global protocol Proto1(role A, role B, role C) {
 
 // Testing fidelity
 /*
+global protocol Proto1(role A, role B) {
+    1() from A to B;
+    2() from A to B;
+}
+//*/
+/*
 global protocol Proto1(role A, role B, role C) {
     choice at A {
         1() from A to B;
@@ -361,6 +367,7 @@ global protocol Proto1(role A, role B, role C) {
 /*
 global protocol Proto1(role A, role B, role C) {
     rec X {
+        0() from C to A;
         rec Y {
             choice at A {
                 1() from A to B;
@@ -368,7 +375,7 @@ global protocol Proto1(role A, role B, role C) {
             } or {
                 3() from A to B;
                 4() from A to C;
-                continue Y;
+                continue X;
             } or {
                 5() from A to B;
                 6() from A to C;
@@ -420,7 +427,15 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-//*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+    } () or A->B () {
+        2() from B to A;
+    }
+}
+
+/*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;

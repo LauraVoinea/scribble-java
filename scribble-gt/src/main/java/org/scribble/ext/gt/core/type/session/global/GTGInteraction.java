@@ -15,6 +15,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
@@ -279,6 +280,45 @@ public class GTGInteraction implements GTGType {
         Set<Op> ops = new HashSet<>(this.cases.keySet());
         this.cases.values().forEach(x -> ops.addAll(x.getOps()));
         return ops;
+    }
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        Set<Op> res = GTUtil.setOf();
+        this.cases.values()
+                .forEach(x -> res.addAll(x.getCommittingTop(com)));
+        return res;
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        Set<Op> res = GTUtil.setOf();
+        Set<Role> com1 = GTUtil.copyOf(com);
+        if ((this.dst.equals(obs) && !com.contains(obs))  // src doesn't need to be com, cf. below case
+                || (com.contains(this.src) && !com.contains(this.dst))) {
+            res.addAll(this.cases.keySet());
+            com1.add(this.dst);
+        }
+        this.cases.values().stream()
+                .forEach(x -> res.addAll(x.getCommittingLeft(obs, com1)));
+        return res;
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        Set<Op> res = GTUtil.setOf();
+        Set<Role> com1 = GTUtil.copyOf(com);
+        if (!com.contains(this.src) && this.src.equals(obs)) {
+            res.addAll(this.cases.keySet());
+            com1.add(obs);
+            com1.add(this.dst);
+        } else if (com.contains(this.src) && !com.contains(this.dst)) {
+            res.addAll(this.cases.keySet());
+            com1.add(this.dst);
+        }
+        this.cases.values().stream()
+                .forEach(x -> res.addAll(x.getCommittingRight(obs, com1)));
+        return res;
     }
 
     @Override

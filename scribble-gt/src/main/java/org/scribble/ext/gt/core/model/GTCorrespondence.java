@@ -58,12 +58,14 @@ public class GTCorrespondence {
             GTLConfig p = projected.configs.get(r);
             System.out.println(indent + "Projected onto " + r + ": " + p);
             GTLConfig q = this.local.configs.get(r);
-            //if (!p.equals(q)) {
-            //if (!p.equiv(q)) {
+
+            //*
+            //if (!p.equals(q)) {  // XXXXXX
             if (!p.isSubtype(q)) {
-                throw new RuntimeException("Local config mismatch for " + r
-                        + ":\n\tprojected=" + p + "\n\tlocal=    " + q);
+                throw new RuntimeException("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q);
             }
+            //*/
+
         }
     }
 

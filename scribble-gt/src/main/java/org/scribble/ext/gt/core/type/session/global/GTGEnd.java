@@ -12,6 +12,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
@@ -87,6 +88,21 @@ public class GTGEnd implements GTGType {
     @Override
     public Set<Op> getOps() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        return GTUtil.umodSetOf();
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        return GTUtil.umodSetOf();
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        return GTUtil.umodSetOf();
     }
 
     @Override

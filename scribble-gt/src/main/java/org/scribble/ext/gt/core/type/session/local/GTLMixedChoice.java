@@ -65,7 +65,7 @@ public class GTLMixedChoice implements GTLType {
     // Pre: a in getActs
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         if (!(a instanceof GTENewTimeout)) {  // E.g., (rec) context rule may "attempt"
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));

@@ -2,6 +2,7 @@ package org.scribble.ext.gt.core.model.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -13,7 +14,6 @@ import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -37,12 +37,13 @@ public class GTLConfig {
     }
 
     // n.b., GTESend only updates this local sender config -- use enqueueMessage to also update the receiver config
-    public Either<Exception, Pair<GTLConfig, Tree<String>>> step(EAction<DynamicActionKind> a) {
+    public Either<Exception, Pair<GTLConfig, Tree<String>>> step(
+            Set<Op> com, EAction<DynamicActionKind> a) {
         if (!(a instanceof GTEAction)) {
             throw new RuntimeException("Shouldn't get in here: " + a);
         }
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
-                this.type.stepTopLevel(this.self, a, this.sigma, this.theta);
+                this.type.stepTopLevel(com, this.self, a, this.sigma, this.theta);
         return opt.mapRight(x -> Pair.of(
                 new GTLConfig(this.self, x.fst, x.snd, x.thrd),
                 x.frth));

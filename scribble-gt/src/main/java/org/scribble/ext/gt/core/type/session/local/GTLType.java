@@ -2,17 +2,18 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.GTSType;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
-import org.scribble.ext.gt.util.*;
-import org.scribble.util.Pair;
+import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 
 import java.util.*;
 
@@ -40,14 +41,14 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
     // FIXME: Sigma may be local or remote depending on action
     default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> stepTopLevel(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
-        return step(self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
+        return step(com, self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTEAction
     // a is deterministic (including "nested" steps)
     Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
-            Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     default LinkedHashSet<EAction<DynamicActionKind>> getActsTopLevel(
             GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
