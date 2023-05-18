@@ -39,8 +39,18 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
+    default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(
+            GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
+        return getActs(mf, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
+    // TODO remove blocked
+    // TODO GTEAction
+    LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
+
     // FIXME: Sigma may be local or remote depending on action
-    default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> stepTopLevel(
+    default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> stepTop(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
         return step(com, self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
@@ -49,11 +59,6 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     // a is deterministic (including "nested" steps)
     Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
-
-    default LinkedHashSet<EAction<DynamicActionKind>> getActsTopLevel(
-            GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
-        return getActs(mf, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
-    }
 
     default Exception newStuck(int c, int n, Theta theta, GTLType t, GTEAction a) {
         return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "
@@ -67,10 +72,23 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
                 + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
     }
 
-    // TODO remove blocked
-    // TODO GTEAction
-    LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
+    /* ... */
+
+    default LinkedHashSet<EAction<DynamicActionKind>> getWeakActsTop(
+            GTEModelFactory mf, Set<Op> com, Role self, Sigma sigma, Theta theta) {
+        return getWeakActs(mf, com, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
+    LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
+            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
+
+    default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStepTop(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
+        return weakStep(com, self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
+    Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     /* ... */
 

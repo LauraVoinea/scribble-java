@@ -216,9 +216,13 @@ public class GTCommandLine extends CommandLine {
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
-        Set<SAction<DynamicActionKind>> as = s.global.getActsTopLevel(mf, s.theta).stream()
-                .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
-                .collect(Collectors.toSet());
+        Set<SAction<DynamicActionKind>> as =
+
+                //s.global.getActsTop(mf, s.theta).stream()
+                s.global.getWeakActsTop(mf, s.theta).stream()
+
+                        .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
+                        .collect(Collectors.toSet());
 
         if (mystep >= MAX) {
             return;
@@ -230,7 +234,10 @@ public class GTCommandLine extends CommandLine {
             System.out.println("\n" + indent + "(" + mark + "-" + step + ")\n"
                     + indent + "Stepping global: " + a);
             Triple<Theta, GTGType, Tree<String>> g_step =
-                    s.global.stepTopLevel(s.theta, a).getRight();  // a in as so step is non-empty
+
+                    //s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
+                    s.global.weakStepTop(s.theta, a).getRight();  // a in as so step is non-empty
+
             System.out.println(g_step.right.toString(indent + "   "));
 
             //boolean prune = false;
@@ -258,7 +265,10 @@ public class GTCommandLine extends CommandLine {
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
 
             Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
-                    s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+
+                    //s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                    s.local.weakStep(com, a.subj, (EAction<DynamicActionKind>) a_r);
+
             //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
             if (l_step.isLeft()) {
@@ -312,7 +322,7 @@ public class GTCommandLine extends CommandLine {
 
         Map<Role, GTLConfig> projs = new HashMap<>();
         for (Role r : rs) {
-            Optional<Pair<? extends GTLType, Sigma>> opt = g.projectTopLevel(rs, r);
+            Optional<Pair<? extends GTLType, Sigma>> opt = g.projectTop(rs, r);
             if (!opt.isPresent()) {
                 System.err.println("Couldn't project onto " + r + ": " + g);
                 System.exit(0);
@@ -347,7 +357,7 @@ public class GTCommandLine extends CommandLine {
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
-        Set<SAction<DynamicActionKind>> as = g.getActsTopLevel(mf, theta).stream()
+        Set<SAction<DynamicActionKind>> as = g.getActsTop(mf, theta).stream()
                 .filter(x -> !((x instanceof GTSNewTimeout) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());
 
@@ -355,7 +365,7 @@ public class GTCommandLine extends CommandLine {
         //String read = KB.nextLine();
 
         for (SAction<DynamicActionKind> a : as) {
-            Triple<Theta, GTGType, Tree<String>> p = g.stepTopLevel(theta, a).getRight();  // a in as so step is non-empty
+            Triple<Theta, GTGType, Tree<String>> p = g.stepTop(theta, a).getRight();  // a in as so step is non-empty
 
             boolean prune = false;
             Map<String, Integer> us = new HashMap<>(unfolds);
@@ -416,7 +426,7 @@ public class GTCommandLine extends CommandLine {
         List<Integer> tmp = new LinkedList<>();
         tmp.add(1);
         Map<Integer, SAction<DynamicActionKind>> as =
-                g.getActsTopLevel(mf, theta).stream().collect(Collectors.toMap(
+                g.getActsTop(mf, theta).stream().collect(Collectors.toMap(
                         x -> {
                             int i = tmp.remove(0);
                             tmp.add(i + 1);
@@ -448,7 +458,7 @@ public class GTCommandLine extends CommandLine {
             }
             SAction<DynamicActionKind> a = as.get(enter);
 
-            Triple<Theta, GTGType, Tree<String>> p = g.stepTopLevel(theta, a).getRight();  // a in as so step is non-empty
+            Triple<Theta, GTGType, Tree<String>> p = g.stepTop(theta, a).getRight();  // a in as so step is non-empty
             System.out.println(indent + p.right);
             System.out.println(indent + "a = " + a);
             System.out.println(indent + "theta = " + p.left);

@@ -58,6 +58,20 @@ public class GTLMixedActive implements GTLType {
                 this.fact.mixedActive(this.c, this.n, x, y)));
     }
 
+    /* ... */
+
+    @Override
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
+
+        // TODO remove blocked
+
+        LinkedHashSet<EAction<DynamicActionKind>> aLeft = this.left.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        LinkedHashSet<EAction<DynamicActionKind>> aRight = this.right.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        aLeft.addAll(aRight);
+        return aLeft;
+    }
+
     // Pre: a in getActs
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
@@ -139,16 +153,18 @@ public class GTLMixedActive implements GTLType {
         }
     }
 
+    /* ... */
+
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
+    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
+            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        return getActs(mf, self, blocked, sigma, theta, c, n);
+    }
 
-        // TODO remove blocked
-
-        LinkedHashSet<EAction<DynamicActionKind>> aLeft = this.left.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
-        LinkedHashSet<EAction<DynamicActionKind>> aRight = this.right.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
-        aLeft.addAll(aRight);
-        return aLeft;
+    @Override
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+        return step(com, self, a, sigma, theta, c, n);
     }
 
     /* Aux */

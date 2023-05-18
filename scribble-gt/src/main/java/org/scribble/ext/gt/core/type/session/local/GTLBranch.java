@@ -79,6 +79,22 @@ public class GTLBranch implements GTLType {
         return Optional.of(this.fact.branch(this.src, tmp));
     }
 
+    /* ... */
+
+    @Override
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        Optional<GTESend<DynamicActionKind>> first = sigma.map.get(this.src)
+                .stream().filter(x -> x.c == c && x.n == n).findFirst();
+        if (first.isPresent()) {
+            GTESend<DynamicActionKind> m = first.get();
+            return Stream.of(m.toDynamicDual(this.src))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else {
+            return new LinkedHashSet<>();
+        }
+    }
+
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
@@ -114,18 +130,18 @@ public class GTLBranch implements GTLType {
         )));
     }
 
+    /* ... */
+
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        Optional<GTESend<DynamicActionKind>> first = sigma.map.get(this.src)
-                .stream().filter(x -> x.c == c && x.n == n).findFirst();
-        if (first.isPresent()) {
-            GTESend<DynamicActionKind> m = first.get();
-            return Stream.of(m.toDynamicDual(this.src))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        } else {
-            return new LinkedHashSet<>();
-        }
+    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
+            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        return getActs(mf, self, blocked, sigma, theta, c, n);
+    }
+
+    @Override
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+        return step(com, self, a, sigma, theta, c, n);
     }
 
     /* Aux */

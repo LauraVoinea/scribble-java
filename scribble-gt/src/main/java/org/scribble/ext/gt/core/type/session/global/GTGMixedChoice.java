@@ -92,6 +92,17 @@ public class GTGMixedChoice implements GTGType {
 
     /* ... */
 
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        if (theta.map.containsKey(this.c)) {
+            Integer m = theta.map.get(this.c);
+            res.add(mf.SNewTimeout(this.c, m));
+        }
+        return res;
+    }
+
     // c, n not checked?
     @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
@@ -117,15 +128,62 @@ public class GTGMixedChoice implements GTGType {
                 "[Inst]", c, n, theta, this, cast, theta1, succ))));
     }
 
+    /* ... */
+
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
-        if (theta.map.containsKey(this.c)) {
-            Integer m = theta.map.get(this.c);
-            res.add(mf.SNewTimeout(this.c, m));
+        LinkedHashSet<SAction<DynamicActionKind>> tau = getActs(mf, theta, blocked, c, n);
+        if (tau.isEmpty()) {
+            return tau;
+        } else if (tau.size() > 1) {
+            throw new RuntimeException("Shouldn't get in here: " + tau);
         }
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> nu =
+                step(theta, tau.iterator().next(), c, n);
+        if (nu.isLeft()) {
+            return GTUtil.setOf();
+        }
+        Triple<Theta, GTGType, Tree<String>> get = nu.getRight();  // mixed active
+        return get.mid.getWeakActs(mf, get.left, blocked, c, n);
+    }
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        Integer m = theta.map.get(this.c);
+        SAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
+                new GTSNewTimeout(this.c, m);  // TODO factory?
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> weak =
+                step(theta, tau, c, n);  // mixed active
+        return weak.flatMapRight(x ->
+                x.mid.step(x.left, a, c, n).mapRight(y ->
+                        Triple.of(y.left, y.mid, Tree.of(
+                                toStepJudgeString("[..nu-tau..]", c, n, theta,
+                                        this, (GTSAction) a, y.left, y.mid),
+                                x.right
+                        ))
+                )
+        );
+    }
+
+    /* ... */
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        Set<Op> res = this.left.getCommittingLeft(this.observer, com);
+        res.addAll(this.right.getCommittingRight(this.observer, com));
         return res;
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        return getCommittingTop();
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        return getCommittingTop();
     }
 
     /* Aux */
@@ -151,23 +209,6 @@ public class GTGMixedChoice implements GTGType {
         Set<Op> ops = new HashSet<>(this.left.getOps());
         ops.addAll(this.right.getOps());
         return ops;
-    }
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        Set<Op> res = this.left.getCommittingLeft(this.observer, com);
-        res.addAll(this.right.getCommittingRight(this.observer, com));
-        return res;
-    }
-
-    @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return getCommittingTop();
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return getCommittingTop();
     }
 
     @Override

@@ -37,16 +37,32 @@ public class GTLEnd implements GTLType {
         return t.equals(END) ? Optional.of(END) : Optional.empty();
     }
 
+    /* ... */
+
+    @Override
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        return new LinkedHashSet<>();
+    }
+
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
     }
 
+    /* ... */
+
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return new LinkedHashSet<>();
+    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
+            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        return getActs(mf, self, blocked, sigma, theta, c, n);
+    }
+
+    @Override
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+        return step(com, self, a, sigma, theta, c, n);
     }
 
     /* Aux */

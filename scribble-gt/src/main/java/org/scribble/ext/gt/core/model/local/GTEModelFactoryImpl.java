@@ -16,8 +16,13 @@ import org.scribble.ext.gt.core.model.local.action.GTESend;
 
 public class GTEModelFactoryImpl extends EModelFactoryImpl implements GTEModelFactory {
 
+    public static ModelFactory FACTORY;  // HACK refactor
+
     public GTEModelFactoryImpl(ModelFactory mf) {
         super(mf);
+        if (FACTORY == null) {
+            FACTORY = this.mf;
+        }
     }
 
     @Override

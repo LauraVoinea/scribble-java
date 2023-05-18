@@ -254,6 +254,20 @@ public class GTGInteraction implements GTGType {
         return res;
     }
 
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return getWeakActs(mf, theta, blocked, c, n);
+    }
+
     /* Aux */
 
     @Override

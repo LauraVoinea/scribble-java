@@ -134,9 +134,9 @@ public class GTGMixedActive implements GTGType {
         Theta left = thetaL.get();
         Theta right = thetaR.get();
         return max(left, right).map(x -> {
-            if (this.n > x.map.get(this.c)) {
+            if (this.n + 1 > x.map.get(this.c)) {  // !!! n+1
                 HashMap<Integer, Integer> map = new HashMap<>(x.map);
-                map.put(this.c, this.n);
+                map.put(this.c, this.n + 1);
                 return new Theta(map);
             }
             return x;
@@ -281,6 +281,22 @@ public class GTGMixedActive implements GTGType {
         aLeft.addAll(aRight);
         return aLeft;
     }
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return getActs(mf, theta, blocked, c, n);
+    }
+
+    /* ... */
 
     @Override
     public Set<Op> getCommittingTop(Set<Role> com) {

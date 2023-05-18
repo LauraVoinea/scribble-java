@@ -9,6 +9,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.type.session.local.GTLMixedChoice;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Tree;
@@ -55,6 +56,51 @@ public class GTLSystem {
                 GTESend cast = (GTESend) a;
                 tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
             }
+            return Either.right(Pair.of(new GTLSystem(tmp), get.right));
+        }
+    }
+
+    // TODO factor out with above
+    public Either<Exception, Pair<GTLSystem, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a) {
+        if (a instanceof GTENewTimeout) {  // !!! N.B. self is Role.EMPTY_ROLE
+            throw new RuntimeException("Invalid for weak: " + self + " ,, " + a);
+        } else {
+            if (!(this.configs.containsKey(self))) {
+                throw new RuntimeException("Unkown role: " + self);
+            }
+            Either<Exception, Pair<GTLConfig, Tree<String>>> step =
+                    this.configs.get(self).weakStep(com, a);
+            if (step.isLeft()) {
+                return Either.left(step.getLeft());
+            }
+            Pair<GTLConfig, Tree<String>> get = step.getRight();
+            HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
+            tmp.put(self, get.left);
+            if (a instanceof GTESend) {
+                GTESend cast = (GTESend) a;
+                tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
+            }
+
+            // TODO refactor
+            for (Role r : this.configs.keySet()) {
+                if (r.equals(self)) {
+                    continue;
+                }
+                GTLConfig cfg = tmp.get(r);
+                GTLType t = cfg.type;
+                if (t instanceof GTLMixedChoice) {
+                    Either<Exception, Pair<GTLConfig, Tree<String>>> step1 =
+                            cfg.step(com, cfg.getActs((GTEModelFactory) GTEModelFactoryImpl.FACTORY.local).iterator().next());
+                    if (step1.isLeft()) {
+                        throw new RuntimeException(step1.getLeft());
+                    }
+                    cfg = step1.getRight().left;
+                    t = cfg.type;
+                }
+                tmp.put(r, cfg);
+            }
+
             return Either.right(Pair.of(new GTLSystem(tmp), get.right));
         }
     }

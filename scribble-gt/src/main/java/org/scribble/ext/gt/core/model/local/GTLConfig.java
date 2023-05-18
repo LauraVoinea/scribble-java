@@ -7,10 +7,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
-import org.scribble.ext.gt.core.type.session.local.GTLBranch;
-import org.scribble.ext.gt.core.type.session.local.GTLRecursion;
-import org.scribble.ext.gt.core.type.session.local.GTLSelect;
-import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
@@ -33,17 +30,33 @@ public class GTLConfig {
     }
 
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(GTEModelFactory mf) {
-        return this.type.getActsTopLevel(mf, this.self, this.sigma, this.theta);
+        return this.type.getActsTop(mf, this.self, this.sigma, this.theta);
     }
 
     // n.b., GTESend only updates this local sender config -- use enqueueMessage to also update the receiver config
     public Either<Exception, Pair<GTLConfig, Tree<String>>> step(
             Set<Op> com, EAction<DynamicActionKind> a) {
         if (!(a instanceof GTEAction)) {
-            throw new RuntimeException("Shouldn't get in here: " + a);
+            throw new RuntimeException("TODO: " + a);  // cf. weak
         }
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
-                this.type.stepTopLevel(com, this.self, a, this.sigma, this.theta);
+                this.type.stepTop(com, this.self, a, this.sigma, this.theta);
+        return opt.mapRight(x -> Pair.of(
+                new GTLConfig(this.self, x.fst, x.snd, x.thrd),
+                x.frth));
+    }
+
+    // TODO factor out with above
+    public Either<Exception, Pair<GTLConfig, Tree<String>>> weakStep(
+            Set<Op> com, EAction<DynamicActionKind> a) {
+        if (!(a instanceof GTEAction)) {
+            throw new RuntimeException("Shouldn't get in here: " + a);  // !!! weak
+        }
+
+        System.out.println("111: " + this.type + " ,, " + a);
+
+        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
+                this.type.weakStepTop(com, this.self, a, this.sigma, this.theta);
         return opt.mapRight(x -> Pair.of(
                 new GTLConfig(this.self, x.fst, x.snd, x.thrd),
                 x.frth));
@@ -135,9 +148,10 @@ public class GTLConfig {
             return sub1.cases.keySet().stream()
                     .allMatch(x -> isSubtype(sup1.cases.get(x), sub1.cases.get(x)));
         }/* else if (sup instanceof GTLMixedChoice) {
-        } else if (sup instanceof GTLMixedActive) {
-        }*/ else {
-            throw new RuntimeException("TODO: " + sup);
+        }*/ else if (sup instanceof GTLMixedActive) {
+            throw new RuntimeException("TODO: " + sub + " <: " + sup);
+        } else {
+            throw new RuntimeException("TODO: " + sub + " <: " + sup);
         }
     }
 

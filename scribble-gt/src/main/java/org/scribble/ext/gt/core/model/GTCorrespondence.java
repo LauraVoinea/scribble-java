@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class GTCorrespondence {
 
     public final Set<Role> roles;  // cf. Correspondence.getRoles
-    public final Set<Integer> tids;
+    public final Set<Integer> tids;  // "cs" -- timeoutids
 
     public final Theta theta;
     public final GTGType global;
@@ -25,7 +25,11 @@ public class GTCorrespondence {
 
     // For initial starting global
     public GTCorrespondence(Set<Role> roles, GTGType global) {
-        this(roles, global.getTimeoutIds(), new Theta(global.getTimeoutIds()), global, projectTopLevel(roles, global));
+        this(roles, global.getTimeoutIds(), global);
+    }
+
+    protected GTCorrespondence(Set<Role> roles, Set<Integer> tids, GTGType global) {
+        this(roles, tids, new Theta(tids), global, projectTopLevel(roles, global, tids));
     }
 
     // In general, roles/tids (for original starting protocol) is superset of those in global
@@ -53,7 +57,7 @@ public class GTCorrespondence {
             throw new RuntimeException("Not coherent: " + this.global);
         }
 
-        GTLSystem projected = projectTopLevel(this.roles, this.global);
+        GTLSystem projected = projectTopLevel(this.roles, this.global, this.tids);
         for (Role r : this.roles) {
             GTLConfig p = projected.configs.get(r);
             System.out.println(indent + "Projected onto " + r + ": " + p);
@@ -83,11 +87,12 @@ public class GTCorrespondence {
 
     /* ... */
 
-    public static GTLSystem projectTopLevel(Set<Role> roles, GTGType global) {
-        Theta theta = new Theta(global.getTimeoutIds());
+    // cs for projectTheta theta_0
+    public static GTLSystem projectTopLevel(Set<Role> roles, GTGType global, Set<Integer> cs) {
+        //Theta theta = new Theta(global.getTimeoutIds());
         Map<Role, GTLConfig> locals = new HashMap<>();
         for (Role r : roles) {
-            Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTopLevel(roles, r);
+            Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTop(roles, r);
             if (!opt.isPresent()) {
                 throw new RuntimeException("Couldn't project onto " + r + ": " + global);
             }
@@ -95,7 +100,13 @@ public class GTCorrespondence {
             /*if (!p.right.equals(new Sigma(roles))) {
                 throw new RuntimeException("Shouldn't get here: " + p);
             }*/
-            locals.put(r, new GTLConfig(r, p.left, p.right, theta));
+
+            Optional<Theta> opt_theta = global.projectTheta(cs, r);
+            if (!opt_theta.isPresent()) {
+                throw new RuntimeException("Couldn't project onto " + r + ": " + global);
+            }
+
+            locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
             //System.out.println("Project onto " + r + ": " + p.left);
         }
         return new GTLSystem(locals);

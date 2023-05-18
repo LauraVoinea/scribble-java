@@ -53,6 +53,19 @@ public class GTLSelect implements GTLType {
         return this.equals(t) ? Optional.of(this) : Optional.empty();
     }
 
+    /* ... */
+
+    @Override
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        if (!sigma.map.containsKey(self)) {
+            throw new RuntimeException("Unknown sender: " + this);
+        }
+        return this.cases.entrySet().stream()
+                .map(x -> mf.DynamicESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD))  // FIXME pay
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
@@ -79,15 +92,18 @@ public class GTLSelect implements GTLType {
         )));
     }
 
+    /* ... */
+
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        if (!sigma.map.containsKey(self)) {
-            throw new RuntimeException("Unknown sender: " + this);
-        }
-        return this.cases.entrySet().stream()
-                .map(x -> mf.DynamicESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD))  // FIXME pay
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
+            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        return getActs(mf, self, blocked, sigma, theta, c, n);
+    }
+
+    @Override
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+        return step(com, self, a, sigma, theta, c, n);
     }
 
     /* Aux */

@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.MActionBase;
 import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.SModelFactory;
@@ -9,8 +10,10 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.GTEModelFactoryImpl;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
@@ -62,6 +65,19 @@ public class GTLMixedChoice implements GTLType {
         return opt_l.flatMap(x -> opt_r.map(y -> this.fact.mixedChoice(this.c, x, y)));
     }
 
+    /* ... */
+
+    @Override
+    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c1, int n1) {
+        LinkedHashSet<EAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        if (theta.map.containsKey(this.c)) {
+            Integer m = theta.map.get(this.c);
+            res.add(mf.DynamicGTENewTimeout(this.c, m));
+        }
+        return res;
+    }
+
     // Pre: a in getActs
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
@@ -71,6 +87,9 @@ public class GTLMixedChoice implements GTLType {
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         GTENewTimeout<?> cast = (GTENewTimeout<?>) a;
+
+        System.out.println("333: " + cast + " ,, " + this.c + " , " + theta);
+
         if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
@@ -83,15 +102,46 @@ public class GTLMixedChoice implements GTLType {
         )));
     }
 
+    /* ... */
+
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c1, int n1) {
-        LinkedHashSet<EAction<DynamicActionKind>> res = new LinkedHashSet<>();
-        if (theta.map.containsKey(this.c)) {
-            Integer m = theta.map.get(this.c);
-            res.add(mf.DynamicGTENewTimeout(this.c, m));
+    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
+            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
+        LinkedHashSet<EAction<DynamicActionKind>> tau = getActs(mf, self, blocked, sigma, theta, c, n);
+        if (tau.isEmpty()) {
+            return tau;
+        } else if (tau.size() > 1) {
+            throw new RuntimeException("Shouldn't get in here: " + tau);
         }
-        return res;
+        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step =
+                step(com, self, tau.iterator().next(), sigma, theta, c, n);
+        if (step.isLeft()) {
+            return GTUtil.setOf();
+        }
+        Quad<GTLType, Sigma, Theta, Tree<String>> get = step.getRight();  // mixed active
+        return get.fst.getWeakActs(mf, com, self, blocked, get.snd, get.thrd, c, n);
+    }
+
+    @Override
+    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
+        Integer m = theta.map.get(this.c);
+        EAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
+                new GTENewTimeout<>(MActionBase.DYNAMIC_ID, GTEModelFactoryImpl.FACTORY, this.c, m);  // FIXME factory
+        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weak =
+                step(com, self, tau, sigma, theta, c, n);  // mixed active
+
+        System.out.println("2222: " + weak);
+
+        return weak.flatMapRight(x ->
+                x.fst.step(com, self, a, x.snd, x.thrd, c, n).mapRight(y ->
+                        Quad.of(y.fst, y.snd, y.thrd, Tree.of(
+                                toStepJudgeString("[..nu-tau..]", c, n, theta,
+                                        this, sigma, (GTEAction) a, y.thrd, y.fst, y.snd),
+                                x.frth
+                        ))
+                )
+        );
     }
 
     /* Aux */

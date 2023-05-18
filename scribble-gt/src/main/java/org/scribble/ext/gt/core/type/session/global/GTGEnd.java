@@ -73,6 +73,37 @@ public class GTGEnd implements GTGType {
         return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
     }
 
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return getWeakActs(mf, theta, blocked, c, n);
+    }
+
+    /* ... */
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        return GTUtil.umodSetOf();
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        return GTUtil.umodSetOf();
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        return GTUtil.umodSetOf();
+    }
+
     /* Aux */
 
     @Override
@@ -88,21 +119,6 @@ public class GTGEnd implements GTGType {
     @Override
     public Set<Op> getOps() {
         return Collections.emptySet();
-    }
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        return GTUtil.umodSetOf();
-    }
-
-    @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
     }
 
     @Override

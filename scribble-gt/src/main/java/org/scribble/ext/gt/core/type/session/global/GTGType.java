@@ -15,6 +15,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
@@ -34,7 +35,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
 
-    default Optional<Pair<? extends GTLType, Sigma>> projectTopLevel(Set<Role> rs, Role r) {
+    default Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> rs, Role r) {
         return project(rs, r, GTLType.c_TOP, GTLType.n_INIT);
     }
 
@@ -43,12 +44,35 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     // rs for sigma_0
     Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n);
 
-    // cs for theta_0
-    Optional<Theta> projectTheta(Set<Integer> cs, Role r);
+    /*// cs for theta_0
+    default Optional<Theta> projectThetaTop(Set<Integer> cs, Role r) {
+        Optional<Theta> theta = projectTheta(cs, r);
+        return theta.map(x -> {
+            Map<Integer, Integer> tmp = GTUtil.copyOf(x.map);
+            return new Theta(tmp.entrySet().stream().collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    y -> y.getValue() + 1
+            )));
+        });
+    }*/
+
+    Optional<Theta> projectTheta(Set<Integer> cs, Role r);  // TODO refactor
 
     /* ... */
 
-    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTopLevel(
+    //HERE HERE make weak getActs/step for G/L -- make subtyping for MC (just structural?)
+
+    // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
+    default LinkedHashSet<SAction<DynamicActionKind>> getActsTop(
+            GTSModelFactory mf, Theta theta) {
+        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
+    }
+
+    // TODO GTSAction
+    LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
+
+    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTop(
             Theta theta, SAction<DynamicActionKind> a) {
         return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
     }
@@ -73,30 +97,29 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
                 + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
     }
 
-    //HERE HERE fix SAction kinds and add c, n
-    // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
-    default LinkedHashSet<SAction<DynamicActionKind>> getActsTopLevel(
+    /* ... */
+
+    // \nu actions silent
+    default LinkedHashSet<SAction<DynamicActionKind>> getWeakActsTop(
             GTSModelFactory mf, Theta theta) {
-        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
+        return getWeakActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
+    }
+
+    LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
+
+    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStepTop(
+            Theta theta, SAction<DynamicActionKind> a) {
+        return weakStep(theta, a, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTSAction
-    LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
+    // a is deterministic (including "nested" steps)
+    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
+    Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n);
 
     /* ... */
-
-    // CHECKME factor out subs?
-    @Override
-    default GTGType unfold() {
-        return unfoldContext(Collections.emptyMap());
-    }
-
-    GTGType unfoldContext(Map<RecVar, GTGType> c);
-
-    Set<Integer> getTimeoutIds();
-
-    Set<Op> getOps();
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
     default Set<Op> getCommittingTop() {
@@ -113,4 +136,18 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     // com does NOT contain obs by default
     Set<Op> getCommittingRight(Role obs, Set<Role> com);
     //{ return GTUtil.mapOf(); }
+
+    /* ... */
+
+    // CHECKME factor out subs?
+    @Override
+    default GTGType unfold() {
+        return unfoldContext(Collections.emptyMap());
+    }
+
+    GTGType unfoldContext(Map<RecVar, GTGType> c);
+
+    Set<Integer> getTimeoutIds();
+
+    Set<Op> getOps();
 }

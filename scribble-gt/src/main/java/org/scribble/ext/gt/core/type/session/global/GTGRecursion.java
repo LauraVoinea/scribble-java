@@ -83,6 +83,37 @@ public class GTGRecursion implements GTGType {
         return this.body.getActs(mf, theta, blocked, c, n);
     }
 
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return getWeakActs(mf, theta, blocked, c, n);
+    }
+
+    /* ... */
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        return this.body.getCommittingTop();
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        return this.body.getCommittingLeft(obs, com);
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        return this.body.getCommittingRight(obs, com);
+    }
+
     /* Aux */
 
     @Override
@@ -104,21 +135,6 @@ public class GTGRecursion implements GTGType {
     @Override
     public Set<Op> getOps() {
         return this.body.getOps();
-    }
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        return this.body.getCommittingTop();
-    }
-
-    @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return this.body.getCommittingLeft(obs, com);
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return this.body.getCommittingRight(obs, com);
     }
 
     @Override

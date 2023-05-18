@@ -234,6 +234,37 @@ public class GTGWiggly implements GTGType {
 
     }
 
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return getWeakActs(mf, theta, blocked, c, n);
+    }
+
+    /* ... */
+
+    @Override
+    public Set<Op> getCommittingTop(Set<Role> com) {
+        throw new RuntimeException("Unsupported operation: " + this);
+    }
+
+    @Override
+    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+        throw new RuntimeException("Unsupported operation: " + this);
+    }
+
+    @Override
+    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+        throw new RuntimeException("Unsupported operation: " + this);
+    }
+
     /* Aux */
 
     @Override
@@ -261,21 +292,6 @@ public class GTGWiggly implements GTGType {
         this.cases.values().forEach(x -> ops.addAll(x.getOps()));
         ops.add(this.op);  // Not assuming single-pointedness
         return ops;
-    }
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        throw new RuntimeException("Unsupported operation: " + this);
-    }
-
-    @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        throw new RuntimeException("Unsupported operation: " + this);
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        throw new RuntimeException("Unsupported operation: " + this);
     }
 
     @Override
