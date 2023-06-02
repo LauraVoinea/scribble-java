@@ -52,9 +52,6 @@ public class GTLConfig {
         if (!(a instanceof GTEAction)) {
             throw new RuntimeException("Shouldn't get in here: " + a);  // !!! weak
         }
-
-        System.out.println("111: " + this.type + " ,, " + a);
-
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
                 this.type.weakStepTop(com, this.self, a, this.sigma, this.theta);
         return opt.mapRight(x -> Pair.of(

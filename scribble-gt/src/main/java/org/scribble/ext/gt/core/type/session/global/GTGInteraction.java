@@ -265,7 +265,7 @@ public class GTGInteraction implements GTGType {
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getWeakActs(mf, theta, blocked, c, n);
+        return getActs(mf, theta, blocked, c, n);
     }
 
     /* Aux */

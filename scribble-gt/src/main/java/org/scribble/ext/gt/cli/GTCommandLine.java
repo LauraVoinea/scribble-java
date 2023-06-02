@@ -211,6 +211,7 @@ public class GTCommandLine extends CommandLine {
         int mark = mystep;
 
         System.out.println("\n" + indent + "Checking (" + mystep + "):\n" + s.toString(indent));
+
         s.check(indent + "    ");
 
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
