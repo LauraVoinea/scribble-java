@@ -36,13 +36,6 @@ public class GTLMixedActive implements GTLType {
     }
 
     @Override
-    public GTLMixedActive unfoldContext(Map<RecVar, GTLType> env) {
-        GTLType left = this.left.unfoldContext(env);
-        GTLType right = this.left.unfoldContext(env);
-        return this.fact.mixedActive(this.c, this.n, left, right);
-    }
-
-    @Override
     public Optional<? extends GTLType> merge(GTLType t) {
         if (!(t instanceof GTLMixedActive)) {
             return Optional.empty();
@@ -168,6 +161,19 @@ public class GTLMixedActive implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public GTLType subs(RecVar rv, GTLType t) {
+        GTLType left = this.left.subs(rv, t);
+        GTLType right = this.left.subs(rv, t);
+        return this.fact.mixedActive(this.c, this.n, left, right);
+    }
+
+    @Override
+    public GTLMixedActive unfoldAllOnce() {
+        return this;
+    }
+
 
     @Override
     public String toString() {

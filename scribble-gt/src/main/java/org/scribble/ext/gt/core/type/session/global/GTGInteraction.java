@@ -271,15 +271,20 @@ public class GTGInteraction implements GTGType {
     /* Aux */
 
     @Override
-    public GTGInteraction unfoldContext(Map<RecVar, GTGType> c) {
+    public GTGInteraction subs(Map<RecVar, GTGType> subs) {
         LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(c),
+                        x -> x.getValue().subs(subs),
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));
         return new GTGInteraction(this.src, this.dst, cases);
+    }
+
+    @Override
+    public GTGInteraction unfoldAllOnce() {
+        return this;
     }
 
     @Override

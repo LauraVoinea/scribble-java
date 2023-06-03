@@ -10,7 +10,6 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.*;
@@ -189,10 +188,15 @@ public class GTGMixedChoice implements GTGType {
     /* Aux */
 
     @Override
-    public GTGMixedChoice unfoldContext(Map<RecVar, GTGType> c) {
-        GTGType left = this.left.unfoldContext(c);
-        GTGType right = this.right.unfoldContext(c);
+    public GTGMixedChoice subs(Map<RecVar, GTGType> subs) {
+        GTGType left = this.left.subs(subs);
+        GTGType right = this.right.subs(subs);
         return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
+    }
+
+    @Override
+    public GTGMixedChoice unfoldAllOnce() {
+        return this;
     }
 
     @Override

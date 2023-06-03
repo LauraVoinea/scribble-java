@@ -72,9 +72,9 @@ public class GTLConfig {
     }
 
     // !!! -- cf. equals
-    public boolean isSubtype(GTLConfig sub) {
-        return this.self.equals(sub.self) && GTLConfig.isSubtype(this.type, sub.type)
-                && this.sigma.equals(sub.sigma) && this.theta.equals(sub.theta);
+    public boolean isSubtype(GTLConfig sup) {
+        return this.self.equals(sup.self) && GTLConfig.isSubtype(this.type, sup.type)
+                && this.sigma.equals(sup.sigma) && this.theta.equals(sup.theta);
     }
 
     // Works in this framework because starting from common global rec -- no need to compare completely arbitrary (un)foldings
@@ -83,7 +83,7 @@ public class GTLConfig {
 
     // CHECKME: algorithmic MPST subtyping?
     // terminates assuming contractive -- recs will eventually unfold into non-recs
-    public static boolean isSubtype(GTLType sup, GTLType sub) {
+    public static boolean isSubtype(GTLType sub, GTLType sup) {
         if (sup.equals(sub)) {  // GTLEnd, GTLRecVar
             return true;
         } else if (sup instanceof GTLRecursion) {
@@ -92,34 +92,34 @@ public class GTLConfig {
 
             GTLRecursion cast = (GTLRecursion) sup;
             List<GTLType> tmp = unfoldings.computeIfAbsent(cast, k -> new LinkedList<>());
-            if (tmp.stream().anyMatch(x -> isSubtype(x, sub))) {
+            if (tmp.stream().anyMatch(x -> isSubtype(sub, x))) {
                 return true;
             }
             GTLType next;
             if (tmp.isEmpty()) {
-                next = cast.unfold();
+                next = cast.unfoldAllOnce();
             } else {
-                next = tmp.get(tmp.size() - 1).unfold();
+                next = tmp.get(tmp.size() - 1).unfoldAllOnce();
             }
             tmp.add(next);
-            return isSubtype(next, sub);
+            return isSubtype(sub, next);
 
         } else if (sub instanceof GTLRecursion) {
             //return isUnfolding((GTLRecursion) sub, sup);
 
             GTLRecursion cast = (GTLRecursion) sub;
             List<GTLType> tmp = unfoldings.computeIfAbsent(cast, k -> new LinkedList<>());
-            if (tmp.stream().anyMatch(x -> isSubtype(sup, x))) {
+            if (tmp.stream().anyMatch(x -> isSubtype(x, sup))) {
                 return true;
             }
             GTLType next;
             if (tmp.isEmpty()) {
-                next = cast.unfold();
+                next = cast.unfoldAllOnce();
             } else {
-                next = tmp.get(tmp.size() - 1).unfold();
+                next = tmp.get(tmp.size() - 1).unfoldAllOnce();
             }
             tmp.add(next);
-            return isSubtype(sup, next);
+            return isSubtype(next, sup);
         }
 
         if (sup instanceof GTLBranch) {
@@ -132,7 +132,7 @@ public class GTLConfig {
                 return false;
             }
             return sup1.cases.keySet().stream()
-                    .allMatch(x -> isSubtype(sup1.cases.get(x), sub1.cases.get(x)));
+                    .allMatch(x -> isSubtype(sub1.cases.get(x), sup1.cases.get(x)));
         } else if (sup instanceof GTLSelect) {
             if (!(sub instanceof GTLSelect)) {
                 return false;
@@ -143,7 +143,7 @@ public class GTLConfig {
                 return false;
             }
             return sub1.cases.keySet().stream()
-                    .allMatch(x -> isSubtype(sup1.cases.get(x), sub1.cases.get(x)));
+                    .allMatch(x -> isSubtype(sub1.cases.get(x), sup1.cases.get(x)));
         }/* else if (sup instanceof GTLMixedChoice) {
         }*/ else if (sup instanceof GTLMixedActive) {
             throw new RuntimeException("TODO: " + sub + " <: " + sup);

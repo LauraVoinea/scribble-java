@@ -2,30 +2,21 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.MActionBase;
-import org.scribble.core.model.endpoint.EModelFactory;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.model.global.SModelFactory;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.GTEModelFactoryImpl;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
-import org.scribble.ext.gt.core.type.session.global.GTGMixedActive;
-import org.scribble.ext.gt.core.type.session.global.GTGMixedChoice;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.*;
-import org.scribble.util.Pair;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
 
 // HERE extend ANTLR -- copy frontend stuff from scrib-assrt
 public class GTLMixedChoice implements GTLType {
@@ -41,13 +32,6 @@ public class GTLMixedChoice implements GTLType {
         this.c = c;
         this.left = left;
         this.right = right;
-    }
-
-    @Override
-    public GTLMixedChoice unfoldContext(Map<RecVar, GTLType> env) {
-        GTLType left = this.left.unfoldContext(env);
-        GTLType right = this.right.unfoldContext(env);
-        return this.fact.mixedChoice(this.c, left, right);
     }
 
     @Override
@@ -145,6 +129,18 @@ public class GTLMixedChoice implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public GTLMixedChoice subs(RecVar rv, GTLType t) {
+        GTLType left = this.left.subs(rv, t);
+        GTLType right = this.right.subs(rv, t);
+        return this.fact.mixedChoice(this.c, left, right);
+    }
+
+    @Override
+    public GTLMixedChoice unfoldAllOnce() {
+        return this;
+    }
 
     @Override
     public String toString() {

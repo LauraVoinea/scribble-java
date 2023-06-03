@@ -103,8 +103,13 @@ public class GTGRecVar implements GTGType {
     /* Aux */
 
     @Override
-    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
-        return c.getOrDefault(this.var, this);  // CHECKME this
+    public GTGType subs(Map<RecVar, GTGType> subs) {
+        return subs.getOrDefault(this.var, this);  // CHECKME default this
+    }
+
+    @Override
+    public GTGType unfoldAllOnce() {
+        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override

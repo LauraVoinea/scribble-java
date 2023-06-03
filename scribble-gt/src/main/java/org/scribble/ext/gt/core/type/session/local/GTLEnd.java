@@ -12,8 +12,6 @@ import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
-import org.scribble.util.Pair;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -26,11 +24,6 @@ public class GTLEnd implements GTLType {
     public static final GTLEnd END = new GTLEnd();
 
     protected GTLEnd() { }
-
-    @Override
-    public GTLEnd unfoldContext(Map<RecVar, GTLType> env) {
-        return this;
-    }
 
     @Override
     public Optional<? extends GTLType> merge(GTLType t) {
@@ -66,6 +59,21 @@ public class GTLEnd implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public GTLType subs(RecVar rv, GTLType t) {
+        return this;
+    }
+
+    @Override
+    public GTLEnd unfoldAllOnce() {
+        return this;
+    }
+
+    /*@Override
+    public GTLEnd unfoldContext(Map<RecVar, GTLType> env) {
+        return this;
+    }*/
 
     @Override
     public String toString() {

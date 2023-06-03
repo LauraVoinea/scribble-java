@@ -268,15 +268,20 @@ public class GTGWiggly implements GTGType {
     /* Aux */
 
     @Override
-    public GTGWiggly unfoldContext(Map<RecVar, GTGType> c) {
+    public GTGWiggly subs(Map<RecVar, GTGType> subs) {
         LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(c),
+                        x -> x.getValue().subs(subs),
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));
         return new GTGWiggly(this.src, this.dst, this.op, cases);
+    }
+
+    @Override
+    public GTGWiggly unfoldAllOnce() {
+        return this;
     }
 
     @Override

@@ -107,7 +107,12 @@ public class GTGEnd implements GTGType {
     /* Aux */
 
     @Override
-    public GTGEnd unfoldContext(Map<RecVar, GTGType> c) {
+    public GTGType subs(Map<RecVar, GTGType> subs) {
+        return this;
+    }
+
+    @Override
+    public GTGEnd unfoldAllOnce() {
         return this;
     }
 

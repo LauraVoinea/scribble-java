@@ -139,13 +139,14 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
-    // CHECKME factor out subs?
-    @Override
-    default GTGType unfold() {
-        return unfoldContext(Collections.emptyMap());
-    }
+    // TODO refactor subs is singleton
+    GTGType subs(Map<RecVar, GTGType> subs);
 
-    GTGType unfoldContext(Map<RecVar, GTGType> c);
+    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
+    @Override
+    GTGType unfoldAllOnce();
+
+    //GTGType unfoldContext(Map<RecVar, GTGType> c);
 
     Set<Integer> getTimeoutIds();
 

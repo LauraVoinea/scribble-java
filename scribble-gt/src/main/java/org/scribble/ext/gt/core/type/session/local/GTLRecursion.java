@@ -9,8 +9,8 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.*;
-import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -24,16 +24,6 @@ public class GTLRecursion implements GTLType {
     protected GTLRecursion(RecVar var, GTLType body) {
         this.var = var;
         this.body = body;
-    }
-
-    @Override
-    public GTLType unfoldContext(Map<RecVar, GTLType> env) {
-        if (env.containsKey(this.var)) {
-            return this;
-        }
-        Map<RecVar, GTLType> nested = new HashMap<>(env);
-        nested.put(this.var, this);
-        return this.body.unfoldContext(nested);
     }
 
     @Override
@@ -55,14 +45,14 @@ public class GTLRecursion implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return unfold().getActs(mf, self, blocked, sigma, theta, c, n);
+        return unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
     }
 
     @Override
     public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step =
-                unfold().step(com, self, a, sigma, theta, c, n);
+                unfoldAllOnce().step(com, self, a, sigma, theta, c, n);
         return step.mapRight(x -> Quad.of(x.fst, x.snd, x.thrd, Tree.of(
                 toStepJudgeString("[Rec]", c, n, theta, this, sigma,
                         (GTEAction) a, x.thrd, x.fst, x.snd),
@@ -84,6 +74,19 @@ public class GTLRecursion implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public GTLType subs(RecVar rv, GTLType t) {
+        if (rv.equals(this.var)) {
+            return this;
+        }
+        return new GTLRecursion(this.var, this.body.subs(rv, t));
+    }
+
+    @Override
+    public GTLType unfoldAllOnce() {
+        return this.body.subs(this.var, this).unfoldAllOnce();
+    }
 
     @Override
     public String toString() {

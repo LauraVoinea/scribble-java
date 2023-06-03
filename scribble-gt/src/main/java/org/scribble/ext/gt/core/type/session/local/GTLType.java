@@ -92,11 +92,11 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
+    GTLType subs(RecVar rv, GTLType t);
+
     @Override
-    default GTLType unfold() {
-        return unfoldContext(Collections.emptyMap());
-    }
+    GTLType unfoldAllOnce();
 
     // Substitution inlined into this op -- probably better to separate unf/subs
-    GTLType unfoldContext(Map<RecVar, GTLType> env);
+    //GTLType unfoldContext(Map<RecVar, GTLType> env);
 }

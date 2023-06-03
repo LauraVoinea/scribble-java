@@ -12,10 +12,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -316,11 +313,16 @@ public class GTGMixedActive implements GTGType {
     /* Aux */
 
     @Override
-    public GTGMixedActive unfoldContext(Map<RecVar, GTGType> c) {
-        GTGType left = this.left.unfoldContext(c);
-        GTGType right = this.left.unfoldContext(c);
+    public GTGMixedActive subs(Map<RecVar, GTGType> subs) {
+        GTGType left = this.left.subs(subs);
+        GTGType right = this.left.subs(subs);
         return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
-                new LinkedHashSet<>(this.committedLeft), new LinkedHashSet<>(this.committedRight));  // FIXME repeated copying
+                GTUtil.copyOf(this.committedLeft), GTUtil.copyOf(this.committedRight));  // FIXME repeated copying
+    }
+
+    @Override
+    public GTGMixedActive unfoldAllOnce() {
+        return this;
     }
 
     @Override

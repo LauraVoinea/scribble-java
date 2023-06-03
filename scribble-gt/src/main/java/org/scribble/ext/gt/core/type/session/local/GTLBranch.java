@@ -37,18 +37,6 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public GTLBranch unfoldContext(Map<RecVar, GTLType> env) {
-        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().unfoldContext(env),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return this.fact.branch(this.src, cases);
-    }
-
-    @Override
     public Optional<? extends GTLType> merge(GTLType t) {
         if (!(t instanceof GTLBranch)) {
             return Optional.empty();
@@ -145,6 +133,23 @@ public class GTLBranch implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public GTLBranch subs(RecVar rv, GTLType t) {
+        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().subs(rv, t),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return this.fact.branch(this.src, cases);
+    }
+
+    @Override
+    public GTLBranch unfoldAllOnce() {
+        return this;
+    }
 
     @Override
     public String toString() {

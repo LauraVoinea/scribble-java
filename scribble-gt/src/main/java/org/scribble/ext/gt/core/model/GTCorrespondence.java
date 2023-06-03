@@ -65,7 +65,7 @@ public class GTCorrespondence {
 
             //*
             //if (!p.equals(q)) {  // XXXXXX
-            if (!p.isSubtype(q)) {
+            if (!q.isSubtype(p)) {
                 throw new RuntimeException("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q);
             }
             //*/

@@ -11,10 +11,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -69,7 +66,7 @@ public class GTGRecursion implements GTGType {
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                unfold().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+                unfoldAllOnce().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
         return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
                 toStepJudgeString(
                         "[Rec_" + this.var + "]",  // HACK for bounding execution
@@ -117,13 +114,16 @@ public class GTGRecursion implements GTGType {
     /* Aux */
 
     @Override
-    public GTGType unfoldContext(Map<RecVar, GTGType> c) {
-        if (c.containsKey(this.var)) {
+    public GTGRecursion subs(Map<RecVar, GTGType> subs) {
+        if (subs.containsKey(this.var)) {
             return this;
         }
-        Map<RecVar, GTGType> nested = new HashMap<>(c);
-        nested.put(this.var, this);
-        return this.body.unfoldContext(nested);
+        return new GTGRecursion(this.var, this.body.subs(subs));
+    }
+
+    @Override
+    public GTGType unfoldAllOnce() {
+        return this.body.subs(GTUtil.mapOf(this.var, this)).unfoldAllOnce();
     }
 
     @Override

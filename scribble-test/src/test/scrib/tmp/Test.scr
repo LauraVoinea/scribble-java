@@ -364,7 +364,7 @@ global protocol Proto1(role A, role B, role C) {
     }
 }
 //*/
-//*
+/*
 global protocol Proto1(role A, role B, role C) {
     rec X {
         0() from C to A;
@@ -427,7 +427,7 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-/*
+//*
 global protocol Proto1(role A, role B) {
     mixed {
         1() from A to B;
