@@ -19,14 +19,10 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
-import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.type.session.global.GTGEnd;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
-import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.GTUtil;
@@ -59,6 +55,11 @@ public class GTCommandLine extends CommandLine {
             throw new RuntimeScribException(x);
         }
         cl.gtRun();
+    }
+
+    @Override
+    protected CLFlags newCLFlags() {
+        return new GTCLFlags();
     }
 
     @Override
@@ -109,13 +110,15 @@ public class GTCommandLine extends CommandLine {
 
                 System.out.println("\n[GTCommandLine] Translated " + g.getHeaderChild().getDeclName() + ": " + translate);
 
-                if (!translate.isSinglePointed()) {
+                if (!translate.isSinglePointed()) {  // FIXME latest global WF
                     System.err.println("Not single pointed: " + translate);
                 } else {
                     GTCorrespondence s = new GTCorrespondence(rs, translate);
                     Set<Op> com = GTUtil.umod(translate.getCommittingTop());
 
-                    foo(core, "", s, 1, MAX, new HashMap<>(), 2, com);
+                    if (!hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
+                        foo(core, "", s, 1, MAX, new HashMap<>(), 2, com);
+                    }
                 }
             }
         }
