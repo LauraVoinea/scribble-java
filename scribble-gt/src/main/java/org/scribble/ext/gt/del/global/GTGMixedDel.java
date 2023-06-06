@@ -29,7 +29,7 @@ public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel {
     @Override
     public GNode translate(ScribNode n, GTypeTranslator t) {
         return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel
-        //throw new RuntimeException("TODO");  // HERE HERE in base core MixedChoice, override visit methods to do general homomorphic visit of mixed choice
+        ////throw new RuntimeException("TODO");  // HERE HERE in base core MixedChoice, override visit methods to do general homomorphic visit of mixed choice
 
         /* cf. GTGTypeTranslator2
         GTGMixed cast = (GTGMixed) n;
@@ -39,7 +39,8 @@ public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel {
         GSeq left = (GSeq) cast.getLeftBlockChild().visitWith(t);
         GSeq right = (GSeq) cast.getRightBlockChild().visitWith(t);
         return ((GTGTypeFactoryImpl) t.tf.global).GTGMixedChoice(
-                src, left, right, other, observer);*/
+                src, left, right, other, observer);
+        //*/
 
     }
 }

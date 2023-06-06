@@ -24,8 +24,6 @@ import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 public interface Choice<K extends ProtoKind, B extends Seq<K, B>>
         extends SType<K, B> {
