@@ -118,8 +118,12 @@ public class EACommandLine extends CommandLine {
         Map<String, Function<Boolean, Optional<Exception>>> tests = EAUtil.mapOf();
         tests.put("ex1", EACommandLine::ex1);
         tests.put("ex2", EACommandLine::ex2);
-        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding
+        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding -- cf. repeat state bounding (OK for finite output seqs)
         tests.put("ex5", EACommandLine::ex5);
+        tests.put("ex6", EACommandLine::ex6);
+        tests.put("ex7", EACommandLine::ex7);
+        tests.put("ex8", EACommandLine::ex8);
+        tests.put("ex10", EACommandLine::ex10);
 
         for (Map.Entry<String, Function<Boolean, Optional<Exception>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -182,8 +186,8 @@ public class EACommandLine extends CommandLine {
 
     }
 
-    static void ex10() {
-        System.out.println("\n--ex10:");
+    private static Optional<Exception> ex10(boolean debug) {
+        //System.out.println("\n--ex10:");
 
         EAComp lethA = parseM("return 42");
         EAComp lethB = parseM("return 43");
@@ -201,9 +205,14 @@ public class EACommandLine extends CommandLine {
         // ----
 
         Delta delta = new Delta(newLinkedMap(sA, EALEndType.END, sB, EALEndType.END));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
 
-        typeAndRun(sys, -1);
+        //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRunD(sys, true, new Bounds(-1));
     }
 
     // !!! Not WT -- testing (incompatible) state typing
@@ -284,9 +293,10 @@ public class EACommandLine extends CommandLine {
         //
     }
 
+    // N.B. slow with full debug output (very slow if no repeat state pruning)
     // Various options for B in comments
-    static void ex8() {
-        System.out.println("\n---ex8:");
+    private static Optional<Exception> ex8(boolean debug) {
+        //System.out.println("\n---ex8:");
 
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X}, l3(1).end }";
         String out1us = "B!{l1(1)." + recXAs + "}";
@@ -321,9 +331,9 @@ public class EACommandLine extends CommandLine {
                         /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 })"  // run forever -- old
                         + " |-> let y: 1 <= A!l3(()) in return () })"  // quit straight away*/
 
-                        //+ "     |-> let tmp: Bool <= return d < 0 in "  // quit straight away -- 0
-                        + "     |-> let tmp: Bool <= return d < 42 in "  // quit after one -- 42
-                        //+ "     |-> let tmp: Bool <= return d < 43 in "  // run forever -- change run(-1) below
+                        //+ "     |-> let tmp: Bool <= < d 0 in "  // quit straight away -- 0
+                        + "     |-> let tmp: Bool <= < d 42 in "  // quit after one -- 42
+                        //+ "     |-> let tmp: Bool <= < d 43 in "  // run "forever" -- change run(-1) below XXX
 
                         + "        if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42"
                         + "        else let y: 1 <= A!l3(()) in return d"
@@ -350,13 +360,19 @@ public class EACommandLine extends CommandLine {
         // ----
 
         Delta delta = new Delta(newLinkedMap(sA, out1u, sB, recXB));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        typeAndRun(sys, -1, true);  // quit straight away or after one
-        //typeAndRun(sys, 100);  // run forever
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
+
+        //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRunD(sys, true, new Bounds(-1));  // quit straight away or after one -- also "run forever" (but repeat state bounded -- cf. no unbounded send stream)
+        //return typeAndRunD(sys, true, new Bounds(10));  // run forever  // XXX repeat state is now also bounded
     }
 
-    static void ex7() {
-        System.out.println("\n---ex7:");
+    private static Optional<Exception> ex7(boolean debug) {
+        //System.out.println("\n---ex7:");
 
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X, l4(1).end}, l3(1).end }";
         String out1us = "B!{l1(1)." + recXAs + ", l4(1).end}";
@@ -406,15 +422,21 @@ public class EACommandLine extends CommandLine {
         // ----
 
         Delta delta = new Delta(newLinkedMap(sA, out1u, sB, recXB));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        typeAndRun(sys, -1);
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
+
+        //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRunD(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
-    private static void ex6() {
-        System.out.println("\n---ex6");
+    private static Optional<Exception> ex6(boolean debug) {
+        //System.out.println("\n---ex6");
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Bool).end}");
-        EAComp sendAB = parseM("let x: Bool <= return 2 < 2 in if x then B!l1(x) else B!l1(x)");
+        EAComp sendAB = parseM("let x: Bool <= < 2 2 in if x then B!l1(x) else B!l1(x)");
 
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Bool).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} z1: 1, l1(x: Bool) |-> return 42 }");
@@ -434,8 +456,14 @@ public class EACommandLine extends CommandLine {
         // ---
 
         Delta delta = new Delta(newLinkedMap(sA, out1, sB, in1));
-        EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
-        typeAndRun(sys, -1);
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
+
+        //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRunD(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
     private static Optional<Exception> ex5(boolean debug) {
@@ -910,7 +938,7 @@ public class EACommandLine extends CommandLine {
         System.out.println("Typing actor: " + c + " ,, " + delta);
         Either<Exception, Tree<String>> t = c.type(new Gamma(), delta);
         if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft());
+            throw new RuntimeException("Not well typed:\n" + t.getLeft());
         }
     }
 
@@ -993,7 +1021,7 @@ public class EACommandLine extends CommandLine {
             return Optional.of(t.getLeft());
         }
         if (debug) {
-            System.out.println(t.getRight().stream()
+            System.out.println(t.getRight().stream()  // !!!
                     .map(x -> x.toString(indent + "  "))
                     .collect(Collectors.joining("\n\n")));
         }
@@ -1016,24 +1044,38 @@ public class EACommandLine extends CommandLine {
 
         public boolean isDone(int depth, EAAsyncSystem sys) {
             return (this.maxDepth >= 0 && depth >= this.maxDepth) || this.seen.contains(sys);
+            //return this.maxDepth >= 0 && depth >= this.maxDepth;
         }
     }
 
-    // max -1 for unbounded
+    static final Scanner KB = new Scanner(System.in);
+
+    // bounds max depth -1 for unbounded
     static Optional<Exception> typeAndRunD(EAAsyncSystem sys, boolean debug, Bounds bounds) {
+        Set<EAAsyncSystem> terminals = EAUtil.setOf();
+
         //state = 0;
         System.out.println("\n(" + bounds.state + ") Initial system:\n" + sys);
-        return typeAndRunDAux(sys, 0, debug, "", bounds);
+        Optional<Exception> res = typeAndRunDAux(sys, 0, debug, "", bounds, terminals);
+
+        System.out.println("\nTerminals:");
+        for (EAAsyncSystem term : terminals) {
+            System.out.println("\n" + term);
+        }
+
+        return res;
     }
 
     static Optional<Exception> typeAndRunDAux(
-            EAAsyncSystem sys, int depth, boolean debug, String indent, Bounds bounds) {
+            EAAsyncSystem sys, int depth, boolean debug, String indent, Bounds bounds,
+            Set<EAAsyncSystem> terminals) {  // TODO refactor
 
         Optional<Exception> opt = typeCheckSystem(sys, debug, indent);
         if (opt.isPresent()) {
             return opt;
         }
 
+        // FIXME TODO in debug output distinguish states pruned by seen-before or depth (state not validated)
         if (bounds.isDone(depth, sys)) {
             System.out.println(indent + "Pruned: " + depth);
             return Optional.empty();
@@ -1044,11 +1086,12 @@ public class EACommandLine extends CommandLine {
         System.out.println(indent + "Steppable: " + pids);
 
         if (pids.isEmpty()) {
-            if (!debug) {
+            /*if (!debug) {
                 System.out.println();
                 System.out.println(indent + "Result steps(" + depth + "):");
                 System.out.println(sys);
-            }
+            }*/
+            terminals.add(sys);  // TODO also record depth-pruned states (not validated)
             if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
                 return Optional.of(new Exception(indent + "Stuck: " + sys));
             }
@@ -1080,18 +1123,20 @@ public class EACommandLine extends CommandLine {
             bounds.state++;
             i++;
 
+            //KB.nextLine();  // !!!
+
             String indent1 = incIndent(indent);
             EAAsyncSystem sys1 = get.left;
             if (debug) {
                 System.out.println(indent1 + "(" + bounds.state + ")\n" + sys1.toString(indent1));
                 System.out.println(indent1 + "Reduced one step by:");
-                System.out.println(get.mid.toString(indent1));
-                if (get.right != null) {  // XXX TODO
+                System.out.println(get.mid.toString(indent1));  // !!!
+                if (get.right != null) {  // XXX TODO null
                     System.out.println(indent1 + "Delta stepped by:");
-                    System.out.println(get.right.toString(indent1));
+                    System.out.println(get.right.toString(indent1));  // !!!
                 }
             }
-            Optional<Exception> run = typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds);
+            Optional<Exception> run = typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals);
             if (run.isPresent()) {
                 return run;
             }
