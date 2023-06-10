@@ -13,6 +13,7 @@ import org.scribble.util.Pair;
 import java.util.Map;
 import java.util.Set;
 
+// TODO rename EAVAl
 // "pure" exprs (no I/O)
 public interface EAExpr extends EATerm {
 
@@ -32,7 +33,7 @@ public interface EAExpr extends EATerm {
     // var/funcname throw RuntimeException
     EAVType infer();  // for use on ground vals at config level
 
-    @Deprecated
+    @Deprecated  // CHECKME un-deprec? use eval?
     default boolean canEval() {
         return false;
     }

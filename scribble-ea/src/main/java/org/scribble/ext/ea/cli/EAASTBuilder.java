@@ -13,6 +13,7 @@ import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.util.EAUtil;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -45,12 +46,29 @@ public class EAASTBuilder {
                 return visitApp(n);
             case "M_IF":
                 return visitIf(n);
+            case "M_SPAWN":
+                return visitSpawn(n);
+            case "M_REGISTER":
+                return visitRegister(n);
+
             case "M_PLUS":
                 return visitPlus(n);
             case "M_COMP":
                 return visitComp(n);
         }
         throw new RuntimeException("Unknown node kind: " + n.getText());
+    }
+
+    public EAMSpawn visitSpawn(CommonTree n) {
+        EAComp M = visitM((CommonTree) n.getChild(0));
+        return pf.spawn(M);
+    }
+
+    public EAMRegister visitRegister(CommonTree n) {
+        EAExpr V = visitV((CommonTree) n.getChild(0));
+        Role role = visitRole((CommonTree) n.getChild(1));
+        EAComp M = visitM((CommonTree) n.getChild(2));
+        return pf.register(V, role, M);
     }
 
     public EAMIf visitIf(CommonTree n) {
@@ -209,9 +227,27 @@ public class EAASTBuilder {
                 return tf.val.intt();
             case "A_BOOL":
                 return tf.val.bool();
+            case "A_AP":
+
+                List<CommonTree> cs = ((List<Object>) n.getChildren()).stream()
+                        .map(x -> (CommonTree) x).collect(Collectors.toList());
+                LinkedHashMap<Role, EALType> roles = visitAPRoles(cs);
+
+                return tf.val.ap(roles);
             default:
                 throw new RuntimeException("Unknown val type: " + n);
         }
+    }
+
+    public LinkedHashMap<Role, EALType> visitAPRoles(List<CommonTree> n) {
+        LinkedHashMap<Role, EALType> roles = EAUtil.mapOf();
+        int size = n.size();
+        int j = size / 2;
+        for (int i = 0; i < size / 2; i++) {
+            roles.put(visitRole(n.get(i)), visitSessionType(n.get(j)));
+            j++;
+        }
+        return roles;
     }
 
     /* S */

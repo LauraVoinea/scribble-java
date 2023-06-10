@@ -13,7 +13,9 @@ public interface EATerm {
     int INT = 28807;
     int BOOL = 28813;
     int HANDLERS = 3833;
+
     int BIN_OP = 51673;
+    int AP_NAME = 51679;
 
     int LET = 3803;
     int RETURN = 3821;
@@ -22,6 +24,8 @@ public interface EATerm {
     int REC = 3851;
     int APP = 3853;
     int IF = 3863;
+    int SPAWN = 3877;
+    int REGISTER = 3881;
 
     // Move to EAConfig
     int IDLE = 4481;

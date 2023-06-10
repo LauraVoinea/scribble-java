@@ -85,4 +85,12 @@ public class EATermFactory {
     public EAMSuspend suspend(@NotNull EAExpr val, @NotNull EAExpr sval) {
         return new EAMSuspend(val, sval);
     }
+
+    public EAMSpawn spawn(EAComp M) {
+        return new EAMSpawn(M);
+    }
+
+    public EAMRegister register(EAExpr V, Role role, EAComp M) {
+        return new EAMRegister(V, role, M);
+    }
 }

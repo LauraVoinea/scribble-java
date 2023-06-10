@@ -22,6 +22,8 @@ tokens
     IF_KW = 'if';
     THEN_KW = 'then';
     ELSE_KW = 'else';
+    SPAWN_KW = 'spawn';
+    REGISTER_KW = 'register';  // NewAP "integrated" into EAAsyncSystem (cf. parallel comp, session restr.) -- ...cannot unbounded-ly generate fresh APs
 
     HANDLER_KW = 'handler';
 
@@ -31,6 +33,7 @@ tokens
     UNIT_KW = '1';  // N.B. Int(1) clash
     INT_KW = 'Int';
     BOOL_KW = 'Bool';
+    AP_KW = 'AP';
 
     MU_KW = 'mu';
     REC_KW = 'rec';
@@ -68,6 +71,7 @@ tokens
    A_FUN;
    A_INT;
    A_BOOL;
+   A_AP;
 
    // Separate from KW, otherwise node label will be the keyword itself (e.g., "return")
    M_LET;
@@ -76,6 +80,8 @@ tokens
    M_SUSPEND;
    M_APP;
    M_IF;
+   M_REGISTER;
+   M_SPAWN;
 
    S_SELECT;
    S_BRANCH;
@@ -371,6 +377,10 @@ type:
     BOOL_KW
 ->
     ^(A_BOOL)
+|
+    AP_KW '(' role '->' session_type (',' role '->' session_type)+ ')'
+->
+   ^(A_AP role+ session_type+)
 ;
 
 /* M */
@@ -411,6 +421,14 @@ nM:
     IF_KW nV THEN_KW nM ELSE_KW nM
 ->
     ^(M_IF nV nM nM)
+|
+    REGISTER_KW nV role nM
+->
+    ^(M_REGISTER nV role nM)
+|
+    SPAWN_KW nM
+->
+    ^(M_SPAWN nM)
 ;
 
 /* S */

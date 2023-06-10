@@ -144,14 +144,15 @@ public class EACommandLine extends CommandLine {
 
         Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
                 tests = EAUtil.mapOf();
-        tests.put("ex1", EACommandLine::ex1);
-        tests.put("ex2", EACommandLine::ex2);
-        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding -- cf. repeat state bounding (OK for finite output seqs)
-        tests.put("ex5", EACommandLine::ex5);
-        tests.put("ex6", EACommandLine::ex6);
-        tests.put("ex7", EACommandLine::ex7);
-        tests.put("ex8", EACommandLine::ex8);
-        tests.put("ex10", EACommandLine::ex10);
+//        tests.put("ex1", EACommandLine::ex1);
+//        tests.put("ex2", EACommandLine::ex2);
+//        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding -- cf. repeat state bounding (OK for finite output seqs)
+//        tests.put("ex5", EACommandLine::ex5);
+//        tests.put("ex6", EACommandLine::ex6);
+//        tests.put("ex7", EACommandLine::ex7);
+//        tests.put("ex8", EACommandLine::ex8);
+//        tests.put("ex10", EACommandLine::ex10);
+        tests.put("ex11", EACommandLine::ex11);
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -159,18 +160,6 @@ public class EACommandLine extends CommandLine {
         }
 
         System.out.println("\nSummary:" + log);
-
-        /*ex1();
-        //ex2();
-
-        /*ex4();
-        ex5a();
-
-        ex6();
-        ex7();
-        ex8();
-
-        ex10();*/
     }
 
     private static boolean runTest(
@@ -212,10 +201,46 @@ public class EACommandLine extends CommandLine {
         EARuntimeFactory rf = EARuntimeFactory.factory;
         EATypeFactory tf = EATypeFactory.factory;
 
-        //ex9(lf, pf, rf, tf);
+        //ex9(lf, pf, rf, tf);  // TODO neg runTest (check FAIL)
     }
 
     /* ... */
+
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex11(
+            boolean debug) {
+
+        EAComp spawn = parseM("spawn return ()");
+        EAVType ap = parseA("AP(A -> end, B -> end)");
+
+        System.out.println(spawn);
+        System.out.println(ap);
+
+        return null;
+        /*EAComp lethA = parseM("return 42");
+        EAComp lethB = parseM("return 43");
+
+        EACActor cA = RF.config(p1, RF.activeThread(lethA, s, A), EMPTY_SIGMA, MF.intt(1));
+        EACActor cB = RF.config(p2, RF.activeThread(lethB, s, B), EMPTY_SIGMA, MF.intt(2));
+        System.out.println("cA = " + cA);
+        System.out.println("cB = " + cB);
+
+        //--------------
+
+        typeCheckActor(cA, new Delta(newLinkedMap(sA, EALEndType.END)));
+        typeCheckActor(cB, new Delta(newLinkedMap(sB, EALEndType.END)));
+
+        // ----
+
+        Delta delta = new Delta(newLinkedMap(sA, EALEndType.END, sB, EALEndType.END));
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
+
+        //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+
+        return typeAndRun(sys, true, new Bounds(-1));*/
+    }
 
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex10(
             boolean debug) {

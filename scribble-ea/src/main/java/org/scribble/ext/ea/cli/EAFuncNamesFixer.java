@@ -3,9 +3,9 @@ package org.scribble.ext.ea.cli;
 import org.scribble.core.type.name.Op;
 import org.scribble.ext.ea.core.runtime.EAPid;
 import org.scribble.ext.ea.core.runtime.EASid;
-import org.scribble.ext.ea.core.term.*;
-import org.scribble.ext.ea.core.term.expr.*;
+import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.comp.*;
+import org.scribble.ext.ea.core.term.expr.*;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -49,6 +49,12 @@ public class EAFuncNamesFixer {
         } else if (M instanceof EAMSend) {
             EAMSend cast = (EAMSend) M;
             return f.send(cast.dst, cast.op, visit(cast.val, env));
+        } else if (M instanceof EAMSpawn) {
+            EAMSpawn cast = (EAMSpawn) M;
+            return f.spawn(visit(cast.M, env));
+        } else if (M instanceof EAMRegister) {
+            EAMRegister cast = (EAMRegister) M;
+            return f.register(visit(cast.V, env), cast.role, visit(cast.M, env));
         } else if (M instanceof EAMBinOp) {
             EAMBinOp cast = (EAMBinOp) M;
             return f.binop(cast.op, visit(cast.left, env), visit(cast.right, env));
