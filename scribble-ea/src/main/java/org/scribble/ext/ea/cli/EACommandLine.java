@@ -105,56 +105,6 @@ public class EACommandLine extends CommandLine {
         //testParser();
     }
 
-    static String log(String log, String name, boolean pass) {
-        return log + "\n" + name + (pass ? " Pass" : ConsoleColors.colour(ConsoleColors.RED, " FAIL"));
-    }
-
-    private static void tests() {
-
-        //System.out.println(parseV("2 + 3"));
-
-        String log = "";
-
-        Map<String, Function<Boolean, Optional<Exception>>> tests = EAUtil.mapOf();
-        tests.put("ex1", EACommandLine::ex1);
-        tests.put("ex2", EACommandLine::ex2);
-        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding -- cf. repeat state bounding (OK for finite output seqs)
-        tests.put("ex5", EACommandLine::ex5);
-        tests.put("ex6", EACommandLine::ex6);
-        tests.put("ex7", EACommandLine::ex7);
-        tests.put("ex8", EACommandLine::ex8);
-        tests.put("ex10", EACommandLine::ex10);
-
-        for (Map.Entry<String, Function<Boolean, Optional<Exception>>> e : tests.entrySet()) {
-            String name = e.getKey();
-            log = log(log, name, runTest(name, e.getValue(), true));
-        }
-
-        System.out.println("\nSummary:" + log);
-
-        /*ex1();
-        //ex2();
-
-        /*ex4();
-        ex5a();
-
-        ex6();
-        ex7();
-        ex8();
-
-        ex10();*/
-    }
-
-    private static void negtests() {
-        LTypeFactoryImpl lf = new LTypeFactoryImpl();
-
-        EATermFactory pf = EATermFactory.factory;
-        EARuntimeFactory rf = EARuntimeFactory.factory;
-        EATypeFactory tf = EATypeFactory.factory;
-
-        //ex9(lf, pf, rf, tf);
-    }
-
     private static void eamain() {
 
         //new EACommandLine(args).run();
@@ -186,8 +136,89 @@ public class EACommandLine extends CommandLine {
 
     }
 
-    private static Optional<Exception> ex10(boolean debug) {
-        //System.out.println("\n--ex10:");
+    private static void tests() {
+
+        //System.out.println(parseV("2 + 3"));
+
+        String log = "";
+
+        Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
+                tests = EAUtil.mapOf();
+        tests.put("ex1", EACommandLine::ex1);
+        tests.put("ex2", EACommandLine::ex2);
+        tests.put("ex4", EACommandLine::ex4);  // TODO rec bounding -- cf. repeat state bounding (OK for finite output seqs)
+        tests.put("ex5", EACommandLine::ex5);
+        tests.put("ex6", EACommandLine::ex6);
+        tests.put("ex7", EACommandLine::ex7);
+        tests.put("ex8", EACommandLine::ex8);
+        tests.put("ex10", EACommandLine::ex10);
+
+        for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
+            String name = e.getKey();
+            log = log(log, name, runTest(name, e.getValue(), true));
+        }
+
+        System.out.println("\nSummary:" + log);
+
+        /*ex1();
+        //ex2();
+
+        /*ex4();
+        ex5a();
+
+        ex6();
+        ex7();
+        ex8();
+
+        ex10();*/
+    }
+
+    private static boolean runTest(
+            String name,
+            Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>> test,
+            boolean debug) {
+
+        System.out.println("\n\n-- " + name + ":\n");
+        Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> apply =
+                test.apply(debug);
+        if (apply.isLeft()) {
+            apply.getLeft().printStackTrace();
+            return false;
+        }
+
+        Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>> right = apply.getRight();
+        System.out.println("\nDepth pruned:");
+        for (EAAsyncSystem pruned : right.left) {
+            System.out.println("\n" + pruned);
+        }
+        System.out.println("\nTerminals:");
+        for (EAAsyncSystem term : right.right) {
+            System.out.println("\n" + term);
+        }
+
+        return right.left.isEmpty();
+    }
+
+    static String log(String log, String name, boolean pass) {
+        return log + "\n" + name + (pass ? " Pass" : ConsoleColors.colour(ConsoleColors.RED, " FAIL"));
+    }
+
+    /* ... */
+
+    private static void negtests() {
+        LTypeFactoryImpl lf = new LTypeFactoryImpl();
+
+        EATermFactory pf = EATermFactory.factory;
+        EARuntimeFactory rf = EARuntimeFactory.factory;
+        EATypeFactory tf = EATypeFactory.factory;
+
+        //ex9(lf, pf, rf, tf);
+    }
+
+    /* ... */
+
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex10(
+            boolean debug) {
 
         EAComp lethA = parseM("return 42");
         EAComp lethB = parseM("return 43");
@@ -212,7 +243,7 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, true, new Bounds(-1));
+        return typeAndRun(sys, true, new Bounds(-1));
     }
 
     // !!! Not WT -- testing (incompatible) state typing
@@ -289,14 +320,14 @@ public class EACommandLine extends CommandLine {
         System.out.println(sys);
         sys.type();
 
-        typeAndRun(sys, -1);
+        typeAndRunOld(sys, -1);
         //
     }
 
     // N.B. slow with full debug output (very slow if no repeat state pruning)
     // Various options for B in comments
-    private static Optional<Exception> ex8(boolean debug) {
-        //System.out.println("\n---ex8:");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex8(
+            boolean debug) {
 
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X}, l3(1).end }";
         String out1us = "B!{l1(1)." + recXAs + "}";
@@ -332,8 +363,8 @@ public class EACommandLine extends CommandLine {
                         + " |-> let y: 1 <= A!l3(()) in return () })"  // quit straight away*/
 
                         //+ "     |-> let tmp: Bool <= < d 0 in "  // quit straight away -- 0
-                        + "     |-> let tmp: Bool <= < d 42 in "  // quit after one -- 42
-                        //+ "     |-> let tmp: Bool <= < d 43 in "  // run "forever" -- change run(-1) below XXX
+                        //+ "     |-> let tmp: Bool <= < d 42 in "  // quit after one -- 42
+                        + "     |-> let tmp: Bool <= < d 43 in "  // run "forever" -- change run(-1) below -- XXX seen-pruned
 
                         + "        if tmp then let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42"
                         + "        else let y: 1 <= A!l3(()) in return d"
@@ -367,12 +398,12 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, true, new Bounds(-1));  // quit straight away or after one -- also "run forever" (but repeat state bounded -- cf. no unbounded send stream)
+        return typeAndRun(sys, true, new Bounds(-1));  // quit straight away or after one -- also "run forever" (but repeat state bounded -- cf. no unbounded send stream)
         //return typeAndRunD(sys, true, new Bounds(10));  // run forever  // XXX repeat state is now also bounded
     }
 
-    private static Optional<Exception> ex7(boolean debug) {
-        //System.out.println("\n---ex7:");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex7(
+            boolean debug) {
 
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X, l4(1).end}, l3(1).end }";
         String out1us = "B!{l1(1)." + recXAs + ", l4(1).end}";
@@ -429,11 +460,11 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
+        return typeAndRun(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
-    private static Optional<Exception> ex6(boolean debug) {
-        //System.out.println("\n---ex6");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex6(
+            boolean debug) {
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Bool).end}");
         EAComp sendAB = parseM("let x: Bool <= < 2 2 in if x then B!l1(x) else B!l1(x)");
@@ -463,11 +494,11 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
+        return typeAndRun(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
-    private static Optional<Exception> ex5(boolean debug) {
-        //System.out.println("\n--ex5");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex5(
+            boolean debug) {
 
         String recXAs = "mu X . B?{l2(1).B!{l1(1).X}, l3(1).end}";
         String out1us = "B!{l1(1)." + recXAs + "}";
@@ -523,7 +554,7 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
+        return typeAndRun(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
     // XXX DEBUG loop -- cf. ex5 OK
@@ -640,7 +671,7 @@ public class EACommandLine extends CommandLine {
         ////sys.type(new Gamma(), new Delta(), new Delta(env));
         sys.type();
 
-        typeAndRun(sys, -1);
+        typeAndRunOld(sys, -1);
 
         /*System.out.println();
         sys = sys.reduce(p1);
@@ -728,8 +759,8 @@ public class EACommandLine extends CommandLine {
         }*/
     }
 
-    private static Optional<Exception> ex4(boolean debug) {
-        //System.out.println("\n--ex4:");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex4(
+            boolean debug) {
 
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X}}";
         String out1us = "B!{l1(1)." + recXAs + "}";
@@ -788,11 +819,11 @@ public class EACommandLine extends CommandLine {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
-        return typeAndRunD(sys, debug, new Bounds(-1));  // binary recip, implicitly bounded
+        return typeAndRun(sys, debug, new Bounds(-1));  // binary recip, implicitly bounded
     }
 
-    private static Optional<Exception> ex2(boolean debug) {
-        //System.out.println("\n--ex2:");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex2(
+            boolean debug) {
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(1).B!{l2(1).end}}");
         EAMLet let = (EAMLet) parseM("let x: 1 <= B!l1(()) in B!l2(())");
@@ -827,24 +858,13 @@ public class EACommandLine extends CommandLine {
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
 
         //typeAndRun(sys, -1, true);
-        return typeAndRunD(sys, true, new Bounds(-1));
+        return typeAndRun(sys, true, new Bounds(-1));
     }
     //*/
 
-    private static boolean runTest(
-            String name, Function<Boolean, Optional<Exception>> test, boolean debug) {
-        System.out.println("\n-- " + name + ":");
-        Optional<Exception> apply = test.apply(debug);
-        if (apply.isPresent()) {
-            apply.get().printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
     //*
-    private static Optional<Exception> ex1(boolean debug) {
-        //System.out.println("\n---ex1:");
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex1(
+            boolean debug) {
 
         EALOutType out1 = (EALOutType) parseSessionType("B!{l1(Int).end}");
         //EAMLet sendAB = (EAMLet) parseM("let x: Int <= return 41 + 1 in B!l1(x)");  // TODO refactor binop
@@ -876,11 +896,12 @@ public class EACommandLine extends CommandLine {
 
         //typeAndRun(sys, -1);
         //typeAndRun(sys, -1, true);
-        return typeAndRunD(sys, debug, new Bounds(-1));
+        return typeAndRun(sys, debug, new Bounds(-1));
     }
     //*/
 
 
+    /* ... */
 
     // TODO deprecate following -- cf. EAUtil
     static <K, V> LinkedHashMap<K, V> newLinkedMap() {
@@ -944,65 +965,6 @@ public class EACommandLine extends CommandLine {
 
     /* ... */
 
-    static void typeCheckSystem(EASystem sys) {
-        typeCheckSystem(sys, false);
-    }
-
-    static void typeCheckSystem(EASystem sys, boolean debug) {
-        if (debug) {
-            System.out.println("Type checking system:");
-        }
-        Either<Exception, List<Tree<String>>> t = sys.type();
-        if (t.isLeft()) {
-            throw new RuntimeException(t.getLeft());
-        }
-        if (debug) {
-            System.out.println(t.getRight().stream()
-                    .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
-        }
-    }
-
-    static void typeAndRun(EASystem sys, int steps) {
-        typeAndRun(sys, steps, false);
-    }
-
-    // steps -1 for unbounded
-    static void typeAndRun(EASystem sys, int steps, boolean debug) {
-        System.out.println("\nInitial system:\n" + sys);
-        typeCheckSystem(sys, debug);
-
-        int rem = steps;
-        Map<EAPid, Set<EAPid>> pids = sys.canStep();
-        for (; !pids.isEmpty() && rem != 0; rem--) {
-            //sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
-            Pair<EASystem, Tree<String>> reduce = sys.reduce(pids.keySet().iterator().next());
-            sys = reduce.left;
-            if (debug) {
-                System.out.println("\n" + sys);
-                System.out.println("\nReduced one step by:");
-                System.out.println(reduce.right.toString("  "));
-            }
-            typeCheckSystem(sys, debug);
-            pids = sys.canStep();
-        }
-
-        if (!debug) {
-            System.out.println();
-            System.out.println("Result steps(" + steps + "):");
-            System.out.println(sys);
-        }
-
-        if (steps == -1) {
-            if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
-                throw new RuntimeException("Stuck: " + sys);
-            }
-        } else if (rem != 0) {
-            throw new RuntimeException("Stuck rem=" + rem + ": " + sys);
-        }
-    }
-
-    /* ... */
-
     static void typeCheckSystem(EAAsyncSystem sys) {
         typeCheckSystem(sys, false);
     }
@@ -1028,6 +990,8 @@ public class EACommandLine extends CommandLine {
         return Optional.empty();
     }
 
+    /* ... */
+
     //static int state = 0;
 
     static class Bounds {
@@ -1042,43 +1006,59 @@ public class EACommandLine extends CommandLine {
 
         public void addSys(EAAsyncSystem sys) { this.seen.add(sys); }
 
-        public boolean isDone(int depth, EAAsyncSystem sys) {
-            return (this.maxDepth >= 0 && depth >= this.maxDepth) || this.seen.contains(sys);
-            //return this.maxDepth >= 0 && depth >= this.maxDepth;
+        public boolean isDepthPrune(int depth) {
+            return this.maxDepth >= 0 && depth >= this.maxDepth;
+        }
+
+        public boolean isSeenPrune(EAAsyncSystem sys) {
+            return this.seen.contains(sys);
         }
     }
 
     static final Scanner KB = new Scanner(System.in);
 
     // bounds max depth -1 for unbounded
-    static Optional<Exception> typeAndRunD(EAAsyncSystem sys, boolean debug, Bounds bounds) {
+    static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRun(
+            EAAsyncSystem sys, boolean debug, Bounds bounds) {
+        return typeAndRun(sys, debug, bounds, false);
+    }
+
+    static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRun(
+            EAAsyncSystem sys, boolean debug, Bounds bounds, boolean interactive) {
         Set<EAAsyncSystem> terminals = EAUtil.setOf();
 
         //state = 0;
         System.out.println("\n(" + bounds.state + ") Initial system:\n" + sys);
-        Optional<Exception> res = typeAndRunDAux(sys, 0, debug, "", bounds, terminals);
+        Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> res =
+                typeAndRunDAux(sys, 0, debug, "", bounds, terminals, interactive);
 
-        System.out.println("\nTerminals:");
+        /*System.out.println("\nTerminals:");
         for (EAAsyncSystem term : terminals) {
             System.out.println("\n" + term);
-        }
+        }*/
 
         return res;
     }
 
-    static Optional<Exception> typeAndRunDAux(
+    // Right = (Pruned, Terminals)
+    static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRunDAux(
             EAAsyncSystem sys, int depth, boolean debug, String indent, Bounds bounds,
-            Set<EAAsyncSystem> terminals) {  // TODO refactor
+            Set<EAAsyncSystem> terminals,  // TODO refactor
+            boolean interactive
+    ) {
 
         Optional<Exception> opt = typeCheckSystem(sys, debug, indent);
         if (opt.isPresent()) {
-            return opt;
+            return Either.left(opt.get());
         }
 
         // FIXME TODO in debug output distinguish states pruned by seen-before or depth (state not validated)
-        if (bounds.isDone(depth, sys)) {
-            System.out.println(indent + "Pruned: " + depth);
-            return Optional.empty();
+        if (bounds.isSeenPrune(sys)) {  // Check first before depth prune
+            System.out.println(indent + "Already seen.");
+            return Either.right(Pair.of(EAUtil.setOf(), EAUtil.setOf()));
+        } else if (bounds.isDepthPrune(depth)) {
+            System.out.println(indent + "Pruned at depth: " + depth);
+            return Either.right(Pair.of(EAUtil.setOf(sys), EAUtil.setOf()));
         }
         bounds.addSys(sys);
 
@@ -1091,15 +1071,18 @@ public class EACommandLine extends CommandLine {
                 System.out.println(indent + "Result steps(" + depth + "):");
                 System.out.println(sys);
             }*/
-            terminals.add(sys);  // TODO also record depth-pruned states (not validated)
+            //terminals.add(sys);  // TODO also record depth-pruned states (not validated)
             if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
-                return Optional.of(new Exception(indent + "Stuck: " + sys));
+                return Either.left(new Exception(indent + "Stuck: " + sys));
             }
-            return Optional.empty();
+            return Either.right(Pair.of(EAUtil.setOf(), EAUtil.setOf(sys)));
         }
 
+        // !pids.isEmpty()
         int stmp = bounds.state;
         int i = 0;
+        Set<EAAsyncSystem> depthPruned = EAUtil.setOf();
+        Set<EAAsyncSystem> terminals1 = EAUtil.setOf();
         for (Map.Entry<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pid : pids.entrySet()) {
             EAPid p = pid.getKey();
             Map.Entry<EASid, Either<EAComp, EAMsg>> sid = pid.getValue().entrySet().iterator().next();
@@ -1123,7 +1106,10 @@ public class EACommandLine extends CommandLine {
             bounds.state++;
             i++;
 
-            //KB.nextLine();  // !!!
+            if (interactive) {
+                System.out.println("Press any key");
+                KB.nextLine();
+            }
 
             String indent1 = incIndent(indent);
             EAAsyncSystem sys1 = get.left;
@@ -1136,81 +1122,22 @@ public class EACommandLine extends CommandLine {
                     System.out.println(get.right.toString(indent1));  // !!!
                 }
             }
-            Optional<Exception> run = typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals);
-            if (run.isPresent()) {
+            Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> run =
+                    typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals, interactive);
+            if (run.isLeft()) {
                 return run;
+            } else {
+                Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>> right = run.getRight();
+                depthPruned.addAll(right.left);
+                terminals1.addAll(right.right);
             }
         }
-        return Optional.empty();
+        return Either.right(Pair.of(depthPruned, terminals1));
     }
 
     static String incIndent(String m) {
         return m.isEmpty() ? ".   " : m + ".   ";
     }
-
-    static void typeAndRun(EAAsyncSystem sys, int steps) {
-        typeAndRun(sys, steps, false);
-    }
-
-    // steps -1 for unbounded
-    static void typeAndRun(EAAsyncSystem sys, int steps, boolean debug) {
-        System.out.println("\nInitial system:\n" + sys);
-        typeCheckSystem(sys, debug);
-
-        int rem = steps;
-        Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pids = sys.getSteppable();
-        for (; !pids.isEmpty() && rem != 0; pids = sys.getSteppable()) {
-
-            Map.Entry<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pid =
-                    pids.entrySet().iterator().next();  // FIXME HERE HERE first pid -> all
-            EAPid p = pid.getKey();
-            Map.Entry<EASid, Either<EAComp, EAMsg>> sid = pid.getValue().entrySet().iterator().next();
-            EASid s = sid.getKey();
-            Either<EAComp, EAMsg> a = sid.getValue();
-            Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step;
-            if (a.isLeft()) {
-                EAComp e = a.getLeft();
-                System.out.println("\nStepping " + s + "@" + p + ": " + e);
-                step = sys.step(p, s, e);
-            } else {
-                EAMsg m = a.getRight();
-                System.out.println("\nReacting " + s + "@" + p + ": " + m);
-                step = sys.react(p, s, m);
-            }
-            if (step.isLeft()) {
-                throw new RuntimeException(step.getLeft());
-            }
-            Triple<EAAsyncSystem, Tree<String>, Tree<String>> get = step.getRight();
-
-            sys = get.left;
-            if (debug) {
-                System.out.println(sys);
-                System.out.println("  Reduced one step by:");
-                System.out.println(get.mid.toString("    "));
-                if (get.right != null) {  // XXX TODO
-                    System.out.println("  Delta stepped by:");
-                    System.out.println(get.right.toString("    "));
-                }
-            }
-            typeCheckSystem(sys, debug);
-            rem--;
-        }
-
-        if (!debug) {
-            System.out.println();
-            System.out.println("Result steps(" + steps + "):");
-            System.out.println(sys);
-        }
-
-        if (steps == -1) {
-            if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
-                throw new RuntimeException("Stuck: " + sys);
-            }
-        } else if (rem != 0) {
-            throw new RuntimeException("Stuck rem=" + rem + ": " + sys);
-        }
-    }
-
 
     /* parsing */
 
@@ -1298,4 +1225,63 @@ public class EACommandLine extends CommandLine {
 			}
 		}
 	}*/
+
+    /* ... */
+
+    static void typeCheckSystemOld(EASystem sys) {
+        typeCheckSystemOld(sys, false);
+    }
+
+    static void typeCheckSystemOld(EASystem sys, boolean debug) {
+        if (debug) {
+            System.out.println("Type checking system:");
+        }
+        Either<Exception, List<Tree<String>>> t = sys.type();
+        if (t.isLeft()) {
+            throw new RuntimeException(t.getLeft());
+        }
+        if (debug) {
+            System.out.println(t.getRight().stream()
+                    .map(x -> x.toString("  ")).collect(Collectors.joining("\n\n")));
+        }
+    }
+
+    static void typeAndRunOld(EASystem sys, int steps) {
+        typeAndRunOld(sys, steps, false);
+    }
+
+    // steps -1 for unbounded
+    static void typeAndRunOld(EASystem sys, int steps, boolean debug) {
+        System.out.println("\nInitial system:\n" + sys);
+        typeCheckSystemOld(sys, debug);
+
+        int rem = steps;
+        Map<EAPid, Set<EAPid>> pids = sys.canStep();
+        for (; !pids.isEmpty() && rem != 0; rem--) {
+            //sys = sys.reduce(pids.keySet().iterator().next());  // FIXME HERE HERE always first act  // keyset is can-step-pids, (currently unused) Set is "partners"
+            Pair<EASystem, Tree<String>> reduce = sys.reduce(pids.keySet().iterator().next());
+            sys = reduce.left;
+            if (debug) {
+                System.out.println("\n" + sys);
+                System.out.println("\nReduced one step by:");
+                System.out.println(reduce.right.toString("  "));
+            }
+            typeCheckSystemOld(sys, debug);
+            pids = sys.canStep();
+        }
+
+        if (!debug) {
+            System.out.println();
+            System.out.println("Result steps(" + steps + "):");
+            System.out.println(sys);
+        }
+
+        if (steps == -1) {
+            if (sys.actors.values().stream().anyMatch(x -> !x.T.isIdle() || !x.sigma.isEmpty())) {
+                throw new RuntimeException("Stuck: " + sys);
+            }
+        } else if (rem != 0) {
+            throw new RuntimeException("Stuck rem=" + rem + ": " + sys);
+        }
+    }
 }
