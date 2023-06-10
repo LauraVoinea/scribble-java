@@ -1047,16 +1047,17 @@ public class EACommandLine extends CommandLine {
             boolean interactive
     ) {
 
+        if (bounds.isSeenPrune(sys)) {  // Check first before depth prune
+            System.out.println(indent + "Already seen.");
+            return Either.right(Pair.of(EAUtil.setOf(), EAUtil.setOf()));
+        }
+
         Optional<Exception> opt = typeCheckSystem(sys, debug, indent);
         if (opt.isPresent()) {
             return Either.left(opt.get());
         }
 
-        // FIXME TODO in debug output distinguish states pruned by seen-before or depth (state not validated)
-        if (bounds.isSeenPrune(sys)) {  // Check first before depth prune
-            System.out.println(indent + "Already seen.");
-            return Either.right(Pair.of(EAUtil.setOf(), EAUtil.setOf()));
-        } else if (bounds.isDepthPrune(depth)) {
+        if (bounds.isDepthPrune(depth)) {
             System.out.println(indent + "Pruned at depth: " + depth);
             return Either.right(Pair.of(EAUtil.setOf(sys), EAUtil.setOf()));
         }
