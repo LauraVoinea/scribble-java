@@ -8,6 +8,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.*;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
@@ -46,6 +47,18 @@ public class GTLConfig {
                 x.frth));
     }
 
+    public Pair<GTLConfig, Tree<String>> gc() {
+        Map<Integer, Integer> active = this.type.getActive(this.theta);
+        Sigma res = this.sigma.gc(active);
+        return Pair.of(
+                new GTLConfig(this.self, this.type, res, this.theta),
+                Tree.of("[..GC..]  " + this.theta + ", " + this.type + " "
+                        + ConsoleColors.VDASH + " " + this.sigma + " "
+                        + ConsoleColors.RIGHT_ARROW + " " + res)  // cf. GTLType.toStepJudgeString
+        );
+    }
+
+    // Does --tau(nu)-->* --a-->    -- cf. GTLSystem also does --tau(nu)-->* after a  (and gc)
     // TODO factor out with above
     public Either<Exception, Pair<GTLConfig, Tree<String>>> weakStep(
             Set<Op> com, EAction<DynamicActionKind> a) {

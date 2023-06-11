@@ -76,6 +76,11 @@ public class GTLRecursion implements GTLType {
     /* Aux */
 
     @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        return GTUtil.mapOf();
+    }
+
+    @Override
     public GTLType subs(RecVar rv, GTLType t) {
         if (rv.equals(this.var)) {
             return this;

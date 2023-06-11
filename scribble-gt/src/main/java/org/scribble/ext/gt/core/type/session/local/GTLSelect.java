@@ -73,7 +73,7 @@ public class GTLSelect implements GTLType {
         GTLType succ = this.cases.get(a.mid);
         return Either.right(Quad.of(succ, sigma1, theta, Tree.of(
                 toStepJudgeString("[Snd]", c, n, theta, this, sigma,
-                        (GTEAction) a, theta, succ, sigma1)
+                        (GTEAction) a, theta, succ, sigma1)  // !!! sender config only (not receiver), cf. GTLSystem.(weak)step
         )));
     }
 
@@ -92,6 +92,18 @@ public class GTLSelect implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getActive(theta).entrySet().stream())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (x, y) -> x < y ? x : y,
+                        LinkedHashMap::new
+                ));
+    }
 
     @Override
     public GTLSelect subs(RecVar rv, GTLType t) {

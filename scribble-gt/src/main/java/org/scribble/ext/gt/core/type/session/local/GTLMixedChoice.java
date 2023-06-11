@@ -15,6 +15,7 @@ import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.util.*;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -71,9 +72,6 @@ public class GTLMixedChoice implements GTLType {
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         GTENewTimeout<?> cast = (GTENewTimeout<?>) a;
-
-        System.out.println("333: " + cast + " ,, " + this.c + " , " + theta);
-
         if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
@@ -113,12 +111,9 @@ public class GTLMixedChoice implements GTLType {
         EAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
                 new GTENewTimeout<>(MActionBase.DYNAMIC_ID, GTEModelFactoryImpl.FACTORY, this.c, m);  // FIXME factory
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weak =
-                step(com, self, tau, sigma, theta, c, n);  // mixed active
-
-        System.out.println("2222: " + weak);
-
+                step(com, self, tau, sigma, theta, c, n);  // MixedActive
         return weak.flatMapRight(x ->
-                x.fst.step(com, self, a, x.snd, x.thrd, c, n).mapRight(y ->
+                x.fst.step(com, self, a, x.snd, x.thrd, c, n).mapRight(y ->  // MixedActive, so weak redundant
                         Quad.of(y.fst, y.snd, y.thrd, Tree.of(
                                 toStepJudgeString("[..nu-tau..]", c, n, theta,
                                         this, sigma, (GTEAction) a, y.thrd, y.fst, y.snd),
@@ -129,6 +124,14 @@ public class GTLMixedChoice implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        if (!theta.map.containsKey(this.c)) {
+            throw new RuntimeException("Shouldn't get here: " + this);
+        }
+        return GTUtil.mapOf(this.c, theta.map.get(this.c));
+    }
 
     @Override
     public GTLMixedChoice subs(RecVar rv, GTLType t) {

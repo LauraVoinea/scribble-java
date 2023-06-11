@@ -12,10 +12,7 @@ import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.util.*;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class GTLMixedActive implements GTLType {
 
@@ -161,6 +158,31 @@ public class GTLMixedActive implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        Map<Integer, Integer> left = this.left.getActive(theta);
+        Map<Integer, Integer> right = this.right.getActive(theta);
+        Map<Integer, Integer> min = min(left, right);
+        if (!min.containsKey(this.c) || this.n < min.get(this.c)) {
+            min.put(this.c, this.n);
+        }
+        return min;
+    }
+
+    // cf. GTLMixedActive.projectTheta -> max
+    public static Map<Integer, Integer> min(
+            Map<Integer, Integer> t1, Map<Integer, Integer> t2) {
+        Map<Integer, Integer> map = GTUtil.copyOf(t1);
+        for (Map.Entry<Integer, Integer> e : t2.entrySet()) {
+            int k = e.getKey();
+            int v = e.getValue();
+            if (!map.containsKey(k) || v < map.get(k)) {
+                map.put(k, v);
+            }
+        }
+        return map;
+    }
 
     @Override
     public GTLType subs(RecVar rv, GTLType t) {

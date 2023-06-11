@@ -3,6 +3,7 @@ package org.scribble.ext.gt.core.model.local;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.util.GTUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,6 +36,17 @@ public class Sigma {
                         y -> Stream.concat(this.map.get(y).stream(), x.map.get(y).stream())
                                 .collect(Collectors.toList())));
         return new Sigma(cat);
+    }
+
+    public Sigma gc(Map<Integer, Integer> active) {
+        Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);
+        for (Role r : copy.keySet()) {
+            List<GTESend<DynamicActionKind>> filt = copy.get(r).stream()
+                    .filter(x -> active.containsKey(x.c) && active.get(x.c) >= x.n)
+                    .collect(Collectors.toList());
+            copy.put(r, filt);
+        }
+        return new Sigma(copy);
     }
 
     @Override

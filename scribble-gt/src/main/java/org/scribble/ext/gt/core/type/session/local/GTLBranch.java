@@ -135,6 +135,18 @@ public class GTLBranch implements GTLType {
     /* Aux */
 
     @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getActive(theta).entrySet().stream())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (x, y) -> x < y ? x : y,
+                        LinkedHashMap::new
+                ));
+    }
+
+    @Override
     public GTLBranch subs(RecVar rv, GTLType t) {
         LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(

@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
 
@@ -59,6 +60,11 @@ public class GTLEnd implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        return GTUtil.mapOf();
+    }
 
     @Override
     public GTLType subs(RecVar rv, GTLType t) {

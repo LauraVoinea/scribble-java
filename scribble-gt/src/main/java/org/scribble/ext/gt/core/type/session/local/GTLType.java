@@ -37,7 +37,7 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     //return this.equals(t) ? Optional.of(this) : Optional.empty();
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
-    /* ... */
+    /* ... -- n.b. formal local LTS is config LTS (hence sigma, theta etc params below) */
 
     default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(
             GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
@@ -65,6 +65,7 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
                 + theta + ", " + t + " --" + a + "-->");
     }
 
+    // !!! for config LTS (not just type)
     default String toStepJudgeString(
             String tag, int c, int n, Theta theta_l, GTLType left, Sigma sigma_l, GTEAction a,
             Theta theta_r, GTLType right, Sigma sigma_r) {
@@ -91,6 +92,9 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     /* ... */
+
+    // c -> smallest active n -- structurally a Theta
+    Map<Integer, Integer> getActive(Theta theta);
 
     GTLType subs(RecVar rv, GTLType t);
 

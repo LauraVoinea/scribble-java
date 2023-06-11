@@ -34,6 +34,7 @@ public class GTLSystem {
         ));
     }
 
+    // TODO derivs (cf. weakStep)
     public Either<Exception, Pair<GTLSystem, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a) {
         if (a instanceof GTENewTimeout) {  // !!! N.B. self is Role.EMPTY_ROLE
@@ -60,6 +61,8 @@ public class GTLSystem {
         }
     }
 
+    // Does --tau(nu)-->* --a--> --tau(nu/gc)-->*    -- gc done "once" at end fine(?)
+    // !!! the a may be immediately gc
     // TODO factor out with above
     public Either<Exception, Pair<GTLSystem, Tree<String>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a) {
@@ -77,28 +80,32 @@ public class GTLSystem {
             Pair<GTLConfig, Tree<String>> get = step.getRight();
             HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
             tmp.put(self, get.left);
-            if (a instanceof GTESend) {
-                GTESend cast = (GTESend) a;
+
+            if (a instanceof GTESend<?>) {
+                GTESend<DynamicActionKind> cast = (GTESend<DynamicActionKind>) a;
                 tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
+                // TODO receiver deriv (should be integrated with sender deriv)
             }
 
-            // TODO refactor
+            // FF all mixed (incl. self -- but redundant?)  // TODO refactor
             for (Role r : this.configs.keySet()) {
-                if (r.equals(self)) {
+                /*if (r.equals(self)) {
                     continue;
-                }
+                }*/
                 GTLConfig cfg = tmp.get(r);
                 GTLType t = cfg.type;
-                if (t instanceof GTLMixedChoice) {
+                while (t instanceof GTLMixedChoice) {
                     Either<Exception, Pair<GTLConfig, Tree<String>>> step1 =
                             cfg.step(com, cfg.getActs((GTEModelFactory) GTEModelFactoryImpl.FACTORY.local).iterator().next());
                     if (step1.isLeft()) {
                         throw new RuntimeException(step1.getLeft());
                     }
-                    cfg = step1.getRight().left;
+                    cfg = step1.getRight().left;  // TODO deriv (currently discarded) -- system step should return Set<Tree<String>> ?
                     t = cfg.type;
                 }
-                tmp.put(r, cfg);
+
+                Pair<GTLConfig, Tree<String>> gc = cfg.gc();
+                tmp.put(r, gc.left);  // TODO config gc deriv (currently discarded)
             }
 
             return Either.right(Pair.of(new GTLSystem(tmp), get.right));

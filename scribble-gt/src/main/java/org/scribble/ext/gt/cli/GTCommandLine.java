@@ -149,7 +149,7 @@ public class GTCommandLine extends CommandLine {
 
     private void foo(Core core, String indent, GTCorrespondence s,
                      int step, int MAX,
-                     Map<String, Integer> unfolds, int depth,  // FIXME factor out bounds (just plain recs?)
+                     Map<String, Integer> unfolds, int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
                      Set<Op> com) {
 
         int mark = mystep;

@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
 
@@ -60,6 +61,11 @@ public class GTLRecVar implements GTLType {
     }
 
     /* Aux */
+
+    @Override
+    public Map<Integer, Integer> getActive(Theta theta) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
 
     @Override
     public GTLType subs(RecVar rv, GTLType t) {
