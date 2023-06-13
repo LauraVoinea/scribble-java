@@ -13,11 +13,6 @@ public class EATIdle implements EAThread {
     protected EATIdle() {
     }
 
-    @Override
-    public boolean isIdle() {
-        return true;
-    }
-
     // [TT-Idle]
     @Override
     public Either<Exception, Tree<String>> type(GammaState gamma, Delta delta) {
@@ -30,6 +25,11 @@ public class EATIdle implements EAThread {
     }
 
     /* aux */
+
+    @Override
+    public EAThreadMode getMode() {
+        return EAThreadMode.IDLE;
+    }
 
     @Override
     public String toString() {

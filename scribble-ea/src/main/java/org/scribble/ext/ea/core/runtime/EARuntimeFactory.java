@@ -1,6 +1,5 @@
 package org.scribble.ext.ea.core.runtime;
 
-import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.runtime.config.EACActor;
@@ -12,7 +11,6 @@ import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class EARuntimeFactory {
 
@@ -40,8 +38,8 @@ public class EARuntimeFactory {
         return EATIdle.IDLE;
     }
 
-    public EATActive activeThread(EAComp expr, EASid sid, Role role) {
-        return new EATActive(expr, sid, role);
+    public EATSession activeThread(EAComp expr, EASid sid, Role role) {
+        return new EATSession(expr, sid, role);
     }
 
     public EASystem system(LTypeFactory lf, Delta annots,

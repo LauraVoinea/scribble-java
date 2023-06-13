@@ -59,10 +59,10 @@ public class EACActor implements EAConfig {
 
     // Return set is (sync) "dependencies" ("partner" pids) needed to step if any
     public Pair<Boolean, Set<EAPid>> canReduce(EASystem sys) {
-        if (!(this.T instanceof EATActive)) {
+        if (!(this.T instanceof EATSession)) {
             return new Pair<>(false, Collections.emptySet());
         }
-        return ((EATActive) this.T).canActorReduce(sys);
+        return ((EATSession) this.T).canActorReduce(sys);
     }
 
     // !!! TODO refactor deriv tags between here and EAComp.configReduction -- also add Thread/Top-Context tags (cf. E-Ctx-Let)
@@ -70,10 +70,10 @@ public class EACActor implements EAConfig {
     // Pre: getFoo + foo OK -- cf. EAPActiveThread.canStep -- TODO optimise away getFoo
     // cf. EAPActiveThread.canStep
     public Pair<LinkedHashMap<EAPid, EACActor>, Tree<String>> reduce(EASystem sys) {
-        if (!(this.T instanceof EATActive)) {
+        if (!(this.T instanceof EATSession)) {
             throw new RuntimeException("Shouldn't get here: ");
         }
-        EATActive t = (EATActive) this.T;
+        EATSession t = (EATSession) this.T;
         EAComp foo = t.comp.getStepSubexprE();
 
         // TODO refactor separate case by case (rather than grouping thread/sigma/config creation)
@@ -194,7 +194,7 @@ public class EACActor implements EAConfig {
     }
 
     // ...should refactor so c2 below is `this` (not the sender)
-    public Pair<EAPid, EACActor> receive(EASystem sys, EATActive t, EAMSend cast) {
+    public Pair<EAPid, EACActor> receive(EASystem sys, EATSession t, EAMSend cast) {
         Optional<Map.Entry<EAPid, EACActor>> fst =
                 sys.actors.entrySet().stream().filter(x ->
                         x.getValue().sigma.keySet().stream().anyMatch(y ->
@@ -217,7 +217,7 @@ public class EACActor implements EAConfig {
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> newsigma2 =
                 new LinkedHashMap<>(c2.sigma);
         newsigma2.remove(k2);
-        EATActive newt2 = EARuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
+        EATSession newt2 = EARuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
         //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
         //configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
 
@@ -231,17 +231,17 @@ public class EACActor implements EAConfig {
     public Either<Exception, Triple<EACActor, EAGlobalQueue, Tree<String>>> stepAsync1(
             EAComp e, EAGlobalQueue queue) {
 
-        if (!(this.T instanceof EATActive)) {
+        if (!(this.T instanceof EATSession)) {
             return Either.left(newStuck0("Not active", this));
         }
-        EATActive active = (EATActive) this.T;
+        EATSession active = (EATSession) this.T;
 
         if (e instanceof EAMSend) {  // [E-Send]
             Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();
             return step.mapRight(x -> {
                 EAMSend cast = (EAMSend) e;
                 EAGlobalQueue app = queue.append(new EAMsg(active.role, cast.dst, cast.op, cast.val));
-                EATActive res = RF.activeThread(x.left, active.sid, active.role);
+                EATSession res = RF.activeThread(x.left, active.sid, active.role);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
                 EACActor succ = RF.config(this.pid, res, sigma, this.state);
@@ -271,12 +271,13 @@ public class EACActor implements EAConfig {
     // [E-Reset], [E-Suspend], [E-Lift] -- also [..E-binop..]
     public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync0(EAComp e) {
 
-        if (!(this.T instanceof EATActive)) {
+        if (!(this.T instanceof EATSession)) {
             return Either.left(newStuck0("Not active", this));
         }
-        EATActive active = (EATActive) this.T;
+        EATSession active = (EATSession) this.T;
 
-        if (e instanceof EAMReturn) {  // [E-Reset]
+        // [E-Reset]
+        if (e instanceof EAMReturn) {
             if (!active.comp.equals(e)) {
                 return Either.left(newStuck0("return not top-level", this));
             }
@@ -289,8 +290,10 @@ public class EACActor implements EAConfig {
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Reset]", this, res)
             )));
+        }
 
-        } else if (e instanceof EAMSuspend) {  // [E-Suspend]
+        // [E-Suspend]
+        else if (e instanceof EAMSuspend) {
             EAMSuspend cast = (EAMSuspend) e;
             if (!(cast.isGround())) {
                 return Either.left(newStuck0("suspend not ground", this));
@@ -306,12 +309,14 @@ public class EACActor implements EAConfig {
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Suspend]", this, res)
             )));
+        }
 
-        } else if (e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf  // [E-Lift]
+        // [E-Lift]
+        else if (e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf
                 || e instanceof EAMBinOp) {  // also [E-Lift]
             Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();  // checks ground
             return step.mapRight(x -> {
-                EATActive res = RF.activeThread(x.left, active.sid, active.role);
+                EATSession res = RF.activeThread(x.left, active.sid, active.role);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
                 EACActor succ = RF.config(this.pid, res, sigma, this.state);
@@ -320,7 +325,6 @@ public class EACActor implements EAConfig {
                         x.right
                 ));
             });
-
         } else {
             throw new RuntimeException("TODO: " + e);
         }
@@ -365,7 +369,7 @@ public class EACActor implements EAConfig {
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
         sigma1.remove(k);
         //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
-        EATActive res = RF.activeThread(subs, k.left, k.right);
+        EATSession res = RF.activeThread(subs, k.left, k.right);
         EACActor succ = RF.config(this.pid, res, sigma1, this.state);
 
         EAGlobalQueue queue1 = queue.remove(m);
@@ -377,8 +381,11 @@ public class EACActor implements EAConfig {
     // EAComp is async "candidate subexpr" (under some context) -- max one because FG-CBV?
     // EAMsg is for receives
     public Optional<Either<EAComp, EAMsg>> getStepSubexprsE(EAGlobalQueue queue) {
+
+        EAThreadMode mode = this.T.getMode();
+
         // idle thread
-        if (this.T.isIdle()) {
+        if (mode == EAThreadMode.IDLE) {
             Set<EAMsg> ms = EAUtil.setOf();
             for (Map.Entry<Pair<EASid, Role>, EAEHandlers> e : this.sigma.entrySet()) {
                 Pair<EASid, Role> k = e.getKey();
@@ -396,22 +403,26 @@ public class EACActor implements EAConfig {
                     : Optional.of(Either.right(ms.iterator().next()));
         }
 
-        EATActive active = (EATActive) this.T;
-        if (!active.sid.equals(queue.sid)) {
-            return Optional.empty();
+        // active thread -- "session" or "no-session" M-context -- both have nested E-context
+
+        else if (mode == EAThreadMode.SESSION || mode == EAThreadMode.NO_SESSION) {
+            EATSession active = (EATSession) this.T;
+            if (!active.sid.equals(queue.sid)) {
+                return Optional.empty();
+            }
+
+            // Q context, both session and no-session -- n.b. FG-CBV, only one case applies (deterministic)
+            if (active.comp.isGroundValueReturn()) {
+                return Optional.of(Either.left(active.comp));
+            }
+
+            // E context, both session and no-session -- n.b. FG-CBV, only one case applies (deterministic)
+            EAComp e = active.comp.getStepSubexprE();
+            return Optional.of(Either.left(e));
+
         }
 
-        // Q context -- n.b. FG-CBV, only one case applies (deterministic)
-        if (active.comp.isGroundValueReturn()) {
-            return Optional.of(Either.left(active.comp));
-        }
-
-        // E context -- n.b. FG-CBV, only one case applies (deterministic)
-        EAComp e = active.comp.getStepSubexprE();
-        return Optional.of(Either.left(e));
-
-        // M context
-        // TODO -- Also EATActive, or another? -- another: with contextM that uses contextE for its expr
+        throw new RuntimeException("Unknown handled: " + mode);
     }
 
     /* ... */
@@ -419,7 +430,7 @@ public class EACActor implements EAConfig {
     public LinkedHashSet<Pair<EASid, Role>> getEndpoints() {
         LinkedHashSet<Pair<EASid, Role>> res = new LinkedHashSet<>();
         if (!this.T.isIdle()) {
-            EATActive t = (EATActive) this.T;
+            EATSession t = (EATSession) this.T;
             res.add(new Pair<>(t.sid, t.role));
         }
         res.addAll(this.sigma.keySet());
@@ -437,8 +448,8 @@ public class EACActor implements EAConfig {
         //Gamma gamma2 = gamma1;
 
         LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
-        if (this.T instanceof EATActive) { // !!! CHECKME
-            EATActive at = (EATActive) this.T;
+        if (this.T instanceof EATSession) { // !!! CHECKME
+            EATSession at = (EATSession) this.T;
             Pair<EASid, Role> k = new Pair<>(at.sid, at.role);
             if (!delta.map.containsKey(k)) {
                 //throw new RuntimeException("Unknown endpoint: " + k + " ,, " + delta.map);
@@ -453,7 +464,7 @@ public class EACActor implements EAConfig {
         }
 
         tmp = new LinkedHashMap<>(delta.map);
-        if (this.T instanceof EATActive) { // !!! CHECKME
+        if (this.T instanceof EATSession) { // !!! CHECKME
             tmp.remove(delta1.map.keySet().iterator().next());
         }
         Delta delta2 = new Delta(tmp);

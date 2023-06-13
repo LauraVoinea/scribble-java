@@ -59,7 +59,7 @@ public class EAMRegister implements EAComp {
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
 
-        // !!! register reduction uses context M (not E) -- ...make getStepSubexprM ?
+        // !!! register reduction uses context M (not E) -- ...make getStepSubexprM ? (in active thread)
 
         throw new RuntimeException("TODO: " + this);
     }

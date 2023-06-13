@@ -210,12 +210,15 @@ public class EACommandLine extends CommandLine {
             boolean debug) {
 
         EAComp spawn = parseM("spawn return ()");
+        EAComp reg = parseM("register () A return ()");
         EAVType ap = parseA("AP(A -> end, B -> end)");
 
         System.out.println(spawn);
+        System.out.println(reg);
         System.out.println(ap);
 
-        return null;
+        return null;  // HERE HERE
+
         /*EAComp lethA = parseM("return 42");
         EAComp lethB = parseM("return 43");
 
@@ -293,7 +296,7 @@ public class EACommandLine extends CommandLine {
 
         //---------------
         // config < A, idle, c[A] |-> let h = ... in ... >
-        EATActive tA = rf.activeThread(lethA, s, A);
+        EATSession tA = rf.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaA = new LinkedHashMap<>();
         EACActor cA = rf.config(p1, tA, sigmaA, pf.factory.intt(0));
 
@@ -317,7 +320,7 @@ public class EACommandLine extends CommandLine {
 
         //--------------
         // config < B, idle, c[B] |-> let h = ... in ... } >
-        EATActive tB = rf.activeThread(lethB, s, B);
+        EATSession tB = rf.activeThread(lethB, s, B);
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaB = new LinkedHashMap<>();
         EACActor cB = rf.config(p2, tB, sigmaB, pf.factory.bool(false));
 
@@ -622,7 +625,7 @@ public class EACommandLine extends CommandLine {
                         + "in let hh: " + h1s + " <= [h ()] in suspend hh 42");
 
         // config < A, idle, c[A] |-> let h = ... in ... >
-        EATActive tA = RF.activeThread(lethA, s, A);
+        EATSession tA = RF.activeThread(lethA, s, A);
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaA = new LinkedHashMap<>();
         /*LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
         stateA.put(new Pair<>(s, A), 0);
@@ -641,7 +644,7 @@ public class EACommandLine extends CommandLine {
 		sigmaB.put(new Pair<>(s, B), hsB1);  // !!! TODO make sigma concrete, e.g., for typing
 		EAPConfig cB = rf.config(p2, rf.idle(), sigmaB);*/
 
-        EATActive tB = RF.activeThread(leth, s, B);
+        EATSession tB = RF.activeThread(leth, s, B);
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaB = new LinkedHashMap<>();
         /*LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
         stateB.put(new Pair<>(s, B), 0);

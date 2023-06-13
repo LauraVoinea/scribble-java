@@ -15,13 +15,14 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 
-public class EATActive implements EAThread {
+// active "session" mode (cf. "local" mode)
+public class EATSession implements EAThread {
 
     public final EAComp comp;
     public final EASid sid;
     public final Role role;
 
-    protected EATActive(EAComp comp, EASid sid, Role role) {
+    protected EATSession(EAComp comp, EASid sid, Role role) {
         this.comp = comp;
         this.sid = sid;
         this.role = role;
@@ -33,15 +34,20 @@ public class EATActive implements EAThread {
     // ...No step in EAPActiveThread -- most cases don't reduce (just) the expr/thread, but rather change whole config(s), so leave to EAPConfig
     // Maybe refactor canStep to EAPConfig
     public Pair<Boolean, Set<EAPid>> canActorReduce(EASystem sys) {
-        EAComp foo = this.comp.getStepSubexprE();
-        // top-level return ()
+
+        EAComp foo = this.comp.getStepSubexprE();  // Session M-context gets fragment candidate from nested E
+
+        // top-level return () -- Q-context is both session and no-session
         if (foo instanceof EAMReturn) {
             //if (this.expr instanceof EAMReturn && ((EAMReturn) this.expr).val.equals(EAEUnit.UNIT)) {
             if (this.comp instanceof EAMReturn && this.comp.isGroundValueReturn()) {
                 return new Pair<>(true, Collections.emptySet());
             }
-            // let x <= return V in ... handled by let as foo (LiftM beta) -- !!! HERE now additional beta case: let x <= return V where V.canBeta (return V is the foo)
-            return new Pair<>(foo.canBeta(), Collections.emptySet());
+
+            // beta case: let x <= return V in ... handled by let as foo (LiftM beta) -- XXX cannot beta by itself
+            //return new Pair<>(foo.canBeta(), Collections.emptySet());
+            return new Pair<>(false, Collections.emptySet());
+
         } else if (foo instanceof EAMSend) {
             EAMSend cast = (EAMSend) foo;
             Optional<Map.Entry<EAPid, EACActor>> fst =
@@ -59,14 +65,18 @@ public class EATActive implements EAThread {
                 return new Pair<>(false, Collections.emptySet());
             }
         }
+
         // Other non-beta cases
         else if (foo instanceof EAMSuspend) {  // Other non-beta cases
             return new Pair<>(true, Collections.emptySet());
         }
+
         // LiftM beta cases
-        else if (foo instanceof EAMApp || foo instanceof EAMLet || foo instanceof EAMIf || foo instanceof EAMIf) {
+        else if (foo instanceof EAMApp || foo instanceof EAMLet
+                || foo instanceof EAMIf || foo instanceof EAMIf) {
             return new Pair<>(foo.canBeta(), Collections.emptySet());
         }
+
         throw new RuntimeException("Unknown foo: " + foo);
     }
 
@@ -104,6 +114,11 @@ public class EATActive implements EAThread {
 
     /* aux */
 
+    @Override
+    public EAThreadMode getMode() {
+        return EAThreadMode.SESSION;
+    }
+
     public static String endpointToString(EASid sid, Role role) {
         return sid + "[" + role + "]";
     }
@@ -119,14 +134,14 @@ public class EATActive implements EAThread {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EATActive them = (EATActive) o;
+        EATSession them = (EATSession) o;
         return this.canEquals(this) && this.comp.equals(them.comp)
                 && this.sid.equals(them.sid) && this.role.equals(them.role);
     }
 
     @Override
     public boolean canEquals(Object o) {
-        return o instanceof EATActive;
+        return o instanceof EATSession;
     }
 
     @Override

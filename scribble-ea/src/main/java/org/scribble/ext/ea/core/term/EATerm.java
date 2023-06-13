@@ -31,6 +31,7 @@ public interface EATerm {
     int IDLE = 4481;
     int ACTIVE_THREAD = 4483;
     int ACTOR = 4493;
+    int ACTIVE_LOCAL = 4507;
 
     boolean canEquals(Object o);
 }

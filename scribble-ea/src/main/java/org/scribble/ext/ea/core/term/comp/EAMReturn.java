@@ -56,8 +56,8 @@ public class EAMReturn implements EAComp {
 
     @Override
     public boolean canBeta() {
-        //return false;
-        return this.val.canEval();
+        return false;
+        //return this.val.canEval();  // Always false
     }
 
     // Currently hacked to allow eval of, e.g., return 2+3 -- cf. (plus 2) 3 as an M

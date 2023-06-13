@@ -111,7 +111,7 @@ public class EASystem {
         if (!c.isActive()) {
             throw new RuntimeException("Stuck: " + p + " " + c);
         }
-        EATActive t = (EATActive) c.T;
+        EATSession t = (EATSession) c.T;
         if (!t.comp.isGround()) {
             throw new RuntimeException("Stuck: " + t.comp + " ,, " + p + " " + c);
         }

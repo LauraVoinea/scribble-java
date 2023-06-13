@@ -11,7 +11,10 @@ import org.scribble.ext.ea.util.Tree;
 
 public interface EAThread {
 
-    default boolean isIdle() { return false; }
+    @Deprecated
+    default boolean isIdle() { return getMode() == EAThreadMode.IDLE; }
+
+    EAThreadMode getMode();
 
     Either<Exception, Tree<String>> type(@NotNull GammaState gamma, @NotNull Delta delta);
 

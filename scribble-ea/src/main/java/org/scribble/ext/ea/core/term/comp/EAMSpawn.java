@@ -1,6 +1,7 @@
 package org.scribble.ext.ea.core.term.comp;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.ext.ea.core.runtime.EAAsyncSystem;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.expr.EAEFuncName;
@@ -55,7 +56,7 @@ public class EAMSpawn implements EAComp {
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
 
-        // !!! spawn reduction uses context M (not E) -- ...make getStepSubexprM ?
+        HERE HERE just becomes return ()-- EAAsyncSystem makes new actor
 
         throw new RuntimeException("TODO: " + this);
     }

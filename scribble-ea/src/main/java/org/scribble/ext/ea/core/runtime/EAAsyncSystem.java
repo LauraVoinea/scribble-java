@@ -120,13 +120,13 @@ public class EAAsyncSystem {
         return res;
     }
 
-    // [E-Send], [E-Suspend], [E-Reset], [E-Lift]
+    // [E-Send], [E-Suspend], [E-Reset], [E-Lift] -- cf. react for [E-React]
     public Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step(
             EAPid p, EASid s, EAComp e) {  // n.b. beta is deterministic
 
         EACActor c = this.actors.get(p); // p.equals(c.pid)
 
-        // Session typing (annots) unchanged -- s not used
+        // Session typing (annots) and AP state unchanged -- s not used
         if (e instanceof EAMSuspend  // [E-Suspend]
                 || e instanceof EAMReturn  // [E-Reset]
                 || e instanceof EAMApp || e instanceof EAMLet || e instanceof EAMIf  // [E-Lift]
@@ -143,9 +143,22 @@ public class EAAsyncSystem {
                         null  // XXX TODO
                 );
             });
+        }
 
-        } else if (e instanceof EAMSend) {  // [E-Send]
-            EATActive active = (EATActive) c.T;
+        // Actor/AP state changed
+        else if (e instanceof EAMSpawn) {
+
+            HERE HERE
+        } else if (e instanceof EAMRegister) {
+
+            HERE HERE
+        }
+
+        // Session typing changed -- annots updated
+        // [E-Send]
+        else if (e instanceof EAMSend) {
+
+            EATSession active = (EATSession) c.T;
             EAMSend cast = (EAMSend) e;
             EAGlobalQueue queue = queues.get(s);
 
@@ -188,7 +201,6 @@ public class EAAsyncSystem {
                     get.right,
                     astep1.right
             ));  // TODO astep1 deriv
-
         } else {
             return Either.left(newStuck("Unsupported expr kind " + e + "in: " + this));
         }
