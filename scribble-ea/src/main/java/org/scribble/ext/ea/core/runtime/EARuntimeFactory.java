@@ -3,6 +3,7 @@ package org.scribble.ext.ea.core.runtime;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.runtime.config.EACActor;
+import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.comp.EAComp;
@@ -11,6 +12,8 @@ import org.scribble.ext.ea.core.type.session.local.Delta;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EARuntimeFactory {
 
@@ -25,6 +28,14 @@ public class EARuntimeFactory {
 
     public EASid sid(String id) {
         return new EASid(id);
+    }
+
+    public EAAPid ap(String id) {
+        return new EAAPid(id);
+    }
+
+    public EAIota iota(String id) {
+        return new EAIota(id);
     }
 
     public EACActor actor(EAPid pid, EAThread T,
@@ -54,7 +65,8 @@ public class EARuntimeFactory {
     public EAAsyncSystem asyncSystem(LTypeFactory lf, //Delta annots,
                                      LinkedHashMap<EAPid, EACActor> cs,
                                      LinkedHashMap<EASid, EAGlobalQueue> queues,
+                                     LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access,
                                      AsyncDelta adelta) {
-        return new EAAsyncSystem(lf, cs, queues, adelta);
+        return new EAAsyncSystem(lf, cs, queues, access, adelta);
     }
 }

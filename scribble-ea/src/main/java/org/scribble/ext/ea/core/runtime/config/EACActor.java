@@ -329,8 +329,8 @@ public class EACActor implements EAConfig {
         // "full" M -- both session or no-session
 
         else if (
-            // [E-Spawn]
-                e instanceof EAMSpawn
+            // [E-Spawn], [E-Register]
+                e instanceof EAMSpawn || e instanceof EAMRegister
 
                         // [E-Lift]
                         || e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf

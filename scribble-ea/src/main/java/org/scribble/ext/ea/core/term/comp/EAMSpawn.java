@@ -44,6 +44,7 @@ public class EAMSpawn implements EAComp {
             return Either.left(new Exception("Expected value type "
                     + EAVUnitType.UNIT + ", not: " + get.left.left));
         }*/
+        System.err.println("[Warning] TODO check M value type: " + get.left.left);
         if (!get.left.right.equals(EALEndType.END)) {
             return Either.left(new Exception("Expected session type "
                     + EALEndType.END + ", not: " + get.left.right));
@@ -80,7 +81,7 @@ public class EAMSpawn implements EAComp {
         // cf. EAMSend
         return Either.right(Pair.of(
                 EATermFactory.factory.returnn(EATermFactory.factory.unit()),
-                Tree.of("[..E-Ctx-Leaf-Spawn..]")  // actual [E-Spawn] in EAAsyncSystem (cf. config reduction)  // E for eval (not E-context)
+                Tree.of("[..E-Ctx-Leaf-Spawn..]")  // actual [E-Spawn] in EAAsyncSystem (cf. config reduction)  // E- for eval (not E-context)
         ));
     }
 

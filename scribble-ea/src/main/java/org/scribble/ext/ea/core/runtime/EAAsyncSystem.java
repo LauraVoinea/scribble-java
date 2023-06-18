@@ -9,6 +9,7 @@ import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.comp.*;
+import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAEUnit;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.AsyncDelta;
@@ -41,11 +42,14 @@ public class EAAsyncSystem {
     @NotNull public final Map<EAPid, EACActor> actors;  // keyset is all pids in system  // pids no longer in formal defs but useful in implementation
     @NotNull public final Map<EASid, EAGlobalQueue> queues;  // keyset is all sids in system
 
+    @NotNull public final Map<EAEAPName, Map<Role, List<EAIota>>> access;
+
     public EAAsyncSystem(
             LTypeFactory lf,
             //Delta annots,
             LinkedHashMap<EAPid, EACActor> actors,
             LinkedHashMap<EASid, EAGlobalQueue> queues,
+            LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access,
             AsyncDelta adelta) {
 
         if (actors.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
@@ -58,6 +62,7 @@ public class EAAsyncSystem {
         //this.annots = annots;
         this.actors = EAUtil.umodCopyOf(actors);
         this.queues = EAUtil.umodCopyOf(queues);
+        this.access = EAUtil.umodCopyOfMap(access);
 
         this.adelta = adelta;
     }
@@ -146,13 +151,19 @@ public class EAAsyncSystem {
         return tmp;
     }
 
-    protected int counter = 1;
+    protected static int pidCounter = 1;
 
     protected int nextSpawnCounter() {
-        return this.counter++;
+        return this.pidCounter++;
     }
 
-    // [E-Send], [E-Suspend], [E-Reset], [E-Lift] -- cf. react for [E-React]
+    protected static int iCounter = 1;
+
+    protected EAIota newIota() {
+        return RF.iota("\u03b9" + iCounter++);
+    }
+
+    // [E-Send], [E-Suspend], [E-Reset], [E-Spawn], [E-Register], [E-Lift] -- cf. react for [E-React]
     public Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step(
             EAPid p, EASid s, EAComp e) {  // s only used for [E-Send], factor out?  // n.b. beta is deterministic
 
@@ -174,7 +185,7 @@ public class EAAsyncSystem {
                 actors1.put(p, x.left);
                 LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.copyOf(this.queues);
                 return Triple.of(
-                        RF.asyncSystem(this.lf, actors1, queues, this.adelta),
+                        RF.asyncSystem(this.lf, actors1, queues, EAUtil.copyOf(this.access), this.adelta),
                         x.right,
                         null  // XXX TODO
                 );
@@ -183,7 +194,6 @@ public class EAAsyncSystem {
 
         // Actor/AP state changed
         else if (e instanceof EAMSpawn) {
-
             Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync0(e);
             if (step.isLeft()) {
                 return Either.left(step.getLeft());
@@ -195,18 +205,49 @@ public class EAAsyncSystem {
 
             EAMSpawn cast = (EAMSpawn) e;
             EAPid spawn = RF.pid(p.id + "_" + nextSpawnCounter());
-            actors1.put(spawn, RF.actor(spawn, RF.noSessionThread(cast.M), EAUtil.mapOf(), null));  // FIXME HACK state
+            actors1.put(spawn, RF.actor(spawn, RF.noSessionThread(cast.M), EAUtil.mapOf(), //null));  // FIXME HACK state
+                    EAEUnit.UNIT));
 
             return Either.right(Triple.of(
-                    RF.asyncSystem(this.lf, actors1, EAUtil.copyOf(this.queues),
+                    RF.asyncSystem(this.lf, actors1, EAUtil.copyOf(this.queues), EAUtil.copyOf(this.access),
                             this.adelta),
                     get.right,
                     null  // XXX TODO
             ));
 
-
         } else if (e instanceof EAMRegister) {
-            throw new RuntimeException("TODO");
+            Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync0(e);
+            if (step.isLeft()) {
+                return Either.left(step.getLeft());
+            }
+            Pair<EACActor, Tree<String>> get = step.getRight();
+
+            LinkedHashMap<EAPid, EACActor> actors1 = EAUtil.copyOf(this.actors);
+            actors1.put(p, get.left);
+
+            EAMRegister cast = (EAMRegister) e;
+            if (!(cast.V instanceof EAEAPName)) {
+                throw new RuntimeException("Shouldn't get here: " + cast);
+            }
+            EAEAPName ap = (EAEAPName) cast.V;
+            LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.copyOf(this.access);
+            if (!access.containsKey(ap)) {
+                throw new RuntimeException("Access point " + ap + " not found: " + this.access);
+            }
+            Map<Role, List<EAIota>> invites = EAUtil.copyOf(access.get(ap));
+            List<EAIota> is = invites.containsKey(cast.role)
+                    ? EAUtil.copyOf(invites.get(cast.role))
+                    : EAUtil.listOf();
+            is.add(newIota());
+            invites.put(cast.role, is);
+            access.put(ap, invites);
+
+            return Either.right(Triple.of(
+                    RF.asyncSystem(this.lf, actors1, EAUtil.copyOf(this.queues), access,
+                            this.adelta),
+                    get.right,
+                    null  // XXX TODO
+            ));
         }
 
         // Session typing changed -- annots updated
@@ -251,8 +292,7 @@ public class EAAsyncSystem {
             Pair<AsyncDelta, Tree<String>> astep1 = astep.getRight();
 
             return Either.right(Triple.of(
-                    new EAAsyncSystem(this.lf, actors1, queues1,
-                            astep1.left),
+                    RF.asyncSystem(this.lf, actors1, queues1, EAUtil.copyOf(this.access), astep1.left),
                     get.right,
                     astep1.right
             ));
@@ -305,7 +345,7 @@ public class EAAsyncSystem {
         Pair<AsyncDelta, Tree<String>> astep1 = astep.getRight();
 
         return Either.right(Triple.of(
-                new EAAsyncSystem(this.lf, actors1, queues1,
+                new EAAsyncSystem(this.lf, actors1, queues1, EAUtil.copyOf(this.access),
                         astep1.left),
                 get.right,
                 astep1.right
@@ -324,7 +364,8 @@ public class EAAsyncSystem {
     public String toString(String indent) {
         return indent + "[" //+ annots=\n" + this.annots.map
                 + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n" + indent + " "))
-                + "\n" + indent + " " + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n"))
+                + (this.queues.isEmpty() ? "" : "\n" + indent + " " + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n" + indent + " ")))
+                + (this.access.isEmpty() ? "" : "\n" + indent + " " + this.access)
                 + "\n" + indent + " " + this.adelta
                 + "]";
     }
@@ -338,7 +379,8 @@ public class EAAsyncSystem {
         EAAsyncSystem them = (EAAsyncSystem) o;
         return this.adelta.equals(them.adelta)
                 && this.actors.equals(them.actors)
-                && this.queues.equals(them.queues);
+                && this.queues.equals(them.queues)
+                && this.access.equals(them.access);
     }
 
     @Override
@@ -347,6 +389,7 @@ public class EAAsyncSystem {
         hash = 31 * hash + this.adelta.hashCode();
         hash = 31 * hash + this.actors.hashCode();
         hash = 31 * hash + this.queues.hashCode();
+        hash = 31 * hash + this.access.hashCode();
         return hash;
 
     }

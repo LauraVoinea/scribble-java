@@ -45,6 +45,10 @@ public class EATermFactory {
         return new EAEVar(id);
     }
 
+    public EAEAPName ap(String id) {
+        return new EAEAPName(id);
+    }
+
     public EAEIntVal intt(@NotNull int val) {
         return new EAEIntVal(val);
     }

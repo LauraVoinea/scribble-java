@@ -144,4 +144,11 @@ public class EAUtil {
                 x -> umodCopyOf(x.getValue())
         )));
     }
+
+    public static <K1, K2, V> Map<K1, Map<K2, V>> umodCopyOfMap(Map<K1, Map<K2, V>> m) {
+        return umod(m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> umodCopyOf(x.getValue())
+        )));
+    }
 }

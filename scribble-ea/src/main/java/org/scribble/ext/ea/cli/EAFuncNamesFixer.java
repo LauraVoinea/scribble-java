@@ -86,10 +86,11 @@ public class EAFuncNamesFixer {
             return f.rec(cast.f, var, cast.varType, body, cast.S, cast.T, cast.B);
         } else if (V instanceof EAEFuncName || V instanceof EAEUnit
                 || V instanceof EAPid || V instanceof EASid
-                || V instanceof EAEIntVal || V instanceof EAEBoolVal) {
+                || V instanceof EAEIntVal || V instanceof EAEBoolVal
+                || V instanceof EAEAPName) {
             return V;
         } else {
-            throw new RuntimeException("TODO: " + V);
+            throw new RuntimeException("TODO: " + V.getClass() + " ,, " + V);
         }
     }
 

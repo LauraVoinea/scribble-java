@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.ea.core.runtime.EAAPid;
 import org.scribble.ext.ea.core.runtime.EARuntimeFactory;
 import org.scribble.ext.ea.core.term.*;
 import org.scribble.ext.ea.core.term.expr.*;
@@ -65,10 +66,13 @@ public class EAASTBuilder {
     }
 
     public EAMRegister visitRegister(CommonTree n) {
-        EAExpr V = visitV((CommonTree) n.getChild(0));
+
+        EAEVar V = (EAEVar) visitV((CommonTree) n.getChild(0));  // !!! HACK FIXME -- allow actual vars for new AP (not only hardcoded run-time ap names)
+        EAEAPName ap = pf.ap(V.id);
+
         Role role = visitRole((CommonTree) n.getChild(1));
         EAComp M = visitM((CommonTree) n.getChild(2));
-        return pf.register(V, role, M);
+        return pf.register(ap, role, M);
     }
 
     public EAMIf visitIf(CommonTree n) {

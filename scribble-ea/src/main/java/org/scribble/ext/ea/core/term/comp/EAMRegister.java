@@ -9,6 +9,7 @@ import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.Either;
@@ -32,8 +33,32 @@ public class EAMRegister implements EAComp {
     }
 
     @Override
-    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
-        throw new RuntimeException("TODO: " + this);
+    public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(
+            GammaState gamma, EALType pre) {
+
+        // cf. EAMSpawn
+
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type = this.M.type(gamma, EALEndType.END);
+        if (type.isLeft()) {
+            return Either.left(type.getLeft());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> get = type.getRight();
+
+        /*if (!get.left.left.equals(EAVUnitType.UNIT)) {  // should be same type as V in spawn M V
+            return Either.left(new Exception("Expected value type "
+                    + EAVUnitType.UNIT + ", not: " + get.left.left));
+        }*/
+        System.err.println("[Warning] TODO check M value type: " + get.left.left);
+        if (!get.left.right.equals(EALEndType.END)) {
+            return Either.left(new Exception("Expected session type "
+                    + EALEndType.END + ", not: " + get.left.right));
+        }
+        return Either.right(Pair.of(
+                get.left,
+                Tree.of("[T-Register] " + toTypeJudgeString(
+                        gamma, pre, get.left.left, get.left.right), get.right)
+        ));
+
     }
 
     @Override
@@ -58,10 +83,11 @@ public class EAMRegister implements EAComp {
 
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
-
-        // !!! register reduction uses context M (not E) -- ...make getStepSubexprM ? (in active thread)
-
-        throw new RuntimeException("TODO: " + this);
+        // cf. EAMSend, EAMSpawn
+        return Either.right(Pair.of(
+                EATermFactory.factory.returnn(EATermFactory.factory.unit()),
+                Tree.of("[..E-Ctx-Leaf-Register..]")  // actual [E-Register] in EAAsyncSystem (cf. config reduction)  // E- for eval (not E-context)
+        ));
     }
 
     /* Aux */

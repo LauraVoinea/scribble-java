@@ -16,6 +16,7 @@ import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.comp.EAComp;
 import org.scribble.ext.ea.core.term.comp.EAMLet;
+import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
@@ -79,7 +80,7 @@ public class EACommandLine extends CommandLine {
 
     static final LTypeFactoryImpl LF = new LTypeFactoryImpl();
 
-    static final EATypeFactory TF = EATypeFactory.factory;
+    //static final EATypeFactory TF = EATypeFactory.factory;
     static final EATermFactory MF = EATermFactory.factory;
     static final EARuntimeFactory RF = EARuntimeFactory.factory;
 
@@ -88,7 +89,8 @@ public class EACommandLine extends CommandLine {
     static final EASid s = RF.sid("s");
     static final EAPid p1 = RF.pid("p1");
     static final EAPid p2 = RF.pid("p2");
-    static final EAEVar x = MF.var("x");
+    //static final EAEVar x = MF.var("x");
+    static final EAEAPName c = MF.ap("c");
 
     static final Pair<EASid, Role> sA = Pair.of(s, A);
     static final Pair<EASid, Role> sB = Pair.of(s, B);
@@ -210,7 +212,7 @@ public class EACommandLine extends CommandLine {
             boolean debug) {
 
         EAComp spawn = parseM("spawn return ()");
-        EAComp reg = parseM("register () A return ()");
+        EAComp reg = parseM("register c A return ()");
         EAVType ap = parseA("AP(A -> end, B -> end)");
 
         System.out.println(spawn);
@@ -218,26 +220,28 @@ public class EACommandLine extends CommandLine {
         System.out.println(ap);
 
         EACActor cA = RF.actor(p1, RF.noSessionThread(spawn), EMPTY_SIGMA, MF.unit());
-        //EACActor cB = RF.config(p2, RF.activeThread(lethB, s, B), EMPTY_SIGMA, MF.intt(2));
+        EACActor cB = RF.actor(p2, RF.noSessionThread(reg), EMPTY_SIGMA, MF.unit());
         System.out.println("cA = " + cA);
-        //System.out.println("cB = " + cB);
+        System.out.println("cB = " + cB);
 
         //--------------
 
         //typeCheckActor(cA, new Delta(newLinkedMap(sA, EALEndType.END)));
         typeCheckActor(cA, new Delta());
         //typeCheckActor(cB, new Delta(newLinkedMap(sB, EALEndType.END)));
+        typeCheckActor(cB, new Delta());
 
         // ----
 
         //Delta delta = new Delta(newLinkedMap(sA, EALEndType.END, sB, EALEndType.END));
         Delta delta = new Delta();
-        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA);//, cB.pid, cB);
+        LinkedHashMap<EAPid, EACActor> cs = newLinkedMap(cA.pid, cA, cB.pid, cB);
         //LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
         //AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf());
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, true, new Bounds(-1));
     }
@@ -265,8 +269,9 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, true, new Bounds(-1));
     }
@@ -420,8 +425,9 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, true, new Bounds(-1));  // quit straight away or after one -- also "run forever" (but repeat state bounded -- cf. no unbounded send stream)
         //return typeAndRunD(sys, true, new Bounds(10));  // run forever  // XXX repeat state is now also bounded
@@ -482,8 +488,9 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
@@ -516,8 +523,9 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, newLinkedMap(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
@@ -576,8 +584,9 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, true, new Bounds(-1));  // binary recip, implicitly bounded
     }
@@ -841,8 +850,9 @@ public class EACommandLine extends CommandLine {
         //EASystem sys = RF.system(LF, delta, cs);
         // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         return typeAndRun(sys, debug, new Bounds(-1));  // binary recip, implicitly bounded
     }
@@ -879,8 +889,9 @@ public class EACommandLine extends CommandLine {
 
         //EASystem sys = RF.system(LF, delta, cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         //typeAndRun(sys, -1, true);
         return typeAndRun(sys, true, new Bounds(-1));
@@ -916,8 +927,9 @@ public class EACommandLine extends CommandLine {
         Delta delta = new Delta(env);
         //EASystem sys = RF.system(LF, new Delta(env), cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
         //typeAndRun(sys, -1);
         //typeAndRun(sys, -1, true);
@@ -1116,12 +1128,12 @@ public class EACommandLine extends CommandLine {
             Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>> v = pid.getValue();
 
             Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step;
+            System.out.print("\n" + indent + "(" + stmp + "-" + i + ") ");
             if (v.isLeft()) {
                 //Map.Entry<EASid, Either<EAComp, EAMsg>> sid = pid.getValue().entrySet().iterator().next();  // FIXME execute all
                 Map.Entry<EASid, Either<EAComp, EAMsg>> sid = v.getLeft().entrySet().iterator().next();  // FIXME execute all
                 EASid s = sid.getKey();  // Only needed for debug out?
                 Either<EAComp, EAMsg> a = sid.getValue();
-                System.out.print("\n" + indent + "(" + stmp + "-" + i + ") ");
                 if (a.isLeft()) {
                     EAComp e = a.getLeft();
                     System.out.println("Stepping " + s + "@" + p + ": " + e);
@@ -1136,6 +1148,7 @@ public class EACommandLine extends CommandLine {
                 Set<EAComp> nosess = v.getRight();
                 EAComp a = nosess.iterator().next();  // CHECKME Set needed? (if so, execute all)
 
+                System.out.println("Stepping " + p + ": " + a);
                 step = sys.step(p, null, a);  // FIXME HACK state s
             }
 
@@ -1147,7 +1160,7 @@ public class EACommandLine extends CommandLine {
             i++;
 
             if (interactive) {
-                System.out.println("Press any key");
+                System.out.println("[Press any key]");
                 KB.nextLine();
             }
 

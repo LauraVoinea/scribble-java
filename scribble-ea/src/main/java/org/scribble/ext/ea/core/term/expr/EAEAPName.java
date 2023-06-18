@@ -16,7 +16,7 @@ import java.util.Set;
 
 // HERE HERE is AP name c a val V?(cf.value c)
 
-// c, c', ...
+// p, p', ... --- XXX clash with pid
 public class EAEAPName implements EAExpr, EAName {
 
     public final String id;
@@ -74,8 +74,8 @@ public class EAEAPName implements EAExpr, EAName {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EAEAPName eaVar = (EAEAPName) o;
-        return eaVar.canEquals(this) && Objects.equals(this.id, eaVar.id);
+        EAEAPName them = (EAEAPName) o;
+        return them.canEquals(this) && Objects.equals(this.id, them.id);
     }
 
     @Override

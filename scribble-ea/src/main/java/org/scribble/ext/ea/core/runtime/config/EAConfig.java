@@ -12,6 +12,8 @@ public interface EAConfig {  // !!! "syntax" already contains "runtime names"
     int SESSION_ID = 2203;
     int PROCESS_ID = 2207;
     int RESTRICTION = 2213;
+    int AP_ID = 2221;
+    int IOTA_ID = 2237;
 
     Either<Exception, Tree<String>> type(Gamma gamma, Delta delta);
 
