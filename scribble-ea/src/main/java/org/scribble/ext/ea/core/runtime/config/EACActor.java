@@ -35,7 +35,7 @@ public class EACActor implements EAConfig {
     // Unmod LinkedHashMap -- TODO factor out Sigma class
     @NotNull public final Map<Pair<EASid, Role>, EAEHandlers> sigma;  // !!! handlers specifically
 
-    @NotNull public final Map<EAEAPName, EAComp> rho;
+    @NotNull public final Map<EAIota, EAComp> rho;
 
     @NotNull public EAExpr state;  // Pre: ground
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
@@ -43,7 +43,7 @@ public class EACActor implements EAConfig {
     public EACActor(@NotNull EAPid pid,
                     @NotNull EAThread T,
                     @NotNull LinkedHashMap<Pair<EASid, Role>, EAEHandlers> handlers,
-                    @NotNull LinkedHashMap<EAEAPName, EAComp> rho,
+                    @NotNull LinkedHashMap<EAIota, EAComp> rho,
                     //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
                     @NotNull EAExpr state) {
 
@@ -272,6 +272,51 @@ public class EACActor implements EAConfig {
                 + ConsoleColors.DOUBLEVLINE + " " + q2;
     }
 
+    public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync2(EAComp e, EAIota iota) {  // TODO FIXME refactor w.r.t. stepAsync1, cf. takes/returns whole queue
+
+        // Duplicated from stepAsync0
+        EAThreadMode mode = this.T.getMode();
+        if (!(mode == EAThreadMode.SESSION || mode == EAThreadMode.NO_SESSION)) {  // TODO refactor -- separate? or delegate to Thread
+            return Either.left(newStuck0("Not active", this));
+        }
+        EAComp comp;
+        EASid sid = null;  // FIXME null for EATNoSession
+        Role role = null;  // FIXME null for EATNoSession
+        if (mode == EAThreadMode.SESSION) {
+            EATSession active = (EATSession) this.T;
+            comp = active.comp;
+            sid = active.sid;
+            role = active.role;
+        } else {  // NO_SESSION
+            EATNoSession active = (EATNoSession) this.T;
+            comp = active.comp;
+        }
+
+        if (e instanceof EAMRegister) {
+            Either<Exception, Pair<EAComp, Tree<String>>> step = comp.contextStepE();  // checks ground AP name
+            EASid s1 = sid;  // !!! FIXME null if no-session
+            Role r1 = role;
+            return step.mapRight(x -> {
+                EAMRegister cast = (EAMRegister) e;
+                EAThread res = mode == EAThreadMode.SESSION
+                        ? RF.sessionThread(x.left, s1, r1)
+                        : RF.noSessionThread(x.left);
+                LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
+                        EAUtil.copyOf(this.sigma);
+                LinkedHashMap<EAIota, EAComp> rho = EAUtil.copyOf(this.rho);
+                rho.put(iota, cast.M);
+                EACActor succ = RF.actor(this.pid, res, sigma, rho, this.state);
+                return Pair.of(succ, Tree.of(
+                        toStepJudge0String("[E-Register]", this, succ),
+                        x.right
+                ));
+            });
+
+        } else {
+            throw new RuntimeException("TODO: " + e);
+        }
+    }
+
     // No queue -- also context squashed
     // [E-Reset], [E-Suspend], [E-Lift], [E-Spawn] -- also [..E-binop..]  -- stepAync1 handles [E-Send]
     public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync0(EAComp e) {
@@ -333,9 +378,35 @@ public class EACActor implements EAConfig {
 
         // "full" M -- both session or no-session
 
+        /*else if (e instanceof EAMRegister) {
+            // Cf. below
+            Either<Exception, Pair<EAComp, Tree<String>>> step = comp.contextStepE();  // checks ground
+            EASid s1 = sid;  // !!! FIXME null if no-session
+            Role r1 = role;
+            return step.mapRight(x -> {
+                EAMRegister cast = (EAMRegister) e;
+                EAThread res = mode == EAThreadMode.SESSION
+                        ? RF.sessionThread(x.left, s1, r1)
+                        : RF.noSessionThread(x.left);
+                LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
+                        EAUtil.copyOf(this.sigma);
+                LinkedHashMap<EAEAPName, EAComp> rho = EAUtil.copyOf(this.rho);
+                if (!(cast.V instanceof EAEAPName)) {
+                    return Either.left(newStuck0("Expected AP name, not " + cast.V + "in: " + cast, this));
+                }
+                EAEAPName ap = (EAEAPName) cast.V;
+                rho.put(ap);
+                EACActor succ = RF.actor(this.pid, res, sigma, rho, this.state);
+                return Pair.of(succ, Tree.of(
+                        toStepJudge0String("[E-Lift]", this, succ),
+                        x.right
+                ));
+            });
+
+        }*/
         else if (
-            // [E-Spawn], [E-Register]
-                e instanceof EAMSpawn || e instanceof EAMRegister
+            // [E-Spawn]
+                e instanceof EAMSpawn
 
                         // [E-Lift]
                         || e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf
@@ -350,8 +421,11 @@ public class EACActor implements EAConfig {
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
                 EACActor succ = RF.actor(this.pid, res, sigma, EAUtil.copyOf(this.rho), this.state);
+
+                String tag = e instanceof EAMSpawn ? "[E-Spawn]" : "[E-Lift]";
+
                 return Pair.of(succ, Tree.of(
-                        toStepJudge0String("[E-Lift]", this, succ),
+                        toStepJudge0String(tag, this, succ),
                         x.right
                 ));
             });

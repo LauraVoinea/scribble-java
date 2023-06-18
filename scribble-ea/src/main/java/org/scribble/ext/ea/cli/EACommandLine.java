@@ -77,7 +77,7 @@ import java.util.stream.Collectors;
 public class EACommandLine extends CommandLine {
 
     static final LinkedHashMap<Pair<EASid, Role>, EAEHandlers> EMPTY_SIGMA = EAUtil.mapOf();
-    static final LinkedHashMap<EAEAPName, EAComp> EMPTY_RHO = EAUtil.mapOf();
+    static final LinkedHashMap<EAIota, EAComp> EMPTY_RHO = EAUtil.mapOf();
 
     static final LTypeFactoryImpl LF = new LTypeFactoryImpl();
 

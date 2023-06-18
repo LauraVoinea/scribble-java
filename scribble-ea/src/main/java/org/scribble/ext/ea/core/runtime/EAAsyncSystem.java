@@ -216,7 +216,8 @@ public class EAAsyncSystem {
             ));
 
         } else if (e instanceof EAMRegister) {
-            Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync0(e);
+            EAIota iota = newIota();
+            Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync2(e, iota);
             if (step.isLeft()) {
                 return Either.left(step.getLeft());
             }
@@ -227,18 +228,18 @@ public class EAAsyncSystem {
 
             EAMRegister cast = (EAMRegister) e;
             if (!(cast.V instanceof EAEAPName)) {
-                throw new RuntimeException("Shouldn't get here: " + cast);
+                return Either.left(newStuck("Expected AP name, not " + cast.V + "in: " + cast));
             }
             EAEAPName ap = (EAEAPName) cast.V;
             LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.copyOf(this.access);
             if (!access.containsKey(ap)) {
-                throw new RuntimeException("Access point " + ap + " not found: " + this.access);
+                return Either.left(newStuck("Access point " + ap + " not found: " + this.access));
             }
             Map<Role, List<EAIota>> invites = EAUtil.copyOf(access.get(ap));
             List<EAIota> is = invites.containsKey(cast.role)
                     ? EAUtil.copyOf(invites.get(cast.role))
                     : EAUtil.listOf();
-            is.add(newIota());
+            is.add(iota);
             invites.put(cast.role, is);
             access.put(ap, invites);
 
