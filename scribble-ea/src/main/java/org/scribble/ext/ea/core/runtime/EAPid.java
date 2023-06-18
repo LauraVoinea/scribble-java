@@ -11,10 +11,9 @@ import org.scribble.util.Pair;
 // a, b, ...
 public class EAPid implements EARuntimeName {
 
-    @NotNull
-    public final String id;
+    @NotNull public final String id;
 
-    public EAPid(@NotNull String id) {
+    public EAPid(String id) {
         this.id = id;
     }
 

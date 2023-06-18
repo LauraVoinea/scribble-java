@@ -49,7 +49,9 @@ public class EAMSend implements EAComp {
             return Either.left(new Exception("Expected out type: " + pre + ", " + this));
         }
         EALOutType cast = (EALOutType) pre;
+
         // XXX FIXME self comm
+
         if (!cast.peer.equals(this.dst)) {
             //throw new RuntimeException("Incompatible peer: " + pre + ", " + this);
             return Either.left(new Exception("Incompatible peer: " + pre + ", " + this));
@@ -74,7 +76,7 @@ public class EAMSend implements EAComp {
         EAVUnitType B = EATypeFactory.factory.val.unit();
         return Either.right(Pair.of(
                 Pair.of(B, p.right),
-                new Tree<>("[T-Send] " + toTypeJudgeString(gamma, pre, B, p.right),
+                Tree.of("[T-Send] " + toTypeJudgeString(gamma, pre, B, p.right),
                         List.of(pp.right))
         ));
     }
@@ -121,7 +123,7 @@ public class EAMSend implements EAComp {
         }
         return Either.right(Pair.of(
                 EATermFactory.factory.returnn(EATermFactory.factory.unit()),
-                Tree.of("[..E-Ctx-Leaf-Send..]")  // cf. lift/context -> beta rules
+                Tree.of("[..E-Ctx-Leaf-Send..]")  // cf. lift/context -> beta rules -- actual [E-Send] in EAAsyncSystem (cf. config reduction)
         ));
     }
 

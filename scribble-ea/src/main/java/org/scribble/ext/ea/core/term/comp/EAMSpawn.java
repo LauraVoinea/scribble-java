@@ -9,13 +9,16 @@ import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
+import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.ext.ea.core.type.value.EAVUnitType;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
 import org.scribble.util.Pair;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +33,26 @@ public class EAMSpawn implements EAComp {
     @Override
     public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
 
-        throw new RuntimeException("TODO: " + this);
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type = this.M.type(gamma, EALEndType.END);
+        if (type.isLeft()) {
+            return Either.left(type.getLeft());
+        }
+        Pair<Pair<EAVType, EALType>, Tree<String>> get = type.getRight();
+
+        // TODO FIXME spawn M V
+        /*if (!get.left.left.equals(EAVUnitType.UNIT)) {  // should be same type as V in spawn M V
+            return Either.left(new Exception("Expected value type "
+                    + EAVUnitType.UNIT + ", not: " + get.left.left));
+        }*/
+        if (!get.left.right.equals(EALEndType.END)) {
+            return Either.left(new Exception("Expected session type "
+                    + EALEndType.END + ", not: " + get.left.right));
+        }
+        return Either.right(Pair.of(
+                get.left,
+                Tree.of("[T-Spawn] " + toTypeJudgeString(
+                        gamma, pre, get.left.left, get.left.right), get.right)
+        ));
     }
 
     @Override
@@ -55,10 +77,11 @@ public class EAMSpawn implements EAComp {
 
     @Override
     public Either<Exception, Pair<EAComp, Tree<String>>> contextStepE() {
-
-        HERE HERE just becomes return ()-- EAAsyncSystem makes new actor
-
-        throw new RuntimeException("TODO: " + this);
+        // cf. EAMSend
+        return Either.right(Pair.of(
+                EATermFactory.factory.returnn(EATermFactory.factory.unit()),
+                Tree.of("[..E-Ctx-Leaf-Spawn..]")  // actual [E-Spawn] in EAAsyncSystem (cf. config reduction)  // E for eval (not E-context)
+        ));
     }
 
     /* Aux */

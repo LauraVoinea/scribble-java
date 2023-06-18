@@ -47,12 +47,13 @@ public interface EAComp extends EATerm {
                 + ConsoleColors.SUBSCRIPTBIGM + " " + right;
     }
 
-    // M-context basically wraps E-context
+    // M-context basically wraps E-context -- both basically step via E
     // ...basically using EAComp to "drive" eval steps in lieu of LTS action labels
     // Extract the (nested) "statically reducible part" CANDIDATE for config reduction -- e.g., send can only be a candidate (so app/let/etc don't check canBeta for foo -- EAPActiveThread.canStep checks canBeta on relevant foo, but could refactor some canBeta into getFoo)
     // ...deterministic(?)  // doesn't check canBeta, EAPActiveThread.canStep checks it as necessary
     EAComp getStepSubexprE();  // getFoo
 
+    // M-context basically wraps E-context -- both basically step via E
     // Maybe deriv tree labels belong more to EACActor.reduce than to the "candidates" as here
     //EAComp configReduce();
     Either<Exception, Pair<EAComp, Tree<String>>> contextStepE();

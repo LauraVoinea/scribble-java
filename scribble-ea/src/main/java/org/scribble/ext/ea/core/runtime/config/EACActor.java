@@ -88,7 +88,7 @@ public class EACActor implements EAConfig {
                 EAThread t1 = EATIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 //EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
-                EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.val);
+                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, cast.val);
                 //res.configs.put(p, c1);
                 configs.put(this.pid, c1);
                 return Pair.of(configs, new Tree<>("[E-Reset]"));
@@ -106,9 +106,9 @@ public class EACActor implements EAConfig {
                 }
                 Pair<EAComp, Tree<String>> p = reduce.getRight();
 
-                EAThread t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
+                EAThread t1 = EARuntimeFactory.factory.sessionThread(p.left, t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-                EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, this.state);
                 configs.put(this.pid, c1);
                 return Pair.of(configs, p.right);  // E-Lift already tagged
             }
@@ -125,7 +125,7 @@ public class EACActor implements EAConfig {
 
             EAThread t1;
             //t1 = EAPRuntimeFactory.factory.activeThread(t.expr.recon(foo, EAPFactory.factory.returnn(EAPFactory.factory.unit())), t.sid, t.role);
-            t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
+            t1 = EARuntimeFactory.factory.sessionThread(p.left, t.sid, t.role);
 
             EAMSend cast = (EAMSend) foo;
             Pair<EAPid, EACActor> receive = receive(sys, t, cast);
@@ -134,7 +134,7 @@ public class EACActor implements EAConfig {
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-            EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+            EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, this.state);
             //res.configs.put(p, c1);
             configs.put(this.pid, c1);
 
@@ -155,7 +155,7 @@ public class EACActor implements EAConfig {
                 //tmp.put(new Pair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
 
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
-                EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, cast.sval);
+                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, cast.sval);
                 configs.put(this.pid, c1);
                 return Pair.of(configs, new Tree<>("[E-Suspend]"));
             } else {
@@ -175,9 +175,9 @@ public class EACActor implements EAConfig {
             }
             Pair<EAComp, Tree<String>> p = reduce.getRight();
 
-            EAThread t1 = EARuntimeFactory.factory.activeThread(p.left, t.sid, t.role);
+            EAThread t1 = EARuntimeFactory.factory.sessionThread(p.left, t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-            EACActor c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
+            EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, this.state);
             configs.put(this.pid, c1);
             return Pair.of(configs, p.right);  // E-Lift-... already tagged
         } /*else if (foo instanceof EAPLet) {
@@ -217,11 +217,11 @@ public class EACActor implements EAConfig {
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> newsigma2 =
                 new LinkedHashMap<>(c2.sigma);
         newsigma2.remove(k2);
-        EATSession newt2 = EARuntimeFactory.factory.activeThread(e2, t.sid, k2.right);
+        EATSession newt2 = EARuntimeFactory.factory.sessionThread(e2, t.sid, k2.right);
         //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
         //configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
 
-        return Pair.of(p2, EARuntimeFactory.factory.config(c2.pid, newt2, newsigma2, c2.state));
+        return Pair.of(p2, EARuntimeFactory.factory.actor(c2.pid, newt2, newsigma2, c2.state));
     }
 
     /* ... */
@@ -241,10 +241,10 @@ public class EACActor implements EAConfig {
             return step.mapRight(x -> {
                 EAMSend cast = (EAMSend) e;
                 EAGlobalQueue app = queue.append(new EAMsg(active.role, cast.dst, cast.op, cast.val));
-                EATSession res = RF.activeThread(x.left, active.sid, active.role);
+                EATSession res = RF.sessionThread(x.left, active.sid, active.role);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
-                EACActor succ = RF.config(this.pid, res, sigma, this.state);
+                EACActor succ = RF.actor(this.pid, res, sigma, this.state);
                 return Triple.of(succ, app, Tree.of(
                         toStepJudge1String("[E-Send]", this, queue, succ, app),
                         x.right));
@@ -268,32 +268,31 @@ public class EACActor implements EAConfig {
     }
 
     // No queue -- also context squashed
-    // [E-Reset], [E-Suspend], [E-Lift] -- also [..E-binop..]
+    // [E-Reset], [E-Suspend], [E-Lift], [E-Spawn] -- also [..E-binop..]  -- stepAync1 handles [E-Send]
     public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync0(EAComp e) {
 
-        if (!(this.T instanceof EATSession)) {
+        EAThreadMode mode = this.T.getMode();
+        if (!(mode == EAThreadMode.SESSION || mode == EAThreadMode.NO_SESSION)) {  // TODO refactor -- separate? or delegate to Thread
             return Either.left(newStuck0("Not active", this));
         }
-        EATSession active = (EATSession) this.T;
-
-        // [E-Reset]
-        if (e instanceof EAMReturn) {
-            if (!active.comp.equals(e)) {
-                return Either.left(newStuck0("return not top-level", this));
-            }
-            if (!e.isGroundValueReturn()) {
-                return Either.left(newStuck0("return not ground", this));
-            }
-            LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
-                    EAUtil.copyOf(this.sigma);
-            EACActor res = RF.config(this.pid, RF.idle(), sigma, this.state);
-            return Either.right(Pair.of(res, Tree.of(
-                    toStepJudge0String("[E-Reset]", this, res)
-            )));
+        EAComp comp;
+        EASid sid = null;  // FIXME null for EATNoSession
+        Role role = null;  // FIXME null for EATNoSession
+        if (mode == EAThreadMode.SESSION) {
+            EATSession active = (EATSession) this.T;
+            comp = active.comp;
+            sid = active.sid;
+            role = active.role;
+        } else {  // NO_SESSION
+            EATNoSession active = (EATNoSession) this.T;
+            comp = active.comp;
         }
 
-        // [E-Suspend]
-        else if (e instanceof EAMSuspend) {
+        // active session only -- [E-Suspend]
+        if (e instanceof EAMSuspend) {
+            if (sid == null || role == null) {
+                throw new RuntimeException("Shouldn't get here");
+            }
             EAMSuspend cast = (EAMSuspend) e;
             if (!(cast.isGround())) {
                 return Either.left(newStuck0("suspend not ground", this));
@@ -303,28 +302,55 @@ public class EACActor implements EAConfig {
             }
             EAEHandlers h = (EAEHandlers) cast.val;
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
-            sigma1.put(Pair.of(active.sid, active.role), h);
+            sigma1.put(Pair.of(sid, role), h);
             //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
-            EACActor res = RF.config(this.pid, RF.idle(), sigma1, cast.sval);
+            EACActor res = RF.actor(this.pid, RF.idleThread(), sigma1, cast.sval);
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Suspend]", this, res)
             )));
         }
 
-        // [E-Lift]
-        else if (e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf
-                || e instanceof EAMBinOp) {  // also [E-Lift]
-            Either<Exception, Pair<EAComp, Tree<String>>> step = active.comp.contextStepE();  // checks ground
+        // Q -- both session or no-session -- [E-Reset]
+        else if (e instanceof EAMReturn) {
+            if (!comp.equals(e)) {
+                return Either.left(newStuck0("return not top-level", this));
+            }
+            if (!e.isGroundValueReturn()) {
+                return Either.left(newStuck0("return not ground", this));
+            }
+            LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
+                    EAUtil.copyOf(this.sigma);
+            EACActor res = RF.actor(this.pid, RF.idleThread(), sigma, this.state);
+            return Either.right(Pair.of(res, Tree.of(
+                    toStepJudge0String("[E-Reset]", this, res)
+            )));
+        }
+
+        // "full" M -- both session or no-session
+
+        else if (
+            // [E-Spawn]
+                e instanceof EAMSpawn
+
+                        // [E-Lift]
+                        || e instanceof EAMLet || e instanceof EAMApp || e instanceof EAMIf
+                        || e instanceof EAMBinOp) {
+            Either<Exception, Pair<EAComp, Tree<String>>> step = comp.contextStepE();  // checks ground
+            EASid s1 = sid;  // !!! FIXME null if no-session
+            Role r1 = role;
             return step.mapRight(x -> {
-                EATSession res = RF.activeThread(x.left, active.sid, active.role);
+                EAThread res = mode == EAThreadMode.SESSION
+                        ? RF.sessionThread(x.left, s1, r1)
+                        : RF.noSessionThread(x.left);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
-                EACActor succ = RF.config(this.pid, res, sigma, this.state);
+                EACActor succ = RF.actor(this.pid, res, sigma, this.state);
                 return Pair.of(succ, Tree.of(
                         toStepJudge0String("[E-Lift]", this, succ),
                         x.right
                 ));
             });
+
         } else {
             throw new RuntimeException("TODO: " + e);
         }
@@ -369,8 +395,8 @@ public class EACActor implements EAConfig {
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
         sigma1.remove(k);
         //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
-        EATSession res = RF.activeThread(subs, k.left, k.right);
-        EACActor succ = RF.config(this.pid, res, sigma1, this.state);
+        EATSession res = RF.sessionThread(subs, k.left, k.right);
+        EACActor succ = RF.actor(this.pid, res, sigma1, this.state);
 
         EAGlobalQueue queue1 = queue.remove(m);
         return Either.right(Triple.of(succ, queue1, Tree.of(
@@ -378,6 +404,8 @@ public class EACActor implements EAConfig {
         )));
     }
 
+    // ...basically get candidate fragments w.r.t. sess id (from queue)
+    // ^ TODO refactor -- actor should just return session cands Map<EASid, Either<EAComp, EAMsg>> or non-sess cands Set<EAComp>
     // EAComp is async "candidate subexpr" (under some context) -- max one because FG-CBV?
     // EAMsg is for receives
     public Optional<Either<EAComp, EAMsg>> getStepSubexprsE(EAGlobalQueue queue) {
@@ -405,31 +433,46 @@ public class EACActor implements EAConfig {
 
         // active thread -- "session" or "no-session" M-context -- both have nested E-context
 
-        else if (mode == EAThreadMode.SESSION || mode == EAThreadMode.NO_SESSION) {
+        else if (mode == EAThreadMode.SESSION) {
             EATSession active = (EATSession) this.T;
             if (!active.sid.equals(queue.sid)) {
                 return Optional.empty();
             }
 
-            // Q context, both session and no-session -- n.b. FG-CBV, only one case applies (deterministic)
+            // Q context -- n.b. FG-CBV, only one case applies (deterministic)
             if (active.comp.isGroundValueReturn()) {
                 return Optional.of(Either.left(active.comp));
             }
 
-            // E context, both session and no-session -- n.b. FG-CBV, only one case applies (deterministic)
+            // E "session" context -- n.b. FG-CBV, only one case applies (deterministic)
             EAComp e = active.comp.getStepSubexprE();
             return Optional.of(Either.left(e));
-
         }
 
         throw new RuntimeException("Unknown handled: " + mode);
+    }
+
+    // "no-session" M-context -- TODO maybe refactor with above -- just return all cands
+    // CHECKME is Set necessary?
+    public Set<EAComp> getStepSubexprsE0() {
+
+        EATNoSession active = (EATNoSession) this.T;
+
+        // Q context -- n.b. FG-CBV, only one case applies (deterministic)
+        if (active.comp.isGroundValueReturn()) {
+            return EAUtil.setOf(active.comp);
+        }
+
+        // E "no-session" context -- n.b. FG-CBV, only one case applies (deterministic)
+        EAComp e = active.comp.getStepSubexprE();
+        return EAUtil.setOf(e);
     }
 
     /* ... */
 
     public LinkedHashSet<Pair<EASid, Role>> getEndpoints() {
         LinkedHashSet<Pair<EASid, Role>> res = new LinkedHashSet<>();
-        if (!this.T.isIdle()) {
+        if (this.T.getMode() == EAThreadMode.SESSION) {
             EATSession t = (EATSession) this.T;
             res.add(new Pair<>(t.sid, t.role));
         }

@@ -27,19 +27,23 @@ public class EARuntimeFactory {
         return new EASid(id);
     }
 
-    public EACActor config(EAPid pid, EAThread T,
-                           LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma,
-                           //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
-                           EAExpr state) {
+    public EACActor actor(EAPid pid, EAThread T,
+                          LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma,
+                          //LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
+                          EAExpr state) {
         return new EACActor(pid, T, sigma, state);
     }
 
-    public EATIdle idle() {
+    public EATIdle idleThread() {
         return EATIdle.IDLE;
     }
 
-    public EATSession activeThread(EAComp expr, EASid sid, Role role) {
+    public EATSession sessionThread(EAComp expr, EASid sid, Role role) {
         return new EATSession(expr, sid, role);
+    }
+
+    public EATNoSession noSessionThread(EAComp expr) {
+        return new EATNoSession(expr);
     }
 
     public EASystem system(LTypeFactory lf, Delta annots,

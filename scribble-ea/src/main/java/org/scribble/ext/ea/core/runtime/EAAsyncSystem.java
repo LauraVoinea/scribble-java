@@ -9,6 +9,7 @@ import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LTypeFactory;
 import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.comp.*;
+import org.scribble.ext.ea.core.term.expr.EAEUnit;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.AsyncDelta;
 import org.scribble.ext.ea.core.type.session.local.Delta;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class EAAsyncSystem {
 
     @NotNull protected final LTypeFactory lf;
+    @NotNull protected final EARuntimeFactory RF = EARuntimeFactory.factory;
 
     //@NotNull public final Delta annots;
 
@@ -97,32 +99,66 @@ public class EAAsyncSystem {
 
     /* ... */
 
-    public Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> getSteppable() {
+    public Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> getSteppable() {
         Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> res = EAUtil.mapOf();
+        Map<EAPid, Set<EAComp>> res2 = EAUtil.mapOf();  // TODO refactor
+
         for (Map.Entry<EAPid, EACActor> ep : this.actors.entrySet()) {
             EAPid pid = ep.getKey();
             EACActor C = ep.getValue();
-            for (Map.Entry<EASid, EAGlobalQueue> es : this.queues.entrySet()) {
-                EASid sid = es.getKey();
-                EAGlobalQueue queue = es.getValue();
-                Optional<Either<EAComp, EAMsg>> opt = C.getStepSubexprsE(queue);
-                if (opt.isPresent()) {
-                    Either<EAComp, EAMsg> e = opt.get();
-                    Map<EASid, Either<EAComp, EAMsg>> tmp = res.computeIfAbsent(pid, x -> EAUtil.mapOf());
-                    if (e.isLeft()) {
-                        tmp.put(sid, Either.left(e.getLeft()));
-                    } else {
-                        tmp.put(sid, Either.right(e.getRight()));
+            EAThreadMode mode = C.T.getMode();  // TODO refactor
+
+            if (mode == EAThreadMode.IDLE || mode == EAThreadMode.SESSION) {
+                for (Map.Entry<EASid, EAGlobalQueue> es : this.queues.entrySet()) {
+                    EASid sid = es.getKey();
+                    EAGlobalQueue queue = es.getValue();
+                    Optional<Either<EAComp, EAMsg>> opt = C.getStepSubexprsE(queue);  // TODO refactor -- actor should return session cands Map<EASid, Either<EAComp, EAMsg>> and non-sess cands
+                    if (opt.isPresent()) {
+                        Either<EAComp, EAMsg> e = opt.get();
+                        Map<EASid, Either<EAComp, EAMsg>> tmp = res.computeIfAbsent(pid, x -> EAUtil.mapOf());
+                        if (e.isLeft()) {
+                            tmp.put(sid, Either.left(e.getLeft()));
+                        } else {
+                            tmp.put(sid, Either.right(e.getRight()));
+                        }
                     }
                 }
+
+            } else {  // mode == EAThreadMode.NO_SESSION
+                Set<EAComp> get = C.getStepSubexprsE0();
+                if (res2.containsKey(pid)) {
+                    throw new RuntimeException("Shouldn't get here: " + pid);
+                }
+                res2.put(pid, get);
             }
         }
-        return res;
+
+        Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> tmp = EAUtil.mapOf();
+        for (EAPid p : res.keySet()) {
+            tmp.put(p, Either.left(res.get(p)));
+        }
+        for (EAPid p : res2.keySet()) {
+            if (tmp.containsKey(p)) {
+                throw new RuntimeException("Shouldn't get here: " + p);
+            }
+            tmp.put(p, Either.right(res2.get(p)));
+        }
+        return tmp;
+    }
+
+    protected int counter = 1;
+
+    protected int nextSpawnCounter() {
+        return this.counter++;
     }
 
     // [E-Send], [E-Suspend], [E-Reset], [E-Lift] -- cf. react for [E-React]
     public Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step(
-            EAPid p, EASid s, EAComp e) {  // n.b. beta is deterministic
+            EAPid p, EASid s, EAComp e) {  // s only used for [E-Send], factor out?  // n.b. beta is deterministic
+
+        // Based on candidate fragment e, do stepAsync0/1 on subj actor depending if queue also needed
+        //    - actor will step the comp of its session/no-session thread by e -- basic stepping is same for both E/M-context
+        // Also potentially update other config/queue depending on candidate fragment
 
         EACActor c = this.actors.get(p); // p.equals(c.pid)
 
@@ -138,7 +174,7 @@ public class EAAsyncSystem {
                 actors1.put(p, x.left);
                 LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.copyOf(this.queues);
                 return Triple.of(
-                        new EAAsyncSystem(this.lf, actors1, queues, this.adelta),
+                        RF.asyncSystem(this.lf, actors1, queues, this.adelta),
                         x.right,
                         null  // XXX TODO
                 );
@@ -148,10 +184,29 @@ public class EAAsyncSystem {
         // Actor/AP state changed
         else if (e instanceof EAMSpawn) {
 
-            HERE HERE
-        } else if (e instanceof EAMRegister) {
+            Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync0(e);
+            if (step.isLeft()) {
+                return Either.left(step.getLeft());
+            }
+            Pair<EACActor, Tree<String>> get = step.getRight();
 
-            HERE HERE
+            LinkedHashMap<EAPid, EACActor> actors1 = EAUtil.copyOf(this.actors);
+            actors1.put(p, get.left);
+
+            EAMSpawn cast = (EAMSpawn) e;
+            EAPid spawn = RF.pid(p.id + "_" + nextSpawnCounter());
+            actors1.put(spawn, RF.actor(spawn, RF.noSessionThread(cast.M), EAUtil.mapOf(), null));  // FIXME HACK state
+
+            return Either.right(Triple.of(
+                    RF.asyncSystem(this.lf, actors1, EAUtil.copyOf(this.queues),
+                            this.adelta),
+                    get.right,
+                    null  // XXX TODO
+            ));
+
+
+        } else if (e instanceof EAMRegister) {
+            throw new RuntimeException("TODO");
         }
 
         // Session typing changed -- annots updated
@@ -200,7 +255,7 @@ public class EAAsyncSystem {
                             astep1.left),
                     get.right,
                     astep1.right
-            ));  // TODO astep1 deriv
+            ));
         } else {
             return Either.left(newStuck("Unsupported expr kind " + e + "in: " + this));
         }

@@ -70,6 +70,7 @@ public class EATNoSession implements EAThread {
         Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight();
         Pair<EAVType, EALType> res = pp.left;
         Optional<EAVType> u = EAVType.unify(res.left, gamma.svarType);
+        System.out.println(res.left + " ,, " + gamma.svarType + " ,, " + u);
         if (!u.isPresent() || !u.get().equals(gamma.svarType) || !res.right.equals(EALEndType.END)) {
             return Either.left(new Exception("Badly typed: " + this + " : " + res.left + " <| " + res.right));
         }
@@ -86,7 +87,7 @@ public class EATNoSession implements EAThread {
 
     @Override
     public String toString() {
-        return this.comp.toString();
+        return "(" + this.comp.toString() + ")";  // !!!
     }
 
     /* equals/canEquals, hashCode */
