@@ -205,7 +205,7 @@ public class EAAsyncSystem {
 
             EAMSpawn cast = (EAMSpawn) e;
             EAPid spawn = RF.pid(p.id + "_" + nextSpawnCounter());
-            actors1.put(spawn, RF.actor(spawn, RF.noSessionThread(cast.M), EAUtil.mapOf(), //null));  // FIXME HACK state
+            actors1.put(spawn, RF.actor(spawn, RF.noSessionThread(cast.M), EAUtil.mapOf(), EAUtil.mapOf(), //null));  // FIXME HACK state
                     EAEUnit.UNIT));
 
             return Either.right(Triple.of(

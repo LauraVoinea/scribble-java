@@ -76,7 +76,8 @@ import java.util.stream.Collectors;
 // Includes assrt-core functionality (all extra args are currently for assrt-core)
 public class EACommandLine extends CommandLine {
 
-    static final LinkedHashMap<Pair<EASid, Role>, EAEHandlers> EMPTY_SIGMA = newLinkedMap();
+    static final LinkedHashMap<Pair<EASid, Role>, EAEHandlers> EMPTY_SIGMA = EAUtil.mapOf();
+    static final LinkedHashMap<EAEAPName, EAComp> EMPTY_RHO = EAUtil.mapOf();
 
     static final LTypeFactoryImpl LF = new LTypeFactoryImpl();
 
@@ -219,8 +220,8 @@ public class EACommandLine extends CommandLine {
         System.out.println(reg);
         System.out.println(ap);
 
-        EACActor cA = RF.actor(p1, RF.noSessionThread(spawn), EMPTY_SIGMA, MF.unit());
-        EACActor cB = RF.actor(p2, RF.noSessionThread(reg), EMPTY_SIGMA, MF.unit());
+        EACActor cA = RF.actor(p1, RF.noSessionThread(spawn), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor cB = RF.actor(p2, RF.noSessionThread(reg), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -252,8 +253,8 @@ public class EACommandLine extends CommandLine {
         EAComp lethA = parseM("return 42");
         EAComp lethB = parseM("return 43");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, MF.intt(1));
-        EACActor cB = RF.actor(p2, RF.sessionThread(lethB, s, B), EMPTY_SIGMA, MF.intt(2));
+        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.intt(1));
+        EACActor cB = RF.actor(p2, RF.sessionThread(lethB, s, B), EMPTY_SIGMA, EMPTY_RHO, MF.intt(2));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -300,7 +301,7 @@ public class EACommandLine extends CommandLine {
         // config < A, idle, c[A] |-> let h = ... in ... >
         EATSession tA = rf.sessionThread(lethA, s, A);
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaA = new LinkedHashMap<>();
-        EACActor cA = rf.actor(p1, tA, sigmaA, pf.factory.intt(0));
+        EACActor cA = rf.actor(p1, tA, sigmaA, EMPTY_RHO, pf.factory.intt(0));
 
         System.out.println();
         String out1s = "B!{l1(" + h2s + ").B!{l2(1). end }}";
@@ -324,7 +325,7 @@ public class EACommandLine extends CommandLine {
         // config < B, idle, c[B] |-> let h = ... in ... } >
         EATSession tB = rf.sessionThread(lethB, s, B);
         LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigmaB = new LinkedHashMap<>();
-        EACActor cB = rf.actor(p2, tB, sigmaB, pf.factory.bool(false));
+        EACActor cB = rf.actor(p2, tB, sigmaB, EMPTY_RHO, pf.factory.bool(false));
 
         System.out.println();
         env = new LinkedHashMap<>();
@@ -402,8 +403,8 @@ public class EACommandLine extends CommandLine {
                         + "  }) "
                         + "in let hh : " + h1s + " <= [h ()] in suspend hh 0");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, MF.factory.intt(0));
-        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, MF.factory.intt(0));
+        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.factory.intt(0));
+        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, EMPTY_RHO, MF.factory.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -465,8 +466,8 @@ public class EACommandLine extends CommandLine {
                         + "  })"
                         + "in let hh : " + h1s + " <= [h ()] in suspend hh 0");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, MF.factory.intt(0));
-        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, MF.factory.intt(0));
+        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.factory.intt(0));
+        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, EMPTY_RHO, MF.factory.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -504,8 +505,8 @@ public class EACommandLine extends CommandLine {
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Bool).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} z1: 1, l1(x: Bool) |-> return 42 }");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(sendAB, s, A), EMPTY_SIGMA, MF.unit());
-        EACActor cB = RF.actor(p2, RF.idleThread(), newLinkedMap(sB, hsB), MF.intt(0));
+        EACActor cA = RF.actor(p1, RF.sessionThread(sendAB, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor cB = RF.actor(p2, RF.idleThread(), newLinkedMap(sB, hsB), EMPTY_RHO, MF.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -561,8 +562,8 @@ public class EACommandLine extends CommandLine {
                         + "  }) "
                         + "in let hh: " + h1s + " <= [h ()] in suspend hh 43");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, MF.intt(0));
-        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, MF.intt(0));
+        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.intt(0));
+        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, EMPTY_RHO, MF.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -636,7 +637,7 @@ public class EACommandLine extends CommandLine {
         /*LinkedHashMap<Pair<EAPSid, Role>, Integer> stateA = new LinkedHashMap<>();
         stateA.put(new Pair<>(s, A), 0);
         EAPConfig cA = rf.config(p1, tA, sigmaA, stateA);*/
-        EACActor cA = RF.actor(p1, tA, sigmaA, MF.intt(0));
+        EACActor cA = RF.actor(p1, tA, sigmaA, EMPTY_RHO, MF.intt(0));
 
         // config < B, idle, c[B] |-> let h = ... in ... >
         System.out.println();
@@ -655,7 +656,7 @@ public class EACommandLine extends CommandLine {
         /*LinkedHashMap<Pair<EAPSid, Role>, Integer> stateB = new LinkedHashMap<>();
         stateB.put(new Pair<>(s, B), 0);
         EAPConfig cB = rf.config(p2, tB, sigmaB, stateB);*/
-        EACActor cB = RF.actor(p2, tB, sigmaB, MF.intt(0));
+        EACActor cB = RF.actor(p2, tB, sigmaB, EMPTY_RHO, MF.intt(0));
 
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
@@ -824,8 +825,8 @@ public class EACommandLine extends CommandLine {
                         + "  }) "
                         + "in let hh : " + h1s + " <= [h ()] in suspend hh 42");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, MF.intt(0));
-        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, MF.intt(0));
+        EACActor cA = RF.actor(p1, RF.sessionThread(lethA, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.intt(0));
+        EACActor cB = RF.actor(p2, RF.sessionThread(leth, s, B), EMPTY_SIGMA, EMPTY_RHO, MF.intt(0));
         System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);
 
@@ -872,8 +873,8 @@ public class EACommandLine extends CommandLine {
                         + "}");
 
         // TODO factor out a Sigma class, e.g., for typing
-        EACActor cA = RF.actor(p1, RF.sessionThread(let, s, A), EMPTY_SIGMA, MF.unit());
-        EACActor cB = RF.actor(p2, idle, newLinkedMap(sB, hsB1), MF.intt(0));  // B step after active suspend
+        EACActor cA = RF.actor(p1, RF.sessionThread(let, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor cB = RF.actor(p2, idle, newLinkedMap(sB, hsB1), EMPTY_RHO, MF.intt(0));  // B step after active suspend
         /*System.out.println("cA = " + cA);
         System.out.println("cB = " + cB);*/
 
@@ -909,8 +910,8 @@ public class EACommandLine extends CommandLine {
         EALInType in1 = (EALInType) parseSessionType("A?{l1(Int).end}");
         EAEHandlers hsB = (EAEHandlers) parseV("handler A { {end} d: 1, l1(x: Int) |-> return d }");
 
-        EACActor cA = RF.actor(p1, RF.sessionThread(sendAB, s, A), EMPTY_SIGMA, MF.unit());
-        EACActor cB = RF.actor(p2, RF.idleThread(), newLinkedMap(sB, hsB), MF.unit());  // B step after active suspend
+        EACActor cA = RF.actor(p1, RF.sessionThread(sendAB, s, A), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor cB = RF.actor(p2, RF.idleThread(), newLinkedMap(sB, hsB), EMPTY_RHO, MF.unit());  // B step after active suspend
         /*System.out.println("cA: " + cA);
         System.out.println("cB: " + cB);*/
 

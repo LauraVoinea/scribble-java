@@ -7,6 +7,7 @@ import org.scribble.ext.ea.core.runtime.*;
 import org.scribble.ext.ea.core.term.EAName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.comp.*;
+import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAHandler;
@@ -34,12 +35,15 @@ public class EACActor implements EAConfig {
     // Unmod LinkedHashMap -- TODO factor out Sigma class
     @NotNull public final Map<Pair<EASid, Role>, EAEHandlers> sigma;  // !!! handlers specifically
 
+    @NotNull public final Map<EAEAPName, EAComp> rho;
+
     @NotNull public EAExpr state;  // Pre: ground
     //public final Map<Pair<EAPSid, Role>, Integer> state;  // FIXME type // combine with sigma?
 
     public EACActor(@NotNull EAPid pid,
                     @NotNull EAThread T,
                     @NotNull LinkedHashMap<Pair<EASid, Role>, EAEHandlers> handlers,
+                    @NotNull LinkedHashMap<EAEAPName, EAComp> rho,
                     //                @NotNull LinkedHashMap<Pair<EAPSid, Role>, Integer> state) {
                     @NotNull EAExpr state) {
 
@@ -53,6 +57,7 @@ public class EACActor implements EAConfig {
                 .stream().collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
+        this.rho = EAUtil.copyOf(rho);
         //this.state = Collections.unmodifiableMap(new LinkedHashMap<>(state));
         this.state = state;
     }
@@ -88,7 +93,7 @@ public class EACActor implements EAConfig {
                 EAThread t1 = EATIdle.IDLE;  // XXX FIXME suspend V M should now go to M (not idle)
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
                 //EAPConfig c1 = EARuntimeFactory.factory.config(this.pid, t1, sigma1, this.state);
-                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, cast.val);
+                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, EAUtil.copyOf(this.rho), cast.val);
                 //res.configs.put(p, c1);
                 configs.put(this.pid, c1);
                 return Pair.of(configs, new Tree<>("[E-Reset]"));
@@ -108,7 +113,7 @@ public class EACActor implements EAConfig {
 
                 EAThread t1 = EARuntimeFactory.factory.sessionThread(p.left, t.sid, t.role);
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, this.state);
+                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, EAUtil.copyOf(this.rho), this.state);
                 configs.put(this.pid, c1);
                 return Pair.of(configs, p.right);  // E-Lift already tagged
             }
@@ -134,7 +139,7 @@ public class EACActor implements EAConfig {
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = new LinkedHashMap<>(this.sigma);
 
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-            EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, this.state);
+            EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, EAUtil.copyOf(this.rho), this.state);
             //res.configs.put(p, c1);
             configs.put(this.pid, c1);
 
@@ -155,7 +160,7 @@ public class EACActor implements EAConfig {
                 //tmp.put(new Pair<>(t.sid, t.role), ((EAPIntVal) cast.sval).val);  // !!! FIXME currently works because suspend expr must have val (which must have been subst by now, i.e., ground)
 
                 //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, tmp);
-                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, cast.sval);
+                EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, EAUtil.copyOf(this.rho), cast.sval);
                 configs.put(this.pid, c1);
                 return Pair.of(configs, new Tree<>("[E-Suspend]"));
             } else {
@@ -177,7 +182,7 @@ public class EACActor implements EAConfig {
 
             EAThread t1 = EARuntimeFactory.factory.sessionThread(p.left, t.sid, t.role);
             //EAPConfig c1 = EAPRuntimeFactory.factory.config(this.pid, t1, sigma1, new LinkedHashMap<>(this.state));
-            EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, this.state);
+            EACActor c1 = EARuntimeFactory.factory.actor(this.pid, t1, sigma1, EAUtil.copyOf(this.rho), this.state);
             configs.put(this.pid, c1);
             return Pair.of(configs, p.right);  // E-Lift-... already tagged
         } /*else if (foo instanceof EAPLet) {
@@ -221,7 +226,7 @@ public class EACActor implements EAConfig {
         //res.configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2));
         //configs.put(p2, EAPRuntimeFactory.factory.config(c2.pid, newt2, newsigma2, new LinkedHashMap<>(c2.state)));
 
-        return Pair.of(p2, EARuntimeFactory.factory.actor(c2.pid, newt2, newsigma2, c2.state));
+        return Pair.of(p2, EARuntimeFactory.factory.actor(c2.pid, newt2, newsigma2, EAUtil.copyOf(this.rho), c2.state));
     }
 
     /* ... */
@@ -244,7 +249,7 @@ public class EACActor implements EAConfig {
                 EATSession res = RF.sessionThread(x.left, active.sid, active.role);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
-                EACActor succ = RF.actor(this.pid, res, sigma, this.state);
+                EACActor succ = RF.actor(this.pid, res, sigma, EAUtil.copyOf(this.rho), this.state);
                 return Triple.of(succ, app, Tree.of(
                         toStepJudge1String("[E-Send]", this, queue, succ, app),
                         x.right));
@@ -304,7 +309,7 @@ public class EACActor implements EAConfig {
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma1 = EAUtil.copyOf(this.sigma);
             sigma1.put(Pair.of(sid, role), h);
             //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
-            EACActor res = RF.actor(this.pid, RF.idleThread(), sigma1, cast.sval);
+            EACActor res = RF.actor(this.pid, RF.idleThread(), sigma1, EAUtil.copyOf(this.rho), cast.sval);
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Suspend]", this, res)
             )));
@@ -320,7 +325,7 @@ public class EACActor implements EAConfig {
             }
             LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                     EAUtil.copyOf(this.sigma);
-            EACActor res = RF.actor(this.pid, RF.idleThread(), sigma, this.state);
+            EACActor res = RF.actor(this.pid, RF.idleThread(), sigma, EAUtil.copyOf(this.rho), this.state);
             return Either.right(Pair.of(res, Tree.of(
                     toStepJudge0String("[E-Reset]", this, res)
             )));
@@ -344,7 +349,7 @@ public class EACActor implements EAConfig {
                         : RF.noSessionThread(x.left);
                 LinkedHashMap<Pair<EASid, Role>, EAEHandlers> sigma =
                         EAUtil.copyOf(this.sigma);
-                EACActor succ = RF.actor(this.pid, res, sigma, this.state);
+                EACActor succ = RF.actor(this.pid, res, sigma, EAUtil.copyOf(this.rho), this.state);
                 return Pair.of(succ, Tree.of(
                         toStepJudge0String("[E-Lift]", this, succ),
                         x.right
@@ -396,7 +401,7 @@ public class EACActor implements EAConfig {
         sigma1.remove(k);
         //sigma1 = EAUtil.umod(sigma1);  // constructor does defensive copy
         EATSession res = RF.sessionThread(subs, k.left, k.right);
-        EACActor succ = RF.actor(this.pid, res, sigma1, this.state);
+        EACActor succ = RF.actor(this.pid, res, sigma1, EAUtil.copyOf(this.rho), this.state);
 
         EAGlobalQueue queue1 = queue.remove(m);
         return Either.right(Triple.of(succ, queue1, Tree.of(
@@ -602,7 +607,8 @@ public class EACActor implements EAConfig {
     @Override
     public String toString() {
         return "<" + this.pid + ", " + this.T + ", "
-                + this.sigma + ", " + this.state + ">";
+                + this.sigma + ", " + this.rho + ", "
+                + this.state + ">";
     }
 
     /* equals/canEquals, hashCode */
@@ -616,6 +622,7 @@ public class EACActor implements EAConfig {
                 && this.pid.equals(them.pid)
                 && this.T.equals(them.T)
                 && this.sigma.equals(them.sigma)
+                && this.rho.equals(them.rho)
                 && this.state.equals(them.state);
     }
 
@@ -630,6 +637,7 @@ public class EACActor implements EAConfig {
         hash = 31 * hash + this.pid.hashCode();
         hash = 31 * hash + this.T.hashCode();
         hash = 31 * hash + this.sigma.hashCode();
+        hash = 31 * hash + this.rho.hashCode();
         hash = 31 * hash + this.state.hashCode();
         return hash;
 
