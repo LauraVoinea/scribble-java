@@ -29,7 +29,7 @@ public class AsyncDelta {
 
     public AsyncDelta(LinkedHashMap<Pair<EASid, Role>, EALType> types,
                       LinkedHashMap<EASid, List<EAMsgType>> queues) {
-        if (types.keySet().stream().anyMatch(x -> !queues.keySet().contains(x.left))) {
+        if (types.keySet().stream().anyMatch(x -> !queues.keySet().contains(x.left))) {  // TODO also check other direction
             throw new RuntimeException("Session in types but not in queues: "
                     + "\n\t" + types + "\n\t" + queues);
         }

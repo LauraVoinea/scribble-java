@@ -38,21 +38,22 @@ public class EAMRegister implements EAComp {
 
         // cf. EAMSpawn
 
-        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type = this.M.type(gamma, EALEndType.END);
+        System.err.println("[Warning] TODO check register V AP type: " + this.V);  // Need to add sys.access info to gamma
+
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type =
+                this.M.type(gamma, EALEndType.END);
         if (type.isLeft()) {
             return Either.left(type.getLeft());
         }
         Pair<Pair<EAVType, EALType>, Tree<String>> get = type.getRight();
 
-        /*if (!get.left.left.equals(EAVUnitType.UNIT)) {  // should be same type as V in spawn M V
-            return Either.left(new Exception("Expected value type "
-                    + EAVUnitType.UNIT + ", not: " + get.left.left));
-        }*/
-        System.err.println("[Warning] TODO check M value type: " + get.left.left);
+        System.err.println("[Warning] TODO check register M value type: " + get.left.left);  // cf. state type
+
         if (!get.left.right.equals(EALEndType.END)) {
             return Either.left(new Exception("Expected session type "
                     + EALEndType.END + ", not: " + get.left.right));
         }
+
         return Either.right(Pair.of(
                 get.left,
                 Tree.of("[T-Register] " + toTypeJudgeString(

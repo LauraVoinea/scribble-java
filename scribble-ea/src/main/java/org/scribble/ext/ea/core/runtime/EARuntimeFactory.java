@@ -9,6 +9,7 @@ import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.comp.EAComp;
 import org.scribble.ext.ea.core.type.session.local.AsyncDelta;
 import org.scribble.ext.ea.core.type.session.local.Delta;
+import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -66,7 +67,7 @@ public class EARuntimeFactory {
     public EAAsyncSystem asyncSystem(LTypeFactory lf, //Delta annots,
                                      LinkedHashMap<EAPid, EACActor> cs,
                                      LinkedHashMap<EASid, EAGlobalQueue> queues,
-                                     LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access,
+                                     LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access,
                                      AsyncDelta adelta) {
         return new EAAsyncSystem(lf, cs, queues, access, adelta);
     }

@@ -135,7 +135,7 @@ public class EATest {
         //LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
         //AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf());
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf(c, EAUtil.mapOf());  // FIXME >= 2 roles
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -166,7 +166,8 @@ public class EATest {
         //LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
         //LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf());  // XXX all roles needed
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf(B2, EAUtil.listOf()));  // XXX all roles needed
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
+                EAUtil.mapOf(c, EAUtil.mapOf(B2, Pair.of(EALEndType.END, EAUtil.listOf())));  // XXX all roles needed  // FIXME >=2 roles
         //AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
@@ -227,7 +228,7 @@ public class EATest {
 
         //EASystem sys = RF.system(LF, delta, EAUtil.mapOf(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -383,7 +384,7 @@ public class EATest {
 
         //EASystem sys = RF.system(LF, delta, EAUtil.mapOf(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -446,7 +447,7 @@ public class EATest {
 
         //EASystem sys = RF.system(LF, delta, EAUtil.mapOf(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -481,7 +482,7 @@ public class EATest {
 
         //EASystem sys = RF.system(LF, delta, EAUtil.mapOf(cA.pid, cA, cB.pid, cB));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -542,7 +543,7 @@ public class EATest {
 
         //EASystem sys = RF.system(LF, delta, cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -808,7 +809,7 @@ public class EATest {
         //EASystem sys = RF.system(LF, delta, cs);
         // !!! cf. EAPSystem this.annots.map.get(k2) -- use unfolded as annot -- XXX that only allows that many number of unfoldings during execution
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -847,7 +848,7 @@ public class EATest {
 
         //EASystem sys = RF.system(LF, delta, cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -885,7 +886,7 @@ public class EATest {
         Delta delta = new Delta(env);
         //EASystem sys = RF.system(LF, new Delta(env), cs);
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf();
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 

@@ -13,10 +13,7 @@ import org.scribble.ext.ea.core.term.comp.*;
 import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAEUnit;
 import org.scribble.ext.ea.core.type.Gamma;
-import org.scribble.ext.ea.core.type.session.local.AsyncDelta;
-import org.scribble.ext.ea.core.type.session.local.Delta;
-import org.scribble.ext.ea.core.type.session.local.EALEndType;
-import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAUtil;
 import org.scribble.ext.ea.util.Either;
@@ -43,7 +40,7 @@ public class EAAsyncSystem {
     @NotNull public final Map<EAPid, EACActor> actors;  // keyset is all pids in system  // pids no longer in formal defs but useful in implementation
     @NotNull public final Map<EASid, EAGlobalQueue> queues;  // keyset is all sids in system
 
-    @NotNull public final Map<EAEAPName, Map<Role, List<EAIota>>> access;  // All roles must be provided
+    @NotNull public final Map<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access;  // All roles must be provided
 
     protected static int pidCounter = 1;
 
@@ -73,7 +70,7 @@ public class EAAsyncSystem {
             //Delta annots,
             LinkedHashMap<EAPid, EACActor> actors,
             LinkedHashMap<EASid, EAGlobalQueue> queues,
-            LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access,
+            LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access,
             AsyncDelta adelta) {
 
         if (actors.entrySet().stream().anyMatch(x -> !x.getKey().equals(x.getValue().pid))) {
@@ -167,9 +164,8 @@ public class EAAsyncSystem {
 
         // [E-Init]
         Set<Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>>> res3 = EAUtil.setOf();
-        for (Map.Entry<EAEAPName, Map<Role, List<EAIota>>> e : this.access.entrySet()) {
-            EAEAPName ap = e.getKey();
-            Map<Role, List<EAIota>> v = e.getValue();
+        for (Map.Entry<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> x : this.access.entrySet()) {
+            EAEAPName ap = x.getKey();  // map val not used
             Optional<Map<Role, EAIota>> init = getInit(ap, new HashMap<>(), new HashSet<>());
             if (!init.isPresent()) {
                 continue;
@@ -179,8 +175,8 @@ public class EAAsyncSystem {
                     ap,
                     get.entrySet().stream().collect(
                             Collectors.toMap(
-                                    x -> this.iotas.get(x.getValue()),
-                                    x -> Pair.of(x.getKey(), x.getValue())
+                                    y -> this.iotas.get(y.getValue()),
+                                    y -> Pair.of(y.getKey(), y.getValue())
                             ))
             ));
         }
@@ -199,17 +195,17 @@ public class EAAsyncSystem {
     }
 
     private Optional<Map<Role, EAIota>> getInit(EAEAPName ap, Map<Role, EAIota> curr, Set<EAPid> ps) {
-        Map<Role, List<EAIota>> iotas = this.access.get(ap);
+        Map<Role, Pair<EALType, List<EAIota>>> iotas = this.access.get(ap);
         Set<Role> rs = new HashSet<>(iotas.keySet());
         rs.removeAll(curr.keySet());
         if (rs.isEmpty()) {
             return Optional.of(curr);
         }
         Role r = rs.iterator().next();
-        List<EAIota> is = iotas.get(r);
+        List<EAIota> is = iotas.get(r).right;
         for (EAIota i : is) {
             EAPid p = this.iotas.get(i);
-            if (ps.contains(p)) {
+            if (this.actors.get(p).T.getMode() != EAThreadMode.IDLE || ps.contains(p)) {
                 continue;
             }
             Map<Role, EAIota> curr1 = new HashMap<>(curr);
@@ -292,20 +288,22 @@ public class EAAsyncSystem {
                 return Either.left(newStuck("Expected AP name, not " + cast.V + "in: " + cast));
             }
             EAEAPName ap = (EAEAPName) cast.V;
-            LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.copyOf(this.access);
+            LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
+                    EAUtil.copyOf(this.access);
             if (!access.containsKey(ap)) {
                 return Either.left(newStuck("Access point " + ap + " not found: " + this.access));
             }
-            Map<Role, List<EAIota>> invites = EAUtil.copyOf(access.get(ap));
+            Map<Role, Pair<EALType, List<EAIota>>> invites = EAUtil.copyOf(access.get(ap));
             if (!invites.containsKey(cast.role)) {
                 return Either.left(newStuck("Unknown role " + cast.role + ", expected: " + invites.keySet()));
             }
             /*List<EAIota> is = invites.containsKey(cast.role)  // XXX pre: all roles already present
                     ? EAUtil.copyOf(invites.get(cast.role))
                     : EAUtil.listOf();*/
-            List<EAIota> is = EAUtil.copyOf(invites.get(cast.role));
+            Pair<EALType, List<EAIota>> tmp = invites.get(cast.role);
+            List<EAIota> is = EAUtil.copyOf(tmp.right);
             is.add(iota);
-            invites.put(cast.role, is);
+            invites.put(cast.role, Pair.of(tmp.left, is));
             access.put(ap, invites);
 
             return Either.right(Triple.of(
@@ -423,20 +421,22 @@ public class EAAsyncSystem {
         }
 
         // Remove iotas rom access and iotas -- n.b. iotas static mutable
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access1 = EAUtil.copyOf(this.access);
-        Map<Role, List<EAIota>> rs = EAUtil.copyOf(access1.get(inits.left));
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access1 =
+                EAUtil.copyOf(this.access);
+        Map<Role, Pair<EALType, List<EAIota>>> rs = EAUtil.copyOf(access1.get(inits.left));
         for (Pair<Role, EAIota> v : inits.right.values()) {
             if (!rs.containsKey(v.left)) {
                 return Either.left(newStuck("Unknown role " + v.left
                         + " for ap " + inits.left + ": " + rs));
             }
-            List<EAIota> tmp = EAUtil.copyOf(rs.get(v.left));
+            Pair<EALType, List<EAIota>> foo = rs.get(v.left);
+            List<EAIota> tmp = EAUtil.copyOf(foo.right);
             if (!tmp.contains(v.right)) {
                 return Either.left(newStuck("Iota not present " + v.right
                         + " for role " + v.left + ": " + tmp));
             }
             tmp.remove(v.right);
-            rs.put(v.left, tmp);
+            rs.put(v.left, Pair.of(foo.left, tmp));
 
             if (!EAAsyncSystem.iotas.containsKey(v.right)) {
                 throw new RuntimeException("Shouldn't get here: "
@@ -481,9 +481,17 @@ public class EAAsyncSystem {
         LinkedHashMap<EASid, EAGlobalQueue> queues1 = EAUtil.copyOf(this.queues);
         queues1.put(sid, new EAGlobalQueue(sid));
 
+        // Add to delta annots
+        LinkedHashMap<Pair<EASid, Role>, EALType> types1 = EAUtil.copyOf(this.adelta.types);
+        LinkedHashMap<EASid, List<EAMsgType>> dqueues1 = EAUtil.copyOf(this.adelta.queues);
+        for (Pair<Role, EAIota> x : inits.right.values()) {
+            types1.put(Pair.of(sid, x.left), this.access.get(inits.left).get(x.left).left);
+            dqueues1.put(sid, EAUtil.listOf());
+        }
+        AsyncDelta delta1 = new AsyncDelta(types1, dqueues1);
+
         return Either.right(Triple.of(
-                new EAAsyncSystem(this.lf, actors1, queues1, access1,
-                        this.adelta),
+                new EAAsyncSystem(this.lf, actors1, queues1, access1, delta1),
                 Tree.of("[E-Init] ...TODO..."),
                 null  // XXX TODO -- or fine when no delta deriv?
         ));
