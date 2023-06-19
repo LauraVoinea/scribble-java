@@ -29,8 +29,6 @@ import java.util.Set;
 import java.util.function.Function;
 
 
-
-
 public class EATest {
 
     static final LinkedHashMap<Pair<EASid, Role>, EAEHandlers> EMPTY_SIGMA = EAUtil.mapOf();
@@ -44,6 +42,8 @@ public class EATest {
 
     static final Role A = new Role("A");
     static final Role B = new Role("B");
+    static final Role B1 = new Role("B1");
+    static final Role B2 = new Role("B2");
     static final EASid s = RF.sid("s");
     static final EAPid p1 = RF.pid("p1");
     static final EAPid p2 = RF.pid("p2");
@@ -56,6 +56,9 @@ public class EATest {
     public EATest() {
     }
 
+
+    /* ... */
+
     public static void tests() {
 
         //System.out.println(EACommandLine.parseV("2 + 3"));
@@ -66,6 +69,7 @@ public class EATest {
                 tests = EAUtil.mapOf();
         //origTests(tests);
         tests.put("ex11", EATest::ex11);
+        tests.put("ex12", EATest::ex12);
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -87,38 +91,6 @@ public class EATest {
         tests.put("ex10", EATest::ex10);
     }
 
-    private static boolean runTest(
-            String name,
-            Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>> test,
-            boolean debug) {
-
-        System.out.println("\n\n-- " + name + ":\n");
-        Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> apply =
-                test.apply(debug);
-        if (apply.isLeft()) {
-            apply.getLeft().printStackTrace();
-            return false;
-        }
-
-        Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>> right = apply.getRight();
-        System.out.println("\nDepth pruned:");
-        for (EAAsyncSystem pruned : right.left) {
-            System.out.println("\n" + pruned);
-        }
-        System.out.println("\nTerminals:");
-        for (EAAsyncSystem term : right.right) {
-            System.out.println("\n" + term);
-        }
-
-        return right.left.isEmpty();
-    }
-
-    static String log(String log, String name, boolean pass) {
-        return log + "\n" + name + (pass ? " Pass" : ConsoleColors.colour(ConsoleColors.RED, " FAIL"));
-    }
-
-    /* ... */
-
     private static void negtests() {
         LTypeFactoryImpl lf = new LTypeFactoryImpl();
 
@@ -128,6 +100,9 @@ public class EATest {
 
         //ex9(lf, pf, rf, tf);  // TODO neg runTest (check FAIL)
     }
+
+
+    /* ... */
 
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex13(
             boolean debug) {
@@ -170,7 +145,7 @@ public class EATest {
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex12(
             boolean debug) {
 
-        EAComp reg = EACommandLine.parseM("register c A return ()");
+        EAComp reg = EACommandLine.parseM("register c B2 return ()");
         //EACActor cA = RF.actor(p1, RF.noSessionThread(spawn), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         EACActor cB = RF.actor(p2, RF.noSessionThread(reg), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         //System.out.println("cA = " + cA);
@@ -190,8 +165,9 @@ public class EATest {
         LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(cB.pid, cB);
         //LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
+        //LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf());  // XXX all roles needed
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf(B2, EAUtil.listOf()));  // XXX all roles needed
         //AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf());
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
@@ -222,9 +198,8 @@ public class EATest {
         //LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
         //AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access = EAUtil.mapOf(c, EAUtil.mapOf());
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
-        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, EAUtil.mapOf(), adelta);
 
         return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1));
     }
@@ -919,4 +894,36 @@ public class EATest {
         return EACommandLine.typeAndRun(sys, debug, new EACommandLine.Bounds(-1));
     }
 
+
+    /* ... */
+
+    private static boolean runTest(
+            String name,
+            Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>> test,
+            boolean debug) {
+
+        System.out.println("\n\n-- " + name + ":\n");
+        Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> apply =
+                test.apply(debug);
+        if (apply.isLeft()) {
+            apply.getLeft().printStackTrace();
+            return false;
+        }
+
+        Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>> right = apply.getRight();
+        System.out.println("\nDepth pruned:");
+        for (EAAsyncSystem pruned : right.left) {
+            System.out.println("\n" + pruned);
+        }
+        System.out.println("\nTerminals:");
+        for (EAAsyncSystem term : right.right) {
+            System.out.println("\n" + term);
+        }
+
+        return right.left.isEmpty();
+    }
+
+    static String log(String log, String name, boolean pass) {
+        return log + "\n" + name + (pass ? " Pass" : ConsoleColors.colour(ConsoleColors.RED, " FAIL"));
+    }
 }

@@ -7,11 +7,13 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
+import org.scribble.core.type.name.Role;
 import org.scribble.ext.ea.core.runtime.*;
 import org.scribble.ext.ea.core.runtime.config.EACActor;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.EATermFactory;
 import org.scribble.ext.ea.core.term.comp.EAComp;
+import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.Gamma;
@@ -248,10 +250,16 @@ public class EACommandLine extends CommandLine {
         bounds.addSys(sys);
 
         //Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> pids = sys.getSteppable();
-        Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> pids = sys.getSteppable();
-        System.out.println(indent + "Steppable: " + pids);
+        //Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> pids = sys.getSteppable();
+        Pair<
+                Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>>,
+                Set<Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>>>> steppa =
+                sys.getSteppable();
+        System.out.println(indent + "Steppable: " + steppa);
+        Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> pids = steppa.left;
+        Set<Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>>> inits = steppa.right;
 
-        if (pids.isEmpty()) {
+        if (pids.isEmpty() && inits.isEmpty()) {
             /*if (!debug) {
                 System.out.println();
                 System.out.println(indent + "Result steps(" + depth + "):");
@@ -299,6 +307,46 @@ public class EACommandLine extends CommandLine {
                 step = sys.step(p, null, a);  // FIXME HACK state s
             }
 
+            if (step.isLeft()) {
+                throw new RuntimeException(step.getLeft());
+            }
+            Triple<EAAsyncSystem, Tree<String>, Tree<String>> get = step.getRight();
+            bounds.state++;
+            i++;
+
+            if (interactive) {
+                System.out.println("[Press any key]");
+                KB.nextLine();
+            }
+
+            String indent1 = incIndent(indent);
+            EAAsyncSystem sys1 = get.left;
+            if (debug) {
+                System.out.println(indent1 + "(" + bounds.state + ")\n" + sys1.toString(indent1));
+                System.out.println(indent1 + "Reduced one step by:");
+                System.out.println(get.mid.toString(indent1));  // !!!
+                if (get.right != null) {  // XXX TODO null
+                    System.out.println(indent1 + "Delta stepped by:");
+                    System.out.println(get.right.toString(indent1));  // !!!
+                }
+            }
+            Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> run =
+                    typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals, interactive);
+            if (run.isLeft()) {
+                return run;
+            } else {
+                Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>> right = run.getRight();
+                depthPruned.addAll(right.left);
+                terminals1.addAll(right.right);
+            }
+        }
+
+        for (Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>> init : inits) {
+            System.out.print("\n" + indent + "(" + stmp + "-" + i + ") ");
+            System.out.println("Stepping " + init);
+            Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> step = sys.init(init);
+
+            // TODO factor out below with above
             if (step.isLeft()) {
                 throw new RuntimeException(step.getLeft());
             }

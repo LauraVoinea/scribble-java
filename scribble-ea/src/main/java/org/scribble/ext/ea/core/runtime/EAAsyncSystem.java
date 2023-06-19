@@ -1,6 +1,7 @@
 package org.scribble.ext.ea.core.runtime;
 
 import org.jetbrains.annotations.NotNull;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.core.type.session.SigLit;
@@ -42,7 +43,30 @@ public class EAAsyncSystem {
     @NotNull public final Map<EAPid, EACActor> actors;  // keyset is all pids in system  // pids no longer in formal defs but useful in implementation
     @NotNull public final Map<EASid, EAGlobalQueue> queues;  // keyset is all sids in system
 
-    @NotNull public final Map<EAEAPName, Map<Role, List<EAIota>>> access;
+    @NotNull public final Map<EAEAPName, Map<Role, List<EAIota>>> access;  // All roles must be provided
+
+    protected static int pidCounter = 1;
+
+    // FIXME cf. exhaustive state testing
+    protected int nextSpawnCounter() {
+        return this.pidCounter++;
+    }
+
+    protected static int iCounter = 1;
+    protected static Map<EAIota, EAPid> iotas = EAUtil.mapOf();  // static or instance?
+
+    // FIXME cf. exhaustive state testing
+    protected EAIota newIota(EAPid p) {
+        EAIota iota = RF.iota("\u03b9" + iCounter++);
+        EAAsyncSystem.iotas.put(iota, p);
+        return iota;
+    }
+
+    protected static int sidCounter = 1;
+
+    protected EASid newSid() {
+        return RF.sid("_s" + sidCounter++);
+    }
 
     public EAAsyncSystem(
             LTypeFactory lf,
@@ -78,14 +102,14 @@ public class EAAsyncSystem {
         for (EACActor c : this.actors.values()) {
             LinkedHashSet<Pair<EASid, Role>> eps = c.getEndpoints();
             LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
-            for (Pair<EASid, Role> p : eps) {
-                if (!todo.contains(p)) {
-                    return Either.left(new Exception("Unknown endpoint or already used: " + p));
+            for (Pair<EASid, Role> ep : eps) {
+                if (!todo.contains(ep)) {
+                    return Either.left(new Exception("Unknown endpoint or already used: " + ep));
                 }
-                todo.remove(p);
+                todo.remove(ep);
                 // !!! TODO: Delta disjoint union op
                 //tmp.put(p, this.annots.map.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
-                tmp.put(p, this.adelta.types.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
+                tmp.put(ep, this.adelta.types.get(ep));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
             }
             Either<Exception, Tree<String>> t = c.type(empty, new Delta(tmp));
             if (t.isLeft()) {
@@ -104,7 +128,10 @@ public class EAAsyncSystem {
 
     /* ... */
 
-    public Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> getSteppable() {
+    public Pair<
+            Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>>,
+            Set<Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>>>>
+    getSteppable() {
         Map<EAPid, Map<EASid, Either<EAComp, EAMsg>>> res = EAUtil.mapOf();
         Map<EAPid, Set<EAComp>> res2 = EAUtil.mapOf();  // TODO refactor
 
@@ -138,6 +165,26 @@ public class EAAsyncSystem {
             }
         }
 
+        // [E-Init]
+        Set<Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>>> res3 = EAUtil.setOf();
+        for (Map.Entry<EAEAPName, Map<Role, List<EAIota>>> e : this.access.entrySet()) {
+            EAEAPName ap = e.getKey();
+            Map<Role, List<EAIota>> v = e.getValue();
+            Optional<Map<Role, EAIota>> init = getInit(ap, new HashMap<>(), new HashSet<>());
+            if (!init.isPresent()) {
+                continue;
+            }
+            Map<Role, EAIota> get = init.get();
+            res3.add(Pair.of(
+                    ap,
+                    get.entrySet().stream().collect(
+                            Collectors.toMap(
+                                    x -> this.iotas.get(x.getValue()),
+                                    x -> Pair.of(x.getKey(), x.getValue())
+                            ))
+            ));
+        }
+
         Map<EAPid, Either<Map<EASid, Either<EAComp, EAMsg>>, Set<EAComp>>> tmp = EAUtil.mapOf();
         for (EAPid p : res.keySet()) {
             tmp.put(p, Either.left(res.get(p)));
@@ -148,21 +195,33 @@ public class EAAsyncSystem {
             }
             tmp.put(p, Either.right(res2.get(p)));
         }
-        return tmp;
+        return Pair.of(tmp, res3);
     }
 
-    protected static int pidCounter = 1;
-
-    // FIXME cf. exhaustive state testing
-    protected int nextSpawnCounter() {
-        return this.pidCounter++;
-    }
-
-    protected static int iCounter = 1;
-
-    // FIXME cf. exhaustive state testing
-    protected EAIota newIota() {
-        return RF.iota("\u03b9" + iCounter++);
+    private Optional<Map<Role, EAIota>> getInit(EAEAPName ap, Map<Role, EAIota> curr, Set<EAPid> ps) {
+        Map<Role, List<EAIota>> iotas = this.access.get(ap);
+        Set<Role> rs = new HashSet<>(iotas.keySet());
+        rs.removeAll(curr.keySet());
+        if (rs.isEmpty()) {
+            return Optional.of(curr);
+        }
+        Role r = rs.iterator().next();
+        List<EAIota> is = iotas.get(r);
+        for (EAIota i : is) {
+            EAPid p = this.iotas.get(i);
+            if (ps.contains(p)) {
+                continue;
+            }
+            Map<Role, EAIota> curr1 = new HashMap<>(curr);
+            curr1.put(r, i);
+            Set<EAPid> ps1 = new HashSet<>(ps);
+            ps1.add(p);
+            Optional<Map<Role, EAIota>> res = getInit(ap, curr1, ps1);
+            if (res.isPresent()) {
+                return res;
+            }
+        }
+        return Optional.empty();
     }
 
     // [E-Send], [E-Suspend], [E-Reset], [E-Spawn], [E-Register], [E-Lift] -- cf. react for [E-React]
@@ -189,7 +248,7 @@ public class EAAsyncSystem {
                 return Triple.of(
                         RF.asyncSystem(this.lf, actors1, queues, EAUtil.copyOf(this.access), this.adelta),
                         x.right,
-                        null  // XXX TODO
+                        null  // XXX TODO -- or fine when no delta deriv?
                 );
             });
         }
@@ -214,11 +273,11 @@ public class EAAsyncSystem {
                     RF.asyncSystem(this.lf, actors1, EAUtil.copyOf(this.queues), EAUtil.copyOf(this.access),
                             this.adelta),
                     get.right,
-                    null  // XXX TODO
+                    null  // XXX TODO -- or fine when no delta deriv?
             ));
 
         } else if (e instanceof EAMRegister) {
-            EAIota iota = newIota();
+            EAIota iota = newIota(p);
             Either<Exception, Pair<EACActor, Tree<String>>> step = c.stepAsync2(e, iota);
             if (step.isLeft()) {
                 return Either.left(step.getLeft());
@@ -238,9 +297,13 @@ public class EAAsyncSystem {
                 return Either.left(newStuck("Access point " + ap + " not found: " + this.access));
             }
             Map<Role, List<EAIota>> invites = EAUtil.copyOf(access.get(ap));
-            List<EAIota> is = invites.containsKey(cast.role)
+            if (!invites.containsKey(cast.role)) {
+                return Either.left(newStuck("Unknown role " + cast.role + ", expected: " + invites.keySet()));
+            }
+            /*List<EAIota> is = invites.containsKey(cast.role)  // XXX pre: all roles already present
                     ? EAUtil.copyOf(invites.get(cast.role))
-                    : EAUtil.listOf();
+                    : EAUtil.listOf();*/
+            List<EAIota> is = EAUtil.copyOf(invites.get(cast.role));
             is.add(iota);
             invites.put(cast.role, is);
             access.put(ap, invites);
@@ -249,7 +312,7 @@ public class EAAsyncSystem {
                     RF.asyncSystem(this.lf, actors1, EAUtil.copyOf(this.queues), access,
                             this.adelta),
                     get.right,
-                    null  // XXX TODO
+                    null  // XXX TODO -- or fine when no delta deriv?
             ));
         }
 
@@ -304,10 +367,6 @@ public class EAAsyncSystem {
         }
     }
 
-    public static Exception newStuck(String txt) {
-        return new Exception(txt);
-    }
-
     // [E-React]
     public Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> react(
             EAPid p, EASid s, EAMsg m) {
@@ -352,7 +411,88 @@ public class EAAsyncSystem {
                         astep1.left),
                 get.right,
                 astep1.right
-        ));  // TODO astep1 deriv
+        ));
+    }
+
+    // [E-Init]
+    public Either<Exception, Triple<EAAsyncSystem, Tree<String>, Tree<String>>> init(
+            Pair<EAEAPName, Map<EAPid, Pair<Role, EAIota>>> inits) {
+
+        if (!this.access.containsKey(inits.left)) {
+            return Either.left(newStuck("Unknown access point " + inits.left + ": " + this.access));
+        }
+
+        // Remove iotas rom access and iotas -- n.b. iotas static mutable
+        LinkedHashMap<EAEAPName, Map<Role, List<EAIota>>> access1 = EAUtil.copyOf(this.access);
+        Map<Role, List<EAIota>> rs = EAUtil.copyOf(access1.get(inits.left));
+        for (Pair<Role, EAIota> v : inits.right.values()) {
+            if (!rs.containsKey(v.left)) {
+                return Either.left(newStuck("Unknown role " + v.left
+                        + " for ap " + inits.left + ": " + rs));
+            }
+            List<EAIota> tmp = EAUtil.copyOf(rs.get(v.left));
+            if (!tmp.contains(v.right)) {
+                return Either.left(newStuck("Iota not present " + v.right
+                        + " for role " + v.left + ": " + tmp));
+            }
+            tmp.remove(v.right);
+            rs.put(v.left, tmp);
+
+            if (!EAAsyncSystem.iotas.containsKey(v.right)) {
+                throw new RuntimeException("Shouldn't get here: "
+                        + EAAsyncSystem.iotas + " ,, " + v.right);
+            }
+            EAAsyncSystem.iotas.remove(v.left);
+        }
+        access1.put(inits.left, rs);
+
+        if (inits.right.keySet().stream()
+                .anyMatch(x -> this.actors.get(x).T.getMode() != EAThreadMode.IDLE)) {
+            return Either.left(newStuck("Actors not all idle: " + this.actors));
+        }
+
+        EASid sid = newSid();
+
+        // Replace actors with active session threads
+        LinkedHashMap<EAPid, EACActor> actors1 = EAUtil.copyOf(this.actors);
+        for (Map.Entry<EAPid, Pair<Role, EAIota>> x : inits.right.entrySet()) {
+            EAPid pid = x.getKey();
+            if (!this.actors.containsKey(pid)) {
+                return Either.left(newStuck("Unknown pid " + pid + ": " + this.actors));
+            }
+            Pair<Role, EAIota> iota = x.getValue();
+            EACActor idle = actors1.get(pid);
+            if (!idle.rho.containsKey(iota.right)) {
+                return Either.left(newStuck("Unknown iota " + iota.right + ": " + idle.rho));
+            }
+            EAComp M = idle.rho.get(iota.right);
+
+            EATSession T1 = RF.sessionThread(M, sid, iota.left);
+            LinkedHashMap<EAIota, EAComp> rho1 = EAUtil.copyOf(idle.rho);
+            rho1.remove(iota.right);
+            EACActor active = RF.actor(pid, T1, EAUtil.copyOf(idle.sigma), rho1, idle.state);
+            actors1.put(pid, active);
+        }
+
+        // Add session queue
+        if (this.queues.containsKey(sid)) {
+            return Either.left(newStuck("Duplicate session id " + sid + ": " + this.queues));
+        }
+        LinkedHashMap<EASid, EAGlobalQueue> queues1 = EAUtil.copyOf(this.queues);
+        queues1.put(sid, new EAGlobalQueue(sid));
+
+        return Either.right(Triple.of(
+                new EAAsyncSystem(this.lf, actors1, queues1, access1,
+                        this.adelta),
+                Tree.of("[E-Init] ...TODO..."),
+                null  // XXX TODO -- or fine when no delta deriv?
+        ));
+    }
+
+    /* ... */
+
+    public static Exception newStuck(String txt) {
+        return new Exception(txt);
     }
 
     /*public Map<EAPid, EAPConfig> getConfigs() {
