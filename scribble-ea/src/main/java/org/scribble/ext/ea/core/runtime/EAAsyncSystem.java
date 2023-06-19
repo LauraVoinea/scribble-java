@@ -153,12 +153,14 @@ public class EAAsyncSystem {
 
     protected static int pidCounter = 1;
 
+    // FIXME cf. exhaustive state testing
     protected int nextSpawnCounter() {
         return this.pidCounter++;
     }
 
     protected static int iCounter = 1;
 
+    // FIXME cf. exhaustive state testing
     protected EAIota newIota() {
         return RF.iota("\u03b9" + iCounter++);
     }
@@ -365,10 +367,10 @@ public class EAAsyncSystem {
     public String toString(String indent) {
         return indent + "[" //+ annots=\n" + this.annots.map
                 + this.actors.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n" + indent + " "))
-                + (this.queues.isEmpty() ? "" : "\n" + indent + " " + this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n" + indent + " ")))
-                + (this.access.isEmpty() ? "" : "\n" + indent + " " + this.access)
+                + "\n" + indent + " " + (this.queues.isEmpty() ? "{}" : this.queues.entrySet().stream().map(Object::toString).collect(Collectors.joining("\n" + indent + " ")))
+                + "\n" + indent + " " + (this.access.isEmpty() ? "{}" : this.access)
                 + "\n" + indent + " " + this.adelta
-                + "]";
+                + "\n" + indent + "]";
     }
 
     /* equals/canEquals, hashCode */
