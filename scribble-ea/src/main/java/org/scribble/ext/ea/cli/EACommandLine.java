@@ -324,10 +324,10 @@ public class EACommandLine extends CommandLine {
             if (debug) {
                 System.out.println(indent1 + "(" + bounds.state + ")\n" + sys1.toString(indent1));
                 System.out.println(indent1 + "Reduced one step by:");
-                System.out.println(get.mid.toString(indent1));  // !!!
+                System.out.println(get.mid.toString(indent1 + "  "));  // !!!
                 if (get.right != null) {  // XXX TODO null
                     System.out.println(indent1 + "Delta stepped by:");
-                    System.out.println(get.right.toString(indent1));  // !!!
+                    System.out.println(get.right.toString(indent1 + "  "));  // !!!
                 }
             }
             Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> run =
@@ -364,10 +364,10 @@ public class EACommandLine extends CommandLine {
             if (debug) {
                 System.out.println(indent1 + "(" + bounds.state + ")\n" + sys1.toString(indent1));
                 System.out.println(indent1 + "Reduced one step by:");
-                System.out.println(get.mid.toString(indent1));  // !!!
+                System.out.println(get.mid.toString(indent1 + "  "));  // !!!
                 if (get.right != null) {  // XXX TODO null
                     System.out.println(indent1 + "Delta stepped by:");
-                    System.out.println(get.right.toString(indent1));  // !!!
+                    System.out.println(get.right.toString(indent1 + "  "));  // !!!
                 }
             }
             Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> run =

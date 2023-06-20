@@ -15,10 +15,7 @@ import org.scribble.ext.ea.core.term.expr.EAEUnit;
 import org.scribble.ext.ea.core.type.Gamma;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVType;
-import org.scribble.ext.ea.util.EAUtil;
-import org.scribble.ext.ea.util.Either;
-import org.scribble.ext.ea.util.Tree;
-import org.scribble.ext.ea.util.Triple;
+import org.scribble.ext.ea.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -490,9 +487,20 @@ public class EAAsyncSystem {
         }
         AsyncDelta delta1 = new AsyncDelta(types1, dqueues1);
 
+        String pre = inits.left + "(" + this.access.get(inits.left) + ") | " +
+                inits.right.keySet().stream().map(x -> {
+                    EACActor p = this.actors.get(x);
+                    return "<" + p.T + ", " + p.sigma + ", " + p.rho + ">";
+                }).collect(Collectors.joining(" | "));
+        String post = inits.left + "(" + access1.get(inits.left) + ") | " +
+                inits.right.keySet().stream().map(x -> {
+                    EACActor p = actors1.get(x);
+                    return "<" + p.T + ", " + p.sigma + ", " + p.rho + ">";
+                }).collect(Collectors.joining(" | ")) +
+                " | " + queues1.get(sid);
         return Either.right(Triple.of(
                 new EAAsyncSystem(this.lf, actors1, queues1, access1, delta1),
-                Tree.of("[E-Init] ...TODO..."),
+                Tree.of("[E-Init] " + pre + " " + ConsoleColors.RIGHTARROW + " " + post),
                 null  // XXX TODO -- or fine when no delta deriv?
         ));
     }

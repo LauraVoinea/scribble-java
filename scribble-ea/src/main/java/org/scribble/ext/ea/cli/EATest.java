@@ -68,8 +68,9 @@ public class EATest {
         Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
                 tests = EAUtil.mapOf();
         //origTests(tests);
-        tests.put("ex11", EATest::ex11);
-        tests.put("ex12", EATest::ex12);
+        //tests.put("ex11", EATest::ex11);
+        //tests.put("ex12", EATest::ex12);
+        tests.put("ex13", EATest::ex13);
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -107,35 +108,31 @@ public class EATest {
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex13(
             boolean debug) {
 
-        EAComp spawn = EACommandLine.parseM("spawn return ()");
-        EAComp reg = EACommandLine.parseM("register c A return ()");
-        EAVType ap = EACommandLine.parseA("AP(A -> end, B -> end)");
+        EAComp reg1 = EACommandLine.parseM("register c A return ()");
+        EAComp reg2 = EACommandLine.parseM("register c B return ()");
 
-        System.out.println(spawn);
-        System.out.println(reg);
-        System.out.println(ap);
-
-        EACActor cA = RF.actor(p1, RF.noSessionThread(spawn), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
-        EACActor cB = RF.actor(p2, RF.noSessionThread(reg), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
-        System.out.println("cA = " + cA);
-        System.out.println("cB = " + cB);
+        EACActor a1 = RF.actor(p1, RF.noSessionThread(reg1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor a2 = RF.actor(p2, RF.noSessionThread(reg2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + a1.pid + " = " + a1);
+        System.out.println("Actor " + a2.pid + " = " + a2);
 
         //--------------
 
-        //EACommandLine.typeCheckActor(cA, new Delta(EAUtil.mapOf(sA, EALEndType.END)));
-        EACommandLine.typeCheckActor(cA, new Delta());
         //EACommandLine.typeCheckActor(cB, new Delta(EAUtil.mapOf(sB, EALEndType.END)));
-        EACommandLine.typeCheckActor(cB, new Delta());
+        EACommandLine.typeCheckActor(a1, new Delta());
+        EACommandLine.typeCheckActor(a2, new Delta());
 
         // ----
 
         //Delta delta = new Delta(EAUtil.mapOf(sA, EALEndType.END, sB, EALEndType.END));
         Delta delta = new Delta();
-        LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(cA.pid, cA, cB.pid, cB);
+        LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(a1.pid, a1, a2.pid, a2);
         //LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf(s, new EAGlobalQueue(s));
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
-        //AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf(s, EAUtil.listOf()));
-        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access = EAUtil.mapOf(c, EAUtil.mapOf());  // FIXME >= 2 roles
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
+                EAUtil.mapOf(c, EAUtil.mapOf(
+                        A, Pair.of(EALEndType.END, EAUtil.listOf()),
+                        B, Pair.of(EALEndType.END, EAUtil.listOf())));  // // FIXME >=2 roles
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
