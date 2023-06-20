@@ -46,7 +46,8 @@ public class EAMSend implements EAComp {
     public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
         if (!(pre instanceof EALOutType)) {
             //throw new RuntimeException("Expected out type: " + pre + ", " + this);
-            return Either.left(new Exception("Expected out type: " + pre + ", " + this));
+            return Either.left(new Exception("Expected out type for pre of "
+                    + this + ", not: " + pre));
         }
         EALOutType cast = (EALOutType) pre;
 

@@ -7,7 +7,6 @@ import org.scribble.ext.ea.core.runtime.*;
 import org.scribble.ext.ea.core.term.EAName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.term.comp.*;
-import org.scribble.ext.ea.core.term.expr.EAEAPName;
 import org.scribble.ext.ea.core.term.expr.EAEHandlers;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.term.expr.EAHandler;
@@ -566,7 +565,8 @@ public class EACActor implements EAConfig {
     @Override
     public Either<Exception, Tree<String>> type(Gamma gamma, Delta delta) {
         EAVType infer = this.state.infer();
-        GammaState gamma2 = new GammaState(new LinkedHashMap<>(gamma.map), new LinkedHashMap<>(gamma.fmap), infer);
+        GammaState gamma2 = new GammaState(new LinkedHashMap<>(gamma.map),
+                new LinkedHashMap<>(gamma.fmap), infer);
         //Gamma gamma2 = gamma1;
 
         LinkedHashMap<Pair<EASid, Role>, EALType> tmp = new LinkedHashMap<>();
@@ -689,8 +689,8 @@ public class EACActor implements EAConfig {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EACActor them = (EACActor) o;
         return them.canEquals(this)
                 && this.pid.equals(them.pid)

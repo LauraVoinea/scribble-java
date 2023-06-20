@@ -23,10 +23,7 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.parser.antlr.EACalculusLexer;
 import org.scribble.ext.ea.parser.antlr.EACalculusParser;
-import org.scribble.ext.ea.util.EAUtil;
-import org.scribble.ext.ea.util.Either;
-import org.scribble.ext.ea.util.Tree;
-import org.scribble.ext.ea.util.Triple;
+import org.scribble.ext.ea.util.*;
 import org.scribble.util.AntlrSourceException;
 import org.scribble.util.Pair;
 
@@ -141,9 +138,14 @@ public class EACommandLine extends CommandLine {
         }
     }
 
-    public static void typeCheckActor(EACActor c, Delta delta) {
-        System.out.println("Typing actor: " + c + " ,, " + delta);
-        Either<Exception, Tree<String>> t = c.type(new Gamma(), delta);
+    public static void typeCheckActor(EACActor c, Delta delta) {  // TODO deprecate
+        typeCheckActor(c, new Gamma(), delta);
+    }
+
+    public static void typeCheckActor(EACActor c, Gamma gamma, Delta delta) {
+        System.out.println("Typing actor: [T-Actor] " + gamma + "; " + delta
+                + ConsoleColors.VDASH + " " + c);
+        Either<Exception, Tree<String>> t = c.type(gamma, delta);
         if (t.isLeft()) {
             throw new RuntimeException("Not well typed:\n", t.getLeft());
         }
@@ -151,20 +153,24 @@ public class EACommandLine extends CommandLine {
 
     /* ... */
 
-    public static void typeCheckSystem(EAAsyncSystem sys) {
-        typeCheckSystem(sys, false);
+    public static void typeCheckSystem(EAAsyncSystem sys) {  // TODO refactor
+        typeCheckSystem(sys, new Gamma());
     }
 
-    public static void typeCheckSystem(EAAsyncSystem sys, boolean debug) {
-        typeCheckSystem(sys, debug, "");
+    public static void typeCheckSystem(EAAsyncSystem sys, Gamma gamma) {
+        typeCheckSystem(sys, false, gamma);
+    }
+
+    public static void typeCheckSystem(EAAsyncSystem sys, boolean debug, Gamma gamma) {
+        typeCheckSystem(sys, debug, "", gamma);
     }
 
     public static Optional<Exception> typeCheckSystem(
-            EAAsyncSystem sys, boolean debug, String indent) {
+            EAAsyncSystem sys, boolean debug, String indent, Gamma gamma) {
         if (debug) {
             System.out.println(indent + "Type checking system:");
         }
-        Either<Exception, List<Tree<String>>> t = sys.type();
+        Either<Exception, List<Tree<String>>> t = sys.type(gamma);
         if (t.isLeft()) {
             return Optional.of(t.getLeft());
         }
@@ -203,20 +209,26 @@ public class EACommandLine extends CommandLine {
 
     public static final Scanner KB = new Scanner(System.in);
 
+    // TODO refactor
     // bounds max depth -1 for unbounded
     public static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRun(
             EAAsyncSystem sys, boolean debug, Bounds bounds) {
-        return typeAndRun(sys, debug, bounds, false);
+        return typeAndRun(sys, debug, bounds, false, new Gamma());
     }
 
     public static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRun(
-            EAAsyncSystem sys, boolean debug, Bounds bounds, boolean interactive) {
+            EAAsyncSystem sys, boolean debug, Bounds bounds, Gamma gamma) {
+        return typeAndRun(sys, debug, bounds, false, gamma);
+    }
+
+    public static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRun(
+            EAAsyncSystem sys, boolean debug, Bounds bounds, boolean interactive, Gamma gamma) {
         Set<EAAsyncSystem> terminals = EAUtil.setOf();
 
         //state = 0;
         System.out.println("\n(" + bounds.state + ") Initial system:\n" + sys);
         Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> res =
-                typeAndRunDAux(sys, 0, debug, "", bounds, terminals, interactive);
+                typeAndRunDAux(sys, 0, debug, "", bounds, terminals, interactive, gamma);
 
         /*System.out.println("\nTerminals:");
         for (EAAsyncSystem term : terminals) {
@@ -230,7 +242,8 @@ public class EACommandLine extends CommandLine {
     public static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> typeAndRunDAux(
             EAAsyncSystem sys, int depth, boolean debug, String indent, Bounds bounds,
             Set<EAAsyncSystem> terminals,  // TODO refactor
-            boolean interactive
+            boolean interactive,
+            Gamma gamma
     ) {
 
         if (bounds.isSeenPrune(sys)) {  // Check first before depth prune
@@ -238,7 +251,7 @@ public class EACommandLine extends CommandLine {
             return Either.right(Pair.of(EAUtil.setOf(), EAUtil.setOf()));
         }
 
-        Optional<Exception> opt = typeCheckSystem(sys, debug, indent);
+        Optional<Exception> opt = typeCheckSystem(sys, debug, indent, gamma);
         if (opt.isPresent()) {
             return Either.left(opt.get());
         }
@@ -331,7 +344,7 @@ public class EACommandLine extends CommandLine {
                 }
             }
             Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> run =
-                    typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals, interactive);
+                    typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals, interactive, gamma);
             if (run.isLeft()) {
                 return run;
             } else {
@@ -371,7 +384,7 @@ public class EACommandLine extends CommandLine {
                 }
             }
             Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> run =
-                    typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals, interactive);
+                    typeAndRunDAux(sys1, depth + 1, debug, incIndent(indent), bounds, terminals, interactive, gamma);
             if (run.isLeft()) {
                 return run;
             } else {

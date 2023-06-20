@@ -11,6 +11,7 @@ import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALEndType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.value.EAVAPType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.Either;
 import org.scribble.ext.ea.util.Tree;
@@ -40,8 +41,19 @@ public class EAMRegister implements EAComp {
 
         System.err.println("[Warning] TODO check register V AP type: " + this.V);  // Need to add sys.access info to gamma
 
+        Either<Exception, Pair<EAVType, Tree<String>>> type_V = this.V.type(gamma);
+        if (type_V.isLeft()) { return Either.left(type_V.getLeft()); }
+        Pair<EAVType, Tree<String>> t_V = type_V.getRight();  // TODO deriv
+        if (!(t_V.left instanceof EAVAPType)) {
+            return Either.left(new Exception("Expected AP type, not: " + t_V.left));
+        }
+        EAVAPType t_ap = (EAVAPType) t_V.left;
+        if (!t_ap.roles.containsKey(this.role)) {
+            return Either.left(new Exception("Unknown role " + this.role + " in :" + t_ap));
+        }
+
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type =
-                this.M.type(gamma, EALEndType.END);
+                this.M.type(gamma, t_ap.roles.get(this.role));
         if (type.isLeft()) {
             return Either.left(type.getLeft());
         }
@@ -127,8 +139,8 @@ public class EAMRegister implements EAComp {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAMRegister them = (EAMRegister) o;
         return them.canEquals(this)
                 && this.V.equals(them.V)

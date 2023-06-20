@@ -63,7 +63,8 @@ public class EATNoSession implements EAThread {
         if (!delta.map.isEmpty()) {
             return Either.left(new Exception("Invalid Delta: " + delta));
         }
-        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t = this.comp.type(gamma, EALEndType.END);  // Pre is end -- cf. "session" mode
+        Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> t =
+                this.comp.type(gamma, EALEndType.END);  // Pre is end -- cf. "session" mode
         if (t.isLeft()) {
             return Either.left(t.getLeft());
         }
@@ -93,8 +94,8 @@ public class EATNoSession implements EAThread {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EATNoSession them = (EATNoSession) o;
         return this.canEquals(this) && this.comp.equals(them.comp);
     }

@@ -25,8 +25,8 @@ public class Gamma {
         this(new LinkedHashMap<>(), new LinkedHashMap<>());
     }
 
-    public Gamma(@NotNull LinkedHashMap<EAName, ? extends EAVType> map,
-                 @NotNull LinkedHashMap<EAEFuncName, EAVFuncType> fmap) {
+    public Gamma(LinkedHashMap<EAName, ? extends EAVType> map,
+                 LinkedHashMap<EAEFuncName, EAVFuncType> fmap) {
         this._map = map.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new));
@@ -47,8 +47,8 @@ public class Gamma {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         Gamma them = (Gamma) o;
         return this._map.equals(them._map) && this._fmap.equals(them._fmap);
     }

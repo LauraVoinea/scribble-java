@@ -12,8 +12,8 @@ public class ConsoleColors {
     public static final char LLEFTARROW = '\u21d0';
 
     public static final String toAnnotString(String m) {
-        //return colour(ConsoleColors.YELLOW, m);
-        return "";
+        return colour(ConsoleColors.YELLOW, m);
+        //return "";
     }
 
     public static final String colour(String colour, String m) {

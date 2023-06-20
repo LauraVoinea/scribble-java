@@ -88,8 +88,11 @@ public class EAAsyncSystem {
     /* ... */
 
     // !!! TODO "safety property" -- global+projection
-    public Either<Exception, List<Tree<String>>> type() {
-        Gamma empty = new Gamma();
+    public Either<Exception, List<Tree<String>>> type() {  // TODO refactor
+        return type(new Gamma());
+    }
+
+    public Either<Exception, List<Tree<String>>> type(Gamma gamma) {
         List<Tree<String>> res = new LinkedList<>();
         //Set<Pair<EASid, Role>> todo = new HashSet<>(this.annots.map.keySet());
         Set<Pair<EASid, Role>> todo = new HashSet<>(this.adelta.types.keySet());
@@ -105,7 +108,7 @@ public class EAAsyncSystem {
                 //tmp.put(p, this.annots.map.get(p));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
                 tmp.put(ep, this.adelta.types.get(ep));  // !!! splits outer Delta (not an actual name restriction) -- cf. cf. T-Session introduce Delta', T-Par split Delta
             }
-            Either<Exception, Tree<String>> t = c.type(empty, new Delta(tmp));
+            Either<Exception, Tree<String>> t = c.type(gamma, new Delta(tmp));
             if (t.isLeft()) {
                 return Either.left(t.getLeft());
             }
@@ -533,8 +536,8 @@ public class EAAsyncSystem {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAAsyncSystem them = (EAAsyncSystem) o;
         return this.adelta.equals(them.adelta)
                 && this.actors.equals(them.actors)

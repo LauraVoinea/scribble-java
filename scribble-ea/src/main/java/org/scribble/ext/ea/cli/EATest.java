@@ -36,7 +36,7 @@ public class EATest {
 
     static final LTypeFactoryImpl LF = new LTypeFactoryImpl();
 
-    //static final EATypeFactory TF = EATypeFactory.factory;
+    static final EATypeFactory TF = EATypeFactory.factory;
     static final EATermFactory MF = EATermFactory.factory;
     static final EARuntimeFactory RF = EARuntimeFactory.factory;
 
@@ -108,8 +108,13 @@ public class EATest {
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex13(
             boolean debug) {
 
-        EAComp reg1 = EACommandLine.parseM("register c A return ()");
-        EAComp reg2 = EACommandLine.parseM("register c B return ()");
+        EAComp reg1 = EACommandLine.parseM("register c A let x1: 1 <= B!l1(()) in return ()");
+        EAComp reg2 = EACommandLine.parseM("register c B suspend (handler A { {end} z: 1, l1(x1: 1) |-> return () }) ()");
+
+        //+ "    suspend (handler A { {end} z:Int, l2(x: 1) |-> return z }) 42 "
+
+        EALType t_A = EACommandLine.parseSessionType("B!{l1(1).end}");
+        EALType t_B = EACommandLine.parseSessionType("A?{l1(1).end}");
 
         EACActor a1 = RF.actor(p1, RF.noSessionThread(reg1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         EACActor a2 = RF.actor(p2, RF.noSessionThread(reg2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
@@ -118,9 +123,12 @@ public class EATest {
 
         //--------------
 
+        //Gamma gamma = new Gamma(EAUtil.mapOf(c, TF.val.ap(EAUtil.mapOf(A, t_A, B, EALEndType.END))),  // FIXME safety check for APs
+        Gamma gamma = new Gamma(EAUtil.mapOf(c, TF.val.ap(EAUtil.mapOf(A, t_A, B, t_B))),  // FIXME safety check for APs
+                EAUtil.mapOf());
         //EACommandLine.typeCheckActor(cB, new Delta(EAUtil.mapOf(sB, EALEndType.END)));
-        EACommandLine.typeCheckActor(a1, new Delta());
-        EACommandLine.typeCheckActor(a2, new Delta());
+        EACommandLine.typeCheckActor(a1, gamma, new Delta());
+        EACommandLine.typeCheckActor(a2, gamma, new Delta());
 
         // ----
 
@@ -131,12 +139,12 @@ public class EATest {
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
         LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
                 EAUtil.mapOf(c, EAUtil.mapOf(
-                        A, Pair.of(EALEndType.END, EAUtil.listOf()),
-                        B, Pair.of(EALEndType.END, EAUtil.listOf())));  // // FIXME >=2 roles
+                        A, Pair.of(t_A, EAUtil.listOf()),
+                        B, Pair.of(t_B, EAUtil.listOf())));  // // FIXME >=2 roles
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
-        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1));
+        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1), gamma);
     }
 
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex12(

@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scribble.ext.ea.core.term.EAName;
 import org.scribble.ext.ea.core.term.EATerm;
 import org.scribble.ext.ea.core.type.GammaState;
+import org.scribble.ext.ea.core.type.value.EAVAPType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.EAUtil;
 import org.scribble.ext.ea.util.Either;
@@ -35,7 +36,19 @@ public class EAEAPName implements EAExpr, EAName {
 
         // APType size >1 -- check here or "WF"? -- ...currently parsing
 
-        throw new RuntimeException("TODO: " + this);
+        if (gamma.gamma.map.containsKey(this)) {
+            EAVType A = gamma.gamma.map.get(this);
+            if (!(A instanceof EAVAPType)) {
+                return Either.left(new Exception("Expected AP type for " + this + ", not: " + A));
+            }
+
+            System.out.println("[Warning] Safety not checked for: " + A);  // TODO safety property -- check in newAP (not here)
+
+            return Either.right(Pair.of(A,
+                    new Tree<>("[..TV-AP..] " + toTypeJudgeString(gamma, A))
+            ));
+        }
+        return Either.left(new Exception("Unknown AP " + this + " in: " + gamma));
     }
 
     @Override
@@ -72,8 +85,8 @@ public class EAEAPName implements EAExpr, EAName {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAEAPName them = (EAEAPName) o;
         return them.canEquals(this) && Objects.equals(this.id, them.id);
     }
