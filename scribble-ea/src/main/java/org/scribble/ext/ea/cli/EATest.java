@@ -160,7 +160,9 @@ public class EATest {
 
         //EACommandLine.typeCheckActor(cA, new Delta());
         //EACommandLine.typeCheckActor(cB, new Delta(EAUtil.mapOf(sB, EALEndType.END)));
-        EACommandLine.typeCheckActor(cB, new Delta());
+        Gamma gamma = new Gamma(EAUtil.mapOf(c, TF.val.ap(EAUtil.mapOf(B2, EALEndType.END))),  // FIXME safety check for APs
+                EAUtil.mapOf());
+        EACommandLine.typeCheckActor(cB, gamma, new Delta());
 
         // ----
 
@@ -177,7 +179,7 @@ public class EATest {
         AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
         EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
 
-        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1));
+        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1), gamma);
     }
 
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex11(
