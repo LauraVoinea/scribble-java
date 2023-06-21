@@ -9,12 +9,13 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 
 public class GTGMixedChoice implements GTGType {
@@ -38,6 +39,7 @@ public class GTGMixedChoice implements GTGType {
 
     /* ... */
 
+    // TODO revisit global props vs. syntactic WF approximations (cf. projection)
     @Override
     public boolean isSinglePointed() {
         Set<Op> ops = this.left.getOps();
@@ -79,9 +81,97 @@ public class GTGMixedChoice implements GTGType {
         if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
             return Optional.empty();
         }
-        return !r.equals(this.other) && !r.equals(this.observer)
-                ? get_l.left.merge(get_r.left).map(x -> new Pair<>(x, s0))  // !!! refactor with GTGInteraction.merge
-                : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
+
+        /*return !r.equals(this.other) && !r.equals(this.observer)
+                ? get_l.left.merge(get_r.left).map(x -> Pair.of(x, s0))  // !!! refactor with GTGInteraction.merge
+                : Optional.of(new Pair<>(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));*/
+//        HERE HERE XXX could be either white triangle or transparent -merge
+//        depending on I / O in full generality ? (white triangle merge
+//        only definitely static initial)similarly for black triangle
+//
+//        cf.regular MPST choice:
+//        unlike MC, regular choice not retained as "syntactic context", so
+//        the dynamic "merging" between fluctuating I / O doesn 't occur there
+
+        /*if (r.equals(this.other) || r.equals(this.observer)) {
+            return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
+        } else {
+            // TODO conditions? -- abstract global props should be implemented here?
+
+            if (isMergableIOModes(get_l.left, get_r.left)) {
+                return get_l.left.merge(get_r.left).map(x -> Pair.of(x, s0));  // !!! refactor with GTGInteraction.merge
+            } else {
+
+                // FIXME TODO conditions corresponding to global props?
+                // cf. (old) single-pointed
+                Set<Op> ops = this.left.getOps();
+                ops.retainAll(this.right.getOps());
+                if (!ops.isEmpty()) {
+                    return Optional.empty();
+                }
+                if (!(this.left instanceof GTLBranch && this.right instanceof GTLSelect)
+                        || !(this.left instanceof GTLSelect && this.right instanceof GTLBranch)) {
+                    return Optional.empty();
+                }
+                if (!getPeer(get_l.left).equals(get_r.left)) {  // CHECKME currently no recursive check (cf. single-pointed, also merge)
+                    return Optional.empty();
+                }
+
+                return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
+            }
+        }*/
+
+        if (!r.equals(this.other) && !r.equals(this.observer)) {
+            Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
+            if (!merge.isPresent()) {
+                return Optional.empty();
+            }
+        }
+        return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
+    }
+
+    protected static Role getPeer(GTLType t) {
+        if (t instanceof GTLBranch) {
+            return ((GTLBranch) t).src;
+        } else if (t instanceof GTLSelect) {
+            return ((GTLSelect) t).dst;
+        } else {
+            throw new RuntimeException("Shouldn't get here: " + t);
+        }
+    }
+
+    protected static boolean isMergableIOModes(GTLType left, GTLType right) {
+        IOMode m_left = getMode(left);
+        IOMode m_right = getMode(right);
+        return m_left == m_right
+                && m_left != IOMode.MIXED
+                && m_left != IOMode.REC;  // TODO
+    }
+
+    // TODO refactor
+    protected enum IOMode {
+        IN,
+        OUT,
+        MIXED,
+        END,
+        REC  // !!! TODO CHECKME merge for rec -- should be "transparent" ?
+    }
+
+    protected static IOMode getMode(GTLType t) {
+        if (t instanceof GTLBranch) {
+            return IOMode.IN;
+        } else if (t instanceof GTLSelect) {
+            return IOMode.OUT;
+        } else if (t instanceof GTLMixedChoice || t instanceof GTLMixedActive) {
+            return IOMode.MIXED;
+        } else if (t instanceof GTLRecursion) {
+            //return getMode(((GTLRecursion) t).body);
+            return IOMode.REC;
+        } else if (t instanceof GTLEnd) {
+            return IOMode.END;
+        } else {
+            throw new RuntimeException("Shouldn't get here: " + t);
+        }
     }
 
     @Override
@@ -237,8 +327,8 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGMixedChoice)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGMixedChoice)) { return false; }
         GTGMixedChoice them = (GTGMixedChoice) obj;
         return them.canEquals(this)
                 && this.c == them.c

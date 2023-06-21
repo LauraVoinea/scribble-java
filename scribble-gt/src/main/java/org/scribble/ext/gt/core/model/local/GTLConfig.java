@@ -87,7 +87,8 @@ public class GTLConfig {
     // !!! -- cf. equals
     public boolean isSubtype(GTLConfig sup) {
         return this.self.equals(sup.self) && GTLConfig.isSubtype(this.type, sup.type)
-                && this.sigma.equals(sup.sigma) && this.theta.equals(sup.theta);
+                && this.sigma.equals(sup.sigma)
+                && this.theta.equals(sup.theta);
     }
 
     // Works in this framework because starting from common global rec -- no need to compare completely arbitrary (un)foldings
@@ -185,8 +186,8 @@ public class GTLConfig {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLConfig)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLConfig)) { return false; }
         GTLConfig them = (GTLConfig) obj;
         return this.self.equals(them.self)
                 && this.type.equals(them.type)

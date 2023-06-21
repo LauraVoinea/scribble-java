@@ -10,8 +10,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -112,9 +111,39 @@ public class GTGMixedActive implements GTGType {
             }
             Pair<? extends GTLType, Sigma> get_l = opt_l.get();
             Pair<? extends GTLType, Sigma> get_r = opt_r.get();
-            return Optional.of(new Pair<>(
+
+            return Optional.of(Pair.of(
                     lf.mixedActive(this.c, this.n, get_l.left, get_r.left),
                     get_l.right.circ(get_r.right)));
+            // TODO conditions? -- abstract global props should be implemented here?
+
+            /*Sigma s0 = get_l.right.circ(get_r.right);
+            if (r.equals(this.other) || r.equals(this.observer)) {
+                return Optional.of(Pair.of(lf.mixedActive(this.c, this.n, get_l.left, get_r.left), s0));
+            } else {
+
+                if (GTGMixedChoice.isMergableIOModes(get_l.left, get_r.left)) {
+                    return get_l.left.merge(get_r.left).map(x -> Pair.of(x, s0));  // !!! refactor with GTGInteraction.merge
+                } else {
+
+                    // FIXME TODO conditions corresponding to global props?
+                    // cf. (old) single-pointed
+                    Set<Op> ops = this.left.getOps();
+                    ops.retainAll(this.right.getOps());
+                    if (!ops.isEmpty()) {
+                        return Optional.empty();
+                    }
+                    if (!(this.left instanceof GTLBranch && this.right instanceof GTLSelect)
+                            || !(this.left instanceof GTLSelect && this.right instanceof GTLBranch)) {
+                        return Optional.empty();
+                    }
+                    if (!GTGMixedChoice.getPeer(get_l.left).equals(get_r.left)) {  // CHECKME currently no recursive check (cf. single-pointed, also merge)
+                        return Optional.empty();
+                    }
+
+                    return Optional.of(Pair.of(lf.mixedActive(this.c, this.n, get_l.left, get_r.left), s0));
+                }
+            }*/
         }
     }
 
@@ -282,14 +311,16 @@ public class GTGMixedActive implements GTGType {
     /* ... */
 
     @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep
+            (
+                    Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         return step(theta, a, c, n);
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
+            int n) {
         return getActs(mf, theta, blocked, c, n);
     }
 
@@ -367,8 +398,10 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGMixedActive)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGMixedActive)) {
+            return false;
+        }
         GTGMixedActive them = (GTGMixedActive) obj;
         return them.canEquals(this)
                 && this.c == them.c
