@@ -8,13 +8,11 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.*;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Quad;
-import org.scribble.ext.gt.util.Tree;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GTLConfig {
 
@@ -48,8 +46,21 @@ public class GTLConfig {
     }
 
     public Pair<GTLConfig, Tree<String>> gc() {
+
         Map<Integer, Integer> active = this.type.getActive(this.theta);
+
+        //*  // FIXME EXPERIMENTAL HACK -- doesn't work, when last black committed STILL need to distinguish left vs. right messages (discard non-taken side)
+        if (active.isEmpty()) {
+            active = GTUtil.copyOf(this.theta.map).entrySet()
+                    .stream().collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            x -> x.getValue() - 1
+                    ));
+        }
+        //*/
+
         System.out.println("6666666: " + this.type + " ,, " + active);
+
         Sigma res = this.sigma.gc(active);
         return Pair.of(
                 new GTLConfig(this.self, this.type, res, this.theta),
