@@ -102,11 +102,25 @@ public class GTGMixedActive implements GTGType {
             GTLTypeFactory lf = GTLTypeFactory.FACTORY;
             Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r, this.c, this.n);
             Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r, this.c, this.n);
+
             if (!(r.equals(this.other) || r.equals(this.observer))) {
-                Optional<Pair<? extends GTLType, Sigma>> merged =
-                        GTGMixedActive.mergePair(opt_l, opt_r);
-                if (!merged.isPresent()) { //optl.isEmpty() || optr.isEmpty()) {
+
+                // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
+
+                if (!opt_l.isPresent() || !opt_r.isPresent()) {  // TODO refactor with below
                     return Optional.empty();
+                }
+                if (GTGMixedChoice.isMergableIOModes(opt_l.get().left, opt_r.get().left)) {
+                    Optional<Pair<? extends GTLType, Sigma>> merged =
+                            GTGMixedActive.mergePair(opt_l, opt_r);
+                    if (!merged.isPresent()) { //optl.isEmpty() || optr.isEmpty()) {
+                        return Optional.empty();
+                    }
+
+                } else {
+
+                    // TODO FIXME MC conditions?
+
                 }
             }
             Pair<? extends GTLType, Sigma> get_l = opt_l.get();

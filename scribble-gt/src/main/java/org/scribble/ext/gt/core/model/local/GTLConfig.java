@@ -49,6 +49,7 @@ public class GTLConfig {
 
     public Pair<GTLConfig, Tree<String>> gc() {
         Map<Integer, Integer> active = this.type.getActive(this.theta);
+        System.out.println("6666666: " + this.type + " ,, " + active);
         Sigma res = this.sigma.gc(active);
         return Pair.of(
                 new GTLConfig(this.self, this.type, res, this.theta),

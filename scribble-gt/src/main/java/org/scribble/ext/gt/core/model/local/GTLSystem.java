@@ -104,7 +104,9 @@ public class GTLSystem {
                     t = cfg.type;
                 }
 
+                System.out.println("555555555: " + cfg);
                 Pair<GTLConfig, Tree<String>> gc = cfg.gc();
+                System.out.println("555555555: " + gc);
                 tmp.put(r, gc.left);  // TODO config gc deriv (currently discarded)
             }
 
@@ -128,8 +130,8 @@ public class GTLSystem {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLSystem)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLSystem)) { return false; }
         GTLSystem them = (GTLSystem) obj;
         return this.configs.equals(them.configs);
     }

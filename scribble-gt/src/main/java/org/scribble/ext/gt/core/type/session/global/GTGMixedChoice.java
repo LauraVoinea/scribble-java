@@ -122,9 +122,17 @@ public class GTGMixedChoice implements GTGType {
         }*/
 
         if (!r.equals(this.other) && !r.equals(this.observer)) {
-            Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
-            if (!merge.isPresent()) {
-                return Optional.empty();
+
+            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
+
+            if (isMergableIOModes(get_l.left, get_r.left)) {
+                Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
+                if (!merge.isPresent()) {
+                    return Optional.empty();
+                }
+
+            } else {
+                // TODO FIXME MC conditions?
             }
         }
         return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
