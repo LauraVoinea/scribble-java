@@ -14,6 +14,12 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+enum Discard {
+    LEFT,
+    RIGHT,
+    FULL
+}
+
 public class GTLConfig {
 
     public final Role self;
@@ -21,11 +27,15 @@ public class GTLConfig {
     public final Sigma sigma;
     public final Theta theta;
 
-    public GTLConfig(Role self, GTLType type, Sigma sigma, Theta theta) {
+    public final Map<Pair<Integer, Integer>, Discard> discard;  // key is c, n
+
+    public GTLConfig(Role self, GTLType type, Sigma sigma, Theta theta,
+                     Map<Pair<Integer, Integer>, Discard> discard) {
         this.self = self;
         this.type = type;
         this.sigma = sigma;
         this.theta = theta;
+        this.discard = GTUtil.copyOf(discard);
     }
 
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(GTEModelFactory mf) {
@@ -40,6 +50,7 @@ public class GTLConfig {
         }
         Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
                 this.type.stepTop(com, this.self, a, this.sigma, this.theta);
+
         return opt.mapRight(x -> Pair.of(
                 new GTLConfig(this.self, x.fst, x.snd, x.thrd),
                 x.frth));
@@ -181,7 +192,7 @@ public class GTLConfig {
     @Override
     public String toString() {
         return "<" + this.self + ", " + this.type + ", " + this.sigma + ", " +
-                this.theta + ">";
+                this.theta + ", " + this.discard + ">";
     }
 
     /* ... */
@@ -193,6 +204,7 @@ public class GTLConfig {
         hash = 31 * hash + this.type.hashCode();
         hash = 31 * hash + this.sigma.hashCode();
         hash = 31 * hash + this.theta.hashCode();
+        hash = 31 * hash + this.discard.hashCode();
         return hash;
     }
 
@@ -204,6 +216,7 @@ public class GTLConfig {
         return this.self.equals(them.self)
                 && this.type.equals(them.type)
                 && this.sigma.equals(them.sigma)
-                && this.theta.equals(them.theta);
+                && this.theta.equals(them.theta)
+                && this.discard.equals(them.discard);
     }
 }

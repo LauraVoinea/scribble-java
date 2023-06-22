@@ -268,38 +268,7 @@ public class GTGInteraction implements GTGType {
         return getActs(mf, theta, blocked, c, n);
     }
 
-    /* Aux */
-
-    @Override
-    public GTGInteraction subs(Map<RecVar, GTGType> subs) {
-        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().subs(subs),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return new GTGInteraction(this.src, this.dst, cases);
-    }
-
-    @Override
-    public GTGInteraction unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                .flatMap(x -> x.getTimeoutIds().stream())
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        Set<Op> ops = new HashSet<>(this.cases.keySet());
-        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
-        return ops;
-    }
+    /* ... */
 
     @Override
     public Set<Op> getCommittingTop(Set<Role> com) {
@@ -341,6 +310,60 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        Map<Op, Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>>> collect =
+                this.cases.entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().getLabels()
+                ));
+        Set<Op> imm = GTUtil.setOf();
+        Map<Integer, Pair<Set<Op>, Set<Op>>> nested = GTUtil.mapOf();
+        for (Map.Entry<Op, GTGType> x : this.cases.entrySet()) {
+            Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> tmp = x.getValue().getLabels();
+            imm.add(x.getKey());
+            imm.addAll(tmp.left);
+            if (nested.keySet().stream().anyMatch(y -> tmp.right.keySet().contains(y))) {
+                throw new RuntimeException("Shouldn't get here: " + this + " ,, " + tmp);
+            }
+            nested.putAll(tmp.right);
+        }
+        return Pair.of(imm, nested);
+    }
+
+    /* Aux */
+
+    @Override
+    public GTGInteraction subs(Map<RecVar, GTGType> subs) {
+        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().subs(subs),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGInteraction(this.src, this.dst, cases);
+    }
+
+    @Override
+    public GTGInteraction unfoldAllOnce() {
+        return this;
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getTimeoutIds().stream())
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Op> getOps() {
+        Set<Op> ops = new HashSet<>(this.cases.keySet());
+        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
+        return ops;
+    }
+
+    @Override
     public String toString() {
         return this.src + "->" + this.dst
                 + "{" + this.cases.entrySet().stream()
@@ -361,8 +384,8 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGInteraction)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGInteraction)) { return false; }
         GTGInteraction them = (GTGInteraction) obj;
         return them.canEquals(this)
                 && this.src.equals(them.src)

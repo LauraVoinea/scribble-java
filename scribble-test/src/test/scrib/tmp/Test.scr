@@ -481,6 +481,10 @@ global protocol Proto1(role A, role B, role C) {
     } () or A->B () {
         2() from B to A;  // testing MC I/O cases projection -- !!! testing discard re. locals reducing to triangle-less terms (try to use theta for discarding instead, still left/right problems)
                           // !!! weak does eager white->black activation, "just started" locals basically seen as active black triangles (cf. discarding w.r.t. active) -- problem is "approaching-end" locals without any more triangles
+
+
+                          //HERE HERE try discardable(c) = (left, right) (n.b. mergable are not discardable) with config (c, n) -> left/right discard history -- exhaustive testing must be explicitly bounded (anyway the case with thetas)
+
         4() from B to C;
     }
 }

@@ -17,6 +17,7 @@ import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
@@ -265,6 +266,11 @@ public class GTGWiggly implements GTGType {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
     /* Aux */
 
     @Override
@@ -320,8 +326,8 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGWiggly)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGWiggly)) { return false; }
         GTGWiggly them = (GTGWiggly) obj;
         return them.canEquals(this)
                 && this.src.equals(them.src)

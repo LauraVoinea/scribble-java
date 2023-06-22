@@ -137,6 +137,10 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Set<Op> getCommittingRight(Role obs, Set<Role> com);
     //{ return GTUtil.mapOf(); }
 
+    // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
+    // ingore non-mc or mergable in c, never discarded
+    Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
+
     /* ... */
 
     // TODO refactor subs is singleton

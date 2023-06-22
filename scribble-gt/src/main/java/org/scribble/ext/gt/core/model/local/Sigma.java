@@ -1,11 +1,15 @@
 package org.scribble.ext.gt.core.model.local;
 
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.util.GTUtil;
+import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,6 +53,26 @@ public class Sigma {
         return new Sigma(copy);
     }
 
+    public Sigma gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs, Map<Pair<Integer, Integer>, Discard> discard) {
+        Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);
+        Predicate<GTESend<DynamicActionKind>> f = x -> {
+            Pair<Integer, Integer> k = Pair.of(x.c, x.n);
+            if (!labs.containsKey(k)) { return false; }
+            Discard d = discard.get(k);
+            if (d == Discard.FULL) { return true; }
+            Pair<Set<Op>, Set<Op>> lr = labs.get(x.c);
+            return (d == Discard.LEFT && lr.left.contains((Op) x.mid))
+                    || (d == Discard.RIGHT && lr.right.contains((Op) x.mid));
+        };
+        for (Role r : copy.keySet()) {
+            List<GTESend<DynamicActionKind>> filt = copy.get(r).stream()
+                    .filter(f)
+                    .collect(Collectors.toList());
+            copy.put(r, filt);
+        }
+        return new Sigma(copy);
+    }
+
     @Override
     public String toString() {
         return this.map.toString();
@@ -65,8 +89,8 @@ public class Sigma {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof Sigma)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof Sigma)) { return false; }
         Sigma them = (Sigma) obj;
         return this.map.equals(them.map);
     }

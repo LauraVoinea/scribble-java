@@ -111,6 +111,11 @@ public class GTGRecursion implements GTGType {
         return this.body.getCommittingRight(obs, com);
     }
 
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        return this.body.getLabels();
+    }
+
     /* Aux */
 
     @Override
@@ -154,8 +159,8 @@ public class GTGRecursion implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGRecursion)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGRecursion)) { return false; }
         GTGRecursion them = (GTGRecursion) obj;
         return them.canEquals(this)
                 && this.var.equals(them.var)

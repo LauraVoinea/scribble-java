@@ -104,6 +104,11 @@ public class GTGEnd implements GTGType {
         return GTUtil.umodSetOf();
     }
 
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
+    }
+
     /* Aux */
 
     @Override
@@ -141,8 +146,8 @@ public class GTGEnd implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGEnd)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGEnd)) { return false; }
         GTGEnd them = (GTGEnd) obj;
         return them.canEquals(this);
     }

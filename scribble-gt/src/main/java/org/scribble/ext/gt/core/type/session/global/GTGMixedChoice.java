@@ -283,6 +283,31 @@ public class GTGMixedChoice implements GTGType {
         return getCommittingTop();
     }
 
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> l = this.left.getLabels();
+        Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> r = this.right.getLabels();
+        Map<Integer, Pair<Set<Op>, Set<Op>>> res = GTUtil.copyOf(l.right);
+        if (res.keySet().stream().anyMatch(x -> r.right.containsKey(x))) {
+            throw new RuntimeException("Shouldn't get here: " + l + " ,," + r);
+        }
+        res.putAll(r.right);
+
+        // FIXME merge across nested MCs? cf. TODO merge for MC
+
+        if (res.containsKey(this.c)) {
+            throw new RuntimeException("Shouldn't get here: " + l + " ,," + r);
+        }
+
+        // CHECKME dropping mergable labs
+        Set<Op> l1 = GTUtil.copyOf(l.left);
+        Set<Op> r1 = GTUtil.copyOf(r.left);
+        l1.removeAll(r.left);
+        r1.removeAll(l.left);
+        res.put(this.c, Pair.of(l1, r1));
+        return Pair.of(GTUtil.setOf(), res);
+    }
+
     /* Aux */
 
     @Override

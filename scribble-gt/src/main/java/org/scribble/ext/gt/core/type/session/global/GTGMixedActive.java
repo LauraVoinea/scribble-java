@@ -355,6 +355,11 @@ public class GTGMixedActive implements GTGType {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
     /* Aux */
 
     @Override

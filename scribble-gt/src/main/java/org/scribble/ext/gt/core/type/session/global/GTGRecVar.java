@@ -100,6 +100,11 @@ public class GTGRecVar implements GTGType {
         return GTUtil.umodSetOf();
     }
 
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
+    }
+
     /* Aux */
 
     @Override
@@ -138,8 +143,8 @@ public class GTGRecVar implements GTGType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTGRecVar)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGRecVar)) { return false; }
         GTGRecVar them = (GTGRecVar) obj;
         return them.canEquals(this)
                 && this.var.equals(them.var);
