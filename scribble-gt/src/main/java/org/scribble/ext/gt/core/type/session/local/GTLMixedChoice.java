@@ -7,12 +7,14 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.GTEModelFactoryImpl;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.util.*;
+import org.scribble.util.Pair;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -65,7 +67,8 @@ public class GTLMixedChoice implements GTLType {
 
     // Pre: a in getActs
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         if (!(a instanceof GTENewTimeout)) {  // E.g., (rec) context rule may "attempt"
@@ -78,10 +81,13 @@ public class GTLMixedChoice implements GTLType {
 
         Theta theta1 = theta.inc(this.c);
         GTLMixedActive succ = new GTLMixedActive(cast.c, cast.n, this.left, this.right);  // FIXME use factory?
-        return Either.right(Quad.of(succ, sigma, theta1, Tree.of(
-                toStepJudgeString("[..NewChan..]", c, n, theta, this,
-                        sigma, (GTEAction) a, theta1, succ, sigma)
-        )));
+        return Either.right(Pair.of(Quad.of(succ, sigma, theta1, Tree.of(
+                        toStepJudgeString("[..NewChan..]", c, n, theta, this,
+                                sigma, (GTEAction) a, theta1, succ, sigma)
+                )),
+                GTUtil.mapOf(Pair.of(cast.c, cast.n - 1),  // cf. GTLType.n_INIT = 1  (first "next" is 1)
+                        Discard.FULL)
+        ));
     }
 
     /* ... */
@@ -95,32 +101,40 @@ public class GTLMixedChoice implements GTLType {
         } else if (tau.size() > 1) {
             throw new RuntimeException("Shouldn't get in here: " + tau);
         }
-        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step =
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+                Map<Pair<Integer, Integer>, Discard>>> step =
                 step(com, self, tau.iterator().next(), sigma, theta, c, n);
         if (step.isLeft()) {
             return GTUtil.setOf();
         }
-        Quad<GTLType, Sigma, Theta, Tree<String>> get = step.getRight();  // mixed active
-        return get.fst.getWeakActs(mf, com, self, blocked, get.snd, get.thrd, c, n);
+        Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>> get =
+                step.getRight();  // mixed active
+        return get.left.fst.getWeakActs(mf, com, self, blocked, get.left.snd, get.left.thrd, c, n);
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         Integer m = theta.map.get(this.c);
         EAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
                 new GTENewTimeout<>(MActionBase.DYNAMIC_ID, GTEModelFactoryImpl.FACTORY, this.c, m);  // FIXME factory
-        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weak =
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> weak =
                 step(com, self, tau, sigma, theta, c, n);  // MixedActive
         return weak.flatMapRight(x ->
-                x.fst.step(com, self, a, x.snd, x.thrd, c, n).mapRight(y ->  // MixedActive, so weak redundant
-                        Quad.of(y.fst, y.snd, y.thrd, Tree.of(
-                                toStepJudgeString("[..nu-tau..]", c, n, theta,
-                                        this, sigma, (GTEAction) a, y.thrd, y.fst, y.snd),
-                                x.frth
-                        ))
-                )
-        );
+                x.left.fst.step(com, self, a, x.left.snd, x.left.thrd, c, n).mapRight(y -> { // MixedActive, so weak redundant
+                            Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(x.right);
+                            d1.putAll(y.right);
+                            return Pair.of(
+                                    Quad.of(y.left.fst, y.left.snd, y.left.thrd, Tree.of(
+                                            toStepJudgeString("[..nu-tau..]", c, n, theta,
+                                                    this, sigma, (GTEAction) a, y.left.thrd, y.left.fst, y.left.snd),
+                                            x.left.frth
+                                    )),
+                                    d1
+                            );
+                        }
+                ));
     }
 
     /* Aux */
@@ -164,8 +178,8 @@ public class GTLMixedChoice implements GTLType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLMixedChoice)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLMixedChoice)) { return false; }
         GTLMixedChoice them = (GTLMixedChoice) obj;
         return them.canEquals(this)
                 && this.c == them.c

@@ -16,9 +16,6 @@
 package org.scribble.ext.gt.ast.global;
 
 import org.antlr.runtime.Token;
-import org.scribble.ast.Choice;
-import org.scribble.ast.Recursion;
-import org.scribble.ast.ScribNode;
 import org.scribble.ast.global.GCompoundSessionNode;
 import org.scribble.ast.global.GProtoBlock;
 import org.scribble.core.type.kind.Global;
@@ -26,42 +23,34 @@ import org.scribble.del.DelFactory;
 import org.scribble.ext.gt.ast.GTMixed;
 import org.scribble.ext.gt.del.GTDelFactory;
 
-import java.util.List;
-import java.util.stream.Collectors;
+public class GTGMixed extends GTMixed<Global> implements GCompoundSessionNode {
+    // ScribTreeAdaptor#create constructor
+    public GTGMixed(Token t) {
+        super(t);
+    }
 
-public class GTGMixed extends GTMixed<Global> implements GCompoundSessionNode
-{
-	// ScribTreeAdaptor#create constructor
-	public GTGMixed(Token t)
-	{
-		super(t);
-	}
+    @Override
+    public GProtoBlock getLeftBlockChild() {
+        return (GProtoBlock) getChild(GTMixed.LEFT_BLOCK_CHILD_INDEX);
+    }
 
-	@Override
-	public GProtoBlock getLeftBlockChild() {
-		return (GProtoBlock) getChild(GTMixed.LEFT_BLOCK_CHILD_INDEX);
-	}
+    @Override
+    public GProtoBlock getRightBlockChild() {
+        return (GProtoBlock) getChild(GTMixed.RIGHT_BLOCK_CHILD_INDEX);
+    }
 
-	@Override
-	public GProtoBlock getRightBlockChild() {
-		return (GProtoBlock) getChild(GTMixed.RIGHT_BLOCK_CHILD_INDEX);
-	}
+    // Tree#dupNode constructor
+    protected GTGMixed(GTGMixed node) {
+        super(node);
+    }
 
-	// Tree#dupNode constructor
-	protected GTGMixed(GTGMixed node)
-	{
-		super(node);
-	}
+    @Override
+    public GTGMixed dupNode() {
+        return new GTGMixed(this);
+    }
 
-	@Override
-	public GTGMixed dupNode()
-	{
-		return new GTGMixed(this);
-	}
-	
-	@Override
-	public void decorateDel(DelFactory df)
-	{
-		((GTDelFactory) df).GTGMixed(this);
-	}
+    @Override
+    public void decorateDel(DelFactory df) {
+        ((GTDelFactory) df).GTGMixed(this);
+    }
 }

@@ -55,6 +55,9 @@ public class GTLSystem {
             tmp.put(self, get.left);
             if (a instanceof GTESend) {
                 GTESend cast = (GTESend) a;
+                if (!this.configs.containsKey(cast.peer)) {
+                    return Either.left(new Exception("Stuck: unknown role " + cast.peer + " in: " + this.configs));
+                }
                 tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
             }
             return Either.right(Pair.of(new GTLSystem(tmp), get.right));
@@ -65,6 +68,7 @@ public class GTLSystem {
     // !!! the a may be immediately gc
     // TODO factor out with above
     public Either<Exception, Pair<GTLSystem, Tree<String>>> weakStep(
+            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
             Set<Op> com, Role self, EAction<DynamicActionKind> a) {
         if (a instanceof GTENewTimeout) {  // !!! N.B. self is Role.EMPTY_ROLE
             throw new RuntimeException("Invalid for weak: " + self + " ,, " + a);
@@ -83,6 +87,9 @@ public class GTLSystem {
 
             if (a instanceof GTESend<?>) {
                 GTESend<DynamicActionKind> cast = (GTESend<DynamicActionKind>) a;
+                if (!this.configs.containsKey(cast.peer)) {
+                    return Either.left(new Exception("Stuck: unknown role " + cast.peer + " in: " + this.configs));
+                }
                 tmp.put(cast.peer, this.configs.get(cast.peer).enqueueMessage(self, cast));
                 // TODO receiver deriv (should be integrated with sender deriv)
             }
@@ -106,6 +113,7 @@ public class GTLSystem {
 
                 System.out.println("555555555: " + cfg);
                 Pair<GTLConfig, Tree<String>> gc = cfg.gc();
+                //Pair<GTLConfig, Tree<String>> gc = cfg.gc(labs);
                 System.out.println("555555555: " + gc);
                 tmp.put(r, gc.left);  // TODO config gc deriv (currently discarded)
             }

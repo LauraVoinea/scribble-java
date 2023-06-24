@@ -7,13 +7,16 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,9 +55,10 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        if (!(a instanceof GTESend<?>) || !sigma.map.containsKey(self)) {
+        if (!(a instanceof GTESend<?>)) {
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         GTESend<DynamicActionKind> cast = (GTESend<DynamicActionKind>) a;
@@ -75,10 +79,12 @@ public class GTLSelect implements GTLType {
         Sigma sigma1 = new Sigma(map);*/
         Sigma sigma1 = sigma;
         GTLType succ = this.cases.get(a.mid);
-        return Either.right(Quad.of(succ, sigma1, theta, Tree.of(
-                toStepJudgeString("[Snd]", c, n, theta, this, sigma,
-                        (GTEAction) a, theta, succ, sigma1)  // !!! sender config only (not receiver), cf. GTLSystem.(weak)step
-        )));
+        return Either.right(Pair.of(Quad.of(succ, sigma1, theta, Tree.of(
+                        toStepJudgeString("[Snd]", c, n, theta, this, sigma,
+                                (GTEAction) a, theta, succ, sigma1)  // !!! sender config only (not receiver), cf. GTLSystem.(weak)step
+                )),
+                GTUtil.mapOf()
+        ));
     }
 
     /* ... */
@@ -90,7 +96,8 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return step(com, self, a, sigma, theta, c, n);
     }

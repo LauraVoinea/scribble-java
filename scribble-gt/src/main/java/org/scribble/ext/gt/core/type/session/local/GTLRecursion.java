@@ -6,11 +6,13 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.*;
+import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -49,14 +51,17 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step =
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> step =
                 unfoldAllOnce().step(com, self, a, sigma, theta, c, n);
-        return step.mapRight(x -> Quad.of(x.fst, x.snd, x.thrd, Tree.of(
-                toStepJudgeString("[Rec]", c, n, theta, this, sigma,
-                        (GTEAction) a, x.thrd, x.fst, x.snd),
-                x.frth)));
+        return step.mapRight(x -> Pair.of(
+                Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
+                        toStepJudgeString("[Rec]", c, n, theta, this, sigma,
+                                (GTEAction) a, x.left.thrd, x.left.fst, x.left.snd),
+                        x.left.frth)),
+                x.right));
     }
 
     /* ... */
@@ -68,7 +73,8 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return step(com, self, a, sigma, theta, c, n);
     }
@@ -110,8 +116,8 @@ public class GTLRecursion implements GTLType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLRecursion)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLRecursion)) { return false; }
         GTLRecursion them = (GTLRecursion) obj;
         return them.canEquals(this)
                 && this.var.equals(them.var)

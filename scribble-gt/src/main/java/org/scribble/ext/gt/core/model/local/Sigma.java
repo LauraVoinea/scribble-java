@@ -4,21 +4,21 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Sigma {
 
-    public final Map<Role, List<GTESend<DynamicActionKind>>> map;
+    public final Map<Role, List<GTESend<DynamicActionKind>>> map;  // Key set is peers (no self)
 
-    public Sigma(Set<Role> rs) {
-        this.map = rs.stream().collect(Collectors.toMap(
+    public Sigma(Set<Role> peers) {
+        this.map = peers.stream().collect(Collectors.toMap(
                 x -> x,
                 x -> Collections.unmodifiableList(new LinkedList<>())));
     }
@@ -46,7 +46,8 @@ public class Sigma {
         Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);
         for (Role r : copy.keySet()) {
             List<GTESend<DynamicActionKind>> filt = copy.get(r).stream()
-                    .filter(x -> active.containsKey(x.c) && active.get(x.c) >= x.n)
+                    .filter(x -> x.c == GTLType.c_TOP  // !!!
+                            || (active.containsKey(x.c) && active.get(x.c) >= x.n))
                     .collect(Collectors.toList());
             copy.put(r, filt);
         }
@@ -55,9 +56,10 @@ public class Sigma {
 
     public Sigma gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs, Map<Pair<Integer, Integer>, Discard> discard) {
         Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);
-        Predicate<GTESend<DynamicActionKind>> f = x -> {
+        Predicate<GTESend<DynamicActionKind>> isDiscard = x -> {
             Pair<Integer, Integer> k = Pair.of(x.c, x.n);
-            if (!labs.containsKey(k)) { return false; }
+            System.out.println("------- " + k + " ,, " + labs.keySet());
+            if (!discard.containsKey(k)) { return false; }
             Discard d = discard.get(k);
             if (d == Discard.FULL) { return true; }
             Pair<Set<Op>, Set<Op>> lr = labs.get(x.c);
@@ -66,7 +68,7 @@ public class Sigma {
         };
         for (Role r : copy.keySet()) {
             List<GTESend<DynamicActionKind>> filt = copy.get(r).stream()
-                    .filter(f)
+                    .filter(x -> !isDiscard.test(x))
                     .collect(Collectors.toList());
             copy.put(r, filt);
         }

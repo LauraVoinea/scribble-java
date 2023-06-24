@@ -6,6 +6,7 @@ import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.ast.global.GTGMixed;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 // i.e., from parsed, pre inlining
 public class GTGTypeTranslator3 {
 
-    private static int counter = 1;
+    private static int counter = GTLType.c_TOP + 1;  // !!!
 
     private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
 

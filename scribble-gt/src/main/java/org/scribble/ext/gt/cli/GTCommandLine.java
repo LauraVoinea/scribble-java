@@ -23,11 +23,9 @@ import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.GTUtil;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
@@ -114,10 +112,11 @@ public class GTCommandLine extends CommandLine {
                     System.err.println("Not single pointed: " + translate);
                 } else {
                     GTCorrespondence s = new GTCorrespondence(rs, translate);
+                    Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
                     Set<Op> com = GTUtil.umod(translate.getCommittingTop());
 
                     if (!hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                        foo(core, "", s, 1, MAX, new HashMap<>(), 2, com);
+                        foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
                     }
                 }
             }
@@ -150,6 +149,7 @@ public class GTCommandLine extends CommandLine {
     private void foo(Core core, String indent, GTCorrespondence s,
                      int step, int MAX,
                      Map<String, Integer> unfolds, int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+                     Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
                      Set<Op> com) {
 
         int mark = mystep;
@@ -177,7 +177,9 @@ public class GTCommandLine extends CommandLine {
         for (SAction<DynamicActionKind> a : as) {
 
             System.out.println("\n" + indent + "(" + mark + "-" + step + ")\n"
-                    + indent + "Stepping global: " + a);
+                    + indent + "Stepping global: "
+                    + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTGType.weakStepTop
+                    + ConsoleColors.VDASH + " " + s.global + " " + "--" + a + "--> ...");
             Triple<Theta, GTGType, Tree<String>> g_step =
 
                     //s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
@@ -206,13 +208,15 @@ public class GTCommandLine extends CommandLine {
             GTSAction cast = (GTSAction) a;
             GTEAction a_r = cast.project(lmf);
 
-            System.out.println(indent + "Stepping local " + a.subj + ": " + a_r);
+            System.out.println(indent + "Stepping local "
+                    + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTLType.weakStepTop
+                    + ConsoleColors.VDASH + " " + s.local + " --" + a.subj + ":" + a_r + "--> ...");
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
 
             Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
 
                     //s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
-                    s.local.weakStep(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                    s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
 
             //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
@@ -229,7 +233,7 @@ public class GTCommandLine extends CommandLine {
 
             GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            foo(core, incIndent(indent), s1, 1, MAX, us, depth, com);
+            foo(core, incIndent(indent), s1, 1, MAX, us, depth, labs, com);
             //}
         }
     }

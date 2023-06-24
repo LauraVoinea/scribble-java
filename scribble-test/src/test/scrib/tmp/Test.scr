@@ -446,7 +446,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-/*
+//*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;
@@ -456,6 +456,7 @@ global protocol Proto1(role A, role B, role C) {
         6() from A to C;  // OK with prev line, otherwise XXX
         //6() from B to C;  // ...instead of prev line XXX not mergeable onto B
 
+// WIP
         // HERE HERE enforce all roles should have committing actions syntactically
         //...first redo global WF as well-set (static initial only) and projectible (implying full partic -- run-time invar)
 
@@ -472,6 +473,7 @@ global protocol Proto1(role A, role B, role C) {
 //[LRcv1]
 //(end [B] |>1,1:A->B [] B->A:2{2.A->C{4.end}})
 
+/*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;
@@ -483,11 +485,13 @@ global protocol Proto1(role A, role B, role C) {
                           // !!! weak does eager white->black activation, "just started" locals basically seen as active black triangles (cf. discarding w.r.t. active) -- problem is "approaching-end" locals without any more triangles
 
 
-                          //HERE HERE try discardable(c) = (left, right) (n.b. mergable are not discardable) with config (c, n) -> left/right discard history -- exhaustive testing must be explicitly bounded (anyway the case with thetas)
+                          HERE HERE try discardable(c) = (left, right) (n.b. mergable are not discardable) with config (c, n) -> left/right discard history -- exhaustive testing must be explicitly bounded (anyway the case with thetas)
+                          ... key problem: discarded MC "context" means c, n |- context doesn't work for general reduction (also discarding)
 
         4() from B to C;
     }
 }
+//*/
 
 
 

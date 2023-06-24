@@ -8,17 +8,13 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.*;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-enum Discard {
-    LEFT,
-    RIGHT,
-    FULL
-}
 
 public class GTLConfig {
 
@@ -27,20 +23,24 @@ public class GTLConfig {
     public final Sigma sigma;
     public final Theta theta;
 
-    public final Map<Pair<Integer, Integer>, Discard> discard;  // key is c, n
+    //public final Map<Pair<Integer, Integer>, Discard> discard;  // key is c, n
 
-    public GTLConfig(Role self, GTLType type, Sigma sigma, Theta theta,
-                     Map<Pair<Integer, Integer>, Discard> discard) {
+    public GTLConfig(Role self, GTLType type, Sigma sigma, Theta theta) {
+        //Map<Pair<Integer, Integer>, Discard> discard) {
         this.self = self;
         this.type = type;
         this.sigma = sigma;
         this.theta = theta;
-        this.discard = GTUtil.copyOf(discard);
+        //this.discard = GTUtil.copyOf(discard);
     }
+
+    /* ... */
 
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(GTEModelFactory mf) {
         return this.type.getActsTop(mf, this.self, this.sigma, this.theta);
     }
+
+    // !!! formal LTS is inductively defined LTS on configs -- cf. below, delegated to GTLType
 
     // n.b., GTESend only updates this local sender config -- use enqueueMessage to also update the receiver config
     public Either<Exception, Pair<GTLConfig, Tree<String>>> step(
@@ -48,19 +48,37 @@ public class GTLConfig {
         if (!(a instanceof GTEAction)) {
             throw new RuntimeException("TODO: " + a);  // cf. weak
         }
-        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> opt =
                 this.type.stepTop(com, this.self, a, this.sigma, this.theta);
 
-        return opt.mapRight(x -> Pair.of(
-                new GTLConfig(this.self, x.fst, x.snd, x.thrd),
-                x.frth));
+        return opt.mapRight(x -> {
+            /*Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(this.discard);
+            d1.putAll(x.right);*/
+            return Pair.of(
+                    new GTLConfig(this.self, x.left.fst, x.left.snd, x.left.thrd),//, d1),
+                    x.left.frth);
+        });
     }
+
+    /*public Pair<GTLConfig, Tree<String>> gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs) {
+        //Map<Integer, Integer> active = this.type.getActive(this.theta);
+
+        System.out.println("77777777: " + this.type + " ,, " + labs + " ,, " + this.discard);
+
+        Sigma res = this.sigma.gc(labs, this.discard);
+        return Pair.of(
+                new GTLConfig(this.self, this.type, res, this.theta, this.discard),
+                Tree.of("[..GC..]  " + this.theta + ", " + this.type + " "
+                        + ConsoleColors.VDASH + " " + this.sigma + " "
+                        + ConsoleColors.RIGHT_ARROW + " " + res)  // cf. GTLType.toStepJudgeString
+        );
+    }*/
 
     public Pair<GTLConfig, Tree<String>> gc() {
 
         Map<Integer, Integer> active = this.type.getActive(this.theta);
 
-        //*  // FIXME EXPERIMENTAL HACK -- doesn't work, when last black committed STILL need to distinguish left vs. right messages (discard non-taken side)
+        /*  // FIXME EXPERIMENTAL HACK -- doesn't work, when last black committed STILL need to distinguish left vs. right messages (discard non-taken side)
         if (active.isEmpty()) {
             active = GTUtil.copyOf(this.theta.map).entrySet()
                     .stream().collect(Collectors.toMap(
@@ -74,7 +92,7 @@ public class GTLConfig {
 
         Sigma res = this.sigma.gc(active);
         return Pair.of(
-                new GTLConfig(this.self, this.type, res, this.theta),
+                new GTLConfig(this.self, this.type, res, this.theta), //this.discard),
                 Tree.of("[..GC..]  " + this.theta + ", " + this.type + " "
                         + ConsoleColors.VDASH + " " + this.sigma + " "
                         + ConsoleColors.RIGHT_ARROW + " " + res)  // cf. GTLType.toStepJudgeString
@@ -88,23 +106,27 @@ public class GTLConfig {
         if (!(a instanceof GTEAction)) {
             throw new RuntimeException("Shouldn't get in here: " + a);  // !!! weak
         }
-        Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> opt =
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> opt =
                 this.type.weakStepTop(com, this.self, a, this.sigma, this.theta);
-        return opt.mapRight(x -> Pair.of(
-                new GTLConfig(this.self, x.fst, x.snd, x.thrd),
-                x.frth));
+        return opt.mapRight(x -> {
+            /*Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(this.discard);
+            d1.putAll(x.right);*/
+            return Pair.of(
+                    new GTLConfig(this.self, x.left.fst, x.left.snd, x.left.thrd),//, d1),
+                    x.left.frth);
+        });
     }
 
     public GTLConfig enqueueMessage(Role src, GTESend<DynamicActionKind> a) {
-        if (!this.self.equals(a.peer)) {
-            throw new RuntimeException("Shouldn't get in here: " + a);
+        if (!this.self.equals(a.peer) || !this.sigma.map.containsKey(src)) {
+            throw new RuntimeException("Shouldn't get in here: " + a);  // cf. Either -- stuck
         }
         Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(this.sigma.map);
         List<GTESend<DynamicActionKind>> ms = new LinkedList<>(map.get(src));
         ms.add(a);
         map.put(src, ms);
         Sigma sigma = new Sigma(map);
-        return new GTLConfig(this.self, this.type, sigma, this.theta);
+        return new GTLConfig(this.self, this.type, sigma, this.theta);//, this.discard);
     }
 
     // !!! -- cf. equals
@@ -192,7 +214,8 @@ public class GTLConfig {
     @Override
     public String toString() {
         return "<" + this.self + ", " + this.type + ", " + this.sigma + ", " +
-                this.theta + ", " + this.discard + ">";
+                this.theta + ">";
+        // + ", " + this.discard + ">";
     }
 
     /* ... */
@@ -204,7 +227,7 @@ public class GTLConfig {
         hash = 31 * hash + this.type.hashCode();
         hash = 31 * hash + this.sigma.hashCode();
         hash = 31 * hash + this.theta.hashCode();
-        hash = 31 * hash + this.discard.hashCode();
+        //hash = 31 * hash + this.discard.hashCode();
         return hash;
     }
 
@@ -216,7 +239,7 @@ public class GTLConfig {
         return this.self.equals(them.self)
                 && this.type.equals(them.type)
                 && this.sigma.equals(them.sigma)
-                && this.theta.equals(them.theta)
-                && this.discard.equals(them.discard);
+                && this.theta.equals(them.theta);
+        //&& this.discard.equals(them.discard);
     }
 }

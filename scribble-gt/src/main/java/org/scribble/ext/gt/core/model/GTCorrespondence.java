@@ -8,6 +8,7 @@ import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -92,7 +93,9 @@ public class GTCorrespondence {
         //Theta theta = new Theta(global.getTimeoutIds());
         Map<Role, GTLConfig> locals = new HashMap<>();
         for (Role r : roles) {
-            Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTop(roles, r);
+            Set<Role> peers = GTUtil.copyOf(roles);
+            peers.remove(r);
+            Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTop(peers, r);
             if (!opt.isPresent()) {
                 throw new RuntimeException("Couldn't project onto " + r + ": " + global);
             }
@@ -107,6 +110,7 @@ public class GTCorrespondence {
             }
 
             locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
+            //locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get(), GTUtil.mapOf()));
             //System.out.println("Project onto " + r + ": " + p.left);
         }
         return new GTLSystem(locals);

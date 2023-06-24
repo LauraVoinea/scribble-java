@@ -6,15 +6,13 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTERecv;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Quad;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -84,7 +82,8 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
 
         if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)) {
@@ -98,6 +97,8 @@ public class GTLBranch implements GTLType {
 
         if (!a.peer.equals(this.src) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
                 || cast.c != c || cast.n != n) {
+            System.out.println("99999999: " + !a.peer.equals(this.src) + " ,, " + !this.cases.keySet().contains(a.mid)
+                    + " ,, " + (cast.c != c) + " .. " + cast.c + " .. " + c + " ,, " + (cast.n != n));
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         boolean[] found = {false};
@@ -112,10 +113,13 @@ public class GTLBranch implements GTLType {
         map.put(this.src, tmp);
         Sigma sigma1 = new Sigma(map);
         GTLType succ = this.cases.get(a.mid);
-        return Either.right(Quad.of(succ, sigma1, theta, Tree.of(
-                toStepJudgeString("[Rcv]", c, n, theta, this, sigma,
-                        (GTEAction) a, theta, succ, sigma1)
-        )));
+        return Either.right(Pair.of(
+                Quad.of(succ, sigma1, theta, Tree.of(
+                        toStepJudgeString("[Rcv]", c, n, theta, this, sigma,
+                                (GTEAction) a, theta, succ, sigma1)
+                )),
+                GTUtil.mapOf()
+        ));
     }
 
     /* ... */
@@ -127,7 +131,8 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return step(com, self, a, sigma, theta, c, n);
     }
@@ -184,8 +189,8 @@ public class GTLBranch implements GTLType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLBranch)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLBranch)) { return false; }
         GTLBranch them = (GTLBranch) obj;
         return them.canEquals(this)
                 && this.src.equals(them.src)

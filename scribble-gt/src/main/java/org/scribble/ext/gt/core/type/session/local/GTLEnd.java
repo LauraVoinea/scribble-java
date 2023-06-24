@@ -6,6 +6,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -13,6 +14,7 @@ import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -40,7 +42,8 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
     }
@@ -54,7 +57,8 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         return step(com, self, a, sigma, theta, c, n);
     }
@@ -96,8 +100,8 @@ public class GTLEnd implements GTLType {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof GTLEnd)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLEnd)) { return false; }
         GTLEnd them = (GTLEnd) obj;
         return them.canEquals(this);
     }

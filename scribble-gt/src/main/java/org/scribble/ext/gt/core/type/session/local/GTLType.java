@@ -6,6 +6,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
+import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -14,6 +15,7 @@ import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
+import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -27,7 +29,8 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int REC_HASH = 9887;
     int RECVAR_HASH = 9901;
 
-    int c_TOP = -1;
+    //int c_TOP = -1;
+    int c_TOP = 0;
     int n_INIT = 1;
 
     /* ... */
@@ -50,14 +53,16 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
 
     // FIXME: Sigma may be local or remote depending on action
-    default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> stepTop(
+    default Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> stepTop(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
         return step(com, self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTEAction
     // a is deterministic (including "nested" steps)
-    Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> step(
+    Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     default Exception newStuck(int c, int n, Theta theta, GTLType t, GTEAction a) {
@@ -75,20 +80,22 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
-    default LinkedHashSet<EAction<DynamicActionKind>> getWeakActsTop(
+    /*default LinkedHashSet<EAction<DynamicActionKind>> getWeakActsTop(
             GTEModelFactory mf, Set<Op> com, Role self, Sigma sigma, Theta theta) {
         return getWeakActs(mf, com, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
-    }
+    }*/
 
     LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
 
-    default Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStepTop(
+    default Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStepTop(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
         return weakStep(com, self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
-    Either<Exception, Quad<GTLType, Sigma, Theta, Tree<String>>> weakStep(
+    Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
+            Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     /* ... */
