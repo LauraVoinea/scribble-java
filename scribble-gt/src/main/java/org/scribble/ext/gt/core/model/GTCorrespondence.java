@@ -109,8 +109,8 @@ public class GTCorrespondence {
                 throw new RuntimeException("Couldn't project onto " + r + ": " + global);
             }
 
-            locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
-            //locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get(), GTUtil.mapOf()));
+            //locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
+            locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get(), GTUtil.mapOf()));
             //System.out.println("Project onto " + r + ": " + p.left);
         }
         return new GTLSystem(locals);

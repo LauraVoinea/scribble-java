@@ -112,8 +112,8 @@ public class GTLSystem {
                 }
 
                 System.out.println("555555555: " + cfg);
-                Pair<GTLConfig, Tree<String>> gc = cfg.gc();
-                //Pair<GTLConfig, Tree<String>> gc = cfg.gc(labs);
+                //Pair<GTLConfig, Tree<String>> gc = cfg.gc();
+                Pair<GTLConfig, Tree<String>> gc = cfg.gc(labs);
                 System.out.println("555555555: " + gc);
                 tmp.put(r, gc.left);  // TODO config gc deriv (currently discarded)
             }

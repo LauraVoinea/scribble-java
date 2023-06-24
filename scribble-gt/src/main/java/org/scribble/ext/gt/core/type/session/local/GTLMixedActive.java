@@ -44,6 +44,8 @@ public class GTLMixedActive implements GTLType {
                 || !this.left.equals(cast.left) || !this.right.equals(cast.right)) {
             return Optional.empty();
         }
+
+        // !!! CHECKME
         Optional<? extends GTLType> opt_l = this.left.merge(cast.left);
         Optional<? extends GTLType> opt_r = this.right.merge(cast.right);
         return opt_l.flatMap(x -> opt_r.map(y ->
@@ -101,7 +103,9 @@ public class GTLMixedActive implements GTLType {
                 Op op = (Op) a.getMid();
                 Map<Pair<Integer, Integer>, Discard> discard;
                 if (com.contains(op)) {
-                    succ = get.left.fst;
+                    //succ = get.left.fst;
+                    succ = this.fact.mixedCommitted(
+                            this.c, this.n, get.left.fst, Side.LEFT);
                     tag = "[LRcv1]";
                     discard = GTUtil.copyOf(get.right);
                     discard.put(Pair.of(this.c, this.n), Discard.RIGHT);  // discard RHS
@@ -133,10 +137,11 @@ public class GTLMixedActive implements GTLType {
                 // [RSnd]
                 Map<Pair<Integer, Integer>, Discard> discard = GTUtil.copyOf(get.right);
                 discard.put(Pair.of(this.c, this.n), Discard.LEFT);  // discard LHS
+                GTLType succ = this.fact.mixedCommitted(this.c, this.n, get.left.fst, Side.RIGHT);
                 return Either.right(Pair.of(
-                        Quad.of(get.left.fst, get.left.snd, get.left.thrd, Tree.of(
+                        Quad.of(succ, get.left.snd, get.left.thrd, Tree.of(
                                 toStepJudgeString("[RSnd]", c, n, theta, this,
-                                        sigma, (GTEAction) a, get.left.thrd, get.left.fst, get.left.snd),
+                                        sigma, (GTEAction) a, get.left.thrd, succ, get.left.snd),
                                 get.left.frth
                         )),
                         discard
@@ -145,10 +150,11 @@ public class GTLMixedActive implements GTLType {
                 // [RRcv] -- same as RSnd?
                 Map<Pair<Integer, Integer>, Discard> discard = GTUtil.copyOf(get.right);
                 discard.put(Pair.of(this.c, this.n), Discard.LEFT);  // discard LHS
+                GTLType succ = this.fact.mixedCommitted(this.c, this.n, get.left.fst, Side.RIGHT);
                 return Either.right(Pair.of(
-                        Quad.of(get.left.fst, get.left.snd, get.left.thrd, Tree.of(
+                        Quad.of(succ, get.left.snd, get.left.thrd, Tree.of(
                                 toStepJudgeString("[RRcv]", c, n, theta, this,
-                                        sigma, (GTEAction) a, get.left.thrd, get.left.fst, get.left.snd),
+                                        sigma, (GTEAction) a, get.left.thrd, succ, get.left.snd),
                                 get.left.frth
                         )),
                         discard
@@ -210,7 +216,7 @@ public class GTLMixedActive implements GTLType {
     @Override
     public GTLType subs(RecVar rv, GTLType t) {
         GTLType left = this.left.subs(rv, t);
-        GTLType right = this.left.subs(rv, t);
+        GTLType right = this.right.subs(rv, t);
         return this.fact.mixedActive(this.c, this.n, left, right);
     }
 

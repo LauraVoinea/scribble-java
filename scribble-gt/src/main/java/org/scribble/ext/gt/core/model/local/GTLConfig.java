@@ -8,10 +8,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.*;
-import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Quad;
-import org.scribble.ext.gt.util.Tree;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -23,15 +20,15 @@ public class GTLConfig {
     public final Sigma sigma;
     public final Theta theta;
 
-    //public final Map<Pair<Integer, Integer>, Discard> discard;  // key is c, n
+    public final Map<Pair<Integer, Integer>, Discard> discard;  // key is c, n
 
-    public GTLConfig(Role self, GTLType type, Sigma sigma, Theta theta) {
-        //Map<Pair<Integer, Integer>, Discard> discard) {
+    public GTLConfig(Role self, GTLType type, Sigma sigma, Theta theta,
+                     Map<Pair<Integer, Integer>, Discard> discard) {
         this.self = self;
         this.type = type;
         this.sigma = sigma;
         this.theta = theta;
-        //this.discard = GTUtil.copyOf(discard);
+        this.discard = GTUtil.copyOf(discard);
     }
 
     /* ... */
@@ -52,15 +49,15 @@ public class GTLConfig {
                 this.type.stepTop(com, this.self, a, this.sigma, this.theta);
 
         return opt.mapRight(x -> {
-            /*Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(this.discard);
-            d1.putAll(x.right);*/
+            Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(this.discard);
+            d1.putAll(x.right);
             return Pair.of(
-                    new GTLConfig(this.self, x.left.fst, x.left.snd, x.left.thrd),//, d1),
+                    new GTLConfig(this.self, x.left.fst, x.left.snd, x.left.thrd, d1),
                     x.left.frth);
         });
     }
 
-    /*public Pair<GTLConfig, Tree<String>> gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs) {
+    public Pair<GTLConfig, Tree<String>> gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs) {
         //Map<Integer, Integer> active = this.type.getActive(this.theta);
 
         System.out.println("77777777: " + this.type + " ,, " + labs + " ,, " + this.discard);
@@ -72,7 +69,7 @@ public class GTLConfig {
                         + ConsoleColors.VDASH + " " + this.sigma + " "
                         + ConsoleColors.RIGHT_ARROW + " " + res)  // cf. GTLType.toStepJudgeString
         );
-    }*/
+    }
 
     public Pair<GTLConfig, Tree<String>> gc() {
 
@@ -90,9 +87,9 @@ public class GTLConfig {
 
         System.out.println("6666666: " + this.type + " ,, " + active);
 
-        Sigma res = this.sigma.gc(active);
+        Sigma res = this.sigma.gc(active);  // XXX when GTLCommitted need to discard only left/right labs accordingly
         return Pair.of(
-                new GTLConfig(this.self, this.type, res, this.theta), //this.discard),
+                new GTLConfig(this.self, this.type, res, this.theta, this.discard),
                 Tree.of("[..GC..]  " + this.theta + ", " + this.type + " "
                         + ConsoleColors.VDASH + " " + this.sigma + " "
                         + ConsoleColors.RIGHT_ARROW + " " + res)  // cf. GTLType.toStepJudgeString
@@ -109,10 +106,10 @@ public class GTLConfig {
         Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> opt =
                 this.type.weakStepTop(com, this.self, a, this.sigma, this.theta);
         return opt.mapRight(x -> {
-            /*Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(this.discard);
-            d1.putAll(x.right);*/
+            Map<Pair<Integer, Integer>, Discard> d1 = GTUtil.copyOf(this.discard);
+            d1.putAll(x.right);
             return Pair.of(
-                    new GTLConfig(this.self, x.left.fst, x.left.snd, x.left.thrd),//, d1),
+                    new GTLConfig(this.self, x.left.fst, x.left.snd, x.left.thrd, d1),
                     x.left.frth);
         });
     }
@@ -126,7 +123,7 @@ public class GTLConfig {
         ms.add(a);
         map.put(src, ms);
         Sigma sigma = new Sigma(map);
-        return new GTLConfig(this.self, this.type, sigma, this.theta);//, this.discard);
+        return new GTLConfig(this.self, this.type, sigma, this.theta, this.discard);
     }
 
     // !!! -- cf. equals
@@ -214,8 +211,7 @@ public class GTLConfig {
     @Override
     public String toString() {
         return "<" + this.self + ", " + this.type + ", " + this.sigma + ", " +
-                this.theta + ">";
-        // + ", " + this.discard + ">";
+                this.theta + ", " + this.discard + ">";
     }
 
     /* ... */
@@ -227,7 +223,7 @@ public class GTLConfig {
         hash = 31 * hash + this.type.hashCode();
         hash = 31 * hash + this.sigma.hashCode();
         hash = 31 * hash + this.theta.hashCode();
-        //hash = 31 * hash + this.discard.hashCode();
+        hash = 31 * hash + this.discard.hashCode();
         return hash;
     }
 
@@ -239,7 +235,7 @@ public class GTLConfig {
         return this.self.equals(them.self)
                 && this.type.equals(them.type)
                 && this.sigma.equals(them.sigma)
-                && this.theta.equals(them.theta);
-        //&& this.discard.equals(them.discard);
+                && this.theta.equals(them.theta)
+                && this.discard.equals(them.discard);
     }
 }

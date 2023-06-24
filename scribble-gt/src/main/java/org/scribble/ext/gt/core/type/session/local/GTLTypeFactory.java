@@ -41,6 +41,10 @@ public class GTLTypeFactory {
         return new GTLMixedActive(c, n, left, right);
     }
 
+    public GTLMixedCommitted mixedCommitted(int c, int n, GTLType type, Side side) {
+        return new GTLMixedCommitted(c, n, type, side);
+    }
+
     public GTLEnd end() {
         return GTLEnd.END;
     }

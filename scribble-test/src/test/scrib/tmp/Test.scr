@@ -446,7 +446,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-//*
+/*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;
@@ -473,7 +473,7 @@ global protocol Proto1(role A, role B, role C) {
 //[LRcv1]
 //(end [B] |>1,1:A->B [] B->A:2{2.A->C{4.end}})
 
-/*
+//*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;
@@ -485,8 +485,8 @@ global protocol Proto1(role A, role B, role C) {
                           // !!! weak does eager white->black activation, "just started" locals basically seen as active black triangles (cf. discarding w.r.t. active) -- problem is "approaching-end" locals without any more triangles
 
 
-                          HERE HERE try discardable(c) = (left, right) (n.b. mergable are not discardable) with config (c, n) -> left/right discard history -- exhaustive testing must be explicitly bounded (anyway the case with thetas)
-                          ... key problem: discarded MC "context" means c, n |- context doesn't work for general reduction (also discarding)
+                          //HERE HERE try discardable(c) = (left, right) (n.b. mergable are not discardable) with config (c, n) -> left/right discard history -- exhaustive testing must be explicitly bounded (anyway the case with thetas)
+                          //... key problem: discarded MC "context" means c, n |- context doesn't work for general reduction (also discarding)
 
         4() from B to C;
     }
@@ -513,6 +513,9 @@ global protocol Proto1(role A, role B, role C) {
         1() from A to B;  5() from A to C;  5b() from C to A;  6() from B to C;  6b() from B to A;
     } () or A->B () {
         2() from B to A;  4() from A to C;   // XXXXX HERE HERE not mergable -- need to distinguish I/O cases and check merge/MC
+
+
+        HERE HERE HERE need projection mixed wiggly, mixed normal/wiggly, etc.
     }
 }
 //*/

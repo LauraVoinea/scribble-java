@@ -5,6 +5,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.Side;
 import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
@@ -53,6 +54,23 @@ public class Sigma {
         }
         return new Sigma(copy);
     }
+
+    /*public Sigma gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs, Map<Integer, Integer> active) {
+        Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);
+        for (Role r : copy.keySet()) {
+            List<GTESend<DynamicActionKind>> filt = copy.get(r).stream()
+                    .filter(x -> x.c == GTLType.c_TOP  // !!!
+                            || (active.containsKey(x.c) &&
+                            (active.get(x.c) > x.n || active.get(x.c) == x.n && pick(labs.get(x.c), ...))))
+                    .collect(Collectors.toList());
+            copy.put(r, filt);
+        }
+        return new Sigma(copy);
+    }
+
+    private static final Set<Op> pick(Pair<Set<Op>, Set<Op>> labs, Side side) {
+        return side == Side.LEFT ? labs.left : labs.right;
+    }*/
 
     public Sigma gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs, Map<Pair<Integer, Integer>, Discard> discard) {
         Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);

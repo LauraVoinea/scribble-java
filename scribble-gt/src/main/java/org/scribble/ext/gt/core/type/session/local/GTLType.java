@@ -54,16 +54,16 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
     // FIXME: Sigma may be local or remote depending on action
     default Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> stepTop(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
+            Map<Pair<Integer, Integer>, Discard>>> stepTop(  // FIXME TODO drop Discard
+                                                             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta) {
         return step(com, self, a, sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     // TODO GTEAction
     // a is deterministic (including "nested" steps)
     Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> step(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
+            Map<Pair<Integer, Integer>, Discard>>> step(  // FIXME TODO drop Discard
+                                                          Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
     default Exception newStuck(int c, int n, Theta theta, GTLType t, GTEAction a) {
         return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "

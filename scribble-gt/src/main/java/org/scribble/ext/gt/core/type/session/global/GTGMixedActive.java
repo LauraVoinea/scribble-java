@@ -92,14 +92,16 @@ public class GTGMixedActive implements GTGType {
     // Pre: this.committedLeft.contains(r) xor this.committedRight.contains(r)
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
-        // Same as MixedChoice except with n
+        GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+        // Same as MixedChoice except with n -- XXX GTLCommitted
         if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
-            return this.left.project(rs, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> proj = this.left.project(rs, r, this.c, this.n);
+            return proj.map(x -> Pair.of(lf.mixedCommitted(this.c, this.n, x.left, Side.LEFT), x.right));
         } else if (this.committedRight.contains(r) && !this.committedLeft.contains(r)) {
-            return this.right.project(rs, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> proj = this.right.project(rs, r, this.c, this.n);
+            return proj.map(x -> Pair.of(lf.mixedCommitted(this.c, this.n, x.left, Side.RIGHT), x.right));
         } else { //if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
             //throw new RuntimeException("TODO: ");  // p,q ??
-            GTLTypeFactory lf = GTLTypeFactory.FACTORY;
             Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r, this.c, this.n);
             Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r, this.c, this.n);
 
