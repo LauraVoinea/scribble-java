@@ -271,6 +271,7 @@ public class EACActor implements EAConfig {
                 + ConsoleColors.DOUBLEVLINE + " " + q2;
     }
 
+    // [E-Register]
     public Either<Exception, Pair<EACActor, Tree<String>>> stepAsync2(EAComp e, EAIota iota) {  // TODO FIXME refactor w.r.t. stepAsync1, cf. takes/returns whole queue
 
         // Duplicated from stepAsync0

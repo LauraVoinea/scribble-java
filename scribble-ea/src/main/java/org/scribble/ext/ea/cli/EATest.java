@@ -67,7 +67,7 @@ public class EATest {
 
         Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
                 tests = EAUtil.mapOf();
-        //origTests(tests);
+        origTests(tests);
         //tests.put("ex11", EATest::ex11);
         //tests.put("ex12", EATest::ex12);
         tests.put("ex13", EATest::ex13);

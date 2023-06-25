@@ -21,23 +21,12 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// "normal form" (..\nu iotas..) (..\nu APs..) (..\nu sesssions..) [ ..APs.. || ..configs.. || ..queues.. ] -- cf. Theorem Progress
 // cf. T-Session and (nested) T-Par (missing)
 // CHECKME: equiv to normal form with all \nu s at top?  sufficiently general?
 public class EAAsyncSystem {
 
-    @NotNull protected final LTypeFactory lf;
-    @NotNull protected final EARuntimeFactory RF = EARuntimeFactory.factory;
-
-    //@NotNull public final Delta annots;
-
-    //@NotNull public final ...Global...  // project, chec against original annots (implies safety), and type check actors
-    @NotNull public final AsyncDelta adelta;
-
-    // Unmod LinkedHashMaps
-    @NotNull public final Map<EAPid, EACActor> actors;  // keyset is all pids in system  // pids no longer in formal defs but useful in implementation
-    @NotNull public final Map<EASid, EAGlobalQueue> queues;  // keyset is all sids in system
-
-    @NotNull public final Map<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access;  // All roles must be provided
+    @NotNull protected static final EARuntimeFactory RF = EARuntimeFactory.factory;
 
     protected static int pidCounter = 1;
 
@@ -49,6 +38,12 @@ public class EAAsyncSystem {
     protected static int iCounter = 1;
     protected static Map<EAIota, EAPid> iotas = EAUtil.mapOf();  // static or instance?
 
+    protected static int sidCounter = 1;
+
+    protected EASid newSid() {
+        return RF.sid("_s" + sidCounter++);
+    }
+
     // FIXME cf. exhaustive state testing
     protected EAIota newIota(EAPid p) {
         EAIota iota = RF.iota("\u03b9" + iCounter++);
@@ -56,11 +51,89 @@ public class EAAsyncSystem {
         return iota;
     }
 
-    protected static int sidCounter = 1;
+    // !!! TODO also unify sess names (etc)?  currently only doing iotas
+    public static boolean unifyIotas(EAAsyncSystem s1, EAAsyncSystem s2) {
 
-    protected EASid newSid() {
-        return RF.sid("_s" + sidCounter++);
+        // Just enough checks for second part  // TODO add more checks to optimise early pruning
+        if (!s1.actors.keySet().equals(s2.actors.keySet())) {
+            return false;
+        }
+        if (!s1.access.keySet().equals(s2.access.keySet()) ||
+                s1.access.entrySet().stream().anyMatch(x -> {
+                    EAEAPName k_x = x.getKey();
+                    Map<Role, Pair<EALType, List<EAIota>>> v1 = x.getValue();
+                    Map<Role, Pair<EALType, List<EAIota>>> v2 = s2.access.get(k_x);
+                    if (!v1.keySet().equals(v2.keySet())) {
+                        return true;
+                    }
+                    if (v1.keySet().stream().anyMatch(r -> {
+                        Pair<EALType, List<EAIota>> get1 = v1.get(r);
+                        Pair<EALType, List<EAIota>> get2 = v2.get(r);
+                        return !get1.left.equals(get2.left)  // Not needed to check here (cf. other actor details)
+                                || get1.right.size() != get2.right.size();
+                    })) {
+                        return true;
+                    }
+                    return false;
+                })
+        ) {
+            return false;
+        }
+
+        // ...
+
+        // access2
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access2 = EAUtil.copyOfMap(s2.access);
+        Map<EAIota, EAIota> subs = EAUtil.mapOf();
+        for (Map.Entry<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> x : s1.access.entrySet()) {
+            EAEAPName ap = x.getKey();
+            Map<Role, Pair<EALType, List<EAIota>>> v1 = x.getValue();
+            Map<Role, Pair<EALType, List<EAIota>>> v2 = access2.get(ap);
+
+            for (Role r : s2.access.get(ap).keySet()) {
+                Pair<EALType, List<EAIota>> tmp2 = v2.get(r);
+                List<EAIota> old = tmp2.right;
+                List<EAIota> neww = v1.get(r).right;
+                v2.put(r, Pair.of(tmp2.left, neww));
+                Iterator<EAIota> it = neww.iterator();
+                for (EAIota y : old) {
+                    if (subs.containsKey(y)) {  // TODO ? "global" mgu based on (List<EAIota>, List<EAIota>) across every role in every AP
+                        throw new RuntimeException("Shouldn't get here: " + y);
+                    }
+                    subs.put(y, it.next());
+                }
+            }
+        }
+
+        // rho2
+        LinkedHashMap<EAPid, EACActor> actors2 = EAUtil.copyOf(s2.actors);
+        for (EAPid pid : actors2.keySet()) {
+            EACActor p = actors2.get(pid);
+            Map<EAIota, EAComp> old = p.rho;
+            LinkedHashMap<EAIota, EAComp> rho2 = EAUtil.mapOf();
+            for (EAIota i : old.keySet()) {
+                rho2.put(subs.get(i), old.get(i));
+            }
+            actors2.put(pid, RF.actor(p.pid, p.T, EAUtil.copyOf(p.sigma), rho2, p.state));
+        }
+
+        return s1.equals(RF.asyncSystem(s2.lf, actors2, EAUtil.copyOf(s2.queues), access2, s2.adelta));
     }
+
+    /* ... */
+
+    @NotNull protected final LTypeFactory lf;
+
+    //@NotNull public final Delta annots;
+
+    //@NotNull public final ...Global...  // project, chec against original annots (implies safety), and type check actors
+    @NotNull public final AsyncDelta adelta;
+
+    // Unmod LinkedHashMaps
+    @NotNull public final Map<EAPid, EACActor> actors;  // keyset is all pids in system  // pids no longer in formal defs but useful in implementation
+    @NotNull public final Map<EASid, EAGlobalQueue> queues;  // keyset is all sids in system
+
+    @NotNull public final Map<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access;  // All roles must be provided
 
     public EAAsyncSystem(
             LTypeFactory lf,

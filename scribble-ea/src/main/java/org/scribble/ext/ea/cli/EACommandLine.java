@@ -202,8 +202,19 @@ public class EACommandLine extends CommandLine {
             return this.maxDepth >= 0 && depth >= this.maxDepth;
         }
 
+        // !!! currently pruning only iotas (not sess names etc)
         public boolean isSeenPrune(EAAsyncSystem sys) {
-            return this.seen.contains(sys);
+            //return this.seen.contains(sys);
+            //return this.seen.stream().anyMatch(x -> x.equals(sys) || EAAsyncSystem.unifyIotas(x, sys));
+            for (EAAsyncSystem x : this.seen) {
+                if (x.equals(sys)) {
+                    return true;
+                } else if (EAAsyncSystem.unifyIotas(x, sys)) {
+                    System.err.println("Unified and pruned:\n" + x + "\n" + sys + "\n");
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

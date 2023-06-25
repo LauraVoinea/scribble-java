@@ -96,6 +96,17 @@ public class EAUtil {
         ));
     }
 
+    public static <K1, K2, V> LinkedHashMap<K1, Map<K2, V>> copyOfMap(Map<K1, Map<K2, V>> m) {
+        return m.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> copyOf(x.getValue()),
+                (x, y) -> {
+                    throw new RuntimeException("Key conflict: " + x + ", " + y);
+                },
+                LinkedHashMap::new
+        ));
+    }
+
     /* ... */
 
     public static <T> List<T> umod(List<T> c) {
@@ -138,17 +149,19 @@ public class EAUtil {
 
     /* ... */
 
+    // N.B. does *nested* umod copy
     public static <K, V> Map<K, List<V>> umodCopyOfList(Map<K, List<V>> m) {
         return umod(m.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> umodCopyOf(x.getValue())
+                x -> umodCopyOf(x.getValue())  // FIXME key clash, cf. copyOfList
         )));
     }
 
+    // N.B. does *nested* umod copy
     public static <K1, K2, V> Map<K1, Map<K2, V>> umodCopyOfMap(Map<K1, Map<K2, V>> m) {
         return umod(m.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> umodCopyOf(x.getValue())
+                x -> umodCopyOf(x.getValue())  // FIXME key clash, cf. copyOfList
         )));
     }
 }
