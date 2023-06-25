@@ -42,7 +42,7 @@ public class EAEAPName implements EAExpr, EAName {
                 return Either.left(new Exception("Expected AP type for " + this + ", not: " + A));
             }
 
-            System.out.println("[Warning] Safety not checked for: " + A);  // TODO safety property -- check in newAP (not here)
+            System.err.println("[Warning] Safety not checked for: " + A);  // TODO safety property -- check in newAP (not here)
 
             return Either.right(Pair.of(A,
                     new Tree<>("[..TV-AP..] " + toTypeJudgeString(gamma, A))

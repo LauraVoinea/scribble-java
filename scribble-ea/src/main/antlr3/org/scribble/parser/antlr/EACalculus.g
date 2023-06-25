@@ -33,6 +33,7 @@ tokens
     UNIT_KW = '1';  // N.B. Int(1) clash
     INT_KW = 'Int';
     BOOL_KW = 'Bool';
+    //String_KW = 'String';
     AP_KW = 'AP';
 
     MU_KW = 'mu';

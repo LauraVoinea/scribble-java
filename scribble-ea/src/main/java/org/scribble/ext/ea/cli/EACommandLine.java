@@ -210,7 +210,7 @@ public class EACommandLine extends CommandLine {
                 if (x.equals(sys)) {
                     return true;
                 } else if (EAAsyncSystem.unifyIotas(x, sys)) {
-                    System.err.println("Unified and pruned:\n" + x + "\n" + sys + "\n");
+                    System.err.println("[Debug] Unified and pruned:\n" + x + "\n" + sys + "\n");
                     return true;
                 }
             }

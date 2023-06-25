@@ -24,6 +24,14 @@ public class EAUtil {
         return res;
     }
 
+    public static <K, V> LinkedHashMap<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3) {
+        LinkedHashMap<K, V> res = new LinkedHashMap<>();
+        res.put(k1, v1);
+        res.put(k2, v2);
+        res.put(k3, v3);
+        return res;
+    }
+
     public static <K, V> LinkedHashMap<K, V> mapOf(Map<K, V> m, K k1, V v1) {
         LinkedHashMap<K, V> res = new LinkedHashMap<>(m);
         res.put(k1, v1);

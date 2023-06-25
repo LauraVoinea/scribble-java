@@ -44,11 +44,15 @@ public class EATest {
     static final Role B = new Role("B");
     static final Role B1 = new Role("B1");
     static final Role B2 = new Role("B2");
+    static final Role S = new Role("S");
     static final EASid s = RF.sid("s");
     static final EAPid p1 = RF.pid("p1");
     static final EAPid p2 = RF.pid("p2");
+    static final EAPid p3 = RF.pid("p3");
     //static final EAEVar x = MF.var("x");
+
     static final EAEAPName c = MF.ap("c");
+    static final EAEAPName ap = MF.ap("ap");
 
     static final Pair<EASid, Role> sA = Pair.of(s, A);
     static final Pair<EASid, Role> sB = Pair.of(s, B);
@@ -67,10 +71,13 @@ public class EATest {
 
         Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
                 tests = EAUtil.mapOf();
-        origTests(tests);
+
+        //origTests(tests);
+
         //tests.put("ex11", EATest::ex11);
         //tests.put("ex12", EATest::ex12);
-        tests.put("ex13", EATest::ex13);
+        //tests.put("ex13", EATest::ex13);
+        tests.put("ex14", EATest::ex14);
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -104,6 +111,105 @@ public class EATest {
 
 
     /* ... */
+
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex14(
+            boolean debug) {
+
+        EALType quoteHandler = EACommandLine.parseSessionType("B2!{share(Int).end}");
+        EALType t_B1 = EACommandLine.parseSessionType(
+                "S!{title(Bool).S?{quote(Int)." + quoteHandler + "}}");
+        EALType shareHandler = EACommandLine.parseSessionType(
+                "S!{address(Bool).S?{date(Bool).end}, quit(1).end}");
+        EALType t_B2 = EACommandLine.parseSessionType(
+                "B1?{share(Int)." + shareHandler + "}");
+        EALType decisionHandler = EACommandLine.parseSessionType("B2!{date(Bool).end}");
+        EALType titleHandler = EACommandLine.parseSessionType(
+                "B1!{quote(Int)."
+                        + "B2?{address(Bool)." + decisionHandler + ","
+                        + "    quit(1).end}"
+                        + "}");
+        EALType t_S = EACommandLine.parseSessionType(
+                "B1?{title(Bool)." + titleHandler + "}");
+
+        System.out.println("t_B1 " + t_B1);
+        System.out.println("t_B2 " + t_B2);
+        System.out.println("t_S " + t_S);
+
+        EAComp m_B1 = EACommandLine.parseM("register ap B1 "
+                + "let x1: 1 <= S!title(true) in "
+                + "  suspend handler S"
+                + "    { {" + quoteHandler + "} z: 1, quote(amount: Int) |-> "
+                + "      let x2: 1 <= B2!share(amount) in return ()"
+                + "    }"
+                + "    ()");
+
+        EAComp m_B2 = EACommandLine.parseM("register ap B2 "
+                + "suspend handler B1"
+                + "  { {" + shareHandler + "} z: 1, share(amount: Int) |-> "
+                + "    if true then"
+                + "      let x1: 1 <= S!quit(()) in return ()"
+                + "    else"
+                + "      let x2: 1 <= S!address(true) in "
+                + "        suspend handler S"
+                + "          { {end} z: 1, date(d: Bool) |-> return ()"
+                + "          }"
+                + "          ()"
+                + "  }"
+                + "  ()");
+
+        EAComp m_S = EACommandLine.parseM("register ap S "
+                + "suspend handler B1"
+                + "  { {" + titleHandler + "} z: 1, title(x: Bool) |-> "
+                + "    let x1: 1 <= B1!(quote(42)) in"
+                + "      suspend handler B2"
+                + "        { {" + decisionHandler + "} z: 1, address(addr: Bool) |->"
+                + "            let x2: 1 <= B2!(date(false)) in return (),"
+                + "          {end} z: 1, quit(y: 1) |->"
+                + "            return ()"
+                + "        }"
+                + "        ()"
+                + "  }"
+                + "  ()");  // TODO rec
+
+        EACActor p_B1 = RF.actor(p1, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B1.pid + " = " + p_B1);
+        EACActor p_B2 = RF.actor(p2, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B2.pid + " = " + p_B2);
+        EACActor p_S = RF.actor(p3, RF.noSessionThread(m_S), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_S.pid + " = " + p_S);
+
+        /*
+        EAComp reg2 = EACommandLine.parseM("register c B suspend (handler A { {end} z: 1, l1(x1: 1) |-> return () }) ()");
+
+        //+ "    suspend (handler A { {end} z:Int, l2(x: 1) |-> return z }) 42 "
+
+        EACActor a2 = RF.actor(p2, RF.noSessionThread(reg2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + a2.pid + " = " + a2);*/
+
+        //--------------
+
+        //Gamma gamma = new Gamma(EAUtil.mapOf(c, TF.val.ap(EAUtil.mapOf(A, t_A, B, EALEndType.END))),  // FIXME safety check for APs
+        Gamma gamma = new Gamma(EAUtil.mapOf(ap, TF.val.ap(EAUtil.mapOf(B1, t_B1, B2, t_B2, S, t_S))),  // FIXME safety check for APs
+                EAUtil.mapOf());
+        EACommandLine.typeCheckActor(p_B1, gamma, new Delta());
+        EACommandLine.typeCheckActor(p_B2, gamma, new Delta());
+        EACommandLine.typeCheckActor(p_S, gamma, new Delta());
+
+        // ----
+
+        Delta delta = new Delta();
+        LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(p_B1.pid, p_B1, p_B2.pid, p_B2, p_S.pid, p_S);
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
+                EAUtil.mapOf(ap, EAUtil.mapOf(
+                        B1, Pair.of(t_B1, EAUtil.listOf()),
+                        B2, Pair.of(t_B2, EAUtil.listOf()),
+                        S, Pair.of(t_S, EAUtil.listOf())));  // // FIXME >=2 roles
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
+
+        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1), gamma);
+    }
 
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex13(
             boolean debug) {
