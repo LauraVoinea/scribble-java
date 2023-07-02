@@ -39,10 +39,61 @@ public class GTGRecVar implements GTGType {
         return true;
     }
 
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return true;  // !!! bound recvars not checked
+    }
+
+    @Override
+    public boolean isInitialWellSet(Set<Integer> cs) {
+        return true;  // !!! bound recvars not checked
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrongDeps() {
+        return GTUtil.mapOf();
+    }
+
+    @Override
+    public boolean isAware(Theta theta) {
+        return true;
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isChoicePartip() {
+        return true;
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return true;
+    }
+
+    @Override
+    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+        return true;
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();
+    }
+
     @Override
     public boolean isCoherent() {
         return true;
     }
+
+    /* ... */
 
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
@@ -115,6 +166,11 @@ public class GTGRecVar implements GTGType {
     @Override
     public GTGType unfoldAllOnce() {
         throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return GTUtil.setOf();
     }
 
     @Override

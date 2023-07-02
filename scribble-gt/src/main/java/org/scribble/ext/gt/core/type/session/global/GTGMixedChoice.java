@@ -17,6 +17,8 @@ import org.scribble.util.Pair;
 
 import javax.swing.text.html.Option;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GTGMixedChoice implements GTGType {
 
@@ -62,10 +64,116 @@ public class GTGMixedChoice implements GTGType {
         return isCoherent();  // TODO redo as full participation
     }
 
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return this.left.isInitial() && this.right.isInitial();
+    }
+
+    @Override
+    public boolean isInitialWellSet(Set<Integer> cs) {
+        if (!(this.left instanceof GTGInteraction) || !(this.right instanceof GTGInteraction)) {
+            return false;
+        }
+        if (cs.contains(this.c)) {
+            return false;
+        }
+        Set<Integer> copy = GTUtil.copyOf(cs);
+        copy.add(this.c);
+        GTGInteraction left = (GTGInteraction) this.left;
+        GTGInteraction right = (GTGInteraction) this.right;
+        return left.isInitialWellSet(copy) && right.isInitialWellSet(copy)
+                && left.getRoles().equals(right.getRoles())  // timeout participation
+                && this.other.equals(left.getSender()) && this.other.equals(right.getReceiver())
+                && this.observer.equals(left.getReceiver()) && this.observer.equals(right.getSender());
+    }
+
+    public Set<Role> getIndifferent() {
+        Set<Role> rs = getRoles();
+        Set<Role> copy = GTUtil.copyOf(rs);
+        copy.remove(this.other);
+        copy.remove(this.observer);
+        // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
+        return rs.stream().filter(x ->
+                        this.left.projectTop(rs, x).equals(this.right.projectTop(rs, x)))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrongDeps() {
+        Map<Role, Set<Role>> left = this.left.getStrongDeps();
+        Map<Role, Set<Role>> right = this.right.getStrongDeps();
+        Set<Role> rs = getRoles();
+        rs.remove(this.other);
+        rs.remove(this.observer);
+        Map<Role, Set<Role>> res = GTUtil.mapOf();
+        for (Role r : rs) {
+            if (!left.containsKey(r) || !right.containsKey(r)) {
+                res.put(r, GTUtil.setOf());
+                continue;
+            }
+            Set<Role> tmp = left.get(r);
+            tmp.retainAll(right.get(r));
+            res.put(r, tmp);
+        }
+        return res;
+    }
+
+    @Override
+    public boolean isAware(Theta theta) {
+        Set<Role> rs = getRoles();
+        rs.removeAll(getIndifferent());
+        Map<Role, Set<Role>> right = this.right.getStrongDeps();
+        for (Role r : rs) {
+            if (!right.get(r).contains(this.observer)) {
+                return false;
+            }
+        }
+
+        System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);
+
+        return this.left.isAware(theta) && this.right.isAware(theta);
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isChoicePartip() {
+        return this.left.isChoicePartip() && this.right.isChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        // !!! morally can prune if starting from initial
+        return this.left.isUniqueInstan(seen) && this.right.isUniqueInstan(seen);
+    }
+
+    @Override
+    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+        // Can morally just return true
+        return this.left.isRuntimeAware(mf, theta) && this.right.isRuntimeAware(mf, theta);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return this.left.isLeftCommitting(this.observer, com, getRoles());
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.left.isLeftCommitting(this.observer, com, getRoles())
+                && this.left.isLeftCommitting(obs, com, rem)
+                && this.right.isLeftCommitting(obs, com, rem);
+    }
+
     @Override
     public boolean isCoherent() {
+        // Morally can just return true
         return this.left.isCoherent() && this.right.isCoherent();
     }
+
+    /* ... */
 
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
@@ -275,12 +383,14 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return getCommittingTop();
+        //return getCommittingTop();
+        return getCommittingTop(com);
     }
 
     @Override
     public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return getCommittingTop();
+        //return getCommittingTop();
+        return getCommittingTop(com);
     }
 
     @Override
@@ -320,6 +430,11 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public GTGMixedChoice unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return GTUtil.union(this.left.getRoles(), this.right.getRoles());
     }
 
     @Override

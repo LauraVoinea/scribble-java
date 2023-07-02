@@ -6,6 +6,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.GTSModelFactoryImpl;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
@@ -48,6 +49,8 @@ public class GTGMixedActive implements GTGType {
                 new LinkedHashSet<>(committedRight));
     }
 
+    /* ... */
+
     // Does Sigma.circ -- cf. GTGInteraction
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
@@ -83,11 +86,101 @@ public class GTGMixedActive implements GTGType {
                 && this.left.isGood() && this.right.isGood();
     }
 
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return false;
+    }
+
+    @Override
+    public boolean isInitialWellSet(Set<Integer> cs) {
+        return false;
+    }
+
+    // Dup from GTGMixedChoice
+    public Set<Role> getIndifferent() {
+        Set<Role> rs = getRoles();
+        Set<Role> copy = GTUtil.copyOf(rs);
+        copy.remove(this.other);
+        copy.remove(this.observer);
+        // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
+        return rs.stream().filter(x ->
+                        this.left.projectTop(rs, x).equals(this.right.projectTop(rs, x)))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrongDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isAware(Theta theta) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isChoicePartip() {
+        return this.left.isChoicePartip() && this.right.isChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        Pair<Integer, Integer> p = Pair.of(this.c, this.n);
+        if (seen.contains(p)) {
+            return false;
+        }
+        Set<Pair<Integer, Integer>> copy = GTUtil.copyOf(seen);
+        copy.add(p);
+        return this.left.isUniqueInstan(copy) && this.right.isUniqueInstan(copy);
+    }
+
+    @Override
+    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+        if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
+            return this.left.getRoles().equals(this.right.getRoles());
+        }
+        Set<Role> rs = getRoles();
+        rs.removeAll(getIndifferent());
+
+        Set<SAction<DynamicActionKind>> as = getWeakActsTop(mf, theta);  // !!! CHECKME weak?
+
+        Set<Role> acting = as.stream().map(x -> x.subj).collect(Collectors.toSet());
+        for (Role r : rs) {
+            if (acting.contains(r)
+                    && !this.committedRight.contains(this.observer)) {  // !!! CHECKME this.observer (p)?  or r?
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        Set<Role> rs = GTUtil.copyOf(getRoles());
+        rs.removeAll(this.committedLeft);
+        return this.left.isLeftCommitting(this.observer, com, rs);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        Set<Role> rs = GTUtil.copyOf(getRoles());
+        rs.removeAll(this.committedLeft);
+        return this.left.isLeftCommitting(this.observer, com, rs)
+                && this.left.isLeftCommitting(obs, com, rem)
+                && this.right.isLeftCommitting(obs, com, rem);
+    }
+
     @Override
     public boolean isCoherent() {
         return (this.committedLeft.isEmpty() || this.committedRight.isEmpty())
                 && this.left.isCoherent() && this.right.isCoherent();
     }
+
+    /* ... */
 
     // Pre: this.committedLeft.contains(r) xor this.committedRight.contains(r)
     @Override
@@ -105,9 +198,12 @@ public class GTGMixedActive implements GTGType {
             Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r, this.c, this.n);
             Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r, this.c, this.n);
 
-            if (!(r.equals(this.other) || r.equals(this.observer))) {
+            if (!r.equals(this.other) && !r.equals(this.observer)) {
 
                 // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
+
+                System.out.println("bbbbbbb: " + this.left + " ,, " + this.right);
+                System.out.println("bbbbbbb: " + opt_l + " ,, " + opt_r);
 
                 if (!opt_l.isPresent() || !opt_r.isPresent()) {  // TODO refactor with below
                     return Optional.empty();
@@ -122,6 +218,8 @@ public class GTGMixedActive implements GTGType {
                 } else {
 
                     // TODO FIXME MC conditions?
+                    System.err.println("[Warning] TODO non-mergable MC projection conditions: "
+                            + opt_l + " ,, " + opt_r);
 
                 }
             }
@@ -375,6 +473,13 @@ public class GTGMixedActive implements GTGType {
     @Override
     public GTGMixedActive unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return GTUtil.union(
+                GTUtil.minus(this.left.getRoles(), this.committedRight),
+                GTUtil.minus(this.right.getRoles(), this.committedLeft));
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GTGWiggly implements GTGType {
 
@@ -63,10 +64,77 @@ public class GTGWiggly implements GTGType {
                 && this.cases.containsKey(this.op);  // !!!
     }
 
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return false;
+    }
+
+    @Override
+    public boolean isInitialWellSet(Set<Integer> cs) {
+        return false;
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrongDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isAware(Theta theta) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isChoicePartip() {
+        Set<Role> fst = this.cases.values().iterator().next().getRoles();
+        return this.cases.values().stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
+                && this.cases.values().stream().allMatch(GTGType::isChoicePartip);
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
+    }
+
+    @Override
+    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isRuntimeAware(mf, theta));
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        if (!com.contains(this.src) || rem.contains(this.dst)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
+    }
+
     @Override
     public boolean isCoherent() {
         return this.cases.values().stream().allMatch(GTGType::isCoherent);
     }
+
+    /* ... */
 
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
@@ -288,6 +356,13 @@ public class GTGWiggly implements GTGType {
     @Override
     public GTGWiggly unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return Stream.concat(Stream.of(this.dst),
+                        this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
+                .collect(Collectors.toSet());
     }
 
     @Override

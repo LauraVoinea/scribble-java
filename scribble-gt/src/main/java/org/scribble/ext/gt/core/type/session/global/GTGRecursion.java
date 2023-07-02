@@ -40,10 +40,61 @@ public class GTGRecursion implements GTGType {
         return this.body.isGood();
     }
 
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return this.body.isInitial();
+    }
+
+    @Override
+    public boolean isInitialWellSet(Set<Integer> cs) {
+        return this.body.isInitialWellSet(cs);
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrongDeps() {
+        return this.body.getStrongDeps();
+    }
+
+    @Override
+    public boolean isAware(Theta theta) {
+        return this.body.isAware(theta);
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isChoicePartip() {
+        return this.body.isChoicePartip();
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.body.isUniqueInstan(seen);
+    }
+
+    @Override
+    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+        return this.body.isRuntimeAware(mf, theta);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommitting(com, rem);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommitting(obs, com, rem);
+    }
+
     @Override
     public boolean isCoherent() {
         return this.body.isCoherent();
     }
+
+    /* ... */
 
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
@@ -129,6 +180,11 @@ public class GTGRecursion implements GTGType {
     @Override
     public GTGType unfoldAllOnce() {
         return this.body.subs(GTUtil.mapOf(this.var, this)).unfoldAllOnce();
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return this.body.getRoles();
     }
 
     @Override

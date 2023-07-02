@@ -29,11 +29,55 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
+    @Deprecated
     boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
+
+    @Deprecated
+    boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
+
+    // well-set -- init WF
+    // coherence -- run-time invariant (lemma 3)
+
+    // ...G aware Theta -- all t in G aware Theta
+
+    // lemma 4: "aware" + coherent => progress
+    // theorem 1: well-set + choice-participation => progress
+
+    // "awareness properties" -- run-time invariant (lemma 2)
+
+    /* ... */
+
+    boolean isInitial();
+
+    default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
+
+    boolean isInitialWellSet(Set<Integer> cs);
+
+    Map<Role, Set<Role>> getStrongDeps();
+
+    // CHECKME: Theta not used for "static" version?
+    boolean isAware(Theta theta);
+
+    /* ... */
+
+    boolean isChoicePartip();  // "dynamic" choice-partipication, cf. initial well-set
+
+    default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
+
+    boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
+
+    boolean isRuntimeAware(GTSModelFactory mf, Theta theta);  // FIXME refactor mf out of params
+
+    // !!! cf. LHS weak-deps to obs
+    default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
+
+    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);
+
+    boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem);
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
-    boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
+    /* ... */
 
     default Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> rs, Role r) {
         return project(rs, r, GTLType.c_TOP, GTLType.n_INIT);
@@ -152,7 +196,9 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
 
-    Set<Integer> getTimeoutIds();
+    Set<Role> getRoles();
+
+    Set<Integer> getTimeoutIds();  // c's
 
     Set<Op> getOps();
 }

@@ -157,6 +157,18 @@ public class GTUtil {
         return res;
     }
 
+    public static <T> LinkedHashSet<T> minus(Set<T> s1, Set<T> s2) {
+        LinkedHashSet<T> res = copyOf(s1);
+        res.removeAll(s2);
+        return res;
+    }
+
+    public static <T> LinkedHashSet<T> intersect(Set<T> s1, Set<T> s2) {
+        LinkedHashSet<T> res = copyOf(s1);
+        res.retainAll(s2);
+        return res;
+    }
+
     /* ... */
 
     public static <T> Set<T> umodUnion(Set<T> s1, Set<T> s2) {

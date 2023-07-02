@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.cli.CommandLineException;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
@@ -53,10 +54,104 @@ public class GTGInteraction implements GTGType {
         return this.cases.values().stream().allMatch(GTGType::isGood);
     }
 
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return this.cases.values().stream().allMatch(GTGType::isInitial);
+    }
+
+    @Override
+    public boolean isInitialWellSet(Set<Integer> cs) {
+        Set<Role> fst = this.cases.values().iterator().next().getRoles();
+        return this.cases.values().stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))  // "static" choice participation (cf. wiggly)
+                && this.cases.values().stream().allMatch(x -> x.isInitialWellSet(cs));
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrongDeps() {
+        Set<Role> rs = getRoles();
+        Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
+                .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
+
+        Map<Role, Set<Role>> res = GTUtil.mapOf();
+        for (Role r : rs) {
+            Iterator<Map<Role, Set<Role>>> it = nested.iterator();
+            Map<Role, Set<Role>> fst = it.next();
+            Set<Role> tmp = fst.containsKey(r) ? fst.get(r) : GTUtil.setOf();
+            while (it.hasNext()) {
+                Map<Role, Set<Role>> next = it.next();
+                if (!next.containsKey(r)) {
+                    tmp = GTUtil.setOf();
+                    break;
+                }
+                tmp.retainAll(next.get(r));
+            }
+            if (r.equals(this.dst)) {
+                tmp.add(this.src);
+            } else if (tmp.contains(this.dst)) {
+                tmp.add(this.src);
+            }
+            res.put(r, tmp);
+        }
+
+        return res;
+    }
+
+    @Override
+    public boolean isAware(Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAware(theta));
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isChoicePartip() {
+        Set<Role> fst = this.cases.values().iterator().next().getRoles();
+        return this.cases.values().stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
+                && this.cases.values().stream().allMatch(GTGType::isChoicePartip);
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
+    }
+
+    @Override
+    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isRuntimeAware(mf, theta));
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        if (!com.contains(this.src) || rem.contains(this.dst)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
+    }
+
     @Override
     public boolean isCoherent() {
         return this.cases.values().stream().allMatch(GTGType::isCoherent);
     }
+
+    /* ... */
 
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
@@ -347,6 +442,21 @@ public class GTGInteraction implements GTGType {
     @Override
     public GTGInteraction unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return Stream.concat(Stream.of(this.src, this.dst),
+                        this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
+                .collect(Collectors.toSet());
+    }
+
+    public Role getSender() {
+        return this.src;
+    }
+
+    public Role getReceiver() {
+        return this.dst;
     }
 
     @Override
