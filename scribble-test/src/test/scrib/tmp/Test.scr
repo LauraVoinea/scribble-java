@@ -434,10 +434,13 @@ global protocol Proto1(role A, role B) {
 
 
 
-/*
+//*
 global protocol Proto1(role A, role B) {
     mixed {
-
+        l1() from A to B;
+        l2() from B to A;
+    } () or A->B () {
+        r1() from B to A;
          //...local reduction needs message discarding cf. global projection discards left/right containing wigglys
          //!!! message to discard may arrive async after local left/right discarded... -- probably need general message discarding rule
     }
@@ -505,7 +508,7 @@ global protocol Proto1(role A, role B, role C) {
 }
 //*/
 
-//*
+/*
 global protocol Proto1(role A, role B, role C) {
     mixed {
         1() from A to B;  5() from A to C;  5b() from C to A;  6() from B to C;  6b() from B to A;

@@ -2,6 +2,7 @@ package org.scribble.ext.gt.core.model;
 
 import org.scribble.ast.global.GProtoDecl;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
@@ -45,14 +46,17 @@ public class GTCorrespondence {
     /* ... */
 
     // Checks projection correspondence between global and local
-    public void check(String indent) {
+    public void check(GTSModelFactory mf, String indent) {
 
         if (!this.roles.equals(this.local.configs.keySet())) {
             throw new RuntimeException("Roles mismatch: roles=" + this.roles + ", locals=" + this.local.configs.keySet());
         }
 
-        if (!this.global.isGood()) {
+        /*if (!this.global.isGood()) {
             throw new RuntimeException("Not good: " + this.global);
+        }*/
+        if (!this.global.isRuntimeAware(mf, this.theta)) {
+            throw new RuntimeException("Not aware: " + this.global);
         }
         if (!this.global.isCoherent()) {
             throw new RuntimeException("Not coherent: " + this.global);

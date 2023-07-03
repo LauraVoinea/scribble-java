@@ -58,8 +58,18 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isAware(Theta theta) {
-        return this.body.isAware(theta);
+    public boolean isInitialAware(Theta theta) {
+        return this.body.isInitialAware(theta);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommitting(com, rem);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommitting(obs, com, rem);
     }
 
     /* ... */
@@ -77,16 +87,6 @@ public class GTGRecursion implements GTGType {
     @Override
     public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
         return this.body.isRuntimeAware(mf, theta);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommitting(com, rem);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommitting(obs, com, rem);
     }
 
     @Override

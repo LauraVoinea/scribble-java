@@ -9,16 +9,13 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
-import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GTGMixedChoice implements GTGType {
 
@@ -121,19 +118,37 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isAware(Theta theta) {
+    public boolean isInitialAware(Theta theta) {
         Set<Role> rs = getRoles();
         rs.removeAll(getIndifferent());
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
+
+        rs.remove(this.observer);  // !!! CHECKME
+
         for (Role r : rs) {
-            if (!right.get(r).contains(this.observer)) {
+            if (!right.get(r).contains(this.observer)) {  // only single-decision -- !!! clear-termination approx by isLeftCommitting
                 return false;
             }
         }
 
-        System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);
+        //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isAware(theta) && this.right.isAware(theta);
+        return this.left.isInitialAware(theta) && this.right.isInitialAware(theta);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+
+        System.out.println("eeeeeee: " + this.left.isLeftCommitting(this.observer, com, getRoles()));
+
+        return this.left.isLeftCommitting(this.observer, com, getRoles());
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.left.isLeftCommitting(obs, com, rem)
+                && this.right.isLeftCommitting(obs, com, rem)
+                && isLeftCommitting(com, getRoles());
     }
 
     /* ... */
@@ -153,18 +168,6 @@ public class GTGMixedChoice implements GTGType {
     public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
         // Can morally just return true
         return this.left.isRuntimeAware(mf, theta) && this.right.isRuntimeAware(mf, theta);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommitting(this.observer, com, getRoles());
-    }
-
-    @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommitting(this.observer, com, getRoles())
-                && this.left.isLeftCommitting(obs, com, rem)
-                && this.right.isLeftCommitting(obs, com, rem);
     }
 
     @Override

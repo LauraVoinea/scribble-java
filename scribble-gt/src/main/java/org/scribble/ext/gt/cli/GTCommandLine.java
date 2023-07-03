@@ -103,13 +103,26 @@ public class GTCommandLine extends CommandLine {
 
             for (GProtoDecl g : m.getGProtoDeclChildren()) {
 
-                GTGType translate = new GTGTypeTranslator3().translate(g.getDefChild().getBlockChild().getInteractSeqChild());
+                GTGType translate = new GTGTypeTranslator3().translate(
+                        g.getDefChild().getBlockChild().getInteractSeqChild());
                 Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
 
-                System.out.println("\n[GTCommandLine] Translated " + g.getHeaderChild().getDeclName() + ": " + translate);
+                System.out.println("\n[GTCommandLine] Translated "
+                        + g.getHeaderChild().getDeclName() + ": " + translate);
 
-                if (!translate.isSinglePointed()) {  // FIXME latest global WF
+                /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
                     System.err.println("Not single pointed: " + translate);
+                } else*/
+                if (!translate.isInitialWellSet()) {
+                    System.err.println("Not initial and well-set: " + translate);
+                }
+
+                // initial awareness
+                else if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
+                    System.err.println("Not initial awareness (single-decision): " + translate);
+                } else if (!translate.isLeftCommitting()) {
+                    System.err.println("Not left-committing (initial awareness, clear-termination): " + translate);
+
                 } else {
                     GTCorrespondence s = new GTCorrespondence(rs, translate);
                     Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
@@ -156,10 +169,10 @@ public class GTCommandLine extends CommandLine {
 
         System.out.println("\n" + indent + "Checking (" + mystep + "):\n" + s.toString(indent));
 
-        s.check(indent + "    ");
-
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
+
+        s.check(mf, indent + "    ");
 
         Set<SAction<DynamicActionKind>> as =
 

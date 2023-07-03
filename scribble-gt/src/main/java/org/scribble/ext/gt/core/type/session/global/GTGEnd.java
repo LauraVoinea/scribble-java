@@ -56,8 +56,18 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isAware(Theta theta) {
+    public boolean isInitialAware(Theta theta) {
         return true;
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();
     }
 
     /* ... */
@@ -75,16 +85,6 @@ public class GTGEnd implements GTGType {
     @Override
     public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
         return true;
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
-
-    @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
     }
 
     @Override

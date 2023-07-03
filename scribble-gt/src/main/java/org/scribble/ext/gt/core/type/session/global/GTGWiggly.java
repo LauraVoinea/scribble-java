@@ -82,7 +82,33 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isAware(Theta theta) {
+    public boolean isInitialAware(Theta theta) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        /*if (!com.contains(this.src) || rem.contains(this.dst)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));*/
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        /*if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));*/
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
@@ -103,30 +129,6 @@ public class GTGWiggly implements GTGType {
     @Override
     public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
         return this.cases.values().stream().allMatch(x -> x.isRuntimeAware(mf, theta));
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        if (!com.contains(this.src) || rem.contains(this.dst)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
-    }
-
-    @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
     }
 
     @Override

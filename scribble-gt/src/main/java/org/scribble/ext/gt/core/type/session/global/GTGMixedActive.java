@@ -116,7 +116,25 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isAware(Theta theta) {
+    public boolean isInitialAware(Theta theta) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        /*Set<Role> rs = GTUtil.copyOf(getRoles());
+        rs.removeAll(this.committedLeft);
+        return this.left.isLeftCommitting(this.observer, com, rs);*/
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        /*Set<Role> rs = GTUtil.copyOf(getRoles());
+        rs.removeAll(this.committedLeft);
+        return this.left.isLeftCommitting(this.observer, com, rs)
+                && this.left.isLeftCommitting(obs, com, rem)
+                && this.right.isLeftCommitting(obs, com, rem);*/
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
@@ -141,8 +159,9 @@ public class GTGMixedActive implements GTGType {
     @Override
     public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
         if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
-            return this.left.getRoles().equals(this.right.getRoles());
+            return this.left.getRoles().equals(this.right.getRoles());  // awareness (2)
         }
+
         Set<Role> rs = getRoles();
         rs.removeAll(getIndifferent());
 
@@ -151,27 +170,11 @@ public class GTGMixedActive implements GTGType {
         Set<Role> acting = as.stream().map(x -> x.subj).collect(Collectors.toSet());
         for (Role r : rs) {
             if (acting.contains(r)
-                    && !this.committedRight.contains(this.observer)) {  // !!! CHECKME this.observer (p)?  or r?
+                    && !this.committedRight.contains(this.observer)) {  // awareness (1)  // !!! CHECKME this.observer (p)?  or r?
                 return false;
             }
         }
         return true;
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        Set<Role> rs = GTUtil.copyOf(getRoles());
-        rs.removeAll(this.committedLeft);
-        return this.left.isLeftCommitting(this.observer, com, rs);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        Set<Role> rs = GTUtil.copyOf(getRoles());
-        rs.removeAll(this.committedLeft);
-        return this.left.isLeftCommitting(this.observer, com, rs)
-                && this.left.isLeftCommitting(obs, com, rem)
-                && this.right.isLeftCommitting(obs, com, rem);
     }
 
     @Override
@@ -477,6 +480,9 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public Set<Role> getRoles() {
+
+        // !!! key design point: not including committed sets in of themselves -- cf. all properties predicated on roles(G), e.g., aware
+
         return GTUtil.union(
                 GTUtil.minus(this.left.getRoles(), this.committedRight),
                 GTUtil.minus(this.right.getRoles(), this.committedLeft));

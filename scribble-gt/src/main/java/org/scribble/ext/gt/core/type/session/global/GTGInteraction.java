@@ -1,6 +1,5 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.cli.CommandLineException;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
@@ -63,9 +62,17 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
-        Set<Role> fst = this.cases.values().iterator().next().getRoles();
-        return this.cases.values().stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))  // "static" choice participation (cf. wiggly)
-                && this.cases.values().stream().allMatch(x -> x.isInitialWellSet(cs));
+        if (this.cases.size() == 1) {
+            return true;
+        }
+        GTGType fst = this.cases.values().iterator().next();
+        if (!fst.isInitialWellSet(cs)) {
+            return false;
+        }
+        Set<Role> rs = fst.getRoles();
+        return this.cases.values().stream().skip(1).allMatch(x ->
+                x.getRoles().equals(rs)  // "static" choice participation (cf. wiggly)
+                        && x.isInitialWellSet(cs));
     }
 
     @Override
@@ -99,8 +106,32 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isAware(Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAware(theta));
+    public boolean isInitialAware(Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isInitialAware(theta));
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        if (!com.contains(this.src) || rem.contains(this.dst)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
+    }
+
+    @Override
+    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+        if (!rem.contains(this.dst) || (!com.contains(this.src) && !this.dst.equals(obs))) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        }
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(obs, c_copy, r_copy));
     }
 
     /* ... */
@@ -120,30 +151,6 @@ public class GTGInteraction implements GTGType {
     @Override
     public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
         return this.cases.values().stream().allMatch(x -> x.isRuntimeAware(mf, theta));
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        if (!com.contains(this.src) || rem.contains(this.dst)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
-    }
-
-    @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
     }
 
     @Override

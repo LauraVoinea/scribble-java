@@ -56,7 +56,15 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Map<Role, Set<Role>> getStrongDeps();
 
     // CHECKME: Theta not used for "static" version?
-    boolean isAware(Theta theta);
+    // !!! currently just single-decision -- clear-termination approx by isLeftCommitting
+    boolean isInitialAware(Theta theta);
+
+    // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
+    default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
+
+    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);
+
+    boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem);
 
     /* ... */
 
@@ -67,13 +75,6 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
 
     boolean isRuntimeAware(GTSModelFactory mf, Theta theta);  // FIXME refactor mf out of params
-
-    // !!! cf. LHS weak-deps to obs
-    default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
-
-    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);
-
-    boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem);
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
