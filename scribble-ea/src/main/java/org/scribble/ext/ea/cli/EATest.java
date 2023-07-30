@@ -74,19 +74,20 @@ public class EATest {
         Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
                 tests = EAUtil.mapOf();
 
-        //origTests(tests);
+        origTests(tests);
 
-        //tests.put("ex11", EATest::ex11);
-        //tests.put("ex12", EATest::ex12);
-        //tests.put("ex13", EATest::ex13);
-        //tests.put("ex14", EATest::ex14);  // Very slow if B3/4 added
+        // HOPE testing (incl. reg + spawn)
+        tests.put("ex11", EATest::ex11);
+        tests.put("ex12", EATest::ex12);
+        tests.put("ex13", EATest::ex13);
+        tests.put("ex14", EATest::ex14);  // Very slow if B3/4 added
         //tests.put("ex15", EATest::ex15);  // Very slow
-        //tests.put("ex16", EATest::ex16);
+        ////tests.put("ex16", EATest::ex16);  // WIP
 
-        //tests.put("ex4", EATest::ex4);
+        // ...fixing rec (sub)typing
+        /*tests.put("ex4", EATest::ex4);
         tests.put("ex5", EATest::ex5);
-        //tests.put("ex14", EATest::ex14);
-        //HERE HERE fix rec typing(mu types inside handlers)
+        tests.put("ex14", EATest::ex14);*/
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -120,7 +121,7 @@ public class EATest {
 
     /* ... HOPE examples ... */
 
-    // WIP ?
+    // WIP ? -- currently returns null
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex16(
             boolean debug) {
 
@@ -722,10 +723,10 @@ public class EATest {
         // ---
 
         String h1s = "Handler (Int, " + in1us + ")";
-        String htsB = "{" + in1us + "} 1 -> " + h1s + " {" + recXBs + "}";
+        String htsB = "{" + recXBs + "} 1 -> " + h1s + " {" + recXBs + "}";
         EAMLet leth = (EAMLet) EACommandLine.parseM(
                 "let h: " + htsB + " <= return"
-                        + "  (rec f {  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} . return handler A {"
+                        + "  (rec f {  " + recXBs + "} (w1: 1):" + h1s + "{" + recXBs + "} . return handler A {"
                         + "    {" + out2mus + "} d: Int, l1(w2: 1) "
 
                         /*//+ " |-> let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42 })"  // run forever -- old
@@ -794,10 +795,10 @@ public class EATest {
         String in1us = "A?{l1(1)." + out2mus + ", l4(1).end}";
         String h1s = "Handler (Int, " + in1us + ")";
 
-        String htsB = "{" + in1us + "} 1 -> " + h1s + " {" + recXBs + "}";
+        String htsB = "{" + recXBs + "} 1 -> " + h1s + " {" + recXBs + "}";
         EAMLet leth = (EAMLet) EACommandLine.parseM(
                 "let h: " + htsB + " <= return"
-                        + "  (rec f{  " + in1us + "} (w1: 1):" + h1s + "{" + recXBs + "} . return handler A {"
+                        + "  (rec f{ " + recXBs + "} (w1: 1):" + h1s + "{" + recXBs + "} . return handler A {"
                         + "    {" + out2mus + "} d: Int, l1(w2: 1) |->"
                         + "      let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42,"
                         + "    {end} d: Int, l4(w4: 1) |-> return d"
@@ -875,12 +876,12 @@ public class EATest {
         String recXAs = "mu X . B?{l2(1).B!{l1(1).X}, l3(1).end}";
         String out1us = "B!{l1(1)." + recXAs + "}";
         String in2us = "B?{l2(1)." + out1us + ", l3(1).end}";
-        String h2s = "Handler(Int, " + in2us + ")";
+        String h2s = "Handler(Int, " + in2us + ")";  // can also be recXAs
 
-        String ftAs = "{" + in2us + "} 1 -> " + h2s + " {" + recXAs + "}";
+        String ftAs = "{" + recXAs + "} 1 -> " + h2s + " {" + recXAs + "}";
         EAMLet lethA = (EAMLet) EACommandLine.parseM(
                 "let h : " + ftAs + " <= return"
-                        + "  (rec f {" + in2us + "} (w1 :1): " + h2s + " {" + recXAs + "} . return handler B {"
+                        + "  (rec f {" + recXAs + "} (w1 :1): " + h2s + " {" + recXAs + "} . return handler B {"
                         + "    {" + out1us + "} d: Int, l2(w2: 1) |->"
                         + "      let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z 42, "
                         + "    {end} d: Int, l3(w2: 1) |-> return d"
@@ -890,12 +891,12 @@ public class EATest {
         String recXBs = "mu X . A?{ l1(1) . A!{ l2(1) . X, l3(1).end }}";
         String out2us = "A!{l2(1) . " + recXBs + ", l3(1) . end }";
         String in1us = "A?{l1(1) . " + out2us + "}";
-        String h1s = "Handler(Int, " + in1us + ")";
+        String h1s = "Handler(Int, " + in1us + ")";  // can also be recXBs
 
-        String fts = "{" + in1us + "} 1 -> " + h1s + "{" + recXBs + "}";
+        String fts = "{" + recXBs + "} 1 -> " + h1s + "{" + recXBs + "}";
         EAMLet leth = (EAMLet) EACommandLine.parseM(
                 "let h: " + fts + " <= return"
-                        + "  (rec f {" + in1us + "} (w1: 1): " + h1s + " {" + recXBs + "} . return handler A {"
+                        + "  (rec f {" + recXBs + "} (w1: 1): " + h1s + " {" + recXBs + "} . return handler A {"
                         + "    {" + out2us + "} d: Int, l1(w2: 1) |-> let y: 1 <= A!l3(()) in return d"
                         + "  }) "
                         + "in let hh: " + h1s + " <= [h ()] in suspend hh 43");
@@ -1138,7 +1139,7 @@ public class EATest {
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X}}";
         String out1us = "B!{l1(1)." + recXAs + "}";
         String in2us = "B?{l2(1)." + out1us + "}";  // unfolding of recXA
-        String h2s = "Handler (Int, " + recXAs + ")";
+        String h2s = "Handler (Int, " + in2us + ")";  // can also be recXAs
 
         String hts = "{" + recXAs + "} 1 -> " + h2s + "{" + recXAs + "}";
         EAMLet lethA = (EAMLet) EACommandLine.parseM(
@@ -1152,7 +1153,7 @@ public class EATest {
         String recXBs = "mu X.A?{l1(1).A!{l2(1).X}}";
         String out2mus = "A!{l2(1)." + recXBs + "}";
         String in1us = "A?{l1(1)." + out2mus + "}";
-        String h1s = "Handler (Int, " + recXBs + ")";
+        String h1s = "Handler (Int, " + in1us + ")";  // can also be recXBs
 
         String htsB = "{" + recXBs + "} 1 -> " + h1s + " {" + recXBs + "}";
         EAMLet leth = (EAMLet) EACommandLine.parseM(
