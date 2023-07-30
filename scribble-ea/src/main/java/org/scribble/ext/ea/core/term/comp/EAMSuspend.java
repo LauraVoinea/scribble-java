@@ -35,9 +35,9 @@ public class EAMSuspend implements EAComp {
     //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
     public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(GammaState gamma, EALType pre) {
         //if (!(pre instanceof EALInType)) {
-        if (!EAMApp.isInType(pre)) {  // Could be a rec type
+        if (!EALType.isInType(pre)) {  // Could be a rec type
             //throw new RuntimeException("Expected in type, not: " + pre);
-            return Either.left(new Exception("Expected in type, not: " + pre));
+            return Either.left(new Exception("Expected in type, not: " + pre + "\n\t" + this));
         }
         //EAVType t = this.val.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> r = this.val.type(gamma);
@@ -55,10 +55,11 @@ public class EAMSuspend implements EAComp {
             //throw new RuntimeException("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType);
             return Either.left(new Exception("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType));
         }
+
+        EALType.subtype(cast.S, pre);  // !!! need "subtype" for run-time type pres  // FIXME use Either
         /*if (!(cast.S.equals(pre))) {
-            throw new RuntimeException("Incompatible in type: " + pre + ", " + cast.S);
+            return Either.left(new Exception("Incompatible pre type: " + pre + ", " + cast.S + "\n\t" + this));
         }*/
-        EALType.subtype(cast.S, pre);  // FIXME use Either
 
         //EAVType t_s = this.sval.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> r_s = this.sval.type(gamma);
@@ -161,8 +162,8 @@ public class EAMSuspend implements EAComp {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAMSuspend eaVar = (EAMSuspend) o;
         return eaVar.canEquals(this) && this.val.equals(eaVar.val)
                 && this.sval.equals(eaVar.sval);

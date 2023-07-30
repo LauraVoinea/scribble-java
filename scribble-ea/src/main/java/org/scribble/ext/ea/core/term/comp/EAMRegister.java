@@ -52,6 +52,7 @@ public class EAMRegister implements EAComp {
             return Either.left(new Exception("Unknown role " + this.role + " in :" + t_ap));
         }
 
+        System.out.println("11111111: " + this + " ,, " + t_ap.roles.get(this.role));
         Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type =
                 this.M.type(gamma, t_ap.roles.get(this.role));
         if (type.isLeft()) {
@@ -67,7 +68,7 @@ public class EAMRegister implements EAComp {
         }
 
         return Either.right(Pair.of(
-                get.left,
+                Pair.of(get.left.left, pre),  // TODO FIXME value type should correspond with state type
                 Tree.of("[T-Register] " + toTypeJudgeString(
                         gamma, pre, get.left.left, get.left.right), get.right)
         ));

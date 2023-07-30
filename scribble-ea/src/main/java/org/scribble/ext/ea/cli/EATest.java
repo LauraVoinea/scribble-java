@@ -16,7 +16,6 @@ import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.*;
 import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVIntType;
-import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.EAUtil;
 import org.scribble.ext.ea.util.Either;
@@ -46,9 +45,12 @@ public class EATest {
     static final Role B2 = new Role("B2");
     static final Role S = new Role("S");
     static final EASid s = RF.sid("s");
+    static final EAPid p0 = RF.pid("p0");
     static final EAPid p1 = RF.pid("p1");
     static final EAPid p2 = RF.pid("p2");
     static final EAPid p3 = RF.pid("p3");
+    static final EAPid p4 = RF.pid("p4");
+    static final EAPid p5 = RF.pid("p5");
     //static final EAEVar x = MF.var("x");
 
     static final EAEAPName c = MF.ap("c");
@@ -77,7 +79,14 @@ public class EATest {
         //tests.put("ex11", EATest::ex11);
         //tests.put("ex12", EATest::ex12);
         //tests.put("ex13", EATest::ex13);
-        tests.put("ex14", EATest::ex14);
+        //tests.put("ex14", EATest::ex14);  // Very slow if B3/4 added
+        //tests.put("ex15", EATest::ex15);  // Very slow
+        //tests.put("ex16", EATest::ex16);
+
+        //tests.put("ex4", EATest::ex4);
+        tests.put("ex5", EATest::ex5);
+        //tests.put("ex14", EATest::ex14);
+        //HERE HERE fix rec typing(mu types inside handlers)
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -109,9 +118,266 @@ public class EATest {
         //ex9(lf, pf, rf, tf);  // TODO neg runTest (check FAIL)
     }
 
+    /* ... HOPE examples ... */
 
-    /* ... */
+    // WIP ?
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex16(
+            boolean debug) {
 
+        EALType quoteHandler = EACommandLine.parseSessionType("B2!{share(Int).end}");
+        EALType t_B1 = EACommandLine.parseSessionType(
+                "S!{title(Bool).S?{quote(Int)." + quoteHandler + "}}");
+        EALType shareHandler = EACommandLine.parseSessionType(
+                "S!{address(Bool).S?{date(Bool).end}, quit(1).end}");
+        EALType t_B2 = EACommandLine.parseSessionType(
+                "B1?{share(Int)." + shareHandler + "}");
+        EALType decisionHandler = EACommandLine.parseSessionType("B2!{date(Bool).end}");
+        EALType titleHandler = EACommandLine.parseSessionType(
+                "B1!{quote(Int)."
+                        + "B2?{address(Bool)." + decisionHandler + ","
+                        + "    quit(1).end}"
+                        + "}");
+        EALType t_S = EACommandLine.parseSessionType(
+                "B1?{title(Bool)." + titleHandler + "}");
+
+        System.out.println("t_B1 " + t_B1);
+        System.out.println("t_B2 " + t_B2);
+        System.out.println("t_S " + t_S);
+
+        EAComp m_B1 = EACommandLine.parseM("register ap B1 "
+                + "let x1: 1 <= S!title(true) in "
+                + "  suspend handler S"
+                + "    { {" + quoteHandler + "} z: 1, quote(amount: Int) |-> "
+                + "      let x2: 1 <= B2!share(amount) in return ()"
+                + "    }"
+                + "    ()");
+
+        EAComp m_B2 = EACommandLine.parseM("register ap B2 "
+                + "suspend handler B1"
+                + "  { {" + shareHandler + "} z: 1, share(amount: Int) |-> "
+                + "    if true then"
+                + "      let x1: 1 <= S!quit(()) in return ()"
+                + "    else"
+                + "      let x2: 1 <= S!address(true) in "
+                + "        suspend handler S"
+                + "          { {end} z: 1, date(d: Bool) |-> return ()"
+                + "          }"
+                + "          ()"
+                + "  }"
+                + "  ()");
+
+//        String ftAs = "{" + in2us + "} 1 -> " + h2s + " {" + recXAs + "}";
+//        "let h : " + ftAs + " <= return"
+//                + "  (rec f {" + in2us + "} (w1 :1): " + h2s + " {" + recXAs + "} . return handler B {"
+//                + "    {" + out1us + "} d: Int, l2(w2: 1) |->"
+//                + "      let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z 42, "
+//                + "    {end} d: Int, l3(w2: 1) |-> return d"
+//                + "  }) "
+//                + "in let w1: 1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh 42");
+
+        //EACommandLine.parseA("");
+        /*EAComp m_S = EACommandLine.parseM("let install: {end} 1 -> 1 {end} <= return (rec f {end} (w: 1): 1 {end} . "   // HERE HERE hardcoded end pre type XXX, cf. f() below needs t_S pre
+                // XXX end for top-level bootstrap, but {t_S} inside the recursive scope
+                // ...need polymorphism on func effects to write this way -- cf. S, T cannot be tyvar
+
+                + "  register ap S "
+                + "  let x0: 1 <= [f ()] in"  // !!! this is an init CB -- when this CB is fired, call install to reg AP and (re-)install init CB (done once for every time existing CB is fired) -- re-reg/install doesn't block (of course)
+                + "    suspend handler B1"
+                + "      { {" + titleHandler + "} z: 1, title(x: Bool) |-> "
+                + "        let x1: 1 <= B1!quote(42) in"
+                + "          suspend handler B2"
+                + "            { {" + decisionHandler + "} z: 1, address(addr: Bool) |->"
+                + "                let x2: 1 <= B2!date(false) in return (),"
+                + "              {end} z: 1, quit(y: 1) |->"
+                + "                return ()"
+                + "            }"
+                + "            ()"
+                + "      }"
+                + "      ())"
+                + "in [install ()]");*/
+
+        /*EAComp m_S = EACommandLine.parseM("let install: {" + t_S + "} 1 -> 1 {end} <= return (rec f {" + t_S + "} (w: 1): 1 {end} . "
+                + "  register ap S "
+                + "  let x0: 1 <= [f ()] in"  // !!! this is an init CB -- when this CB is fired, call install to reg AP and (re-)install init CB (done once for every time existing CB is fired) -- re-reg/install doesn't block (of course)
+                + "    suspend handler B1"
+                + "      { {" + titleHandler + "} z: 1, title(x: Bool) |-> "
+                + "        let x1: 1 <= B1!quote(42) in"
+                + "          suspend handler B2"
+                + "            { {" + decisionHandler + "} z: 1, address(addr: Bool) |->"
+                + "                let x2: 1 <= B2!date(false) in return (),"
+                + "              {end} z: 1, quit(y: 1) |->"
+                + "                return ()"
+                + "            }"
+                + "            ()"
+                + "      }"
+                + "      ())"
+                + "in return ()");*/
+        EAComp m_S = EACommandLine.parseM("register ap S "
+
+                + "  [ (rec f {" + t_S + "} (w: 1): 1 {end} . "
+
+                + "      let x: 1 <= register ap S [f ()] in "
+
+                + "        suspend handler B1"
+                + "          { {" + titleHandler + "} z: 1, title(x: Bool) |-> "
+                + "            let x1: 1 <= B1!quote(42) in"
+                + "              suspend handler B2"
+                + "                { {" + decisionHandler + "} z: 1, address(addr: Bool) |->"
+                + "                    let x2: 1 <= B2!date(false) in return (),"
+                + "                  {end} z: 1, quit(y: 1) |->"
+                + "                    return ()"
+                + "                }"
+                + "                ()"
+                + "          }"
+                + "          ())"
+                + "    () ]");
+
+        EACActor p_S = RF.actor(p0, RF.noSessionThread(m_S), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_S.pid + " = " + p_S);
+
+        /*EACActor p_B1 = RF.actor(p1, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B1.pid + " = " + p_B1);
+        EACActor p_B2 = RF.actor(p2, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B2.pid + " = " + p_B2);
+        EACActor p_S = RF.actor(p0, RF.noSessionThread(m_S), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_S.pid + " = " + p_S);
+
+        EACActor p_B3 = RF.actor(p3, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B3.pid + " = " + p_B3);
+        EACActor p_B4 = RF.actor(p4, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B4.pid + " = " + p_B4);
+
+        //--------------
+*/
+        Gamma gamma = new Gamma(EAUtil.mapOf(ap, TF.val.ap(EAUtil.mapOf(B1, t_B1, B2, t_B2, S, t_S))),  // FIXME safety check for APs
+                EAUtil.mapOf());
+//        EACommandLine.typeCheckActor(p_B1, gamma, new Delta());
+//        EACommandLine.typeCheckActor(p_B2, gamma, new Delta());
+//        EACommandLine.typeCheckActor(p_B3, gamma, new Delta());
+//        EACommandLine.typeCheckActor(p_B4, gamma, new Delta());
+        EACommandLine.typeCheckActor(p_S, gamma, new Delta());
+
+        // ----
+
+        /*
+        Delta delta = new Delta();
+        LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(p_B1.pid, p_B1, p_B2.pid, p_B2, p_S.pid, p_S);
+        //cs = EAUtil.mapOf(cs, p_B3.pid, p_B3, p_B4.pid, p_B4);  // Very slow
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
+                EAUtil.mapOf(ap, EAUtil.mapOf(
+                        B1, Pair.of(t_B1, EAUtil.listOf()),
+                        B2, Pair.of(t_B2, EAUtil.listOf()),
+                        S, Pair.of(t_S, EAUtil.listOf())));  // // FIXME >=2 roles
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
+
+        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1), gamma);*/
+        return null;
+    }
+
+    // With "main" -- slow even without B3/B4
+    private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex15(
+            boolean debug) {
+
+        EALType quoteHandler = EACommandLine.parseSessionType("B2!{share(Int).end}");
+        EALType t_B1 = EACommandLine.parseSessionType(
+                "S!{title(Bool).S?{quote(Int)." + quoteHandler + "}}");
+        EALType shareHandler = EACommandLine.parseSessionType(
+                "S!{address(Bool).S?{date(Bool).end}, quit(1).end}");
+        EALType t_B2 = EACommandLine.parseSessionType(
+                "B1?{share(Int)." + shareHandler + "}");
+        EALType decisionHandler = EACommandLine.parseSessionType("B2!{date(Bool).end}");
+        EALType titleHandler = EACommandLine.parseSessionType(
+                "B1!{quote(Int)."
+                        + "B2?{address(Bool)." + decisionHandler + ","
+                        + "    quit(1).end}"
+                        + "}");
+        EALType t_S = EACommandLine.parseSessionType(
+                "B1?{title(Bool)." + titleHandler + "}");
+
+        System.out.println("t_B1 " + t_B1);
+        System.out.println("t_B2 " + t_B2);
+        System.out.println("t_S " + t_S);
+
+        String m_B1 = "register ap B1 "
+                + "let x1: 1 <= S!title(true) in "
+                + "  suspend handler S"
+                + "    { {" + quoteHandler + "} z: 1, quote(amount: Int) |-> "
+                + "      let x2: 1 <= B2!share(amount) in return ()"
+                + "    }"
+                + "    ()";
+
+        String m_B2 = "register ap B2 "
+                + "suspend handler B1"
+                + "  { {" + shareHandler + "} z: 1, share(amount: Int) |-> "
+                + "    if true then"
+                + "      let x1: 1 <= S!quit(()) in return ()"
+                + "    else"
+                + "      let x2: 1 <= S!address(true) in "
+                + "        suspend handler S"
+                + "          { {end} z: 1, date(d: Bool) |-> return ()"
+                + "          }"
+                + "          ()"
+                + "  }"
+                + "  ()";
+
+        String m_S = "register ap S "
+                + "suspend handler B1"
+                + "  { {" + titleHandler + "} z: 1, title(x: Bool) |-> "
+                + "    let x1: 1 <= B1!quote(42) in"
+                + "      suspend handler B2"
+                + "        { {" + decisionHandler + "} z: 1, address(addr: Bool) |->"
+                + "            let x2: 1 <= B2!date(false) in return (),"
+                + "          {end} z: 1, quit(y: 1) |->"
+                + "            return ()"
+                + "        }"
+                + "        ()"
+                + "  }"
+                + "  ()";  // TODO rec
+
+        /*EACActor p_B1 = RF.actor(p1, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B1.pid + " = " + p_B1);
+        EACActor p_B2 = RF.actor(p2, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B2.pid + " = " + p_B2);
+        EACActor p_S = RF.actor(p0, RF.noSessionThread(m_S), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_S.pid + " = " + p_S);
+
+        EACActor p_B3 = RF.actor(p3, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B3.pid + " = " + p_B3);
+        EACActor p_B4 = RF.actor(p4, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B4.pid + " = " + p_B4);*/
+
+        EAComp m_main = EACommandLine.parseM("let x1: 1 <= spawn " + m_S
+                + " in let x2: 1 <= spawn " + m_B1
+                + " in let x3: 1 <= spawn " + m_B2
+                + " in return ()");
+        EACActor p_main = RF.actor(p0, RF.noSessionThread(m_main), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_main.pid + " = " + p_main);
+
+        //--------------
+
+        Gamma gamma = new Gamma(EAUtil.mapOf(ap, TF.val.ap(EAUtil.mapOf(B1, t_B1, B2, t_B2, S, t_S))),  // FIXME safety check for APs
+                EAUtil.mapOf());
+        EACommandLine.typeCheckActor(p_main, gamma, new Delta());
+
+        // ----
+
+        Delta delta = new Delta();
+        LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(p_main.pid, p_main);
+        LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
+        LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
+                EAUtil.mapOf(ap, EAUtil.mapOf(
+                        B1, Pair.of(t_B1, EAUtil.listOf()),
+                        B2, Pair.of(t_B2, EAUtil.listOf()),
+                        S, Pair.of(t_S, EAUtil.listOf())));  // // FIXME >=2 roles
+        AsyncDelta adelta = new AsyncDelta(EAUtil.copyOf(delta.map), EAUtil.mapOf());
+        EAAsyncSystem sys = RF.asyncSystem(LF, cs, queues, access, adelta);
+
+        return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1), gamma);
+    }
+
+    // Without "main" -- can add B3/B4 to sys, slow
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex14(
             boolean debug) {
 
@@ -160,45 +426,44 @@ public class EATest {
         EAComp m_S = EACommandLine.parseM("register ap S "
                 + "suspend handler B1"
                 + "  { {" + titleHandler + "} z: 1, title(x: Bool) |-> "
-                + "    let x1: 1 <= B1!(quote(42)) in"
+                + "    let x1: 1 <= B1!quote(42) in"
                 + "      suspend handler B2"
                 + "        { {" + decisionHandler + "} z: 1, address(addr: Bool) |->"
-                + "            let x2: 1 <= B2!(date(false)) in return (),"
+                + "            let x2: 1 <= B2!date(false) in return (),"
                 + "          {end} z: 1, quit(y: 1) |->"
                 + "            return ()"
                 + "        }"
                 + "        ()"
                 + "  }"
-                + "  ()");  // TODO rec
+                + "  ()");
 
         EACActor p_B1 = RF.actor(p1, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         System.out.println("Actor " + p_B1.pid + " = " + p_B1);
         EACActor p_B2 = RF.actor(p2, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         System.out.println("Actor " + p_B2.pid + " = " + p_B2);
-        EACActor p_S = RF.actor(p3, RF.noSessionThread(m_S), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor p_S = RF.actor(p0, RF.noSessionThread(m_S), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
         System.out.println("Actor " + p_S.pid + " = " + p_S);
 
-        /*
-        EAComp reg2 = EACommandLine.parseM("register c B suspend (handler A { {end} z: 1, l1(x1: 1) |-> return () }) ()");
-
-        //+ "    suspend (handler A { {end} z:Int, l2(x: 1) |-> return z }) 42 "
-
-        EACActor a2 = RF.actor(p2, RF.noSessionThread(reg2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
-        System.out.println("Actor " + a2.pid + " = " + a2);*/
+        EACActor p_B3 = RF.actor(p3, RF.noSessionThread(m_B1), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B3.pid + " = " + p_B3);
+        EACActor p_B4 = RF.actor(p4, RF.noSessionThread(m_B2), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + p_B4.pid + " = " + p_B4);
 
         //--------------
 
-        //Gamma gamma = new Gamma(EAUtil.mapOf(c, TF.val.ap(EAUtil.mapOf(A, t_A, B, EALEndType.END))),  // FIXME safety check for APs
         Gamma gamma = new Gamma(EAUtil.mapOf(ap, TF.val.ap(EAUtil.mapOf(B1, t_B1, B2, t_B2, S, t_S))),  // FIXME safety check for APs
                 EAUtil.mapOf());
         EACommandLine.typeCheckActor(p_B1, gamma, new Delta());
         EACommandLine.typeCheckActor(p_B2, gamma, new Delta());
+        EACommandLine.typeCheckActor(p_B3, gamma, new Delta());
+        EACommandLine.typeCheckActor(p_B4, gamma, new Delta());
         EACommandLine.typeCheckActor(p_S, gamma, new Delta());
 
         // ----
 
         Delta delta = new Delta();
         LinkedHashMap<EAPid, EACActor> cs = EAUtil.mapOf(p_B1.pid, p_B1, p_B2.pid, p_B2, p_S.pid, p_S);
+        //cs = EAUtil.mapOf(cs, p_B3.pid, p_B3, p_B4.pid, p_B4);  // Very slow
         LinkedHashMap<EASid, EAGlobalQueue> queues = EAUtil.mapOf();
         LinkedHashMap<EAEAPName, Map<Role, Pair<EALType, List<EAIota>>>> access =
                 EAUtil.mapOf(ap, EAUtil.mapOf(
@@ -210,6 +475,8 @@ public class EATest {
 
         return EACommandLine.typeAndRun(sys, true, new EACommandLine.Bounds(-1), gamma);
     }
+
+    /* ... */
 
     private static Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>> ex13(
             boolean debug) {
@@ -871,12 +1138,12 @@ public class EATest {
         String recXAs = "mu X.B?{l2(1).B!{l1(1).X}}";
         String out1us = "B!{l1(1)." + recXAs + "}";
         String in2us = "B?{l2(1)." + out1us + "}";  // unfolding of recXA
-        String h2s = "Handler (Int, " + in2us + ")";
+        String h2s = "Handler (Int, " + recXAs + ")";
 
-        String hts = "{" + in2us + "} 1 -> " + h2s + "{" + recXAs + "}";
+        String hts = "{" + recXAs + "} 1 -> " + h2s + "{" + recXAs + "}";
         EAMLet lethA = (EAMLet) EACommandLine.parseM(
                 "let h: " + hts + " <= return"
-                        + "  (rec f { " + in2us + "} (w1: 1): " + h2s + " {" + recXAs + "} . return handler B {"
+                        + "  (rec f { " + recXAs + "} (w1: 1): " + h2s + " {" + recXAs + "} . return handler B {"
                         + "    {" + out1us + "} d: Int, l2(w2: 1) |->"
                         + "      let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z 42"
                         + "  }) "
@@ -885,12 +1152,12 @@ public class EATest {
         String recXBs = "mu X.A?{l1(1).A!{l2(1).X}}";
         String out2mus = "A!{l2(1)." + recXBs + "}";
         String in1us = "A?{l1(1)." + out2mus + "}";
-        String h1s = "Handler (Int, " + in1us + ")";
+        String h1s = "Handler (Int, " + recXBs + ")";
 
-        String htsB = "{" + in1us + "} 1 -> " + h1s + " {" + recXBs + "}";
+        String htsB = "{" + recXBs + "} 1 -> " + h1s + " {" + recXBs + "}";
         EAMLet leth = (EAMLet) EACommandLine.parseM(
                 "let h: " + htsB + " <= return"
-                        + "  (rec f {  " + in1us + "} (w1: 1): " + h1s + "{" + recXBs + "} . return handler A {"
+                        + "  (rec f {  " + recXBs + "} (w1: 1): " + h1s + "{" + recXBs + "} . return handler A {"
                         + "    {" + out2mus + "} d: Int, l1(w2: 1) |->"
                         + "      let y: 1 <= A!l2(()) in let z : " + h1s + " <= [f ()] in suspend z 42"
                         + "  }) "
@@ -903,6 +1170,7 @@ public class EATest {
 
         //--------------
 
+        //String out1ustop = "B!{l1(1)." + in2us + "}";
         EALOutType out1u = (EALOutType) EACommandLine.parseSessionType(out1us);
         EALRecType recXB = (EALRecType) EACommandLine.parseSessionType(recXBs);
 

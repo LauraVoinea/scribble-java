@@ -39,12 +39,13 @@ public class EAVTypeFactory {
         return EAVPidType.PID;
     }
 
-    public EAVHandlersType handlers(@NotNull EALInType S, @NotNull EAVType T) {
+    //public EAVHandlersType handlers(EALInType S, EAVType T) {
+    public EAVHandlersType handlers(EALType S, EAVType T) {
         return new EAVHandlersType(S, T);
     }
 
-    public EAVFuncType func(@NotNull EAVType A, @NotNull EALType S,
-                            @NotNull EALType T, @NotNull EAVType B) {
+    public EAVFuncType func(EAVType A, EALType S,
+                            EALType T, EAVType B) {
         return new EAVFuncType(A, S, T, B);
     }
 

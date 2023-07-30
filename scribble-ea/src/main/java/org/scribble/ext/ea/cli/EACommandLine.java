@@ -202,7 +202,7 @@ public class EACommandLine extends CommandLine {
             return this.maxDepth >= 0 && depth >= this.maxDepth;
         }
 
-        // !!! currently pruning only iotas (not sess names etc)
+        // !!! currently pruning only iotas (not sess names, spawn pids, etc)
         public boolean isSeenPrune(EAAsyncSystem sys) {
             //return this.seen.contains(sys);
             //return this.seen.stream().anyMatch(x -> x.equals(sys) || EAAsyncSystem.unifyIotas(x, sys));

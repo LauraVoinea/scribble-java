@@ -6,12 +6,10 @@ import org.scribble.ext.ea.core.type.session.local.EALType;
 
 public class EAVHandlersType implements EAVType {
 
-    @NotNull
-    public final EALType S;
-    @NotNull
-    public final EAVType T;  // state
+    @NotNull public final EALType S;
+    @NotNull public final EAVType T;  // state
 
-    protected EAVHandlersType(@NotNull EALType S, @NotNull EAVType T) {
+    protected EAVHandlersType(EALType S, EAVType T) {
         this.S = S;
         this.T = T;
     }
@@ -27,8 +25,8 @@ public class EAVHandlersType implements EAVType {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAVHandlersType them = (EAVHandlersType) o;
         return them.canEquals(this) && this.S.equals(them.S) && this.T.equals(them.T);
     }

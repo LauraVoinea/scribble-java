@@ -36,11 +36,6 @@ public class EAMApp implements EAComp {
 
     // !!! FIXME relocate below two
 
-    // S^?
-    public static boolean isInType(EALType t) {
-        return t instanceof EALInType || t.unfoldAllOnce() instanceof EALInType;
-    }
-
     @Override
     //public Pair<EAVType, EALType> type(GammaState gamma, EALType pre) {
     public Either<Exception, Pair<Pair<EAVType, EALType>, Tree<String>>> type(
@@ -61,7 +56,13 @@ public class EAMApp implements EAComp {
 //            throw new RuntimeException("Incompatible pre type:\n"
 //                    + "\tfound=" + ftype.S + ", required=" + pre);
 //        }*/
-        EALType.subtype(ftype.S, pre);  // TODO use Either
+        System.out.println("------- " + this);
+
+        EALType.subtype(ftype.S, pre);  // (probably) need "subtype" for run-time type pres  // TODO use Either
+        /*if (!(ftype.S.equals(pre))) {
+            return Either.left(new Exception("Incompatible pre type: " + pre + ", " + ftype.S + "\n\t" + this));
+        }*/
+
         //EAVType rtype = this.right.type(gamma);
         Either<Exception, Pair<EAVType, Tree<String>>> t_r = this.right.type(gamma);
         if (t_r.isLeft()) {
@@ -179,8 +180,8 @@ public class EAMApp implements EAComp {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAMApp them = (EAMApp) o;
         return them.canEquals(this)
                 && this.left.equals(them.left)

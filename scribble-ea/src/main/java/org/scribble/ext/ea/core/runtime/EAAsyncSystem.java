@@ -51,7 +51,7 @@ public class EAAsyncSystem {
         return iota;
     }
 
-    // !!! TODO also unify sess names (etc)?  currently only doing iotas
+    // !!! TODO also unify sess names, spawn pids, (etc)?  currently only doing iotas
     public static boolean unifyIotas(EAAsyncSystem s1, EAAsyncSystem s2) {
 
         // Just enough checks for second part  // TODO add more checks to optimise early pruning

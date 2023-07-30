@@ -17,6 +17,25 @@ public interface EALType extends EAType {
     int END_HASH = 11059;
     int RECVAR_HASH = 11069;
 
+    /* ... */
+
+    // !!! currently not used consistently (added ad hoc from testing)
+    // Currently only unfolding -- so currently symmetric
+    // ...found is expr, required is usually pre
+    static void subtype(EALType found, EALType required) {
+        if (!(found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce()))) {
+            throw new RuntimeException("Incompatible pre type:\n"
+                    + "\tfound=" + found + ", required=" + required);
+        }
+    }
+
+    /* ... */
+
+    // S^?
+    static boolean isInType(EALType t) {
+        return t instanceof EALInType || t.unfoldAllOnce() instanceof EALInType;
+    }
+
     //boolean wellFormed();  // TODO bound rec labels, no self send -- operationally OK if async
 
     EALType concat(EALType t);
@@ -32,14 +51,4 @@ public interface EALType extends EAType {
 
     // cf. LTS on Delta type envs
     Optional<EALType> step(LType a);  // TODO Either
-
-    // !!! currently not used consistently (added ad hoc from testing)
-    // Currently only unfolding -- so currently symmetric
-    // found is expr, required is usually pre
-    static void subtype(EALType found, EALType required) {
-        if (!(found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce()))) {
-            throw new RuntimeException("Incompatible pre type:\n"
-                    + "\tfound=" + found + ", required=" + required);
-        }
-    }
 }

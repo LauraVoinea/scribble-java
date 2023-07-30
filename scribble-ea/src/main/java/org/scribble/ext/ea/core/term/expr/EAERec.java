@@ -7,6 +7,7 @@ import org.scribble.ext.ea.core.type.EATypeFactory;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
+import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.Either;
@@ -18,6 +19,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+// rec should be used with lam, e.g., rec f(x). \x. M  with f(..) inside M
+// ...here the lam is "inlined" into the rec
 public class EAERec implements EAExpr {
 
     @NotNull
@@ -70,13 +73,31 @@ public class EAERec implements EAExpr {
         }
         Pair<Pair<EAVType, EALType>, Tree<String>> pp = res1.getRight();
         Pair<EAVType, EALType> res = pp.left;
-        Pair<EAVType, EALType> target = new Pair<>(this.B, this.S);
-        if (!res.equals(target)) {
+
+        //Pair<EAVType, EALType> target = new Pair<>(this.B, this.S);
+        Pair<EAVType, EALType> target = new Pair<>(this.B, this.T);
+
+        // lambda return typing (TV-Lam, B/T) "inlined" into this rec (TV-Rec)
+        /*if (!res.equals(target)) {
             //throw new RuntimeException("Typing error:\n\t" + res + "\n\t" + target);
-            return Either.left(new Exception("Typing error:\n\t" + res + "\n\t" + target));
+            return Either.left(new Exception("Typing error:\n\t" + this.body + " : " + res + "\n\t" + "result annots = " + target + "\n\t" + this));
+        }*/
+        if (!res.right.equals(target.right)) {
+            return Either.left(new Exception("Session typing error:\n\t" + this.body + " : " + res + "\n\t" + "result annots = " + target + "\n\t" + this));
         }
+        if (target.left instanceof EAVHandlersType) {
+            if (!(res.left instanceof EAVHandlersType)) {
+                return Either.left(new Exception("Value typing error:\n\t" + this.body + " : " + res.left + "\n\t" + "result annot = " + target.left + "\n\t" + this));
+            }
+            EALType tt = ((EAVHandlersType) target.left).S;
+            EALType rr = ((EAVHandlersType) res.left).S;
+            EALType.subtype(rr, tt);
+        } else if (!res.left.equals(target.left)) {
+            return Either.left(new Exception("Value typing error:\n\t" + this.body + " : " + res.left + "\n\t" + "result annot = " + target.left + "\n\t" + this));
+        }
+
         return Either.right(Pair.of(ftype,
-                new Tree<>("[TV-Rec] " + toTypeJudgeString(gamma, ftype))));  // ...discarded pp.right
+                new Tree<>("[..TV-Rec/TV-Lam..] " + toTypeJudgeString(gamma, ftype))));  // ...discarded pp.right
     }
 
     @Override
@@ -138,8 +159,8 @@ public class EAERec implements EAExpr {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAERec them = (EAERec) o;
         return them.canEquals(this)
                 && this.f.equals(them.f)

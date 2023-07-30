@@ -214,7 +214,10 @@ public class EAASTBuilder {
         switch (txt) {
             case "A_HANDLER": {
                 EAVType A = visitA((CommonTree) n.getChild(0));
-                EALInType inS = (EALInType) visitSessionType((CommonTree) n.getChild(1));
+
+                //EALInType inS = (EALInType) visitSessionType((CommonTree) n.getChild(1));
+                EALType inS = visitSessionType((CommonTree) n.getChild(1));
+
                 return tf.val.handlers(inS, A);
             }
             case "A_UNIT": {

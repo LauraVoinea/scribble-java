@@ -10,6 +10,7 @@ import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
 import org.scribble.ext.ea.core.type.session.local.EALType;
+import org.scribble.ext.ea.core.type.value.EAVHandlersType;
 import org.scribble.ext.ea.core.type.value.EAVType;
 import org.scribble.ext.ea.util.ConsoleColors;
 import org.scribble.ext.ea.util.Either;
@@ -49,12 +50,29 @@ public class EAMLet implements EAComp {
         }
         Pair<Pair<EAVType, EALType>, Tree<String>> pp = t.getRight();
         Pair<EAVType, EALType> p1 = pp.left;
-        if (!this.varType.equals(p1.left)) {
+
+        /*if (!this.varType.equals(p1.left)) {
             //throw new RuntimeException("Bad type annotation: " + this.varType + ", " + p1.left);
-            return Either.left(new Exception("Bad type annotation: " + this.varType + ", " + p1.left));
+            return Either.left(new Exception("Bad type annotation: annot = " + this.varType + ", term = " + p1.left + "\n\t" + this));
+        }*/
+        // Duplicated from EAERec -- !!! TODO factor out
+        // ...rec probably needs "subtype" for static typing -- let at least needs for run-time type pres (cf. static typing of init term can use this.varType, but run-time typing may become a subtype)
+        if (p1.left instanceof EAVHandlersType) {
+            if (!(this.varType instanceof EAVHandlersType)) {
+                return Either.left(new Exception("Value typing error:\n\t" + this.init + " : " + p1.left + "\n\t" + "result annot = " + this.varType + "\n\t" + this));
+            }
+            EALType tt = ((EAVHandlersType) this.varType).S;
+            EALType rr = ((EAVHandlersType) p1.left).S;
+            EALType.subtype(rr, tt);
+        } else if (!this.varType.equals(p1.left)) {
+            return Either.left(new Exception("Value typing error:\n\t" + this.init + " : " + p1.left + "\n\t" + "result annot = " + this.varType + "\n\t" + this));
         }
+
         LinkedHashMap<EAName, EAVType> tmp = new LinkedHashMap<>(gamma.gamma.map);
-        tmp.put(this.var, p1.left);
+
+        //tmp.put(this.var, p1.left);
+        tmp.put(this.var, this.varType);  // !!! using annot, cf. unfolding in rec typing
+
         GammaState gamma1 = new GammaState(tmp, new LinkedHashMap<>(gamma.gamma.fmap), gamma.svarType);
         return this.body.type(gamma1, p1.right).mapRight(x -> Pair.of(
                 x.left,
@@ -180,8 +198,8 @@ public class EAMLet implements EAComp {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EAMLet them = (EAMLet) o;
         return them.canEquals(this)
                 && this.var.equals(them.var)
