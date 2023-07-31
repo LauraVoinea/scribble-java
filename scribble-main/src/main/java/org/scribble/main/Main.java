@@ -88,25 +88,21 @@ public class Main {
         String inline = hack.right;
         ResourceLocator locator = hack.left;
         Pair<Resource, Module> main;
-        //if (inline == null)
-        {
+        if (inline == null) {
             //this.locator = hack.left;
             this.loader = new ScribModuleLoader(locator, this.antlr);
             main = this.loader.loadMainModule(mainpath);
+        } else {
+            //this.locator = null;
+            this.loader = new ScribModuleLoader(null, this.antlr);  // CHECKME: null locator OK?
+            main = this.loader.loadMainModule(inline);
+            if (main.right.getImportDeclChildren().stream()
+                    .anyMatch(x -> x.isImportModule())) {
+                throw new ScribException(
+                        "Module imports not permitted in inline main modules.");
+                // Because (currently) null locator
+            }
         }
-		/*else
-		{
-			//this.locator = null;
-			this.loader = new ScribModuleLoader(null, this.antlr);  // CHECKME: null locator OK?
-			main = this.loader.loadMainModule(inline);
-			if (main.right.getImportDeclChildren().stream()
-					.anyMatch(x -> x.isImportModule()))
-			{
-				throw new ScribException(
-						"Module imports not permitted in inline main modules.");
-						// Because (currently) null locator
-			}
-		}*/
 
         this.main = main.right.getFullModuleName();
         this.args = args;

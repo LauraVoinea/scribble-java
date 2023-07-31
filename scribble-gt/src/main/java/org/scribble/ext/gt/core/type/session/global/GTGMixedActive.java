@@ -121,6 +121,11 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
+    public boolean isLeftCommittingTop() {
+        throw new RuntimeException("Shouldn't get in here: ");
+    }
+
+    @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
         /*Set<Role> rs = GTUtil.copyOf(getRoles());
         rs.removeAll(this.committedLeft);

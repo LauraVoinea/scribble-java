@@ -48,6 +48,11 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public boolean isLeftCommittingTop() {
+        return this.body.isLeftCommittingTop();
+    }
+
+    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return this.body.isInitialWellSet(cs);
     }

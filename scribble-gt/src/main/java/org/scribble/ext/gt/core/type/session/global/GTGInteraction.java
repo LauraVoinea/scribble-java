@@ -111,6 +111,11 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
+    public boolean isLeftCommittingTop() {
+        return this.cases.values().stream().allMatch(GTGType::isLeftCommittingTop);
+    }
+
+    @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
         if (!com.contains(this.src) || rem.contains(this.dst)) {
             return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));

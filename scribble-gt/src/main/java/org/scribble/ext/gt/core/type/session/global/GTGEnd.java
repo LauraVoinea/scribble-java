@@ -61,6 +61,11 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
+    public boolean isLeftCommittingTop() {
+        return true;
+    }
+
+    @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }

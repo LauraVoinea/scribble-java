@@ -97,8 +97,7 @@ public class GTLBranch implements GTLType {
 
         if (!a.peer.equals(this.src) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
                 || cast.c != c || cast.n != n) {
-            System.out.println("99999999: " + !a.peer.equals(this.src) + " ,, " + !this.cases.keySet().contains(a.mid)
-                    + " ,, " + (cast.c != c) + " .. " + cast.c + " .. " + c + " ,, " + (cast.n != n));
+            //System.out.println("99999999: " + !a.peer.equals(this.src) + " ,, " + !this.cases.keySet().contains(a.mid) + " ,, " + (cast.c != c) + " .. " + cast.c + " .. " + c + " ,, " + (cast.n != n));
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         boolean[] found = {false};

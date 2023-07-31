@@ -5,7 +5,6 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.core.type.session.local.Side;
 import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
@@ -76,7 +75,7 @@ public class Sigma {
         Map<Role, List<GTESend<DynamicActionKind>>> copy = GTUtil.copyOf(this.map);
         Predicate<GTESend<DynamicActionKind>> isDiscard = x -> {
             Pair<Integer, Integer> k = Pair.of(x.c, x.n);
-            System.out.println("------- " + k + " ,, " + labs.keySet());
+            //System.out.println("------- " + k + " ,, " + labs.keySet());
             if (!discard.containsKey(k)) { return false; }
             Discard d = discard.get(k);
             if (d == Discard.FULL) { return true; }

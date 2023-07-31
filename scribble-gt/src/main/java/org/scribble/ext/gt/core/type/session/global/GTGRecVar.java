@@ -62,6 +62,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
+    public boolean isLeftCommittingTop() {
+        return true;
+    }
+
+    @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }
@@ -70,7 +75,7 @@ public class GTGRecVar implements GTGType {
     public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }
-   
+
     /* ... */
 
     @Override

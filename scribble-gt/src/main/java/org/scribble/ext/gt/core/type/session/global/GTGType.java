@@ -60,7 +60,9 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     boolean isInitialAware(Theta theta);
 
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
+    boolean isLeftCommittingTop();
+
+    //default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
 
     boolean isLeftCommitting(Set<Role> com, Set<Role> rem);
 

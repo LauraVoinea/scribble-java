@@ -37,6 +37,10 @@ public class GTMain extends Main {
         super(locator, mainpath, args);
     }
 
+    public GTMain(String inline, Map<CoreArgs, Boolean> args) throws ScribParserException, ScribException {
+        super(inline, args);
+    }
+
     @Override
     protected GTJob newJob(Map<ModuleName, Module> parsed, Map<CoreArgs, Boolean> args,
                            ModuleName mainFullname, AstFactory af, DelFactory df)

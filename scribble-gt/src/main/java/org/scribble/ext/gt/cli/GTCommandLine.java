@@ -77,7 +77,7 @@ public class GTCommandLine extends CommandLine {
         Map<CoreArgs, Boolean> args = Collections.unmodifiableMap(parseCoreArgs());
         if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG)) {
             String inline = getUniqueFlagArgs(CLFlags.INLINE_MAIN_MOD_FLAG)[0];
-            return new Main(inline, args);
+            this.main = new GTMain(inline, args);
         } else {
             List<Path> impaths = hasFlag(CLFlags.IMPORT_PATH_FLAG)
                     ? CommandLine
@@ -87,8 +87,8 @@ public class GTCommandLine extends CommandLine {
             Path mainpath = CommandLine
                     .parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
             this.main = new GTMain(locator, mainpath, args);
-            return this.main;
         }
+        return this.main;
     }
 
     protected void gtRun() {
@@ -120,7 +120,8 @@ public class GTCommandLine extends CommandLine {
                 // initial awareness
                 else if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
                     System.err.println("Not initial awareness (single-decision): " + translate);
-                } else if (!translate.isLeftCommitting()) {
+                    //} else if (!translate.isLeftCommitting()) {
+                } else if (!translate.isLeftCommittingTop()) {
                     System.err.println("Not left-committing (initial awareness, clear-termination): " + translate);
 
                 } else {

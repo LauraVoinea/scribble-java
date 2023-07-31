@@ -72,6 +72,11 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
+    public boolean isLeftCommittingTop() {
+        throw new RuntimeException("Shouldn't get in here");
+    }
+
+    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return false;
     }

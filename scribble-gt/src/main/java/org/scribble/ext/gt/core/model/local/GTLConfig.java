@@ -60,7 +60,7 @@ public class GTLConfig {
     public Pair<GTLConfig, Tree<String>> gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs) {
         //Map<Integer, Integer> active = this.type.getActive(this.theta);
 
-        System.out.println("77777777: " + this.type + " ,, " + labs + " ,, " + this.discard);
+        //System.out.println("77777777: " + this.type + " ,, " + labs + " ,, " + this.discard);
 
         Sigma res = this.sigma.gc(labs, this.discard);
         return Pair.of(
