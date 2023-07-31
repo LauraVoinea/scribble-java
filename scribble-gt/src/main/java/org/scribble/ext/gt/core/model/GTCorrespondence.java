@@ -104,7 +104,10 @@ public class GTCorrespondence {
             peers.remove(r);
             Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTop(peers, r);
             if (!opt.isPresent()) {
+
+                // TODO Either
                 throw new RuntimeException("Couldn't project onto " + r + ": " + global);
+
             }
             Pair<? extends GTLType, Sigma> p = opt.get();
             /*if (!p.right.equals(new Sigma(roles))) {

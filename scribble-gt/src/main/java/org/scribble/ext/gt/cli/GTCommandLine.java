@@ -10,6 +10,7 @@ import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
+import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
@@ -27,7 +28,6 @@ import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.*;
 import org.scribble.job.Job;
-import org.scribble.main.Main;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.util.*;
@@ -45,28 +45,57 @@ public class GTCommandLine extends CommandLine {
     }
 
     public static void main(String[] args) {
-
-        GTCommandLine cl = new GTCommandLine(args);
-        try {
-            cl.run();
-        } catch (CommandLineException | AntlrSourceException x) {
-            throw new RuntimeScribException(x);
-        }
-        Optional<Exception> run = cl.gtRun1();
+        GTCommandLine cl = init(args);
+        Optional<Exception> run = gtRun(cl);
         if (run.isPresent()) {
             throw new RuntimeException(run.get());
         }
     }
 
     public static Optional<Exception> mainTest(String[] args) {
+        GTCommandLine cl = init(args);
+        return gtRun(cl);
+    }
 
+    public static void foo() {
+
+    }
+
+    static GTCommandLine init(String[] args) {
         GTCommandLine cl = new GTCommandLine(args);
         try {
             cl.run();
         } catch (CommandLineException | AntlrSourceException x) {
             throw new RuntimeScribException(x);
         }
-        return cl.gtRun1();
+        return cl;
+    }
+
+    static Map<GProtoName, GTGType> getTranslated(GTCommandLine cl) {
+        Map<GProtoName, GTGType> res = new HashMap<>();
+
+        Core core = cl.getJob().getCore();
+        boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
+
+        Map<ModuleName, Module> parsed = cl.main.getParsedModules();  // !!! Using main rather than job
+        if (debug) {
+            System.out.println("\n----- GT -----\n");
+            System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
+        }
+
+        for (ModuleName n : parsed.keySet()) {
+            Module m = parsed.get(n);
+            for (GProtoDecl g : m.getGProtoDeclChildren()) {
+                GTGType translate = new GTGTypeTranslator3().translate(
+                        g.getDefChild().getBlockChild().getInteractSeqChild());
+                if (debug) {
+                    System.out.println("\n[GTCommandLine] Translated "
+                            + g.getHeaderChild().getDeclName() + ": " + translate);
+                }
+                res.put(g.getFullMemberName(parsed.get(n)), translate);
+            }
+        }
+        return res;
     }
 
     @Override
@@ -76,7 +105,8 @@ public class GTCommandLine extends CommandLine {
 
     @Override
     protected void doValidationTasks(Job job)
-            throws AntlrSourceException, ScribParserException,  // Latter in case needed by subclasses
+            throws
+            AntlrSourceException, ScribParserException,  // Latter in case needed by subclasses
             CommandLineException {
         job.runPasses();
 
@@ -87,7 +117,7 @@ public class GTCommandLine extends CommandLine {
     // Duplicated from AssrtCommandLine
     // Based on CommandLine.newMainContext
     @Override
-    protected Main newMain() throws ScribParserException, ScribException {
+    protected GTMain newMain() throws ScribParserException, ScribException {
         Map<CoreArgs, Boolean> args = Collections.unmodifiableMap(parseCoreArgs());
         if (hasFlag(CLFlags.INLINE_MAIN_MOD_FLAG)) {
             String inline = getUniqueFlagArgs(CLFlags.INLINE_MAIN_MOD_FLAG)[0];
@@ -161,55 +191,60 @@ public class GTCommandLine extends CommandLine {
         }
                 }*/
 
-    protected Optional<Exception> gtRun1() {
-        Core core = getJob().getCore();
+    static Optional<Exception> checkInitialWellSet(GTGType translate) {
+        return translate.isInitialWellSet()
+                ? Optional.empty() :
+                Optional.of(new Exception("Not initial and well-set: " + translate));
+    }
+
+    static Optional<Exception> checkInitialAwareness(GTGType translate) {
+        // initial awareness
+        if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
+            return Optional.of(new Exception("Not initial awareness (single-decision): " + translate));
+            //} else if (!translate.isLeftCommitting()) {
+        } else if (!translate.isLeftCommittingTop()) {
+            return Optional.of(new Exception("Not left-committing (initial awareness, clear-termination): " + translate));
+        }
+        return Optional.empty();
+    }
+
+    static GTCorrespondence checkProjection(GTGType translate) {
+        // Check projection -- TODO Either
+        Set<Role> rs = translate.getRoles();
+        return new GTCorrespondence(rs, translate);
+    }
+
+    protected static Optional<Exception> gtRun(GTCommandLine cl) {
+        Core core = cl.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
-        Map<ModuleName, Module> parsed = this.main.getParsedModules();  // !!! Using main rather than job
-        if (debug) {
-            System.out.println("\n----- GT -----\n");
-            System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
-        }
+        Map<GProtoName, GTGType> translated = getTranslated(cl);
+        for (GProtoName g : translated.keySet()) {
+            GTGType translate = translated.get(g);
+            Set<Role> rs = translate.getRoles();
+            if (debug) {
+                System.out.println("\n[GTCommandLine] Translated "
+                        + g + ": " + translate);
+            }
 
-        for (ModuleName n : parsed.keySet()) {
-            Module m = parsed.get(n);
+            /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
+                System.err.println("Not single pointed: " + translate);
+            } else*/
+            Optional<Exception> check;
+            check = checkInitialWellSet(translate);
+            if (check.isPresent()) { return check; }
+            check = checkInitialAwareness(translate);
+            if (check.isPresent()) { return check; }
 
-            for (GProtoDecl g : m.getGProtoDeclChildren()) {
+            GTCorrespondence s = checkProjection(translate);
 
-                GTGType translate = new GTGTypeTranslator3().translate(
-                        g.getDefChild().getBlockChild().getInteractSeqChild());
-                Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
-
-                if (debug) {
-                    System.out.println("\n[GTCommandLine] Translated "
-                            + g.getHeaderChild().getDeclName() + ": " + translate);
-                }
-
-                /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
-                    System.err.println("Not single pointed: " + translate);
-                } else*/
-                if (!translate.isInitialWellSet()) {
-                    return Optional.of(new Exception("Not initial and well-set: " + translate));
-                }
-
-                // initial awareness
-                else if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
-                    return Optional.of(new Exception("Not initial awareness (single-decision): " + translate));
-                    //} else if (!translate.isLeftCommitting()) {
-                } else if (!translate.isLeftCommittingTop()) {
-                    return Optional.of(new Exception("Not left-committing (initial awareness, clear-termination): " + translate));
-
-                } else {
-                    GTCorrespondence s = new GTCorrespondence(rs, translate);
-                    Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
-                    Set<Op> com = GTUtil.umod(translate.getCommittingTop());
-
-                    if (!hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                        Optional<Exception> foo = foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
-                        if (foo.isPresent()) {
-                            return foo;
-                        }
-                    }
+            // Check correspondence
+            Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
+            Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+            if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
+                Optional<Exception> foo = foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
+                if (foo.isPresent()) {
+                    return foo;
                 }
             }
         }
@@ -245,11 +280,13 @@ public class GTCommandLine extends CommandLine {
         }
     }
 
-    private Optional<Exception> foo(Core core, String indent, GTCorrespondence s,
-                                    int step, int MAX,
-                                    Map<String, Integer> unfolds, int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
-                                    Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-                                    Set<Op> com) {
+    private static Optional<Exception> foo(Core core, String
+            indent, GTCorrespondence s,
+                                           int step, int MAX,
+                                           Map<String, Integer> unfolds,
+                                           int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+                                           Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
+                                           Set<Op> com) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
         int mark = mystep;
