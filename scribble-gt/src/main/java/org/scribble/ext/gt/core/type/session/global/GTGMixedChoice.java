@@ -143,9 +143,6 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-
-        System.out.println("eeeeeee: " + this.left.isLeftCommitting(this.observer, com, getRoles()));
-
         return this.left.isLeftCommitting(this.observer, com, getRoles());
     }
 

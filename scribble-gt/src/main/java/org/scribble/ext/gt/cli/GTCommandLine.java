@@ -52,7 +52,21 @@ public class GTCommandLine extends CommandLine {
         } catch (CommandLineException | AntlrSourceException x) {
             throw new RuntimeScribException(x);
         }
-        cl.gtRun();
+        Optional<Exception> run = cl.gtRun1();
+        if (run.isPresent()) {
+            throw new RuntimeException(run.get());
+        }
+    }
+
+    public static Optional<Exception> mainTest(String[] args) {
+
+        GTCommandLine cl = new GTCommandLine(args);
+        try {
+            cl.run();
+        } catch (CommandLineException | AntlrSourceException x) {
+            throw new RuntimeScribException(x);
+        }
+        return cl.gtRun1();
     }
 
     @Override
@@ -91,7 +105,63 @@ public class GTCommandLine extends CommandLine {
         return this.main;
     }
 
-    protected void gtRun() {
+    /*protected void gtRun() {
+        Core core = getJob().getCore();
+
+        Map<ModuleName, Module> parsed = this.main.getParsedModules();  // !!! Using main rather than job
+        System.out.println("\n----- GT -----\n");
+        System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
+
+        for (ModuleName n : parsed.keySet()) {
+            Module m = parsed.get(n);
+
+            for (GProtoDecl g : m.getGProtoDeclChildren()) {
+
+                GTGType translate = new GTGTypeTranslator3().translate(
+                        g.getDefChild().getBlockChild().getInteractSeqChild());
+                Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
+
+                System.out.println("\n[GTCommandLine] Translated "
+                        + g.getHeaderChild().getDeclName() + ": " + translate);
+
+                /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
+                    System.err.println("Not single pointed: " + translate);
+                } else* /
+                if(!translate.isInitialWellSet())
+
+    {
+        System.err.println("Not initial and well-set: " + translate);
+    }
+
+    // initial awareness
+                else if(!translate.isInitialAware(new
+
+    Theta(translate.getTimeoutIds())))
+
+    {
+        System.err.println("Not initial awareness (single-decision): " + translate);
+        //} else if (!translate.isLeftCommitting()) {
+    } else if(!translate.isLeftCommittingTop())
+
+    {
+        System.err.println("Not left-committing (initial awareness, clear-termination): " + translate);
+
+    } else
+
+    {
+        GTCorrespondence s = new GTCorrespondence(rs, translate);
+        Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
+        Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+
+        if (!hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
+            foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
+        }
+    }
+}
+        }
+                }*/
+
+    protected Optional<Exception> gtRun1() {
         Core core = getJob().getCore();
 
         Map<ModuleName, Module> parsed = this.main.getParsedModules();  // !!! Using main rather than job
@@ -114,15 +184,15 @@ public class GTCommandLine extends CommandLine {
                     System.err.println("Not single pointed: " + translate);
                 } else*/
                 if (!translate.isInitialWellSet()) {
-                    System.err.println("Not initial and well-set: " + translate);
+                    return Optional.of(new Exception("Not initial and well-set: " + translate));
                 }
 
                 // initial awareness
                 else if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
-                    System.err.println("Not initial awareness (single-decision): " + translate);
+                    return Optional.of(new Exception("Not initial awareness (single-decision): " + translate));
                     //} else if (!translate.isLeftCommitting()) {
                 } else if (!translate.isLeftCommittingTop()) {
-                    System.err.println("Not left-committing (initial awareness, clear-termination): " + translate);
+                    return Optional.of(new Exception("Not left-committing (initial awareness, clear-termination): " + translate));
 
                 } else {
                     GTCorrespondence s = new GTCorrespondence(rs, translate);
@@ -130,13 +200,17 @@ public class GTCommandLine extends CommandLine {
                     Set<Op> com = GTUtil.umod(translate.getCommittingTop());
 
                     if (!hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                        foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
+                        Optional<Exception> foo = foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
+                        if (foo.isPresent()) {
+                            return foo;
+                        }
                     }
                 }
             }
         }
-    }
 
+        return Optional.empty();
+    }
 
 
 
@@ -154,17 +228,17 @@ public class GTCommandLine extends CommandLine {
 
     /* ... global-local correspondence checking ... */
 
-    // HERE HERE ... factor out Bounds
-    //        ... do local mixed-active
+// HERE HERE ... factor out Bounds
+//        ... do local mixed-active
 
     static final int MAX = 100;
     static int mystep = 1;
 
-    private void foo(Core core, String indent, GTCorrespondence s,
-                     int step, int MAX,
-                     Map<String, Integer> unfolds, int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
-                     Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-                     Set<Op> com) {
+    private Optional<Exception> foo(Core core, String indent, GTCorrespondence s,
+                                    int step, int MAX,
+                                    Map<String, Integer> unfolds, int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+                                    Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
+                                    Set<Op> com) {
 
         int mark = mystep;
 
@@ -173,7 +247,10 @@ public class GTCommandLine extends CommandLine {
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
-        s.check(mf, indent + "    ");
+        Optional<Exception> check = s.check(mf, indent + "    ");
+        if (check.isPresent()) {
+            return check;
+        }
 
         Set<SAction<DynamicActionKind>> as =
 
@@ -184,7 +261,7 @@ public class GTCommandLine extends CommandLine {
                         .collect(Collectors.toSet());
 
         if (mystep >= MAX) {
-            return;
+            return Optional.empty();
         }
 
         System.out.println(indent + "Possible actions = " + as);
@@ -247,9 +324,14 @@ public class GTCommandLine extends CommandLine {
 
             GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            foo(core, incIndent(indent), s1, 1, MAX, us, depth, labs, com);
+            Optional<Exception> foo = foo(core, incIndent(indent), s1, 1, MAX, us, depth, labs, com);
+            if (foo.isPresent()) {
+                return foo;
+            }
             //}
         }
+
+        return Optional.empty();
     }
 
     static String incIndent(String indent) {

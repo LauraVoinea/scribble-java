@@ -170,11 +170,12 @@ public class GTGMixedActive implements GTGType {
         Set<Role> rs = getRoles();
         rs.removeAll(getIndifferent());
 
-        Set<SAction<DynamicActionKind>> as = getWeakActsTop(mf, theta);  // !!! CHECKME weak?
+        Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
+        Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());
+        actingR.removeAll(this.committedLeft);  // !!! CHECKME R-acting def?
 
-        Set<Role> acting = as.stream().map(x -> x.subj).collect(Collectors.toSet());
         for (Role r : rs) {
-            if (acting.contains(r)
+            if (actingR.contains(r)
                     && !this.committedRight.contains(this.observer)) {  // awareness (1)  // !!! CHECKME this.observer (p)?  or r?
                 return false;
             }

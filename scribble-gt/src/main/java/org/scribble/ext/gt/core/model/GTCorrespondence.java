@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.model;
 
 import org.scribble.ast.global.GProtoDecl;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -46,7 +47,7 @@ public class GTCorrespondence {
     /* ... */
 
     // Checks projection correspondence between global and local
-    public void check(GTSModelFactory mf, String indent) {
+    public Optional<Exception> check(GTSModelFactory mf, String indent) {
 
         if (!this.roles.equals(this.local.configs.keySet())) {
             throw new RuntimeException("Roles mismatch: roles=" + this.roles + ", locals=" + this.local.configs.keySet());
@@ -56,10 +57,10 @@ public class GTCorrespondence {
             throw new RuntimeException("Not good: " + this.global);
         }*/
         if (!this.global.isRuntimeAware(mf, this.theta)) {
-            throw new RuntimeException("Not aware: " + this.global);
+            return Optional.of(new Exception("Not run-time aware: " + this.global));
         }
         if (!this.global.isCoherent()) {
-            throw new RuntimeException("Not coherent: " + this.global);
+            return Optional.of(new Exception("Not coherent: " + this.global));
         }
 
         GTLSystem projected = projectTopLevel(this.roles, this.global, this.tids);
@@ -71,11 +72,13 @@ public class GTCorrespondence {
             //*
             //if (!p.equals(q)) {  // XXXXXX
             if (!q.isSubtype(p)) {
-                throw new RuntimeException("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q);
+                return Optional.of(new Exception("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q));
             }
             //*/
 
         }
+
+        return Optional.empty();
     }
 
     /* ... */
