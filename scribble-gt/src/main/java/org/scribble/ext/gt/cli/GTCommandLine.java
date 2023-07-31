@@ -163,10 +163,13 @@ public class GTCommandLine extends CommandLine {
 
     protected Optional<Exception> gtRun1() {
         Core core = getJob().getCore();
+        boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
         Map<ModuleName, Module> parsed = this.main.getParsedModules();  // !!! Using main rather than job
-        System.out.println("\n----- GT -----\n");
-        System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
+        if (debug) {
+            System.out.println("\n----- GT -----\n");
+            System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
+        }
 
         for (ModuleName n : parsed.keySet()) {
             Module m = parsed.get(n);
@@ -177,8 +180,10 @@ public class GTCommandLine extends CommandLine {
                         g.getDefChild().getBlockChild().getInteractSeqChild());
                 Set<Role> rs = g.getRoles().stream().collect(Collectors.toSet());
 
-                System.out.println("\n[GTCommandLine] Translated "
-                        + g.getHeaderChild().getDeclName() + ": " + translate);
+                if (debug) {
+                    System.out.println("\n[GTCommandLine] Translated "
+                            + g.getHeaderChild().getDeclName() + ": " + translate);
+                }
 
                 /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
                     System.err.println("Not single pointed: " + translate);
@@ -234,15 +239,22 @@ public class GTCommandLine extends CommandLine {
     static final int MAX = 100;
     static int mystep = 1;
 
+    public static void debugPrintln(boolean debug, String x) {
+        if (debug) {
+            System.out.println(x);
+        }
+    }
+
     private Optional<Exception> foo(Core core, String indent, GTCorrespondence s,
                                     int step, int MAX,
                                     Map<String, Integer> unfolds, int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
                                     Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
                                     Set<Op> com) {
+        boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
         int mark = mystep;
 
-        System.out.println("\n" + indent + "Checking (" + mystep + "):\n" + s.toString(indent));
+        debugPrintln(debug, "\n" + indent + "Checking (" + mystep + "):\n" + s.toString(indent));
 
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
@@ -264,10 +276,10 @@ public class GTCommandLine extends CommandLine {
             return Optional.empty();
         }
 
-        System.out.println(indent + "Possible actions = " + as);
+        debugPrintln(debug, indent + "Possible actions = " + as);
         for (SAction<DynamicActionKind> a : as) {
 
-            System.out.println("\n" + indent + "(" + mark + "-" + step + ")\n"
+            debugPrintln(debug, "\n" + indent + "(" + mark + "-" + step + ")\n"
                     + indent + "Stepping global: "
                     + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTGType.weakStepTop
                     + ConsoleColors.VDASH + " " + s.global + " " + "--" + a + "--> ...");
@@ -276,7 +288,7 @@ public class GTCommandLine extends CommandLine {
                     //s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
                     s.global.weakStepTop(s.theta, a).getRight();  // a in as so step is non-empty
 
-            System.out.println(g_step.right.toString(indent + "   "));
+            debugPrintln(debug, g_step.right.toString(indent + "   "));
 
             //boolean prune = false;
             Map<String, Integer> us = new HashMap<>(unfolds);
@@ -299,7 +311,7 @@ public class GTCommandLine extends CommandLine {
             GTSAction cast = (GTSAction) a;
             GTEAction a_r = cast.project(lmf);
 
-            System.out.println(indent + "Stepping local "
+            debugPrintln(debug, indent + "Stepping local "
                     + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTLType.weakStepTop
                     + ConsoleColors.VDASH + " " + s.local + " --" + a.subj + ":" + a_r + "--> ...");
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
@@ -315,7 +327,7 @@ public class GTCommandLine extends CommandLine {
                 throw new RuntimeException("Locals stuck...", l_step.getLeft());
             }
             Pair<GTLSystem, Tree<String>> sys1 = l_step.getRight();
-            System.out.println(sys1.right.toString(indent + "   "));
+            debugPrintln(debug, sys1.right.toString(indent + "   "));
 
             //System.out.println(indent + "locals = " + sys1);
 

@@ -47,8 +47,10 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
+    @Deprecated
     boolean isInitial();
 
+    // Initial and well-set
     default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
 
     boolean isInitialWellSet(Set<Integer> cs);
@@ -56,7 +58,8 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Map<Role, Set<Role>> getStrongDeps();
 
     // CHECKME: Theta not used for "static" version?
-    // !!! currently just single-decision -- clear-termination approx by isLeftCommitting
+    // !!! currently just single-decision -- clear-termination approx by isLeftCommitting(Top)
+    // ...doesn't check "initial"
     boolean isInitialAware(Theta theta);
 
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
