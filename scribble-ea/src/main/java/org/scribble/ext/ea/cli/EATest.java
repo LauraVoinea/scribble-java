@@ -75,7 +75,18 @@ public class EATest {
                 tests = EAUtil.mapOf();
 
         origTests(tests);
+        hopeTests(tests);
 
+        for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
+            String name = e.getKey();
+            log = log(log, name, runTest(name, e.getValue(), true));
+        }
+
+        System.out.println("\n---\nSummary:" + log);
+    }
+
+    private static void hopeTests(
+            Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> tests) {
         // HOPE testing (incl. reg + spawn)
         tests.put("ex11", EATest::ex11);
         tests.put("ex12", EATest::ex12);
@@ -88,13 +99,6 @@ public class EATest {
         /*tests.put("ex4", EATest::ex4);
         tests.put("ex5", EATest::ex5);
         tests.put("ex14", EATest::ex14);*/
-
-        for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
-            String name = e.getKey();
-            log = log(log, name, runTest(name, e.getValue(), true));
-        }
-
-        System.out.println("\nSummary:" + log);
     }
 
     private static void origTests(
