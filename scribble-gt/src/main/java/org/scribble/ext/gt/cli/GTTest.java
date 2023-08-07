@@ -30,6 +30,8 @@ public class GTTest {
         return GTCommandLine.checkInitialWellSet(translated.values().iterator().next());
     }
 
+    // HERE HERE factorout "general"runTest BiFunctionand fix projection to returnEither(for testing)
+
     static void runGoodTests(List<String> protos) {
         Map<Integer, Boolean> summ = new HashMap<>();
         int i = 1;

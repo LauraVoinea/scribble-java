@@ -1,7 +1,6 @@
 package org.scribble.ext.gt.core.model;
 
 import org.scribble.ast.global.GProtoDecl;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -10,6 +9,7 @@ import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
@@ -32,7 +32,7 @@ public class GTCorrespondence {
     }
 
     protected GTCorrespondence(Set<Role> roles, Set<Integer> tids, GTGType global) {
-        this(roles, tids, new Theta(tids), global, projectTopLevel(roles, global, tids));
+        this(roles, tids, new Theta(tids), global, projectTopLevelWrap(roles, global, tids));
     }
 
     // In general, roles/tids (for original starting protocol) is superset of those in global
@@ -63,7 +63,11 @@ public class GTCorrespondence {
             return Optional.of(new Exception("Not coherent: " + this.global));
         }
 
-        GTLSystem projected = projectTopLevel(this.roles, this.global, this.tids);
+        Either<Exception, GTLSystem> e = projectTopLevel(this.roles, this.global, this.tids);
+        if (e.isLeft()) {
+            return Optional.of(e.getLeft());
+        }
+        GTLSystem projected = e.getRight();
         for (Role r : this.roles) {
             GTLConfig p = projected.configs.get(r);
             System.out.println(indent + "Projected onto " + r + ": " + p);
@@ -96,7 +100,16 @@ public class GTCorrespondence {
     /* ... */
 
     // cs for projectTheta theta_0
-    public static GTLSystem projectTopLevel(Set<Role> roles, GTGType global, Set<Integer> cs) {
+    public static GTLSystem projectTopLevelWrap(Set<Role> roles, GTGType global, Set<Integer> cs) {
+        Either<Exception, GTLSystem> e = projectTopLevel(roles, global, cs);
+        if (e.isLeft()) {
+            throw new RuntimeException(e.getLeft().getCause());
+        }
+        return e.getRight();
+    }
+
+    public static Either<Exception, GTLSystem> projectTopLevel(
+            Set<Role> roles, GTGType global, Set<Integer> cs) {
         //Theta theta = new Theta(global.getTimeoutIds());
         Map<Role, GTLConfig> locals = new HashMap<>();
         for (Role r : roles) {
@@ -104,10 +117,8 @@ public class GTCorrespondence {
             peers.remove(r);
             Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTop(peers, r);
             if (!opt.isPresent()) {
-
-                // TODO Either
-                throw new RuntimeException("Couldn't project onto " + r + ": " + global);
-
+                //throw new RuntimeException("Couldn't project onto " + r + ": " + global);
+                return Either.left(new Exception("Couldn't project onto " + r + ": " + global));
             }
             Pair<? extends GTLType, Sigma> p = opt.get();
             /*if (!p.right.equals(new Sigma(roles))) {
@@ -116,14 +127,15 @@ public class GTCorrespondence {
 
             Optional<Theta> opt_theta = global.projectTheta(cs, r);
             if (!opt_theta.isPresent()) {
-                throw new RuntimeException("Couldn't project onto " + r + ": " + global);
+                //throw new RuntimeException("Couldn't project onto " + r + ": " + global);
+                return Either.left(new Exception("Couldn't project onto " + r + ": " + global));
             }
 
             //locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
             locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get(), GTUtil.mapOf()));
             //System.out.println("Project onto " + r + ": " + p.left);
         }
-        return new GTLSystem(locals);
+        return Either.right(new GTLSystem(locals));
     }
 
     public static Set<Role> getRoles(GProtoDecl g) {

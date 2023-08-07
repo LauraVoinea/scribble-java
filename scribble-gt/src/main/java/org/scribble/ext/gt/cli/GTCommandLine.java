@@ -208,10 +208,14 @@ public class GTCommandLine extends CommandLine {
         return Optional.empty();
     }
 
-    static GTCorrespondence checkProjection(GTGType translate) {
+    //static GTCorrespondence checkProjection(GTGType translate) {
+    static Either<Exception, GTCorrespondence> checkProjection(GTGType translate) {
         // Check projection -- TODO Either
         Set<Role> rs = translate.getRoles();
-        return new GTCorrespondence(rs, translate);
+        Set<Integer> tids = translate.getTimeoutIds();
+        Theta theta = new Theta(tids);
+        Either<Exception, GTLSystem> proj = GTCorrespondence.projectTopLevel(rs, translate, tids);
+        return proj.mapRight(x -> new GTCorrespondence(rs, tids, theta, translate, x));
     }
 
     protected static Optional<Exception> gtRun(GTCommandLine cl) {
@@ -236,7 +240,11 @@ public class GTCommandLine extends CommandLine {
             check = checkInitialAwareness(translate);
             if (check.isPresent()) { return check; }
 
-            GTCorrespondence s = checkProjection(translate);
+            Either<Exception, GTCorrespondence> proj = checkProjection(translate);
+            if (proj.isLeft()) {
+                return Optional.of(proj.getLeft());
+            }
+            GTCorrespondence s = proj.getRight();
 
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
