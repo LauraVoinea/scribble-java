@@ -191,21 +191,34 @@ public class GTCommandLine extends CommandLine {
         }
                 }*/
 
+    // no messages in transit and no active timeouts.
     static Optional<Exception> checkInitialWellSet(GTGType translate) {
         return translate.isInitialWellSet()
                 ? Optional.empty() :
                 Optional.of(new Exception("Not initial and well-set: " + translate));
     }
 
-    static Optional<Exception> checkInitialAwareness(GTGType translate) {
-        // initial awareness
+    // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
+    static Optional<Exception> checkSingleDecision(GTGType translate) {
         if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
             return Optional.of(new Exception("Not initial awareness (single-decision): " + translate));
             //} else if (!translate.isLeftCommitting()) {
-        } else if (!translate.isLeftCommittingTop()) {
+        }
+        return Optional.empty();
+    }
+
+    // Clear-termination requires that all participants are eventually notified that the left-hand side branch is taken.
+    static Optional<Exception> checkClearTermination(GTGType translate) {
+        if (!translate.isLeftCommittingTop()) {
             return Optional.of(new Exception("Not left-committing (initial awareness, clear-termination): " + translate));
         }
         return Optional.empty();
+    }
+
+    static Optional<Exception> checkInitialAwareness(GTGType translate) {
+        // initial awareness
+        return checkSingleDecision(translate)
+                .flatMap(x -> checkInitialAwareness(translate));
     }
 
     //static GTCorrespondence checkProjection(GTGType translate) {
@@ -218,6 +231,7 @@ public class GTCommandLine extends CommandLine {
         return proj.mapRight(x -> new GTCorrespondence(rs, tids, theta, translate, x));
     }
 
+    // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
     protected static Optional<Exception> gtRun(GTCommandLine cl) {
         Core core = cl.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);

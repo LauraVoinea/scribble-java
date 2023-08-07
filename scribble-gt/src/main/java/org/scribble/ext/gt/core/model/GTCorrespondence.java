@@ -108,6 +108,7 @@ public class GTCorrespondence {
         return e.getRight();
     }
 
+    // TODO move to GTGType
     public static Either<Exception, GTLSystem> projectTopLevel(
             Set<Role> roles, GTGType global, Set<Integer> cs) {
         //Theta theta = new Theta(global.getTimeoutIds());

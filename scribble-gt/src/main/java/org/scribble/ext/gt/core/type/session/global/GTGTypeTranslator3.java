@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.type.session.global;
 
 import org.scribble.ast.MsgNode;
+import org.scribble.ast.RoleArgList;
 import org.scribble.ast.SigLitNode;
 import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
@@ -128,8 +129,11 @@ public class GTGTypeTranslator3 {
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
         Role other = g.getOtherChild().toName();
         Role observer = g.getObserverChild().toName();
-        /*LinkedHashSet<Role> committedLeft = new LinkedHashSet<>(g.getLeftRoleListChild().getRoles());
-        LinkedHashSet<Role> committedRight = new LinkedHashSet<>(g.getRightRoleListChild().getRoles());*/
+        List<Role> leftCommitted = g.getLeftRoleListChild().getRoles();  // TODO remove committed from Scribble syntax?
+        List<Role> rightCommitted = g.getRightRoleListChild().getRoles();
+        if (!leftCommitted.isEmpty() || !rightCommitted.isEmpty()) {
+            throw new RuntimeException("TODO deprecated: " + g);
+        }
         return this.fact.mixedChoice(this.counter++, left, right, other, observer);//, committedLeft, committedRight);
     }
 }
