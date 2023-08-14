@@ -128,15 +128,15 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        if (!rem.contains(this.dst) || (!com.contains(this.src) && !this.dst.equals(obs))) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+        if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
         }
         Set<Role> c_copy = GTUtil.copyOf(com);
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(obs, c_copy, r_copy));
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 
     /* ... */

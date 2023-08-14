@@ -144,20 +144,125 @@ public class GTTest {
     static void testSingleDecision() {
         System.out.println("\n---\nTesting single-decision");
         List<String> good = new LinkedList<>();
-        runGoodTests(good, GTTest::runSingleDecision);
-
         List<String> bad = new LinkedList<>();
-        bad.add("P(role A, role B, role C) { mixed { l1() from A to B; l1() from A to C;} () or A->B () { r1() from B to A; r2() from C to A; } }");
+
+        /*good.add("P(role A, role B, role C, role D) {"  // C indifferent XXX ?
+                + "mixed { l1() from A to B; l2() from A to C; l3() from C to D; } () or A->B ()"
+                + "      { r1() from B to A; r2() from C to A; l3() from C to D; } }");*/
+
+        good.add("G0(role A, role B) { l1() from A to B;  r1() from A to B; }");
+
+        good.add("G0a(role A, role B) { "
+                + "mixed { l1() from A to B; } () or A->B () "  // XXX well-term
+                + "      { r1() from B to A; } }");
+        bad.add("B0(role A, role B) { "
+                + "mixed { l1() from A to B; } () or A->B () "  // XXX well-term
+                + "      { r1() from A to B; } }");
+
+        good.add("G1(role A, role B, role C) { "
+                + "mixed { l1() from A to B; } () or A->B () "  // XXX well-term
+                + "      { r1() from B to A; r2() from B to C; } }");
+        bad.add("B1(role A, role B, role C) { "
+                + "mixed { l1() from A to B; l2() from A to C; } () or A->B () "  // XXX well-term
+                + "      { r1() from B to A; } }");
+
+        good.add("G1a(role A, role B, role C) { "
+                + "mixed { l1() from A to B; l2() from B to A; l3() from B to C; } () or A->B () "
+                + "      { r1() from B to A; r2() from A to C; } }");
+        bad.add("B1a(role A, role B, role C) { "
+                + "mixed { l1() from A to B; l2() from B to A; l3() from B to C; } () or A->B () "
+                + "      { r1() from B to C; } }");
+
+        good.add("G2(role A, role B, role C, role D) {"  // C indifferent
+                + "mixed { l1() from A to B; l2() from A to C; l3() from C to D; } () or A->B ()"
+                + "      { r1() from B to A; l2() from A to C; l3() from C to D; } }");
+        good.add("G3(role A, role B, role C, role D) {"  // C indifferent
+                + "mixed { l1() from A to B; l2() from C to A; l3() from C to D; } () or A->B ()"
+                + "      { r1() from B to A; l2() from C to A; l3() from C to D; } }");
+        bad.add("B2(role A, role B, role C, role D) {"  // C not indifferent and not single-dec
+                + "mixed { l1() from A to B; l2() from A to C; l3() from C to D; } () or A->B ()"
+                + "      { r1() from B to A; r2() from C to A; r3() from C to D; } }");
+
+        good.add("G4(role A, role B) {"
+                + "mixed { l1() from A to B; mixed { l2() from B to A; l3() from A to B; } () or B->A () "
+                + "                                { l4() from A to B; l5() from B to A; }"
+                + "      } () or A->B ()"
+                + "      { r1() from B to A; }"
+                + "}");
+
+        good.add("G5(role A, role B, role C) {"
+                + "mixed { l1() from A to B; } () or A->B ()"   // XXX well-term
+                + "      { r1() from B to A; r2() from B to C; mixed { r3() from B to C; } () or B->C () "
+                + "                                                  { r4() from C to B; } } }");
+        bad.add("B5(role A, role B, role C) {"
+                + "mixed { l1() from A to B; } () or A->B ()"   // XXX well-term
+                + "      { r1() from B to A; mixed { r2() from B to C; } () or B->C () "
+                + "                                { r3() from C to B; } } }");
+        bad.add("G5(role A, role B, role C) {"
+                + "mixed { l1() from A to B; } () or A->B ()"   // XXX well-term
+                + "      { r1() from B to A; mixed { r2() from B to C; } () or B->C () "
+                + "                                { r3() from C to B; r4() from B to C; } } }");
+
+        runGoodTests(good, GTTest::runSingleDecision);
         runBadTests(bad, GTTest::runSingleDecision);
     }
 
     static void testClearTermination() {
         System.out.println("\n---\nTesting clear termination");
-        List<String> good = new LinkedList<>();
-        runGoodTests(good, GTTest::runClearTermination);
 
+        List<String> good = new LinkedList<>();
         List<String> bad = new LinkedList<>();
-        bad.add("P(role A, role B, role C) { mixed { l1() from A to B; l2() from A to C;} () or A->B () { r1() from B to A; r2() from B to C;} }");
+
+        good.add("G1(role A, role B) {"
+                + "mixed { l1() from A to B; l2() from B to A; } () or A->B ()"
+                + "      { r1() from B to A; } }");
+        good.add("G2(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from B to A; l3() from B to C; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+        good.add("G3(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from B to A; l3() from A to C; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+        good.add("G4(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from C to A; l3() from B to A; l4() from B to C; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+
+        bad.add("B1(role A, role B, role C) {"
+                + "mixed { l1() from A to B; } () or A->B ()"
+                + "      { r1() from B to A; } }");
+        bad.add("B2(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from A to C; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+        bad.add("B3(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from A to C; l3() from B to A; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+        bad.add("B4(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from B to C; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+        bad.add("B5(role A, role B, role C) {"
+                + "mixed { l1() from A to B; l2() from C to A; l3() from B to C; } () or A->B ()"
+                + "      { r1() from B to A; r2() from B to C; } }");
+
+        good.add("G5(role A, role B) {"
+                + "mixed { l1() from A to B; mixed { l2() from B to A; l3() from A to B; } () or B->A () "
+                + "                                { l4() from A to B; l5() from B to A; }"
+                + "      } () or A->B ()"
+                + "      { r1() from B to A; }"
+                + "}");
+
+        bad.add("B6(role A, role B) {"
+                + "mixed { l1() from A to B; mixed { l2() from B to A; l3() from A to B; } () or B->A () "
+                + "                                { l4() from A to B; }"
+                + "      } () or A->B ()"
+                + "      { r1() from B to A; }"
+                + "}");
+        bad.add("B7(role A, role B) {"
+                + "mixed { l1() from A to B; mixed { l2() from B to A; } () or B->A () "
+                + "                                { l4() from A to B; l5() from B to A; }"
+                + "      } () or A->B ()"
+                + "      { r1() from B to A; }"
+                + "}");
+
+        runGoodTests(good, GTTest::runClearTermination);
         runBadTests(bad, GTTest::runClearTermination);
     }
 }

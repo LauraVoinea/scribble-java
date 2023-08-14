@@ -126,7 +126,7 @@ public class GTGMixedChoice implements GTGType {
         rs.remove(this.observer);  // !!! CHECKME
 
         for (Role r : rs) {
-            if (!right.get(r).contains(this.observer)) {  // only single-decision -- !!! clear-termination approx by isLeftCommitting
+            if (!right.containsKey(r) || !right.get(r).contains(this.observer)) {  // only single-decision -- !!! clear-termination approx by isLeftCommitting
                 return false;
             }
         }
@@ -138,19 +138,23 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public boolean isLeftCommittingTop() {
-        return isLeftCommitting(GTUtil.setOf(), getRoles());
+        //return isLeftCommitting(GTUtil.setOf(), getRoles());  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+        return this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), getRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+                && this.left.isLeftCommittingTop()
+                && this.right.isLeftCommittingTop();
     }
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommitting(this.observer, com, getRoles());
+        return this.left.isLeftCommittingAux(this.observer, com, rem)
+                && this.left.isLeftCommittingTop()
+                && this.right.isLeftCommittingTop();
     }
 
     @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommitting(obs, com, rem)
-                && this.right.isLeftCommitting(obs, com, rem)
-                && isLeftCommitting(com, getRoles());
+    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.left.isLeftCommittingAux(obs, com, rem)
+                && this.right.isLeftCommittingAux(obs, com, rem);
     }
 
     /* ... */

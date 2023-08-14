@@ -105,7 +105,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
         /*if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
             return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
         }

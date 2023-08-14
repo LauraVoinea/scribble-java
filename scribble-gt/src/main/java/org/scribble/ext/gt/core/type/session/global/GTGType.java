@@ -62,14 +62,17 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     // ...doesn't check "initial"
     boolean isInitialAware(Theta theta);
 
+    // ..."top-level" left-committing check -- cf. find all mixed-choice within G
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
     boolean isLeftCommittingTop();
 
     //default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
 
-    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);
+    @Deprecated
+    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
 
-    boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem);
+    // ...left-committing check under the context of a specific mixed-choice instance
+    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
 
     /* ... */
 
@@ -82,6 +85,8 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     boolean isRuntimeAware(GTSModelFactory mf, Theta theta);  // FIXME refactor mf out of params
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
+
+    // well-nested
 
     /* ... */
 

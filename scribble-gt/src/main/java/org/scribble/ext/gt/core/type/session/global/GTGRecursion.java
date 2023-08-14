@@ -73,8 +73,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommitting(obs, com, rem);
+    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommittingAux(obs, com, rem);
     }
 
     /* ... */

@@ -134,7 +134,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Role obs, Set<Role> com, Set<Role> rem) {
+    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
         /*Set<Role> rs = GTUtil.copyOf(getRoles());
         rs.removeAll(this.committedLeft);
         return this.left.isLeftCommitting(this.observer, com, rs)
