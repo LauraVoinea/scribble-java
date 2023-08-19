@@ -118,14 +118,13 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isInitialAware(Theta theta) {
+    public boolean isSingleDecision(Theta theta) {
+        Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
         rs.removeAll(getIndifferent());
-        Map<Role, Set<Role>> right = this.right.getStrongDeps();
-
         rs.remove(this.observer);  // !!! CHECKME
-
         for (Role r : rs) {
+
             if (!right.containsKey(r) || !right.get(r).contains(this.observer)) {  // only single-decision -- !!! clear-termination approx by isLeftCommitting
                 return false;
             }
@@ -133,22 +132,22 @@ public class GTGMixedChoice implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isInitialAware(theta) && this.right.isInitialAware(theta);
+        return this.left.isSingleDecision(theta) && this.right.isSingleDecision(theta);
     }
 
     @Override
-    public boolean isLeftCommittingTop() {
+    public boolean isClearTermination() {
         //return isLeftCommitting(GTUtil.setOf(), getRoles());  // n.b., roles(this) -- "outer" roles not involved at all don't matter
         return this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), getRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
-                && this.left.isLeftCommittingTop()
-                && this.right.isLeftCommittingTop();
+                && this.left.isClearTermination()
+                && this.right.isClearTermination();
     }
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
         return this.left.isLeftCommittingAux(this.observer, com, rem)
-                && this.left.isLeftCommittingTop()
-                && this.right.isLeftCommittingTop();
+                && this.left.isClearTermination()
+                && this.right.isClearTermination();
     }
 
     @Override
@@ -171,9 +170,9 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
         // Can morally just return true
-        return this.left.isRuntimeAware(mf, theta) && this.right.isRuntimeAware(mf, theta);
+        return this.left.isAwareCorollary(mf, theta) && this.right.isAwareCorollary(mf, theta);
     }
 
     @Override

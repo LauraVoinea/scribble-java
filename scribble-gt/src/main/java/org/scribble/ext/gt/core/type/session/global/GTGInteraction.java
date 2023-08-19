@@ -106,13 +106,13 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isInitialAware(Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isInitialAware(theta));
+    public boolean isSingleDecision(Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(theta));
     }
 
     @Override
-    public boolean isLeftCommittingTop() {
-        return this.cases.values().stream().allMatch(GTGType::isLeftCommittingTop);
+    public boolean isClearTermination() {
+        return this.cases.values().stream().allMatch(GTGType::isClearTermination);
     }
 
     @Override
@@ -143,9 +143,11 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public boolean isChoicePartip() {
-        Set<Role> fst = this.cases.values().iterator().next().getRoles();
-        return this.cases.values().stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
-                && this.cases.values().stream().allMatch(GTGType::isChoicePartip);
+        Collection<GTGType> cs = this.cases.values();
+        if (cs.size() == 1) { return true; }
+        Set<Role> fst = cs.iterator().next().getRoles();
+        return cs.stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
+                && cs.stream().allMatch(GTGType::isChoicePartip);
     }
 
     @Override
@@ -154,8 +156,8 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isRuntimeAware(mf, theta));
+    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, theta));
     }
 
     @Override

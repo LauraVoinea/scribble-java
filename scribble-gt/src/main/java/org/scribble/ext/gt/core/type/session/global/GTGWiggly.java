@@ -72,7 +72,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingTop() {
+    public boolean isClearTermination() {
         throw new RuntimeException("Shouldn't get in here");
     }
 
@@ -83,12 +83,38 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrongDeps() {
-        throw new RuntimeException("Shouldn't get here: " + this);
+        Set<Role> rs = getRoles();
+        Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
+                .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
+
+        Map<Role, Set<Role>> res = GTUtil.mapOf();
+        for (Role r : rs) {
+            Iterator<Map<Role, Set<Role>>> it = nested.iterator();
+            Map<Role, Set<Role>> fst = it.next();
+            Set<Role> tmp = fst.containsKey(r) ? fst.get(r) : GTUtil.setOf();
+            while (it.hasNext()) {
+                Map<Role, Set<Role>> next = it.next();
+                if (!next.containsKey(r)) {
+                    tmp = GTUtil.setOf();
+                    break;
+                }
+                tmp.retainAll(next.get(r));
+            }
+            /* //  Now wiggly, cf. interaction
+            if (r.equals(this.dst)) {
+                tmp.add(this.src);
+            } else*if (tmp.contains(this.dst)) {
+                tmp.add(this.src);
+            }*/
+            res.put(r, tmp);
+        }
+
+        return res;
     }
 
     @Override
-    public boolean isInitialAware(Theta theta) {
-        throw new RuntimeException("Shouldn't get here: " + this);
+    public boolean isSingleDecision(Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(theta));
     }
 
     @Override
@@ -121,9 +147,11 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public boolean isChoicePartip() {
-        Set<Role> fst = this.cases.values().iterator().next().getRoles();
-        return this.cases.values().stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
-                && this.cases.values().stream().allMatch(GTGType::isChoicePartip);
+        Collection<GTGType> cs = this.cases.values();
+        if (cs.size() == 1) { return true; }
+        Set<Role> fst = cs.iterator().next().getRoles();
+        return cs.stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
+                && cs.stream().allMatch(GTGType::isChoicePartip);
     }
 
     @Override
@@ -132,8 +160,8 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isRuntimeAware(mf, theta));
+    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, theta));
     }
 
     @Override

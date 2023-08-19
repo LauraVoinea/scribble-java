@@ -57,22 +57,6 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     Map<Role, Set<Role>> getStrongDeps();
 
-    // CHECKME: Theta not used for "static" version?
-    // !!! currently just single-decision -- clear-termination approx by isLeftCommitting(Top)
-    // ...doesn't check "initial"
-    boolean isInitialAware(Theta theta);
-
-    // ..."top-level" left-committing check -- cf. find all mixed-choice within G
-    // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    boolean isLeftCommittingTop();
-
-    //default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
-
-    @Deprecated
-    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
-
-    // ...left-committing check under the context of a specific mixed-choice instance
-    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
 
     /* ... */
 
@@ -82,11 +66,36 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
 
-    boolean isRuntimeAware(GTSModelFactory mf, Theta theta);  // FIXME refactor mf out of params
-
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
-    // well-nested
+    // ...well-nested
+
+
+    /* ... */
+
+    //HERE HERE HERE separate run-time aware from aware corollaries -- refactor foo loop to enable testing different run-time properties
+
+    // CHECKME: Theta not used for "static" version?
+    // !!! currently just single-decision -- clear-termination approx by isLeftCommitting(Top)
+    // ...doesn't check "initial"
+    boolean isSingleDecision(Theta theta);
+
+    // boolean isBalanced();  // TODO awareness
+
+    // ..."top-level" left-committing check -- cf. find all mixed-choice within G
+    // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
+    boolean isClearTermination();
+
+    //default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
+
+    @Deprecated
+    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
+
+    // ...left-committing check under the context of a specific mixed-choice instance
+    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
+
+    boolean isAwareCorollary(GTSModelFactory mf, Theta theta);  // FIXME refactor mf out of params
+
 
     /* ... */
 

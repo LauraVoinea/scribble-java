@@ -116,12 +116,31 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isInitialAware(Theta theta) {
-        throw new RuntimeException("Shouldn't get here: " + this);
+    public boolean isSingleDecision(Theta theta) {
+
+        if (!this.committedRight.isEmpty()) {  // cf. !!! below
+            return true;
+        }
+
+        Map<Role, Set<Role>> right = this.right.getStrongDeps();
+        Set<Role> rs = getRoles();
+        rs.removeAll(getIndifferent());
+        rs.remove(this.observer);  // !!! CHECKME
+        for (Role r : rs) {
+
+            if (this.committedRight.contains(r) ||  // !!! cf. def. 10, R = 0 -- this is better?
+                    (!right.containsKey(r) || !right.get(r).contains(this.observer))) {  // only single-decision -- !!! clear-termination approx by isLeftCommitting
+                return false;
+            }
+        }
+
+        //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
+
+        return this.left.isSingleDecision(theta) && this.right.isSingleDecision(theta);
     }
 
     @Override
-    public boolean isLeftCommittingTop() {
+    public boolean isClearTermination() {
         throw new RuntimeException("Shouldn't get in here: ");
     }
 
@@ -162,7 +181,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
         if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
             return this.left.getRoles().equals(this.right.getRoles());  // awareness (2)
         }

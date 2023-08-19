@@ -44,10 +44,53 @@ public class GTCorrespondence {
         this.local = local;
     }
 
+
+    /* ... */
+
+    public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent) {
+        return checkRuntimeProperties(mf, indent, true, true, true, true, true, true);
+    }
+
+    public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent,
+                                                      boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
+        // global
+
+        if (cp && !this.global.isChoicePartip()) {
+            return Optional.of(new Exception("Not choice-participating: " + this.global));
+        }
+
+        if (ui && !this.global.isUniqueInstan()) {
+            return Optional.of(new Exception("Not unique instantiating: " + this.global));
+        }
+
+        if (co && !this.global.isCoherent()) {
+            return Optional.of(new Exception("Not coherent: " + this.global));
+        }
+
+        if (sd && !this.global.isSingleDecision(this.theta)) {
+            return Optional.of(new Exception("Not single-decision: " + this.global));
+        }
+
+        if (ct && !this.global.isClearTermination()) {
+            return Optional.of(new Exception("Not clear-termination: " + this.global));
+        }
+
+
+        if (ac && !this.global.isAwareCorollary(mf, this.theta)) {  // FIXME deprecate mf
+            return Optional.of(new Exception("Not aware corollary: " + this.global));
+        }
+
+        // local ?
+
+        // OK
+        return Optional.empty();
+    }
+
+
     /* ... */
 
     // Checks projection correspondence between global and local
-    public Optional<Exception> check(GTSModelFactory mf, String indent) {
+    public Optional<Exception> checkProjectionCorrespondence(GTSModelFactory mf, String indent) {
 
         if (!this.roles.equals(this.local.configs.keySet())) {
             throw new RuntimeException("Roles mismatch: roles=" + this.roles + ", locals=" + this.local.configs.keySet());
@@ -56,7 +99,7 @@ public class GTCorrespondence {
         /*if (!this.global.isGood()) {
             throw new RuntimeException("Not good: " + this.global);
         }*/
-        if (!this.global.isRuntimeAware(mf, this.theta)) {
+        if (!this.global.isAwareCorollary(mf, this.theta)) {
             return Optional.of(new Exception("Not run-time aware: " + this.global));
         }
         if (!this.global.isCoherent()) {

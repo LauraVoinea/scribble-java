@@ -200,8 +200,8 @@ public class GTCommandLine extends CommandLine {
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
     static Optional<Exception> checkSingleDecision(GTGType translate) {
-        if (!translate.isInitialAware(new Theta(translate.getTimeoutIds()))) {
-            return Optional.of(new Exception("Not initial awareness (single-decision): " + translate));
+        if (!translate.isSingleDecision(new Theta(translate.getTimeoutIds()))) {
+            return Optional.of(new Exception("Not single-decision: " + translate));
             //} else if (!translate.isLeftCommitting()) {
         }
         return Optional.empty();
@@ -209,8 +209,8 @@ public class GTCommandLine extends CommandLine {
 
     // Clear-termination requires that all participants are eventually notified that the left-hand side branch is taken.
     static Optional<Exception> checkClearTermination(GTGType translate) {
-        if (!translate.isLeftCommittingTop()) {
-            return Optional.of(new Exception("Not left-committing (initial awareness, clear-termination): " + translate));
+        if (!translate.isClearTermination()) {
+            return Optional.of(new Exception("Not left-committing (clear-termination): " + translate));
         }
         return Optional.empty();
     }
@@ -264,7 +264,8 @@ public class GTCommandLine extends CommandLine {
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                Optional<Exception> foo = foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com);
+                Optional<Exception> foo = foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com,
+                        true, true, true, true, true, true);
                 if (foo.isPresent()) {
                     return foo;
                 }
@@ -308,7 +309,9 @@ public class GTCommandLine extends CommandLine {
                                            Map<String, Integer> unfolds,
                                            int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
                                            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-                                           Set<Op> com) {
+                                           Set<Op> com,
+                                           boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac
+    ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
         int mark = mystep;
@@ -318,9 +321,14 @@ public class GTCommandLine extends CommandLine {
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
-        Optional<Exception> check = s.check(mf, indent + "    ");
+        Optional<Exception> check = s.checkProjectionCorrespondence(mf, indent + "    ");
         if (check.isPresent()) {
             return check;
+        }
+
+        Optional<Exception> props = s.checkRuntimeProperties(mf, indent, cp, ui, co, sd, ct, ac);
+        if (props.isPresent()) {
+            return props;
         }
 
         Set<SAction<DynamicActionKind>> as =
@@ -395,7 +403,8 @@ public class GTCommandLine extends CommandLine {
 
             GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            Optional<Exception> foo = foo(core, incIndent(indent), s1, 1, MAX, us, depth, labs, com);
+            Optional<Exception> foo = foo(core, incIndent(indent), s1, 1, MAX, us, depth, labs, com,
+                    cp, ui, co, sd, ct, ac);
             if (foo.isPresent()) {
                 return foo;
             }

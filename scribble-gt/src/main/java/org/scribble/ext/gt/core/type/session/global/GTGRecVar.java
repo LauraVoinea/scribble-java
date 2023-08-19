@@ -57,12 +57,12 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isInitialAware(Theta theta) {
+    public boolean isSingleDecision(Theta theta) {
         return true;
     }
 
     @Override
-    public boolean isLeftCommittingTop() {
+    public boolean isClearTermination() {
         return true;
     }
 
@@ -89,7 +89,7 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
         return true;
     }
 

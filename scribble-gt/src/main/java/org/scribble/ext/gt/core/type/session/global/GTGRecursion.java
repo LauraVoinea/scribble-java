@@ -48,8 +48,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingTop() {
-        return this.body.isLeftCommittingTop();
+    public boolean isClearTermination() {
+        return this.body.isClearTermination();
     }
 
     @Override
@@ -63,8 +63,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isInitialAware(Theta theta) {
-        return this.body.isInitialAware(theta);
+    public boolean isSingleDecision(Theta theta) {
+        return this.body.isSingleDecision(theta);
     }
 
     @Override
@@ -90,8 +90,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isRuntimeAware(GTSModelFactory mf, Theta theta) {
-        return this.body.isRuntimeAware(mf, theta);
+    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
+        return this.body.isAwareCorollary(mf, theta);
     }
 
     @Override
