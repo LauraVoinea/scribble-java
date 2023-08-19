@@ -72,11 +72,6 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isClearTermination() {
-        throw new RuntimeException("Shouldn't get in here");
-    }
-
-    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return false;
     }
@@ -118,6 +113,11 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
+    public boolean isClearTermination() {
+        return this.cases.values().stream().allMatch(GTGType::isClearTermination);
+    }
+
+    @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
         /*if (!com.contains(this.src) || rem.contains(this.dst)) {
             return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
@@ -132,15 +132,14 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        /*if ((!com.contains(this.src) || rem.contains(this.dst)) && !this.dst.equals(obs)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
+        if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
         }
         Set<Role> c_copy = GTUtil.copyOf(com);
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));*/
-        throw new RuntimeException("Shouldn't get here: " + this);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 
     /* ... */

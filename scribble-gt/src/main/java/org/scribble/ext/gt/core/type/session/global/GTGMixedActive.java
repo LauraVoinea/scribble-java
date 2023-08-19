@@ -141,25 +141,27 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public boolean isClearTermination() {
-        throw new RuntimeException("Shouldn't get in here: ");
+        if (!this.committedLeft.isEmpty()) {  // !!!  cf. def. 10, R = 0 -- better to check r \in L ?
+            return true;
+        }
+
+        Set<Role> rs = getRoles();
+        rs.add(this.observer);  // cf. (A~>B:l1{l1.B->A{l2.end}} [] ▶1,1:A->B [B] B~>A:r1{r1.end}) -- B r-committed so not in getRoles... if obs not in rem, then doesn't get left-committed by aux
+
+        return this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), rs)  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+                && this.left.isClearTermination()
+                && this.right.isClearTermination();
     }
 
     @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        /*Set<Role> rs = GTUtil.copyOf(getRoles());
-        rs.removeAll(this.committedLeft);
-        return this.left.isLeftCommitting(this.observer, com, rs);*/
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {  // Deprecated
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        /*Set<Role> rs = GTUtil.copyOf(getRoles());
-        rs.removeAll(this.committedLeft);
-        return this.left.isLeftCommitting(this.observer, com, rs)
-                && this.left.isLeftCommitting(obs, com, rem)
-                && this.right.isLeftCommitting(obs, com, rem);*/
-        throw new RuntimeException("Shouldn't get here: " + this);
+        return this.left.isLeftCommittingAux(obs, com, rem)
+                && this.right.isLeftCommittingAux(obs, com, rem);
     }
 
     /* ... */
