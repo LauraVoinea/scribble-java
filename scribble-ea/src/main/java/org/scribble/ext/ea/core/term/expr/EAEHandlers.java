@@ -69,7 +69,10 @@ public class EAEHandlers implements EAExpr {
     //public EAVType type(GammaState gamma) {
     public Either<Exception, Pair<EAVType, Tree<String>>> type(GammaState gamma) {
         LinkedHashMap<Op, Pair<EAVType, EALType>> cases = new LinkedHashMap<>();
+
+        // !!! FIXME duplicate case error causes NPE
         EAVType A = this.Hs.values().iterator().next().svarType;  // Syntactically non-empty
+
         for (Map.Entry<Op, EAHandler> e : this.Hs.entrySet()) {
             Op k = e.getKey();
             EAHandler v = e.getValue();

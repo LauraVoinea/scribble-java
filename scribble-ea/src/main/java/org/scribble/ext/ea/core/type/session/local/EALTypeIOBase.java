@@ -76,8 +76,8 @@ public abstract class EALTypeIOBase implements EALType {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         EALTypeIOBase them = (EALTypeIOBase) o;
         return them.canEquals(this)
                 && this.peer.equals(them.peer)

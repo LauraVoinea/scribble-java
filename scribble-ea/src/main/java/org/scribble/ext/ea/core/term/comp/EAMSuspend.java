@@ -56,7 +56,7 @@ public class EAMSuspend implements EAComp {
             return Either.left(new Exception("Incompatible state type: found=" + cast.T + ", gamma=" + gamma.svarType));
         }
 
-        EALType.subtype(cast.S, pre);  // !!! need "subtype" for run-time type pres  // FIXME use Either
+        EALType.equalSubFold(cast.S, pre);  // !!! need "subtype" for run-time type pres  // FIXME use Either
         /*if (!(cast.S.equals(pre))) {
             return Either.left(new Exception("Incompatible pre type: " + pre + ", " + cast.S + "\n\t" + this));
         }*/

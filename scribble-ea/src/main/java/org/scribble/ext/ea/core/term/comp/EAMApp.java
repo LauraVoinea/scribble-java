@@ -8,7 +8,6 @@ import org.scribble.ext.ea.core.term.expr.EAERec;
 import org.scribble.ext.ea.core.term.expr.EAEVar;
 import org.scribble.ext.ea.core.term.expr.EAExpr;
 import org.scribble.ext.ea.core.type.GammaState;
-import org.scribble.ext.ea.core.type.session.local.EALInType;
 import org.scribble.ext.ea.core.type.session.local.EALType;
 import org.scribble.ext.ea.core.type.value.EAVFuncType;
 import org.scribble.ext.ea.core.type.value.EAVType;
@@ -56,9 +55,8 @@ public class EAMApp implements EAComp {
 //            throw new RuntimeException("Incompatible pre type:\n"
 //                    + "\tfound=" + ftype.S + ", required=" + pre);
 //        }*/
-        System.out.println("------- " + this);
 
-        EALType.subtype(ftype.S, pre);  // (probably) need "subtype" for run-time type pres  // TODO use Either
+        EALType.equalSubFold(ftype.S, pre);  // (probably) need "subtype" for run-time type pres  // TODO use Either
         /*if (!(ftype.S.equals(pre))) {
             return Either.left(new Exception("Incompatible pre type: " + pre + ", " + ftype.S + "\n\t" + this));
         }*/

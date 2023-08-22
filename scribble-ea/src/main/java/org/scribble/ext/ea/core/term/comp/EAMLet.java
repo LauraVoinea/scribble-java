@@ -63,7 +63,7 @@ public class EAMLet implements EAComp {
             }
             EALType tt = ((EAVHandlersType) this.varType).S;
             EALType rr = ((EAVHandlersType) p1.left).S;
-            EALType.subtype(rr, tt);
+            EALType.equalSubFold(rr, tt);
         } else if (!this.varType.equals(p1.left)) {
             return Either.left(new Exception("Value typing error:\n\t" + this.init + " : " + p1.left + "\n\t" + "result annot = " + this.varType + "\n\t" + this));
         }

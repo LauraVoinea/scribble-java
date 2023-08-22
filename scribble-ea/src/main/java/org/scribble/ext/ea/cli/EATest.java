@@ -74,8 +74,9 @@ public class EATest {
         Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>>
                 tests = EAUtil.mapOf();
 
-        origTests(tests);
-        hopeTests(tests);
+        //origTests(tests);
+        //hopeTests(tests);
+        savinaTests(tests);
 
         for (Map.Entry<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> e : tests.entrySet()) {
             String name = e.getKey();
@@ -83,6 +84,93 @@ public class EATest {
         }
 
         System.out.println("\n---\nSummary:" + log);
+    }
+
+    private static void savinaTests(
+            Map<String, Function<Boolean, Either<Exception, Pair<Set<EAAsyncSystem>, Set<EAAsyncSystem>>>>> tests) {
+
+        //HERE
+        // ping pong
+        Role Pinger = new Role("Pinger");
+        Role Ponger = new Role("Ponger");
+        Pair<EASid, Role> sPinger = Pair.of(s, Pinger);
+        Pair<EASid, Role> sPonger = Pair.of(s, Ponger);
+
+        // !!! TODO StartMessage from Main
+        EALType S_SelfSnd = EACommandLine.parseSessionType("mu X . SelfRcv!{ PingMessage(1).X, StopMessage(1).end }");  // !!! StopMessage here is extra
+        EALType S_SelfRcv = EACommandLine.parseSessionType("mu X . SelfSnd?{ PingMessage(1).X, StopMessage(1).end }");
+
+        EALType S_Pinger = EACommandLine.parseSessionType("mu X . Ponger!{ Ping(1).Ponger?{ Pong(1).X },  StopMessage(1).end }");
+        EALType S_Ponger = EACommandLine.parseSessionType("mu X . Pinger?{ Ping(1).Pinger!{ Pong(1).X },  StopMessage(1).end }");
+
+        System.out.println(S_SelfSnd);
+        System.out.println(S_SelfRcv);
+        System.out.println(S_Pinger);
+        System.out.println(S_Ponger);
+
+        EALType in_S_Pinger = EACommandLine.parseSessionType("Ponger?{ Pong(1)." + S_Pinger + "}");
+        EALType unf_S_Pinger = EACommandLine.parseSessionType("Ponger!{ Ping(1)." + in_S_Pinger + ", StopMessage(1).end }");
+        String H_Pinger = "Handler (1, " + in_S_Pinger + ")";
+        String f_Pinger = "{" + S_Pinger + "} 1 -> " + H_Pinger + " {" + S_Pinger + "}";
+        EAMLet M_Pinger = (EAMLet) EACommandLine.parseM(
+                "let g: " + f_Pinger + " <= return"
+
+                        + "  (rec f {  " + in_S_Pinger + "} (x_f: 1): " + H_Pinger + "{" + in_S_Pinger + "} . return handler Ponger {"
+                        //+ "  (rec f {  " + S_Pinger + "} (x_f: 1): " + H_Pinger + "{" + S_Pinger + "} . return handler Ponger {"
+
+                        + "    {" + unf_S_Pinger + "} d: 1, Pong(x: 1) |->"
+
+                        + "      let y: 1 <= Ponger!Ping(()) in let z : " + H_Pinger + " <= [f ()] in suspend z ()"  // TODO count pingsLeft
+
+                        + "  }) "
+                        + "in let x: 1 <= Ponger!Ping(()) in let h: " + H_Pinger + " <= [g ()] in suspend h ()");
+
+        /*
+        String recXAs = "mu X.B?{l2(1).B!{l1(1).X}}";
+        String out1us = "B!{l1(1)." + recXAs + "}";
+        String in2us = "B?{l2(1)." + out1us + "}";  // unfolding of recXA
+        String h2s = "Handler (Int, " + in2us + ")";  // can also be recXAs
+
+        String hts = "{" + recXAs + "} 1 -> " + h2s + "{" + recXAs + "}";
+        EAMLet lethA = (EAMLet) EACommandLine.parseM(
+                "let h: " + hts + " <= return"
+                        + "  (rec f { " + recXAs + "} (w1: 1): " + h2s + " {" + recXAs + "} . return handler B {"
+                        + "    {" + out1us + "} d: Int, l2(w2: 1) |->"
+                        + "      let y: 1 <= B!l1(()) in let z : " + h2s + " <= [f ()] in suspend z 42"
+                        + "  }) "
+                        + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh 42");
+         */
+
+        EALType out_S_Ponger = EACommandLine.parseSessionType("Pinger!{ Pong(1)." + S_Ponger + "}");
+        EALType unf_S_Ponger = EACommandLine.parseSessionType("Pinger?{ Ping(1)." + out_S_Ponger + ",  StopMessage(1).end }");
+        String H_Ponger = "Handler (1, " + unf_S_Ponger + ")";
+        String f_Ponger = "{" + S_Ponger + "} 1 -> " + H_Ponger + " {" + S_Ponger + "}";
+        EAMLet M_Ponger = (EAMLet) EACommandLine.parseM(
+                "let g: " + f_Ponger + " <= return"
+                        + "  (rec f {  " + S_Ponger + "} (x_f: 1): " + H_Ponger + "{" + S_Ponger + "} . return handler Pinger {"
+                        + "    {" + out_S_Ponger + "} d: 1, Ping(x: 1) |->"
+                        + "      let y: 1 <= Pinger!Pong(()) in let z : " + H_Ponger + " <= [f ()] in suspend z (),"
+
+                        // Comment is badly typed
+                        + "    {end} d: 1, StopMessage(x: 1) |-> return ()"
+
+                        + "  }) "
+                        + "in let h: " + H_Ponger + " <= [g ()] in suspend h ()");
+
+        EACActor cPinger = RF.actor(p1, RF.sessionThread(M_Pinger, s, Pinger), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        EACActor cPonger = RF.actor(p2, RF.sessionThread(M_Ponger, s, Ponger), EMPTY_SIGMA, EMPTY_RHO, MF.unit());
+        System.out.println("Actor " + cPinger.pid + " = " + cPinger);
+        System.out.println("Actor " + cPonger.pid + " = " + cPonger);
+
+        EACommandLine.typeCheckActor(cPinger, new Delta(EAUtil.mapOf(sPinger, S_Pinger)));
+        EACommandLine.typeCheckActor(cPonger, new Delta(EAUtil.mapOf(sPonger, S_Ponger)));
+
+
+
+        // philosopher
+        // thread ring
+        // fib -- needs become? fib(n) actor instance needs to be in sessions with parent and children
+        // ... ?
     }
 
     private static void hopeTests(
@@ -892,7 +980,7 @@ public class EATest {
                         + "  }) "
                         + "in let w1: 1 <= B!l1(()) in let hh: " + h2s + " <= [h ()] in suspend hh 42");
 
-        String recXBs = "mu X . A?{ l1(1) . A!{ l2(1) . X, l3(1).end }}";
+        String recXBs = "mu X . A?{ l1(1) . A!{ l2(1) . X, l3(1).end }}";  // !!! not dual to recXAs -- cf. compat up to T3 vs. "direct" T1 subtype dual T2 ? -- CHECKME unfold only immed \mu or under prefix?
         String out2us = "A!{l2(1) . " + recXBs + ", l3(1) . end }";
         String in1us = "A?{l1(1) . " + out2us + "}";
         String h1s = "Handler(Int, " + in1us + ")";  // can also be recXBs
@@ -1154,7 +1242,7 @@ public class EATest {
                         + "  }) "
                         + "in let w3 : 1 <= B!l1(()) in let hh : " + h2s + " <= [h ()] in suspend hh 42");
 
-        String recXBs = "mu X.A?{l1(1).A!{l2(1).X}}";
+        String recXBs = "mu X.A?{l1(1).A!{l2(1).X}}";  // !!! not dual to recXAs -- cf. compat up to T3 vs. "direct" T1 subtype dual T2 ? -- CHECKME unfold only immed \mu or under prefix?
         String out2mus = "A!{l2(1)." + recXBs + "}";
         String in1us = "A?{l1(1)." + out2mus + "}";
         String h1s = "Handler (Int, " + in1us + ")";  // can also be recXBs

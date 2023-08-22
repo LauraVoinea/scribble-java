@@ -1,9 +1,12 @@
 package org.scribble.ext.ea.core.type.session.local;
 
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.session.local.LSend;
 import org.scribble.core.type.session.local.LType;
 import org.scribble.ext.ea.core.type.EAType;
+import org.scribble.ext.ea.core.type.value.EAVType;
+import org.scribble.util.Pair;
 
 import java.util.Map;
 import java.util.Optional;
@@ -19,11 +22,50 @@ public interface EALType extends EAType {
 
     /* ... */
 
+    // !!! FIXME TODO Optional
     // !!! currently not used consistently (added ad hoc from testing)
     // Currently only unfolding -- so currently symmetric
     // ...found is expr, required is usually pre
-    static void subtype(EALType found, EALType required) {
-        if (!(found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce()))) {
+    static void equalSubFold(EALType found, EALType required) {  // equals up to (asymmetric) subtype-like unfolding
+        /*if (!(found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce()))) {
+            throw new RuntimeException("Incompatible pre type:\n"
+                    + "\tfound=" + found + ", required=" + required);
+        }*/
+        if (found == null || required == null) {
+            throw new RuntimeException("Null: " + found + " ,, " + required);
+        }
+
+        if (found instanceof EALEndType) {
+            if (found.equals(required)) {
+                return;
+            }
+        } else if (found instanceof EALRecVarType) {
+            if (found.equals(required)) {
+                return;
+            }
+        } else if (found instanceof EALRecType) {
+            if (found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce())) {
+                return;
+            }
+            equalSubFold(((EALRecType) found).body, ((EALRecType) required).body);
+            return;
+        } else if (found instanceof EALTypeIOBase) {
+            if (found.equals(required) || found.unfoldAllOnce().equals(required.unfoldAllOnce())) {
+                return;
+            }
+            //System.out.println("1111111111: " + found + "\n\t" + found.unfoldAllOnce() + "\n\t" + required + "\n\t" + required.unfoldAllOnce());
+            //System.out.println("1111111111: " + found.unfoldAllOnce().equals(required.unfoldAllOnce()));
+            Map<Op, Pair<EAVType, EALType>> c1 = ((EALTypeIOBase) found).cases;
+            Map<Op, Pair<EAVType, EALType>> c2 = ((EALTypeIOBase) required).cases;
+            if (!c1.keySet().equals(c2.keySet())) {
+                throw new RuntimeException("Incompatible pre type:\n"
+                        + "\tfound=" + found + ", required=" + required);
+            }
+            for (Op op : c1.keySet()) {
+                equalSubFold(c1.get(op).right, c2.get(op).right);
+            }
+            return;
+        } else {
             throw new RuntimeException("Incompatible pre type:\n"
                     + "\tfound=" + found + ", required=" + required);
         }

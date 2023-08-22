@@ -91,7 +91,7 @@ public class EAERec implements EAExpr {
             }
             EALType tt = ((EAVHandlersType) target.left).S;
             EALType rr = ((EAVHandlersType) res.left).S;
-            EALType.subtype(rr, tt);
+            EALType.equalSubFold(rr, tt);
         } else if (!res.left.equals(target.left)) {
             return Either.left(new Exception("Value typing error:\n\t" + this.body + " : " + res.left + "\n\t" + "result annot = " + target.left + "\n\t" + this));
         }
