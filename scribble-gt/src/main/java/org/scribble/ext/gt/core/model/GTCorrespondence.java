@@ -31,10 +31,12 @@ public class GTCorrespondence {
         this(roles, global.getTimeoutIds(), global);
     }
 
+    // tids = cs
     protected GTCorrespondence(Set<Role> roles, Set<Integer> tids, GTGType global) {
         this(roles, tids, new Theta(tids), global, projectTopLevelWrap(roles, global, tids));
     }
 
+    // tids = cs
     // In general, roles/tids (for original starting protocol) is superset of those in global
     public GTCorrespondence(Set<Role> roles, Set<Integer> tids, Theta theta, GTGType global, GTLSystem local) {
         this.roles = Collections.unmodifiableSet(new HashSet<>(roles));
@@ -51,8 +53,19 @@ public class GTCorrespondence {
         return checkRuntimeProperties(mf, indent, true, true, true, true, true, true);
     }*/
 
-    public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent,
-                                                      boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
+    public Optional<Exception> checkRuntimeProperties(
+            GTSModelFactory mf, String indent, Set<Integer> tids,
+            boolean proj, boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
+
+        // local ?
+
+        /*if (proj) {  // !!! cf. checkProjectionCorrespondence
+            Either<Exception, GTLSystem> p = projectTopLevel(roles, global, tids);
+            if (p.isLeft()) {
+                return Optional.of(p.getLeft());
+            }
+        }*/
+
         // global
 
         if (cp && !this.global.isChoicePartip()) {
@@ -75,12 +88,9 @@ public class GTCorrespondence {
             return Optional.of(new Exception("Not clear-termination: " + this.global));
         }
 
-
         if (ac && !this.global.isAwareCorollary(mf, this.theta)) {  // FIXME deprecate mf
             return Optional.of(new Exception("Not aware corollary: " + this.global));
         }
-
-        // local ?
 
         // OK
         return Optional.empty();
@@ -99,12 +109,12 @@ public class GTCorrespondence {
         /*if (!this.global.isGood()) {
             throw new RuntimeException("Not good: " + this.global);
         }*/
-        if (!this.global.isAwareCorollary(mf, this.theta)) {
+        /*if (!this.global.isAwareCorollary(mf, this.theta)) {  // cf. checkRuntimeProperties
             return Optional.of(new Exception("Not run-time aware: " + this.global));
         }
         if (!this.global.isCoherent()) {
             return Optional.of(new Exception("Not coherent: " + this.global));
-        }
+        }*/
 
         Either<Exception, GTLSystem> e = projectTopLevel(this.roles, this.global, this.tids);
         if (e.isLeft()) {

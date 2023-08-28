@@ -191,8 +191,9 @@ public class GTCommandLine extends CommandLine {
         }
                 }*/
 
+    // TODO make checkStaticProperties -- cf. GTCorrespondence.checkRuntimeProperties
     // no messages in transit and no active timeouts.
-    static Optional<Exception> checkInitialWellSet(GTGType translate) {
+    static Optional<Exception> checkInitialWellSet(GTGType translate) {  // "check..." vs. "is..."
         return translate.isInitialWellSet()
                 ? Optional.empty() :
                 Optional.of(new Exception("Not initial and well-set: " + translate));
@@ -239,7 +240,7 @@ public class GTCommandLine extends CommandLine {
         Map<GProtoName, GTGType> translated = getTranslated(cl);
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
-            Set<Role> rs = translate.getRoles();
+            //Set<Role> rs = translate.getRoles();
             if (debug) {
                 System.out.println("\n[GTCommandLine] Translated "
                         + g + ": " + translate);
@@ -264,8 +265,11 @@ public class GTCommandLine extends CommandLine {
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                Optional<Exception> foo = foo(core, "", s, 1, MAX, new HashMap<>(), 2, labs, com,
-                        true, true, true, true, true, true);
+                Optional<Exception> foo = foo(core, "", s, 1, MAX,
+                        new HashMap<>(), 2,
+                        translate.getTimeoutIds(),
+                        labs, com,
+                        true, true, true, true, true, true, true);
                 if (foo.isPresent()) {
                     return foo;
                 }
@@ -308,9 +312,10 @@ public class GTCommandLine extends CommandLine {
                                            int step, int MAX,
                                            Map<String, Integer> unfolds,
                                            int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+                                           Set<Integer> tids,
                                            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
                                            Set<Op> com,
-                                           boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac
+                                           boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
     ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
@@ -326,7 +331,7 @@ public class GTCommandLine extends CommandLine {
             return check;
         }
 
-        Optional<Exception> props = s.checkRuntimeProperties(mf, indent, cp, ui, co, sd, ct, ac);
+        Optional<Exception> props = s.checkRuntimeProperties(mf, indent, tids, proj, cp, ui, co, sd, ct, ac);  // cf. checkProjectionCorrespondence
         if (props.isPresent()) {
             return props;
         }
@@ -401,10 +406,10 @@ public class GTCommandLine extends CommandLine {
             mystep = mystep + 1;
             step = step + 1;
 
-            GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);
+            GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);  // !!! projection corr not checked here -- checked next start of next step
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            Optional<Exception> foo = foo(core, incIndent(indent), s1, 1, MAX, us, depth, labs, com,
-                    cp, ui, co, sd, ct, ac);
+            Optional<Exception> foo = foo(core, incIndent(indent), s1, 1, MAX, us, depth, tids, labs, com,
+                    cp, ui, co, sd, ct, ac, proj);
             if (foo.isPresent()) {
                 return foo;
             }

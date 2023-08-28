@@ -34,6 +34,9 @@ public class GTTest {
 
     }
 
+
+    /* ... */
+
     // -nocorr  // TODO corr -- factor out preservation of projection, and preservation of correspondence with full safety properties
     static Optional<Exception> runTest(StdOut out, int i, String proto) {
         out.add(StdStream.OUT, "Testing -nocorr (" + i + "): global protocol " + proto);
