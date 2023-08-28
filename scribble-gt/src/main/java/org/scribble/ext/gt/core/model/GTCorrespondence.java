@@ -124,7 +124,7 @@ public class GTCorrespondence {
         GTLSystem projected = e.getRight();
         for (Role r : this.roles) {
             GTLConfig p = projected.configs.get(r);
-            System.out.println(indent + "Projected onto " + r + ": " + p);
+            //System.out.println(indent + "Projected onto " + r + ": " + p);
             GTLConfig q = this.local.configs.get(r);
 
             //*

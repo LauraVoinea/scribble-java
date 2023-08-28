@@ -146,11 +146,7 @@ public class GTGWiggly implements GTGType {
 
     @Override
     public boolean isChoicePartip() {
-        Collection<GTGType> cs = this.cases.values();
-        if (cs.size() == 1) { return true; }
-        Set<Role> fst = cs.iterator().next().getRoles();
-        return cs.stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
-                && cs.stream().allMatch(GTGType::isChoicePartip);
+        return this.cases.get(this.op).isChoicePartip();
     }
 
     @Override

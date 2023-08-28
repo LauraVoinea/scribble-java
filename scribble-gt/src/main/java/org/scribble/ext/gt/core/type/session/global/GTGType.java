@@ -50,7 +50,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     @Deprecated
     boolean isInitial();
 
-    // Initial and well-set
+    // Initial and well-set  // TODO refactor using choice-partic and timeout-partic/pattern
     default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
 
     boolean isInitialWellSet(Set<Integer> cs);

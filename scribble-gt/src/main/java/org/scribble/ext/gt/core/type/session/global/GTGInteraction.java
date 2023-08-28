@@ -60,6 +60,7 @@ public class GTGInteraction implements GTGType {
         return this.cases.values().stream().allMatch(GTGType::isInitial);
     }
 
+    // TODO refactor using choice-partic, and timeout-partic/pattern
     @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         if (this.cases.size() == 1) {
@@ -69,9 +70,14 @@ public class GTGInteraction implements GTGType {
         if (!fst.isInitialWellSet(cs)) {
             return false;
         }
-        Set<Role> rs = fst.getRoles();
+
+        // !!! cf. def 4
+        Set<Role> rs = GTUtil.union(fst.getRoles(), Set.of(this.src, this.dst));
         return this.cases.values().stream().skip(1).allMatch(x ->
-                x.getRoles().equals(rs)  // "static" choice participation (cf. wiggly)
+
+                // !!!
+                GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(rs)  // "static" choice participation (cf. wiggly)
+
                         && x.isInitialWellSet(cs));
     }
 
@@ -145,8 +151,12 @@ public class GTGInteraction implements GTGType {
     public boolean isChoicePartip() {
         Collection<GTGType> cs = this.cases.values();
         if (cs.size() == 1) { return true; }
-        Set<Role> fst = cs.iterator().next().getRoles();
-        return cs.stream().skip(1).anyMatch(x -> x.getRoles().equals(fst))
+
+        // !!! cf. def 4
+        Set<Role> fst = GTUtil.union(cs.iterator().next().getRoles(), Set.of(this.src, this.dst));
+
+        // !!!
+        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
                 && cs.stream().allMatch(GTGType::isChoicePartip);
     }
 
