@@ -20,6 +20,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
@@ -346,6 +347,10 @@ public class GTCommandLine extends CommandLine {
         Optional<Exception> check = s.checkProjectionCorrespondence(mf, indent + "    ");
         if (check.isPresent()) {
             return check;
+        }
+        for (Role r : s.roles) {
+            GTLConfig p = s.local.configs.get(r);
+            debugPrintln(debug, indent + "    Projection onto " + r + ": " + p);
         }
 
         // cf. checkProjectionCorrespondence
