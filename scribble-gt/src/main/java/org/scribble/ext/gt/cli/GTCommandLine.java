@@ -57,7 +57,7 @@ public class GTCommandLine extends CommandLine {
         return gtRun(cl);
     }
 
-    public static void foo() {
+    public static void checkExecution() {
 
     }
 
@@ -216,10 +216,24 @@ public class GTCommandLine extends CommandLine {
         return Optional.empty();
     }
 
-    static Optional<Exception> checkInitialAwareness(GTGType translate) {
+    /*static Optional<Exception> checkInitialAwareness(GTGType translate) {
         // initial awareness
-        return checkSingleDecision(translate)
-                .flatMap(x -> checkInitialAwareness(translate));
+        Optional<Exception> res;
+        res = checkSingleDecision(translate);
+        if (res.isPresent()) { return res; }
+        res = checkClearTermination(translate);
+        return res;
+    }*/
+
+    static Optional<Exception> checkStaticProperties(GTGType translate) {
+        // initial awareness
+        Optional<Exception> res;
+        res = checkInitialWellSet(translate);
+        if (res.isPresent()) { return res; }
+        res = checkSingleDecision(translate);
+        if (res.isPresent()) { return res; }
+        res = checkClearTermination(translate);
+        return res;
     }
 
     //static GTCorrespondence checkProjection(GTGType translate) {
@@ -250,9 +264,11 @@ public class GTCommandLine extends CommandLine {
                 System.err.println("Not single pointed: " + translate);
             } else*/
             Optional<Exception> check;
-            check = checkInitialWellSet(translate);
+            /*check = checkInitialWellSet(translate);
             if (check.isPresent()) { return check; }
             check = checkInitialAwareness(translate);
+            if (check.isPresent()) { return check; }*/
+            check = checkStaticProperties(translate);
             if (check.isPresent()) { return check; }
 
             Either<Exception, GTCorrespondence> proj = checkProjection(translate);
@@ -265,13 +281,13 @@ public class GTCommandLine extends CommandLine {
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                Optional<Exception> foo = foo(core, "", s, 1, MAX,
+                Optional<Exception> res = checkExecution(core, "", s, 1, MAX,
                         new HashMap<>(), 2,
                         translate.getTimeoutIds(),
                         labs, com,
                         true, true, true, true, true, true, true);
-                if (foo.isPresent()) {
-                    return foo;
+                if (res.isPresent()) {
+                    return res;
                 }
             }
         }
@@ -307,15 +323,16 @@ public class GTCommandLine extends CommandLine {
         }
     }
 
-    private static Optional<Exception> foo(Core core, String
+    private static Optional<Exception> checkExecution(
+            Core core, String
             indent, GTCorrespondence s,
-                                           int step, int MAX,
-                                           Map<String, Integer> unfolds,
-                                           int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
-                                           Set<Integer> tids,
-                                           Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-                                           Set<Op> com,
-                                           boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
+            int step, int MAX,
+            Map<String, Integer> unfolds,
+            int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+            Set<Integer> tids,
+            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
+            Set<Op> com,
+            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
     ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
@@ -331,7 +348,8 @@ public class GTCommandLine extends CommandLine {
             return check;
         }
 
-        Optional<Exception> props = s.checkRuntimeProperties(mf, indent, tids, proj, cp, ui, co, sd, ct, ac);  // cf. checkProjectionCorrespondence
+        // cf. checkProjectionCorrespondence
+        Optional<Exception> props = s.checkRuntimeProperties(mf, indent, tids, proj, cp, ui, co, sd, ct, ac);
         if (props.isPresent()) {
             return props;
         }
@@ -406,12 +424,15 @@ public class GTCommandLine extends CommandLine {
             mystep = mystep + 1;
             step = step + 1;
 
-            GTCorrespondence s1 = new GTCorrespondence(s.roles, s.tids, g_step.left, g_step.mid, sys1.left);  // !!! projection corr not checked here -- checked next start of next step
+            GTCorrespondence s1 = new GTCorrespondence(
+                    s.roles, s.tids, g_step.left, g_step.mid, sys1.left);  // !!! projection corr not checked here -- checked next start of next step
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            Optional<Exception> foo = foo(core, incIndent(indent), s1, 1, MAX, us, depth, tids, labs, com,
+            Optional<Exception> res = checkExecution(
+                    core, incIndent(indent), s1, 1, MAX, us, depth,
+                    tids, labs, com,
                     cp, ui, co, sd, ct, ac, proj);
-            if (foo.isPresent()) {
-                return foo;
+            if (res.isPresent()) {
+                return res;
             }
             //}
         }

@@ -230,8 +230,8 @@ public class GTTest {
         //// ...currently committed roles ignored by translator -- TODO fully remove run-time syntax from Scribble? (cf. wiggly, mixed-active)
         ////bad.add("P(role A, role B) { mixed { l1() from A to B; } (A) or A->B () { r1() from B to A; } }");
         String title = "initial well-set";
-        StdOut out = runGoodTests(good, GTTest::runSingleDecision, title + " (good)");
-        out.addAll(runBadTests(bad, GTTest::runSingleDecision, title + " (bad)"));
+        StdOut out = runGoodTests(good, GTTest::runInitialWellSetTest, title + " (good)");
+        out.addAll(runBadTests(bad, GTTest::runInitialWellSetTest, title + " (bad)"));
         return out;
     }
 

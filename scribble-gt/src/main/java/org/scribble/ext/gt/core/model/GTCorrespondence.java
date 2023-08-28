@@ -55,7 +55,8 @@ public class GTCorrespondence {
 
     public Optional<Exception> checkRuntimeProperties(
             GTSModelFactory mf, String indent, Set<Integer> tids,
-            boolean proj, boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
+            boolean proj,  // Deprecated
+            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
 
         // local ?
 
