@@ -1,11 +1,27 @@
 package org.scribble.ext.gt.util;
 
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+
 public class ConsoleColors {
 
     public static final char WHITE_TRIANGLE = '\u25B7';
     public static final char BLACK_TRIANGLE = '\u25B6';
     public static final char VDASH = '\u22A2';
     public static final char RIGHT_ARROW = '\u2192';
+
+    public static final Deque<String> stack = new LinkedList<>(List.of(ConsoleColors.BLACK));
+
+    public static void outPrintln(String x) {
+        x = x.replaceAll("\\033\\[0m", ConsoleColors.stack.peek());
+        System.out.println(stack.peek() + x);
+    }
+
+    public static void errPrintln(String x) {
+        x = x.replaceAll("\\033\\[0m", ConsoleColors.stack.peek());
+        System.err.println(stack.peek() + x);
+    }
 
     public static final String toAnnotString(String m) {
         //return ConsoleColors.BLACK_UNDERLINED + m + ConsoleColors.RESET;

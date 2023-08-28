@@ -47,9 +47,9 @@ public class GTCorrespondence {
 
     /* ... */
 
-    public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent) {
+    /*public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent) {
         return checkRuntimeProperties(mf, indent, true, true, true, true, true, true);
-    }
+    }*/
 
     public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent,
                                                       boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
