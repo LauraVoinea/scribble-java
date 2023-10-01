@@ -69,14 +69,23 @@ public class GTLRecursion implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        return unfoldAllOnce().getWeakActs(mf, com, self, blocked, sigma, theta, c, n);
     }
 
     @Override
     public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
             Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        return step(com, self, a, sigma, theta, c, n);
+        //return step(com, self, a, sigma, theta, c, n);
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> step =
+                unfoldAllOnce().weakStep(com, self, a, sigma, theta, c, n);
+        return step.mapRight(x -> Pair.of(
+                Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
+                        toStepJudgeString("[Rec]", c, n, theta, this, sigma,
+                                (GTEAction) a, x.left.thrd, x.left.fst, x.left.snd),
+                        x.left.frth)),
+                x.right));
     }
 
     /* Aux */

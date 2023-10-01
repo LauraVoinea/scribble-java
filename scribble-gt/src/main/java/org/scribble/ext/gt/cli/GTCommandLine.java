@@ -324,9 +324,23 @@ public class GTCommandLine extends CommandLine {
         }
     }
 
+    // !!! FIXME refactor mystep ? -- add state pruning
     private static Optional<Exception> checkExecution(
-            Core core, String
-            indent, GTCorrespondence s,
+            Core core, String indent, GTCorrespondence s,
+            int step, int MAX,
+            Map<String, Integer> unfolds,
+            int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+            Set<Integer> tids,
+            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
+            Set<Op> com,
+            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj) {
+        mystep = 1;
+        return checkExecutionAux(core, indent, s, step, MAX, unfolds, depth, tids, labs, com,
+                cp, ui, co, sd, ct, ac, proj);
+    }
+
+    private static Optional<Exception> checkExecutionAux(
+            Core core, String indent, GTCorrespondence s,
             int step, int MAX,
             Map<String, Integer> unfolds,
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
@@ -344,13 +358,13 @@ public class GTCommandLine extends CommandLine {
         GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
         GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
 
+        /*for (Role r : s.roles) {
+            GTLConfig p = s.local.configs.get(r);
+            debugPrintln(debug, indent + "    Checking projection correspondence onto " + r + ": " + p);
+        }*/
         Optional<Exception> check = s.checkProjectionCorrespondence(mf, indent + "    ");
         if (check.isPresent()) {
             return check;
-        }
-        for (Role r : s.roles) {
-            GTLConfig p = s.local.configs.get(r);
-            debugPrintln(debug, indent + "    Projection onto " + r + ": " + p);
         }
 
         // cf. checkProjectionCorrespondence
@@ -432,7 +446,7 @@ public class GTCommandLine extends CommandLine {
             GTCorrespondence s1 = new GTCorrespondence(
                     s.roles, s.tids, g_step.left, g_step.mid, sys1.left);  // !!! projection corr not checked here -- checked next start of next step
             //if (!g_step.right.equals(GTGEnd.END) && !prune) {
-            Optional<Exception> res = checkExecution(
+            Optional<Exception> res = checkExecutionAux(
                     core, incIndent(indent), s1, 1, MAX, us, depth,
                     tids, labs, com,
                     cp, ui, co, sd, ct, ac, proj);

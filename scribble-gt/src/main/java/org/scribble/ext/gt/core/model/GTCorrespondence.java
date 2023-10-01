@@ -124,7 +124,7 @@ public class GTCorrespondence {
         GTLSystem projected = e.getRight();
         for (Role r : this.roles) {
             GTLConfig p = projected.configs.get(r);
-            //System.out.println(indent + "Projected onto " + r + ": " + p);
+            System.out.println(indent + "Projected onto " + r + ": " + p);  // FIXME UI output
             GTLConfig q = this.local.configs.get(r);
 
             //*
@@ -133,6 +133,8 @@ public class GTCorrespondence {
                 return Optional.of(new Exception("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q));
             }
             //*/
+
+            // !!! XXX FIXME check Sigma, Theta and Discard
 
         }
 

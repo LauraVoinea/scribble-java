@@ -141,13 +141,20 @@ public class GTGRecursion implements GTGType {
     @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
+                unfoldAllOnce().weakStep(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
+                toStepJudgeString(
+                        "[Rec_" + this.var + "]",  // HACK for bounding execution
+                        c, n, theta, this, (GTSAction) a, x.left, x.mid),
+                x.right)));
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getActs(mf, theta, blocked, c, n);
+        //return getActs(mf, theta, blocked, c, n);
+        return unfoldAllOnce().getWeakActs(mf, theta, blocked, c, n);
     }
 
     /* ... */

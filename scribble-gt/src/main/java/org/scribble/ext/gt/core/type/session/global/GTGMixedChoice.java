@@ -370,7 +370,7 @@ public class GTGMixedChoice implements GTGType {
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> weak =
                 step(theta, tau, c, n);  // mixed active
         return weak.flatMapRight(x ->
-                x.mid.step(x.left, a, c, n).mapRight(y ->
+                x.mid.step(x.left, a, c, n).mapRight(y ->  // !!! CHECKME weakStep?  or can MC not be "directly" nested?
                         Triple.of(y.left, y.mid, Tree.of(
                                 toStepJudgeString("[..nu-tau..]", c, n, theta,
                                         this, (GTSAction) a, y.left, y.mid),

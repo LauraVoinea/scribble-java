@@ -85,6 +85,8 @@ public class GTLMixedChoice implements GTLType {
                         toStepJudgeString("[..NewChan..]", c, n, theta, this,
                                 sigma, (GTEAction) a, theta1, succ, sigma)
                 )),
+
+                // top-level c must not clash with any other tid (cf. n-1)
                 GTUtil.mapOf(Pair.of(cast.c, cast.n - 1),  // cf. GTLType.n_INIT = 1  (first "next" is 1)
                         Discard.FULL)
         ));
