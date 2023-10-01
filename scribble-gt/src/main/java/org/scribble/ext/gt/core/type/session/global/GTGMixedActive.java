@@ -216,7 +216,10 @@ public class GTGMixedActive implements GTGType {
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        // Same as MixedChoice except with n -- XXX GTLCommitted
+
+        // TODO FIXME indifferent case
+
+        // Same as MixedChoice except with n -- XXX now GTLCommitted
         if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
             Optional<Pair<? extends GTLType, Sigma>> proj = this.left.project(rs, r, this.c, this.n);
             return proj.map(x -> Pair.of(lf.mixedCommitted(this.c, this.n, x.left, Side.LEFT), x.right));

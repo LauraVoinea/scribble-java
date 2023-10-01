@@ -10,6 +10,7 @@ public class ConsoleColors {
     public static final char BLACK_TRIANGLE = '\u25B6';
     public static final char VDASH = '\u22A2';
     public static final char RIGHT_ARROW = '\u2192';
+    public static final char BULLET = '\u2022';
 
     public static final Deque<String> stack = new LinkedList<>(List.of(ConsoleColors.BLACK));
 

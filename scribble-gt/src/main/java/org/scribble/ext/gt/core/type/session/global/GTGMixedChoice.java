@@ -186,6 +186,9 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
+
+        // TODO FIXME indifferent case
+
         Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(rs, r, c, n);
         Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(rs, r, c, n);
         if (optl.isEmpty() || optr.isEmpty()) {

@@ -201,7 +201,7 @@ public class GTGWiggly implements GTGType {
 
             GTESend<DynamicActionKind> m =
                     new GTESend<>(MActionBase.DYNAMIC_ID, null, this.dst,
-                            this.op, Payload.EMPTY_PAYLOAD, c, n);  // HERE HERE projection needs c, n  // FIXME mf/ef?
+                            this.op, Payload.EMPTY_PAYLOAD, c, n);  // FIXME mf/ef?
             as.add(0, m);
 
             tmp.put(this.src, as);

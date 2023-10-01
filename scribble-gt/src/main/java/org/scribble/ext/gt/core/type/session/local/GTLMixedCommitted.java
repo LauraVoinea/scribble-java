@@ -134,8 +134,8 @@ public class GTLMixedCommitted implements GTLType {
     public String toString() {
         String triangle = "" + ConsoleColors.BLACK_TRIANGLE + this.c + "," + this.n;
         return this.side == Side.LEFT
-                ? "(" + this.type + " " + triangle + " -)"
-                : "(- " + triangle + " " + this.type + ")";
+                ? "(" + this.type + " " + triangle + " " + ConsoleColors.BULLET + ")"
+                : "(" + ConsoleColors.BULLET + " " + triangle + " " + this.type + ")";
     }
 
     /* hashCode, equals, canEquals */

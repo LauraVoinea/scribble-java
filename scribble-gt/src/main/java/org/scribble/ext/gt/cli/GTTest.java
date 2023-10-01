@@ -135,7 +135,8 @@ public class GTTest {
     protected static Optional<Exception> runTest(StdOut out, int i, String
             proto) {
         out.add(StdStream.OUT, "Testing run-time correspondence (" + i + "): global protocol " + proto);
-        return GTCommandLine.mainTest(new String[]{//"-v",
+        return GTCommandLine.mainTest(new String[]{
+                "-v",
                 "-fair", "-inline", "module Test; global protocol " + proto});
     }
 
