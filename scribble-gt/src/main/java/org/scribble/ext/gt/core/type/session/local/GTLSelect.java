@@ -46,11 +46,12 @@ public class GTLSelect implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        if (!sigma.map.containsKey(self)) {
-            throw new RuntimeException("Unknown sender: " + this);
-        }
+        /*if (!sigma.map.containsKey(self)) {  // XXX self is the sender, sigma is self/sender's buffer
+            throw new RuntimeException("Unknown sender: " + this + " ,, " + sigma.map);
+        }*/
         return this.cases.entrySet().stream()
-                .map(x -> mf.DynamicESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD))  // FIXME pay
+                //.map(x -> mf.DynamicESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD))  // FIXME pay
+                .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 

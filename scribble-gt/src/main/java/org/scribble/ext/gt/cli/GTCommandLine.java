@@ -410,6 +410,8 @@ public class GTCommandLine extends CommandLine {
                 Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
                         s.local.step(com, r, a);
 
+                // TODO eager(?) GC
+
                 //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
                 if (l_step.isLeft()) {

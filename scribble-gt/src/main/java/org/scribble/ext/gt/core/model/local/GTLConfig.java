@@ -43,7 +43,7 @@ public class GTLConfig {
     public Either<Exception, Pair<GTLConfig, Tree<String>>> step(
             Set<Op> com, EAction<DynamicActionKind> a) {
         if (!(a instanceof GTEAction)) {
-            throw new RuntimeException("TODO: " + a);  // cf. weak
+            throw new RuntimeException("TODO: " + a + " ,, " + a.getClass());  // cf. weak
         }
         Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> opt =
                 this.type.stepTop(com, this.self, a, this.sigma, this.theta);
@@ -128,9 +128,11 @@ public class GTLConfig {
 
     // !!! -- cf. equals
     public boolean isSubtype(GTLConfig sup) {
-        return this.self.equals(sup.self) && GTLConfig.isSubtype(this.type, sup.type)
-                && this.sigma.equals(sup.sigma)
-                && this.theta.equals(sup.theta);
+        return this.self.equals(sup.self) && GTLConfig.isSubtype(this.theta, this.type, sup.type)
+                && this.sigma.equals(sup.sigma);
+
+        //&& this.theta.equals(sup.theta);  // FIXME
+
     }
 
     // Works in this framework because starting from common global rec -- no need to compare completely arbitrary (un)foldings
@@ -139,16 +141,20 @@ public class GTLConfig {
 
     // CHECKME: algorithmic MPST subtyping?
     // terminates assuming contractive -- recs will eventually unfold into non-recs
-    public static boolean isSubtype(GTLType sub, GTLType sup) {
-        if (sup.equals(sub)) {  // GTLEnd, GTLRecVar
+    //public static boolean isSubtype(GTLType sub, GTLType sup) {
+    public static boolean isSubtype(Theta theta, GTLType sub, GTLType sup) {
+
+        if (sub.equals(sup)) {  // GTLEnd, GTLRecVar
             return true;
-        } else if (sup instanceof GTLRecursion) {
+        }
+
+        /*else if (sup instanceof GTLRecursion) {
             //return t.unfold().equals(u);
             //return isUnfolding((GTLRecursion) sup, sub);
 
             GTLRecursion cast = (GTLRecursion) sup;
             List<GTLType> tmp = unfoldings.computeIfAbsent(cast, k -> new LinkedList<>());
-            if (tmp.stream().anyMatch(x -> isSubtype(sub, x))) {
+            if (tmp.stream().anyMatch(x -> isSubtype(theta, sub, x))) {
                 return true;
             }
             GTLType next;
@@ -158,14 +164,14 @@ public class GTLConfig {
                 next = tmp.get(tmp.size() - 1).unfoldAllOnce();
             }
             tmp.add(next);
-            return isSubtype(sub, next);
-
-        } else if (sub instanceof GTLRecursion) {
+            return isSubtype(theta, sub, next);
+        }*/
+        else if (sub instanceof GTLRecursion) {
             //return isUnfolding((GTLRecursion) sub, sup);
 
             GTLRecursion cast = (GTLRecursion) sub;
             List<GTLType> tmp = unfoldings.computeIfAbsent(cast, k -> new LinkedList<>());
-            if (tmp.stream().anyMatch(x -> isSubtype(x, sup))) {
+            if (tmp.stream().anyMatch(x -> isSubtype(theta, x, sup))) {
                 return true;
             }
             GTLType next;
@@ -175,10 +181,10 @@ public class GTLConfig {
                 next = tmp.get(tmp.size() - 1).unfoldAllOnce();
             }
             tmp.add(next);
-            return isSubtype(next, sup);
+            return isSubtype(theta, next, sup);
         }
 
-        if (sup instanceof GTLBranch) {
+        if (sup instanceof GTLBranch) {  // TODO switch sub/sup order
             if (!(sub instanceof GTLBranch)) {
                 return false;
             }
@@ -188,7 +194,7 @@ public class GTLConfig {
                 return false;
             }
             return sup1.cases.keySet().stream()
-                    .allMatch(x -> isSubtype(sub1.cases.get(x), sup1.cases.get(x)));
+                    .allMatch(x -> isSubtype(theta, sub1.cases.get(x), sup1.cases.get(x)));
         } else if (sup instanceof GTLSelect) {
             if (!(sub instanceof GTLSelect)) {
                 return false;
@@ -199,11 +205,42 @@ public class GTLConfig {
                 return false;
             }
             return sub1.cases.keySet().stream()
-                    .allMatch(x -> isSubtype(sub1.cases.get(x), sup1.cases.get(x)));
-        }/* else if (sup instanceof GTLMixedChoice) {
-        }*/ else if (sup instanceof GTLMixedActive) {
-            throw new RuntimeException("TODO: " + sub + " <: " + sup);
-        } else {
+                    .allMatch(x -> isSubtype(theta, sub1.cases.get(x), sup1.cases.get(x)));
+        }
+
+        //
+        else if (sub instanceof GTLMixedChoice) {
+            // !!! TODO structural case needed for white ?
+
+            if (sup instanceof GTLMixedActive) {
+                GTLMixedChoice sub_cast = (GTLMixedChoice) sub;
+                GTLMixedActive sup_cast = (GTLMixedActive) sup;
+                if (sub_cast.c == sup_cast.c && theta.map.get(sub_cast.c) <= sup_cast.n) {  // HERE HERE refactor theta -1 offset
+                    return isSubtype(theta, sub_cast.left, sup_cast.left)
+                            && isSubtype(theta, sub_cast.right, sup_cast.right);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        //
+        else if (sub instanceof GTLMixedActive) {
+            if (!(sup instanceof GTLMixedActive)) {
+                return false;
+            }
+            GTLMixedChoice sub_cast = (GTLMixedChoice) sub;
+            GTLMixedActive sup_cast = (GTLMixedActive) sup;
+            return isSubtype(theta, sub_cast.left, sup_cast.left)
+                    && isSubtype(theta, sub_cast.right, sup_cast.right);
+        }
+
+
+        // TODO MixedCommitted
+
+        else {
             throw new RuntimeException("TODO: " + sub + " <: " + sup);
         }
     }
