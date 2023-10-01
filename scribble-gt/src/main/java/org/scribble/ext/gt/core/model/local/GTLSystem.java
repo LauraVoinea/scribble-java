@@ -37,11 +37,12 @@ public class GTLSystem {
     // TODO derivs (cf. weakStep)
     public Either<Exception, Pair<GTLSystem, Tree<String>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a) {
-        if (a instanceof GTENewTimeout) {  // !!! N.B. self is Role.EMPTY_ROLE
+        /*if (a instanceof GTENewTimeout) {  // !!! N.B. self is Role.EMPTY_ROLE when projected -- XXX now doing bottom-up fidelity
             // ...tau? (skip?) -- XXX then what is "projection" relation between G/L ?
             // ...find the one (or more?) guy(s) that can locally do new-timeout -- then do the rest implicitly when reach?
             throw new RuntimeException("TODO: " + self + " ,, " + a);
-        } else {
+        } else*/
+        {
             if (!(this.configs.containsKey(self))) {
                 throw new RuntimeException("Unkown role: " + self);
             }

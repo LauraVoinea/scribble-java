@@ -20,9 +20,9 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
@@ -56,10 +56,6 @@ public class GTCommandLine extends CommandLine {
     public static Optional<Exception> mainTest(String[] args) {
         GTCommandLine cl = init(args);
         return gtRun(cl);
-    }
-
-    public static void checkExecution() {
-
     }
 
     static GTCommandLine init(String[] args) {
@@ -282,11 +278,15 @@ public class GTCommandLine extends CommandLine {
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
-                Optional<Exception> res = checkExecution(core, "", s, 1, MAX,
-                        new HashMap<>(), 2,
-                        translate.getTimeoutIds(),
-                        labs, com,
-                        true, true, true, true, true, true, true);
+                Optional<Exception> res =
+
+                        //checkExecution(  // top-down
+                        checkExecution2(  // fidelity
+                                core, "", s, 1, MAX,
+                                new HashMap<>(), 2,
+                                translate.getTimeoutIds(),
+                                labs, com,
+                                true, true, true, true, true, true, true);
                 if (res.isPresent()) {
                     return res;
                 }
@@ -318,12 +318,144 @@ public class GTCommandLine extends CommandLine {
     static final int MAX = 100;
     static int mystep = 1;
 
-    public static void debugPrintln(boolean debug, String x) {
-        if (debug) {
-            System.out.println(x);
-        }
+    // fidelity (bottom-up correspondence)
+    // !!! FIXME refactor mystep ? -- add state pruning
+    private static Optional<Exception> checkExecution2(
+            Core core, String indent, GTCorrespondence s,
+            int step, int MAX,
+            Map<String, Integer> unfolds,
+            int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+            Set<Integer> tids,
+            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
+            Set<Op> com,
+            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj) {
+        mystep = 1;
+        return checkExecutionAux2(core, indent, s, step, MAX, unfolds, depth, tids, labs, com,
+                cp, ui, co, sd, ct, ac, proj);
     }
 
+
+    // HERE HERE factor out top-down/fidelity CL arg
+
+
+    private static Optional<Exception> checkExecutionAux2(
+            Core core, String indent, GTCorrespondence s,
+            int step, int MAX,
+            Map<String, Integer> unfolds,
+            int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
+            Set<Integer> tids,
+            Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
+            Set<Op> com,
+            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
+    ) {
+        boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
+
+        int mark = mystep;
+
+        debugPrintln(debug, "\n" + indent + "Checking (" + mystep + "):\n" + s.toString(indent));
+
+        GTSModelFactory mf = (GTSModelFactory) core.config.mf.global;
+        GTEModelFactory lmf = (GTEModelFactory) core.config.mf.local;
+
+        /*for (Role r : s.roles) {
+            GTLConfig p = s.local.configs.get(r);
+            debugPrintln(debug, indent + "    Checking projection correspondence onto " + r + ": " + p);
+        }*/
+        Optional<Exception> check = s.checkProjectionCorrespondence(debug, mf, indent + "    ");
+        if (check.isPresent()) {
+            return check;
+        }
+
+        // cf. checkProjectionCorrespondence
+        Optional<Exception> props = s.checkRuntimeProperties(mf, indent, tids, proj, cp, ui, co, sd, ct, ac);
+        if (props.isPresent()) {
+            return props;
+        }
+
+        // TODO factor out above with top-down correspondence checkExecutionAux
+
+        Map<Role, LinkedHashSet<EAction<DynamicActionKind>>> all =
+                s.local.getActs(lmf).entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        y -> y.getValue().stream()
+                                .filter(x -> !((x instanceof GTENewTimeout<?>) && ((GTENewTimeout<?>) x).n > depth))  // only bounds mixed...
+                                .collect(Collectors.toCollection(LinkedHashSet::new))
+                ));
+        //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
+
+        //s.global.getActsTop(mf, s.theta).stream()
+        s.global.getWeakActsTop(mf, s.theta).stream()
+                .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
+                .collect(Collectors.toSet());
+
+        if (mystep >= MAX) {
+            return Optional.empty();
+        }
+
+        debugPrintln(debug, indent + "Possible actions = " + all);
+        //for (SAction<DynamicActionKind> a : as) {
+        for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : all.entrySet()) {
+
+            Role r = e.getKey();
+            LinkedHashSet<EAction<DynamicActionKind>> as = e.getValue();
+
+            for (EAction<DynamicActionKind> a : as) {
+
+                debugPrintln(debug, "\n" + indent + "(" + mark + "-" + step + ")\n"
+                        + indent + "Stepping local "
+                        + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTLType.weakStepTop
+                        + ConsoleColors.VDASH + " " + s.local + " --" + r + ":" + a + "--> ...");
+                // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
+
+                Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
+                        s.local.step(com, r, a);
+
+                //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
+
+                if (l_step.isLeft()) {
+                    throw new RuntimeException("Locals stuck...", l_step.getLeft());
+                }
+                Pair<GTLSystem, Tree<String>> sys1 = l_step.getRight();
+                debugPrintln(debug, sys1.right.toString(indent + "   "));
+
+                //System.out.println(indent + "locals = " + sys1);
+
+                debugPrintln(debug, indent + "Stepping global: "
+                        + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTGType.weakStepTop
+                        + ConsoleColors.VDASH + " " + s.global + " " + "--" + a + "--> ...");
+                GTSAction a_g = ((GTEAction) a).mirror(mf, r);
+                Triple<Theta, GTGType, Tree<String>> g_step =
+
+                        s.global.stepTop(s.theta, (SAction<DynamicActionKind>) a_g).getRight();  // a in as so step is non-empty
+
+                debugPrintln(debug, g_step.right.toString(indent + "   "));
+
+                Map<String, Integer> us = new HashMap<>(unfolds);
+
+                mystep = mystep + 1;
+                step = step + 1;
+
+                GTCorrespondence s1 = new GTCorrespondence(
+                        s.roles, s.tids, g_step.left, g_step.mid, sys1.left);  // !!! projection corr not checked here -- checked next start of next step
+                //if (!g_step.right.equals(GTGEnd.END) && !prune) {
+                Optional<Exception> res = checkExecutionAux2(
+                        core, incIndent(indent), s1, 1, MAX, us, depth,
+                        tids, labs, com,
+                        cp, ui, co, sd, ct, ac, proj);
+                if (res.isPresent()) {
+                    return res;
+                }
+                //}
+            }
+        }
+
+        return Optional.empty();
+    }
+
+
+    /* ... */
+
+    // top-down (cf. fidelity bottom-up) -- "old style" weak (GC as pre-action)
     // !!! FIXME refactor mystep ? -- add state pruning
     private static Optional<Exception> checkExecution(
             Core core, String indent, GTCorrespondence s,
@@ -457,6 +589,15 @@ public class GTCommandLine extends CommandLine {
         }
 
         return Optional.empty();
+    }
+
+
+    /* ... */
+
+    public static void debugPrintln(boolean debug, String x) {
+        if (debug) {
+            System.out.println(x);
+        }
     }
 
     static String incIndent(String indent) {

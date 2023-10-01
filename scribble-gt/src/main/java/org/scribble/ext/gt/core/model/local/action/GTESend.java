@@ -11,6 +11,7 @@ import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
+import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -48,6 +49,11 @@ public class GTESend<A extends ActionKind> extends ESend<A> implements GTEAction
         return ((GTSModelFactory) this.mf.global)
                 .GTSSend(self, this.peer, this.mid, this.payload, this.c, this.n);
 
+    }
+
+    @Override
+    public GTSSend<DynamicActionKind> mirror(GTSModelFactory mf, Role self) {
+        return mf.GTSSend(self, this.peer, this.mid, this.payload, this.c, this.n);
     }
 
     /* ... */

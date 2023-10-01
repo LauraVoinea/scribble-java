@@ -27,7 +27,10 @@ import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
+import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 
 public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements GTEAction {
 
@@ -55,6 +58,11 @@ public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements G
     @Override
     public SSend<StaticActionKind> toStaticGlobal(Role self) {
         return this.mf.global.SSend(self, this.peer, this.mid, this.payload);
+    }
+
+    @Override
+    public GTSNewTimeout<DynamicActionKind> mirror(GTSModelFactory mf, Role self) {
+        return mf.SNewTimeout(this.c, this.n);
     }
 
     /* ... */
