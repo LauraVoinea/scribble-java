@@ -101,7 +101,8 @@ public class GTCorrespondence {
     /* ... */
 
     // Checks projection correspondence between global and local
-    public Optional<Exception> checkProjectionCorrespondence(GTSModelFactory mf, String indent) {
+    public Optional<Exception> checkProjectionCorrespondence(
+            boolean debug, GTSModelFactory mf, String indent) {
 
         if (!this.roles.equals(this.local.configs.keySet())) {
             throw new RuntimeException("Roles mismatch: roles=" + this.roles + ", locals=" + this.local.configs.keySet());
@@ -124,7 +125,9 @@ public class GTCorrespondence {
         GTLSystem projected = e.getRight();
         for (Role r : this.roles) {
             GTLConfig p = projected.configs.get(r);
-            System.out.println(indent + "Projected onto " + r + ": " + p);  // FIXME UI output
+            if (debug) {
+                System.out.println(indent + "Projected onto " + r + ": " + p);  // FIXME UI output
+            }
             GTLConfig q = this.local.configs.get(r);
 
             //*

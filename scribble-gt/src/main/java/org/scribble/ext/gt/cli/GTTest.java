@@ -34,12 +34,25 @@ public class GTTest {
     protected static void runtimeTest() {
         List<String> good = new LinkedList<>();
         List<String> bad = new LinkedList<>();
-        addRuntimeTestNoMC(good, bad);
+
+        //addRuntimeTestNoMC(good, bad);
         //addRuntimeTestMC(good, bad);
+
+        add(good, bad);
+
         String title = "run-time correspondence";
         runGoodTests(good, GTTest::runTest, title + " (good)").println();
         runBadTests(bad, GTTest::runTest, title + " (bad)").println();
     }
+
+    protected static void add(List<String> good, List<String> bad) {
+
+        good.add("P(role A, role B) { "
+                + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
+                + "      { r1() from B to A; }}");
+    }
+
+    /* ... */
 
     // No MC
     protected static void addRuntimeTestNoMC(List<String> good, List<String> bad) {
@@ -106,12 +119,12 @@ public class GTTest {
     // MC
     protected static void addRuntimeTestMC(List<String> good, List<String> bad) {
 
-        /*good.add("P(role A, role B) { "
+        good.add("P(role A, role B) { "
                 + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
-                + "      { r1() from B to A; }}");*/
+                + "      { r1() from B to A; }}");
         good.add("P(role A, role B) { "
                 + "rec X { mixed { l1() from A to B; l2() from B to A; } () or A->B () "
-                + "              { r1() from B to A; continue X; }}}");
+                + "              { r1() from B to A; continue X; }}}");  // TODO white (local async lag) <: black (global projection)
 
 
     }
@@ -122,7 +135,8 @@ public class GTTest {
     protected static Optional<Exception> runTest(StdOut out, int i, String
             proto) {
         out.add(StdStream.OUT, "Testing run-time correspondence (" + i + "): global protocol " + proto);
-        return GTCommandLine.mainTest(new String[]{"-fair", "-inline", "module Test; global protocol " + proto});
+        return GTCommandLine.mainTest(new String[]{//"-v",
+                "-fair", "-inline", "module Test; global protocol " + proto});
     }
 
     /* -nocorr */ // TODO corr -- factor out preservation of projection, and preservation of correspondence with full safety properties

@@ -362,7 +362,7 @@ public class GTCommandLine extends CommandLine {
             GTLConfig p = s.local.configs.get(r);
             debugPrintln(debug, indent + "    Checking projection correspondence onto " + r + ": " + p);
         }*/
-        Optional<Exception> check = s.checkProjectionCorrespondence(mf, indent + "    ");
+        Optional<Exception> check = s.checkProjectionCorrespondence(debug, mf, indent + "    ");
         if (check.isPresent()) {
             return check;
         }
