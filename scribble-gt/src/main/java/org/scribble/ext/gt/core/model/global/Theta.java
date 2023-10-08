@@ -3,10 +3,7 @@ package org.scribble.ext.gt.core.model.global;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Theta {
@@ -30,7 +27,7 @@ public class Theta {
 
     // HERE HERE global vs. local modelling of Theta (sync vs async w.r.t Theta) -- projection of global Theta to local Thetas
     public Theta project(Role r) {
-        throw new RuntimeException("TODO");
+        throw new RuntimeException("TODO");  // Currently GTGType.projectTheta
     }
 
     @Override
@@ -49,9 +46,26 @@ public class Theta {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof Theta)) return false;
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof Theta)) { return false; }
         Theta them = (Theta) obj;
         return this.map.equals(them.map);
+    }
+
+    /* ... */
+
+    public static Optional<Theta> max(Theta t1, Theta t2) {
+        if (!t1.map.keySet().equals(t2.map.keySet())) {
+            Optional.empty();
+        }
+        Map<Integer, Integer> map = new HashMap<>(t1.map);
+        for (Map.Entry<Integer, Integer> e : t2.map.entrySet()) {
+            int k = e.getKey();
+            int v = e.getValue();
+            if (v > map.get(k)) {
+                map.put(k, v);
+            }
+        }
+        return Optional.of(new Theta(map));
     }
 }

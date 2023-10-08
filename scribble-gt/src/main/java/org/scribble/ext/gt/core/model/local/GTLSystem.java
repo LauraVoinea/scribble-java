@@ -102,7 +102,7 @@ public class GTLSystem {
                 }*/
                 GTLConfig cfg = tmp.get(r);
                 GTLType t = cfg.type;
-                while (t instanceof GTLMixedChoice) {
+                while (t instanceof GTLMixedChoice) {  // !!! doesn't unfold recursion -- intended?  cf. using getActs (GTLSystem.ffweak)
                     Either<Exception, Pair<GTLConfig, Tree<String>>> step1 =
                             cfg.step(com, cfg.getActs((GTEModelFactory) GTEModelFactoryImpl.FACTORY.local).iterator().next());
                     if (step1.isLeft()) {
@@ -121,6 +121,17 @@ public class GTLSystem {
 
             return Either.right(Pair.of(new GTLSystem(tmp), get.right));
         }
+    }
+
+    public GTLSystem gc(Map<Integer, Pair<Set<Op>, Set<Op>>> labs) {
+        HashMap<Role, GTLConfig> tmp = new HashMap<>();
+        for (Map.Entry<Role, GTLConfig> e : this.configs.entrySet()) {
+            Role r = e.getKey();
+            GTLConfig cfg = e.getValue();
+            Pair<GTLConfig, Tree<String>> gc = cfg.gc(labs);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
+            tmp.put(r, gc.left);
+        }
+        return new GTLSystem(tmp);
     }
 
     @Override

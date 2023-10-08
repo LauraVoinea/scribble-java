@@ -6,7 +6,6 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
-import org.scribble.ext.gt.core.model.global.GTSModelFactoryImpl;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
@@ -306,7 +305,7 @@ public class GTGMixedActive implements GTGType {
         }
         Theta left = thetaL.get();
         Theta right = thetaR.get();
-        return max(left, right).map(x -> {
+        return Theta.max(left, right).map(x -> {
             if (this.n + 1 > x.map.get(this.c)) {  // !!! n+1
                 HashMap<Integer, Integer> map = new HashMap<>(x.map);
                 map.put(this.c, this.n + 1);
@@ -314,21 +313,6 @@ public class GTGMixedActive implements GTGType {
             }
             return x;
         });
-    }
-
-    public static Optional<Theta> max(Theta t1, Theta t2) {
-        if (!t1.map.keySet().equals(t2.map.keySet())) {
-            Optional.empty();
-        }
-        Map<Integer, Integer> map = new HashMap<>(t1.map);
-        for (Map.Entry<Integer, Integer> e : t2.map.entrySet()) {
-            int k = e.getKey();
-            int v = e.getValue();
-            if (v > map.get(k)) {
-                map.put(k, v);
-            }
-        }
-        return Optional.of(new Theta(map));
     }
 
     /* ... */

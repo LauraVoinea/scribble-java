@@ -11,6 +11,11 @@ public class ConsoleColors {
     public static final char VDASH = '\u22A2';
     public static final char RIGHT_ARROW = '\u2192';
     public static final char BULLET = '\u2022';
+    public static final char OLPLUS = '\u2295';
+    public static final char NU = '\u03BD';
+    public static final String TAU = "\uD835\uDF0F";
+    public static final char SUPER_PLUS = '\u207A';
+    public static final char EM_DASH = '\u2014';
 
     public static final Deque<String> stack = new LinkedList<>(List.of(ConsoleColors.BLACK));
 

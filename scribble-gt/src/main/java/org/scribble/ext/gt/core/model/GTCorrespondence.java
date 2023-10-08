@@ -130,6 +130,9 @@ public class GTCorrespondence {
             }
             GTLConfig q = this.local.configs.get(r);
 
+            /*if (debug) {
+                System.out.println(indent + "Checking Local subtype of Projection: " + q + " <: " + p);  // FIXME UI output
+            }*/
             //*
             //if (!p.equals(q)) {  // XXXXXX
             if (!q.isSubtype(p)) {

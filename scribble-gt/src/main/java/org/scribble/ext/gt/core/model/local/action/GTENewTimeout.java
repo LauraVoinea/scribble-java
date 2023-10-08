@@ -31,6 +31,7 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.util.ConsoleColors;
 
 public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements GTEAction {
 
@@ -113,6 +114,6 @@ public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements G
 
     @Override
     public String getCommSymbol() {
-        return "\u03BD";
+        return ConsoleColors.NU + "";
     }
 }

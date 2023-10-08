@@ -12,10 +12,7 @@ import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.GTUtil;
-import org.scribble.ext.gt.util.Quad;
-import org.scribble.ext.gt.util.Tree;
+import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -136,7 +133,7 @@ public class GTLSelect implements GTLType {
 
     @Override
     public String toString() {
-        return this.dst + "+ {"
+        return this.dst + (ConsoleColors.OLPLUS + "{")
                 + this.cases.entrySet().stream()
                 .map(e -> e.getKey() + "." + e.getValue())
                 .collect(Collectors.joining(", "))

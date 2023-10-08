@@ -169,7 +169,7 @@ public class GTLBranch implements GTLType {
 
     @Override
     public String toString() {
-        return this.src + "& {"
+        return this.src + "&{"
                 + this.cases.entrySet().stream()
                 .map(e -> e.getKey() + "." + e.getValue())
                 .collect(Collectors.joining(", "))

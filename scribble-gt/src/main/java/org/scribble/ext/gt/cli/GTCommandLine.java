@@ -20,6 +20,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
@@ -35,6 +36,8 @@ import org.scribble.util.*;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GTCommandLine extends CommandLine {
@@ -410,8 +413,6 @@ public class GTCommandLine extends CommandLine {
                 Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
                         s.local.step(com, r, a);
 
-                // TODO eager(?) GC
-
                 //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
                 if (l_step.isLeft()) {
@@ -421,6 +422,30 @@ public class GTCommandLine extends CommandLine {
                 debugPrintln(debug, sys1.right.toString(indent + "   "));
 
                 //System.out.println(indent + "locals = " + sys1);
+
+                // TODO !!! also local \nu (only if that MC already entered by other config ?)
+                List<Theta> collect = sys1.left.configs.values().stream().map(x -> x.theta).collect(Collectors.toList());
+                Theta t1 = collect.get(0);
+                for (Theta t2 : collect.subList(1, collect.size())) {
+                    Optional<Theta> opt = Theta.max(t1, t2);
+                    if (opt.isEmpty()) {
+                        throw new RuntimeException("Shouldn't get here? ");
+                    }
+                    t1 = opt.get();
+                }
+
+                GTLSystem ff = ffweak(lmf, com, t1, sys1.left, r);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
+                if (!ff.equals(sys1.left)) {
+                    debugPrintln(debug, indent + "Catch up: ... --" + ConsoleColors.NU + "-" + ConsoleColors.RIGHT_ARROW + ConsoleColors.SUPER_PLUS + " " + ff);//....toString(indent + "ff " + ConsoleColors.NU + ": " + ff));
+                }
+
+                GTLSystem gc = ff.gc(labs);
+                if (!gc.equals(ff)) {
+                    debugPrintln(debug, indent + "GC: ... --" + ConsoleColors.TAU + "-" + ConsoleColors.RIGHT_ARROW + ConsoleColors.SUPER_PLUS + " " + gc);
+                }
+
+                // TODO eager(?) GC
+                //Pair<GTLConfig, Tree<String>> gc = cfg.gc(labs);
 
                 debugPrintln(debug, indent + "Stepping global: "
                         + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTGType.weakStepTop
@@ -438,7 +463,7 @@ public class GTCommandLine extends CommandLine {
                 step = step + 1;
 
                 GTCorrespondence s1 = new GTCorrespondence(
-                        s.roles, s.tids, g_step.left, g_step.mid, sys1.left);  // !!! projection corr not checked here -- checked next start of next step
+                        s.roles, s.tids, g_step.left, g_step.mid, gc);  // !!! projection corr not checked here -- checked next start of next step
                 //if (!g_step.right.equals(GTGEnd.END) && !prune) {
                 Optional<Exception> res = checkExecutionAux2(
                         core, incIndent(indent), s1, 1, MAX, us, depth,
@@ -452,6 +477,28 @@ public class GTCommandLine extends CommandLine {
         }
 
         return Optional.empty();
+    }
+
+    private static GTLSystem ffweak(
+            GTEModelFactory lmf, Set<Op> com, Theta max, GTLSystem y, Role r1) {
+        Predicate<EAction<DynamicActionKind>> filt = x -> {
+            if (!(x instanceof GTENewTimeout<?>)) { return false; }
+            GTENewTimeout<?> cast = (GTENewTimeout<?>) x;
+            return max.map.get(cast.c) > cast.n;
+        };
+        for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : y.getActs(lmf).entrySet()) {  // Using getActs unfolds recursion -- intentional?  cf. checking specifically GTLMixedChoice  (GTLSystem.weakStep)
+            Role r = e.getKey();
+            Optional<EAction<DynamicActionKind>> opt =
+                    e.getValue().stream().filter(filt::test).findFirst();
+            if (opt.isPresent()) {
+                Either<Exception, Pair<GTLSystem, Tree<String>>> step = y.step(com, r, opt.get());
+                if (step.isLeft()) {
+                    throw new RuntimeException("Shouldn't get here: " + step.getLeft());
+                }
+                return ffweak(lmf, com, max, step.getRight().left, r);  // TODO deriv
+            }
+        }
+        return y;
     }
 
 

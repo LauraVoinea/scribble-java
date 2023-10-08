@@ -120,7 +120,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
         });
     }*/
 
-    Optional<Theta> projectTheta(Set<Integer> cs, Role r);  // TODO refactor
+    Optional<Theta> projectTheta(Set<Integer> cs, Role r);  // TODO refactor (cf. Theta.project)
 
     /* ... */
 
