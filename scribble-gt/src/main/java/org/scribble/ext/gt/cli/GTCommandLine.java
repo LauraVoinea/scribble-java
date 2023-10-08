@@ -20,7 +20,6 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
@@ -36,7 +35,6 @@ import org.scribble.util.*;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -318,7 +316,8 @@ public class GTCommandLine extends CommandLine {
 // HERE HERE ... factor out Bounds
 //        ... do local mixed-active
 
-    static final int MAX = 100;
+    static final int MAX = 100;  // checkExecution1 top-down
+    //static final int MAX = 10;  // checkExecution2 fidelity -- FIXME why slower?
     static int mystep = 1;
 
     // fidelity (bottom-up correspondence)
@@ -386,16 +385,17 @@ public class GTCommandLine extends CommandLine {
                 ));
         //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
 
-        //s.global.getActsTop(mf, s.theta).stream()
+        /*//s.global.getActsTop(mf, s.theta).stream()
         s.global.getWeakActsTop(mf, s.theta).stream()
                 .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet());*/
 
+        //System.out.println("aaaaaaaaa: " + mystep + " ,, " + MAX);
         if (mystep >= MAX) {
             return Optional.empty();
         }
 
-        debugPrintln(debug, indent + "Possible actions = " + all);
+        debugPrintln(debug, indent + "Possible local actions = " + all);
         //for (SAction<DynamicActionKind> a : as) {
         for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : all.entrySet()) {
 
@@ -434,6 +434,9 @@ public class GTCommandLine extends CommandLine {
                     t1 = opt.get();
                 }
 
+                /*
+                GTLSystem gc = sys1.left;
+                /*/
                 GTLSystem ff = ffweak(lmf, com, t1, sys1.left, r);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
                 if (!ff.equals(sys1.left)) {
                     debugPrintln(debug, indent + "Catch up: ... --" + ConsoleColors.NU + "-" + ConsoleColors.RIGHT_ARROW + ConsoleColors.SUPER_PLUS + " " + ff);//....toString(indent + "ff " + ConsoleColors.NU + ": " + ff));
@@ -443,6 +446,7 @@ public class GTCommandLine extends CommandLine {
                 if (!gc.equals(ff)) {
                     debugPrintln(debug, indent + "GC: ... --" + ConsoleColors.TAU + "-" + ConsoleColors.RIGHT_ARROW + ConsoleColors.SUPER_PLUS + " " + gc);
                 }
+                //*/
 
                 // TODO eager(?) GC
                 //Pair<GTLConfig, Tree<String>> gc = cfg.gc(labs);
@@ -566,7 +570,7 @@ public class GTCommandLine extends CommandLine {
             return Optional.empty();
         }
 
-        debugPrintln(debug, indent + "Possible actions = " + as);
+        debugPrintln(debug, indent + "Possible global actions = " + as);
         for (SAction<DynamicActionKind> a : as) {
 
             debugPrintln(debug, "\n" + indent + "(" + mark + "-" + step + ")\n"

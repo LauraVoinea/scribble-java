@@ -148,7 +148,8 @@ public class GTLConfig {
             return true;
         }
 
-        /*else if (sup instanceof GTLRecursion) {
+        //*  // Needed for checkExcection1 (weak steps as pre step)
+        else if (sup instanceof GTLRecursion) {
             //return t.unfold().equals(u);
             //return isUnfolding((GTLRecursion) sup, sub);
 
@@ -165,7 +166,8 @@ public class GTLConfig {
             }
             tmp.add(next);
             return isSubtype(theta, sub, next);
-        }*/
+        }
+        //*/
         else if (sub instanceof GTLRecursion) {
             //return isUnfolding((GTLRecursion) sub, sup);
 
@@ -231,7 +233,7 @@ public class GTLConfig {
             if (!(sup instanceof GTLMixedActive)) {
                 return false;
             }
-            GTLMixedChoice sub_cast = (GTLMixedChoice) sub;
+            GTLMixedActive sub_cast = (GTLMixedActive) sub;
             GTLMixedActive sup_cast = (GTLMixedActive) sup;
             return isSubtype(theta, sub_cast.left, sup_cast.left)
                     && isSubtype(theta, sub_cast.right, sup_cast.right);

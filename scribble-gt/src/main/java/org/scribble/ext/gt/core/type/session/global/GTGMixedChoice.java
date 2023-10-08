@@ -361,7 +361,11 @@ public class GTGMixedChoice implements GTGType {
             return GTUtil.setOf();
         }
         Triple<Theta, GTGType, Tree<String>> get = nu.getRight();  // mixed active
-        return get.mid.getWeakActs(mf, get.left, blocked, c, n);
+
+        // FIXME addRuntimeTestMC(good, bad) -- \nu 2, 2 should not be possible global act, all roles blocked
+        LinkedHashSet<SAction<DynamicActionKind>> tmp = get.mid.getWeakActs(mf, get.left, blocked, c, n);
+        System.out.println("9999999: " + get.mid + ", " + tmp);
+        return tmp;
     }
 
     @Override

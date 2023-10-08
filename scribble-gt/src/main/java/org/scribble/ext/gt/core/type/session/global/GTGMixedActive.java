@@ -188,7 +188,7 @@ public class GTGMixedActive implements GTGType {
         }
 
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent());
+        rs.removeAll(getIndifferent());  // HERE HERE HERE FIXME rs needs to come from top as param (not re-calc in each recursive step)
 
         Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
         Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());
