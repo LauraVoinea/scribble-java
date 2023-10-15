@@ -222,12 +222,26 @@ public class GTGWiggly implements GTGType {
                             x -> x.getValue().project(rs, r, c, n)
                     ));
 
-            List<Optional<? extends GTLType>> ts = map.values().stream().map(x -> x.map(y -> y.left)).collect(Collectors.toList());
+            /*List<Optional<? extends GTLType>> ts = map.values().stream().map(x -> x.map(y -> y.left)).collect(Collectors.toList());
             Optional<? extends GTLType> fst = ts.get(0);
             Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::merge);
 
             Optional<Sigma> sig_k = map.get(this.op).map(x -> x.right);
-            Optional<Pair<? extends GTLType, Sigma>> res = merge.flatMap(x -> sig_k.map(z -> Pair.of(x, z)));
+            Optional<Pair<? extends GTLType, Sigma>> res = merge.flatMap(x -> sig_k.map(z -> Pair.of(x, z)));*/
+
+            List<Optional<? extends GTLType>> ts = map.entrySet().stream()
+                    .filter(x -> !x.getKey().equals(this.op))
+                    .map(x -> x.getValue().map(y -> y.left))
+                    .collect(Collectors.toList());
+            if (!ts.isEmpty()) {
+                Optional<? extends GTLType> fst = ts.get(0);
+                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::merge);
+                if (merge.isEmpty()) {
+                    return Optional.empty();
+                }
+            }
+            Optional<Pair<? extends GTLType, Sigma>> res = map.get(this.op);
+
             List<Optional<Sigma>> filt = map.entrySet().stream().filter(x -> !x.getKey().equals(this.op))
                     .map(x -> x.getValue().map(y -> y.right)).collect(Collectors.toList());
             if (filt.size() == 0) {
