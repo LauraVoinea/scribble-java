@@ -47,8 +47,8 @@ public class GTLBranch implements GTLType {
         Iterator<Op> it = Stream.of(this.cases.keySet(), cast.cases.keySet()).flatMap(Collection::stream).iterator();
         while (it.hasNext()) {
             Op x = it.next();
-            if (this.cases.keySet().contains(x)) {  // Would be nice if get returned Optional... can map empty directly
-                if (cast.cases.keySet().contains(x)) {
+            if (this.cases.containsKey(x)) {  // Would be nice if get returned Optional... can map empty directly
+                if (cast.cases.containsKey(x)) {
                     // case x in both branches: !!! currently recursively merging but could just simplify to equality
                     Optional<? extends GTLType> opt = this.cases.get(x).merge(cast.cases.get(x));
                     if (!opt.isPresent()) {

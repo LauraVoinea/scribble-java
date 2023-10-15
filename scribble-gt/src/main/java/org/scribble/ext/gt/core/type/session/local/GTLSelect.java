@@ -60,7 +60,7 @@ public class GTLSelect implements GTLType {
             return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
         }
         GTESend<DynamicActionKind> cast = (GTESend<DynamicActionKind>) a;
-        if (!a.peer.equals(this.dst) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
+        if (!a.peer.equals(this.dst) || !this.cases.containsKey(a.mid)  // TODO check payload?
 
                 //|| cast.c != c
                 || (cast.c != c && c != -1)  // FIXME HACK

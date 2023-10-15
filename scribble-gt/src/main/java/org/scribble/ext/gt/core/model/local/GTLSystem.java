@@ -55,7 +55,7 @@ public class GTLSystem {
             HashMap<Role, GTLConfig> tmp = new HashMap<>(this.configs);
             tmp.put(self, get.left);
             if (a instanceof GTESend) {
-                GTESend cast = (GTESend) a;
+                GTESend<DynamicActionKind> cast = (GTESend<DynamicActionKind>) a;
                 if (!this.configs.containsKey(cast.peer)) {
                     return Either.left(new Exception("Stuck: unknown role " + cast.peer + " in: " + this.configs));
                 }
