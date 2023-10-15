@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class GTCorrespondence {
 
-    public final Set<Role> roles;  // cf. Correspondence.getRoles
+    public final Set<Role> roles;  // initial top-level roles -- cf. dynamic Correspondence.getRoles
     public final Set<Integer> tids;  // "cs" -- timeoutids
 
     public final Theta theta;
@@ -81,7 +81,7 @@ public class GTCorrespondence {
             return Optional.of(new Exception("Not coherent: " + this.global));
         }
 
-        if (sd && !this.global.isSingleDecision(this.theta)) {
+        if (sd && !this.global.isSingleDecision(this.roles, this.theta)) {
             return Optional.of(new Exception("Not single-decision: " + this.global));
         }
 
@@ -89,7 +89,7 @@ public class GTCorrespondence {
             return Optional.of(new Exception("Not clear-termination: " + this.global));
         }
 
-        if (ac && !this.global.isAwareCorollary(mf, this.theta)) {  // FIXME deprecate mf
+        if (ac && !this.global.isAwareCorollary(mf, this.roles, this.theta)) {  // FIXME deprecate mf
             return Optional.of(new Exception("Not aware corollary: " + this.global));
         }
 

@@ -78,7 +78,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     // CHECKME: Theta not used for "static" version?
     // !!! currently just single-decision -- clear-termination approx by isLeftCommitting(Top)
     // ...doesn't check "initial"
-    boolean isSingleDecision(Theta theta);
+    boolean isSingleDecision(Set<Role> top, Theta theta);
 
     // boolean isBalanced();  // TODO awareness
 
@@ -94,7 +94,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     // ...left-committing check under the context of a specific mixed-choice instance
     boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
 
-    boolean isAwareCorollary(GTSModelFactory mf, Theta theta);  // FIXME refactor mf out of params
+    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta);  // FIXME refactor mf out of params
 
 
     /* ... */

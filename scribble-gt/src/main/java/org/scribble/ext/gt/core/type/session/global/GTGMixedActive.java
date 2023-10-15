@@ -97,15 +97,15 @@ public class GTGMixedActive implements GTGType {
         return false;
     }
 
-    // Dup from GTGMixedChoice
-    public Set<Role> getIndifferent() {
+    // Dup from GTGMixedChoice  // TODO factor out
+    public Set<Role> getIndifferent(Set<Role> top) {
         Set<Role> rs = getRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        this.left.projectTop(rs, x).equals(this.right.projectTop(rs, x)))
+                        this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
                 .collect(Collectors.toSet());
     }
 
@@ -115,7 +115,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Theta theta) {
+    public boolean isSingleDecision(Set<Role> top, Theta theta) {
 
         if (!this.committedRight.isEmpty()) {  // cf. !!! below
             return true;
@@ -123,7 +123,7 @@ public class GTGMixedActive implements GTGType {
 
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent());
+        rs.removeAll(getIndifferent(top));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
 
@@ -135,7 +135,7 @@ public class GTGMixedActive implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isSingleDecision(theta) && this.right.isSingleDecision(theta);
+        return this.left.isSingleDecision(top, theta) && this.right.isSingleDecision(top, theta);
     }
 
     @Override
@@ -182,13 +182,13 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
         if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
             return this.left.getRoles().equals(this.right.getRoles());  // awareness (2)
         }
 
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent());  // HERE HERE HERE FIXME rs needs to come from top as param (not re-calc in each recursive step)
+        rs.removeAll(getIndifferent(top));  // HERE HERE HERE FIXME rs needs to come from top as param (not re-calc in each recursive step)
 
         Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
         Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());

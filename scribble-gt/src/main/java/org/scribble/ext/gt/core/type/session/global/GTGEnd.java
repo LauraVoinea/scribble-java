@@ -56,7 +56,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Theta theta) {
+    public boolean isSingleDecision(Set<Role> top, Theta theta) {
         return true;
     }
 
@@ -88,7 +88,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
         return true;
     }
 

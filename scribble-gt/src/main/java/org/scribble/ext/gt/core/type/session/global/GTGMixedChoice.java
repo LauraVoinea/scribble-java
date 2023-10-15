@@ -86,14 +86,15 @@ public class GTGMixedChoice implements GTGType {
                 && this.observer.equals(left.getReceiver()) && this.observer.equals(right.getSender());
     }
 
-    public Set<Role> getIndifferent() {
+    // Dup with GTGMixedActive  // TODO factor out
+    public Set<Role> getIndifferent(Set<Role> top) {
         Set<Role> rs = getRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        this.left.projectTop(rs, x).equals(this.right.projectTop(rs, x)))
+                        this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
                 .collect(Collectors.toSet());
     }
 
@@ -118,10 +119,10 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Theta theta) {
+    public boolean isSingleDecision(Set<Role> top, Theta theta) {
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent());
+        rs.removeAll(getIndifferent(top));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
 
@@ -132,7 +133,7 @@ public class GTGMixedChoice implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isSingleDecision(theta) && this.right.isSingleDecision(theta);
+        return this.left.isSingleDecision(top, theta) && this.right.isSingleDecision(top, theta);
     }
 
     @Override
@@ -170,9 +171,9 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
         // Can morally just return true
-        return this.left.isAwareCorollary(mf, theta) && this.right.isAwareCorollary(mf, theta);
+        return this.left.isAwareCorollary(mf, top, theta) && this.right.isAwareCorollary(mf, top, theta);
     }
 
     @Override

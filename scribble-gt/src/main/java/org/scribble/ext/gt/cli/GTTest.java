@@ -36,7 +36,7 @@ public class GTTest {
         List<String> bad = new LinkedList<>();
 
         addRuntimeTestNoMC(good, bad);
-        //addRuntimeTestMC(good, bad);
+        addRuntimeTestMC(good, bad);
 
         add(good, bad);
 

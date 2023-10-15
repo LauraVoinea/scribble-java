@@ -63,8 +63,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Theta theta) {
-        return this.body.isSingleDecision(theta);
+    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+        return this.body.isSingleDecision(top, theta);
     }
 
     @Override
@@ -90,8 +90,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
-        return this.body.isAwareCorollary(mf, theta);
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+        return this.body.isAwareCorollary(mf, top, theta);
     }
 
     @Override

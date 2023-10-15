@@ -112,8 +112,8 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(theta));
+    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(top, theta));
     }
 
     @Override
@@ -166,8 +166,8 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, theta));
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, top, theta));
     }
 
     @Override

@@ -80,7 +80,7 @@ public class GTGWiggly implements GTGType {
     public Map<Role, Set<Role>> getStrongDeps() {
         Set<Role> rs = getRoles();
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
-                .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
+                .map(GTGType::getStrongDeps).collect(Collectors.toSet());
 
         Map<Role, Set<Role>> res = GTUtil.mapOf();
         for (Role r : rs) {
@@ -108,8 +108,8 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(theta));
+    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(top, theta));
     }
 
     @Override
@@ -155,8 +155,8 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, theta));
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, top, theta));
     }
 
     @Override

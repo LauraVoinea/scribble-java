@@ -196,7 +196,8 @@ public class GTCommandLine extends CommandLine {
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
     static Optional<Exception> checkSingleDecision(GTGType translate) {
-        if (!translate.isSingleDecision(new Theta(translate.getTimeoutIds()))) {
+        Set<Role> rs = translate.getRoles();
+        if (!translate.isSingleDecision(rs, new Theta(translate.getTimeoutIds()))) {
             return Optional.of(new Exception("Not single-decision: " + translate));
             //} else if (!translate.isLeftCommitting()) {
         }
