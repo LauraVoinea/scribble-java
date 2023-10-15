@@ -16,10 +16,7 @@ import org.scribble.ext.gt.util.Quad;
 import org.scribble.ext.gt.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class GTLRecVar implements GTLType {
 
@@ -37,7 +34,8 @@ public class GTLRecVar implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
@@ -54,7 +52,8 @@ public class GTLRecVar implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
     }
 
     @Override

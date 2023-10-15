@@ -221,4 +221,6 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Set<Integer> getTimeoutIds();  // c's
 
     Set<Op> getOps();
+
+    Set<RecVar> getRecDecls();
 }

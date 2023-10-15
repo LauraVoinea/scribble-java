@@ -55,14 +55,23 @@ public class GTLMixedActive implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
 
         // TODO remove blocked
 
-        LinkedHashSet<EAction<DynamicActionKind>> aLeft = this.left.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        /*LinkedHashSet<EAction<DynamicActionKind>> aLeft = this.left.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
         LinkedHashSet<EAction<DynamicActionKind>> aRight = this.right.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
         aLeft.addAll(aRight);
+        return aLeft;*/
+
+        // Pre: left/right disjoint by WF? anyway above was just doing addAll
+        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> aLeft =
+                this.left.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> aRight =
+                this.right.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        aLeft.putAll(aRight);
         return aLeft;
     }
 
@@ -176,7 +185,8 @@ public class GTLMixedActive implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
     }
 
     @Override

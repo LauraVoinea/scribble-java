@@ -47,10 +47,16 @@ public class GTTest {
 
     protected static void add(List<String> good, List<String> bad) {
 
-        good.add("P(role A, role B) { "
+        /*good.add("P(role A, role B) { "
                 + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
-                + "      { r1() from B to A; }}");
+                + "      { r1() from B to A; }}");*/
+
+        //good.add("P(role A, role B) { rec X { 1() from A to B; continue X; } }");
+
+        good.add("P(role A, role B, role C) { choice at A { 1() from A to B; 2() from C to B; }"
+                + "                                    or { 3() from A to B; 2() from C to B; } }");
     }
+
 
     /* ... */
 

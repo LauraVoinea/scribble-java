@@ -469,6 +469,13 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getRecDecls() {
+        return GTUtil.union(
+                this.left.getRecDecls(),
+                this.right.getRecDecls());
+    }
+
+    @Override
     public String toString() {
         return ConsoleColors.toMixedChoiceString("(" + this.left + " " + ConsoleColors.WHITE_TRIANGLE
                 + this.c + ":" + this.other + "->" + this.observer

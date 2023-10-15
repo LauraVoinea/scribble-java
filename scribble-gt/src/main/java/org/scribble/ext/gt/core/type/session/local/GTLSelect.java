@@ -41,15 +41,25 @@ public class GTLSelect implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         /*if (!sigma.map.containsKey(self)) {  // XXX self is the sender, sigma is self/sender's buffer
             throw new RuntimeException("Unknown sender: " + this + " ,, " + sigma.map);
         }*/
-        return this.cases.entrySet().stream()
+
+        /*return this.cases.entrySet().stream()
                 //.map(x -> mf.DynamicESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD))  // FIXME pay
                 .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));*/
+        return this.cases.entrySet().stream()
+                .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
+                .collect(Collectors.toMap(
+                        x -> x,
+                        x -> Collections.emptySet(),
+                        (x, y) -> x,
+                        LinkedHashMap::new
+                ));
     }
 
     @Override
@@ -90,7 +100,8 @@ public class GTLSelect implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
     }
 
     @Override

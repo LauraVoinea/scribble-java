@@ -16,10 +16,7 @@ import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 // HERE extend ANTLR -- copy frontend stuff from scrib-assrt
 public class GTLMixedChoice implements GTLType {
@@ -55,12 +52,18 @@ public class GTLMixedChoice implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c1, int n1) {
-        LinkedHashSet<EAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        /*LinkedHashSet<EAction<DynamicActionKind>> res = new LinkedHashSet<>();
         if (theta.map.containsKey(this.c)) {
             Integer m = theta.map.get(this.c);
             res.add(mf.DynamicGTENewTimeout(this.c, m));
+        }*/
+        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
+        if (theta.map.containsKey(this.c)) {
+            Integer m = theta.map.get(this.c);
+            res.put(mf.DynamicGTENewTimeout(this.c, m), Collections.emptySet());
         }
         return res;
     }
@@ -97,15 +100,17 @@ public class GTLMixedChoice implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        LinkedHashSet<EAction<DynamicActionKind>> tau = getActs(mf, self, blocked, sigma, theta, c, n);
+        //LinkedHashSet<EAction<DynamicActionKind>> tau = getActs(mf, self, blocked, sigma, theta, c, n);
+        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> tau = getActs(mf, self, blocked, sigma, theta, c, n);
         if (tau.isEmpty()) {
-            return tau;
+            return new LinkedHashSet<>(tau.keySet());
         } else if (tau.size() > 1) {
             throw new RuntimeException("Shouldn't get in here: " + tau);
         }
         Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
                 Map<Pair<Integer, Integer>, Discard>>> step =
-                step(com, self, tau.iterator().next(), sigma, theta, c, n);
+                //step(com, self, tau.iterator().next(), sigma, theta, c, n);
+                step(com, self, tau.keySet().iterator().next(), sigma, theta, c, n);
         if (step.isLeft()) {
             return GTUtil.setOf();
         }

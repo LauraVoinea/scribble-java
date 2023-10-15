@@ -189,6 +189,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getRecDecls() {
+        return Collections.emptySet();
+    }
+
+    @Override
     public String toString() {
         return this.var.toString();
     }

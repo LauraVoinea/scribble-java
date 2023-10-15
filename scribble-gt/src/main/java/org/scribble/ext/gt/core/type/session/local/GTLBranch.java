@@ -68,16 +68,20 @@ public class GTLBranch implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         Optional<GTESend<DynamicActionKind>> first = sigma.map.get(this.src)
                 .stream().filter(x -> x.c == c && x.n == n).findFirst();
         if (first.isPresent()) {
             GTESend<DynamicActionKind> m = first.get();
-            return Stream.of(m.toDynamicDual(this.src))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            //return Stream.of(m.toDynamicDual(this.src)).collect(Collectors.toCollection(LinkedHashSet::new));
+            LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> res = GTUtil.mapOf();
+            res.put(m.toDynamicDual(this.src), Collections.emptySet());
+            return res;
         } else {
-            return new LinkedHashSet<>();
+            //return GTUtil.setOf();
+            return GTUtil.mapOf();
         }
     }
 
@@ -126,7 +130,8 @@ public class GTLBranch implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
     }
 
     @Override

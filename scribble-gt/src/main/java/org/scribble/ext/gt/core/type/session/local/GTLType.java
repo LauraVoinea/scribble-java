@@ -42,14 +42,16 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... -- n.b. formal local LTS is config LTS (hence sigma, theta etc params below) */
 
-    default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(
+    //default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(
+    default LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActsTop(
             GTEModelFactory mf, Role self, Sigma sigma, Theta theta) {
         return getActs(mf, self, Collections.emptySet(), sigma, theta, GTLType.c_TOP, GTLType.n_INIT);
     }
 
-    // TODO remove blocked
+    // TODO remove blocked (deprecated?)
     // TODO GTEAction
-    LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n);
 
     // FIXME: Sigma may be local or remote depending on action

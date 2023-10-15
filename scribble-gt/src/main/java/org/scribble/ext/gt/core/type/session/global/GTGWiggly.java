@@ -411,6 +411,12 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getRecDecls() {
+        return this.cases.values().stream()
+                .flatMap(x -> x.getRecDecls().stream()).collect(Collectors.toSet());
+    }
+
+    @Override
     public String toString() {
         return this.src + "~>" + this.dst + ":" + this.op
                 + "{" + this.cases.entrySet().stream()

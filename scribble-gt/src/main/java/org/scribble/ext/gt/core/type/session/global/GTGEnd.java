@@ -193,6 +193,9 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getRecDecls() { return Collections.emptySet(); }
+
+    @Override
     public String toString() {
         return "end";
     }

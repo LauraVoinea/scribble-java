@@ -3,6 +3,7 @@ package org.scribble.ext.gt.core.model.local;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -33,7 +34,8 @@ public class GTLConfig {
 
     /* ... */
 
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(GTEModelFactory mf) {
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(GTEModelFactory mf) {
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(GTEModelFactory mf) {
         return this.type.getActsTop(mf, this.self, this.sigma, this.theta);
     }
 

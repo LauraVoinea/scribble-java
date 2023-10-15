@@ -10,10 +10,7 @@ import org.scribble.core.job.CoreArgs;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.GProtoName;
-import org.scribble.core.type.name.ModuleName;
-import org.scribble.core.type.name.Op;
-import org.scribble.core.type.name.Role;
+import org.scribble.core.type.name.*;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -278,13 +275,15 @@ public class GTCommandLine extends CommandLine {
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+            Map<String, Integer> unfolds = translate.getRecDecls().stream()
+                    .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
                 Optional<Exception> res =
 
                         //checkExecution(  // top-down
                         checkExecution2(  // fidelity
                                 core, "", s, 1, MAX,
-                                new HashMap<>(), 2,
+                                unfolds, 2,
                                 translate.getTimeoutIds(),
                                 labs, com,
                                 true, true, true, true, true, true, true);
@@ -339,6 +338,7 @@ public class GTCommandLine extends CommandLine {
 
     // HERE HERE factor out top-down/fidelity CL arg
 
+    private static final int MAX_UNFOLD = 2;
 
     private static Optional<Exception> checkExecutionAux2(
             Core core, String indent, GTCorrespondence s,
@@ -376,13 +376,32 @@ public class GTCommandLine extends CommandLine {
 
         // TODO factor out above with top-down correspondence checkExecutionAux
 
-        Map<Role, LinkedHashSet<EAction<DynamicActionKind>>> all =
+        /*Map<Role, LinkedHashSet<EAction<DynamicActionKind>>> all =
                 s.local.getActs(lmf).entrySet().stream().collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        y -> y.getValue().stream()
-                                .filter(x -> !((x instanceof GTENewTimeout<?>) && ((GTENewTimeout<?>) x).n > depth))  // only bounds mixed...
+                        //y -> y.getValue().stream()
+                        y -> y.getValue().keySet().stream()  // !!!
+                                .filter(x -> !((x instanceof GTENewTimeout<?>)
+                                        && ((GTENewTimeout<?>) x).n > depth)  // only bounds MCs...
+                                )
                                 .collect(Collectors.toCollection(LinkedHashSet::new))
-                ));
+                ));*/
+        Map<Role, LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>>> get = s.local.getActs(lmf);
+        Map<Role, LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>>> all = GTUtil.mapOf();
+        for (Map.Entry<Role, LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>>> e
+                : get.entrySet()) {
+            Role r = e.getKey();
+            LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as = e.getValue();
+            LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> filt = GTUtil.mapOf();
+            for (Map.Entry<EAction<DynamicActionKind>, Set<RecVar>> e2 : as.entrySet()) {
+                EAction<DynamicActionKind> a = e2.getKey();
+                Set<RecVar> rvs = e2.getValue();
+                if (rvs.stream().allMatch(x -> unfolds.get(x.toString()) < MAX_UNFOLD)) {  // FIXME toString
+                    filt.put(a, rvs);
+                }
+            }
+            all.put(r, filt);
+        }
         //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
 
         /*//s.global.getActsTop(mf, s.theta).stream()
@@ -397,12 +416,16 @@ public class GTCommandLine extends CommandLine {
 
         debugPrintln(debug, indent + "Possible local actions = " + all);
         //for (SAction<DynamicActionKind> a : as) {
-        for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : all.entrySet()) {
+        //for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : all.entrySet()) {
+        for (Map.Entry<Role, LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>>> e : all.entrySet()) {
 
             Role r = e.getKey();
-            LinkedHashSet<EAction<DynamicActionKind>> as = e.getValue();
+            //LinkedHashSet<EAction<DynamicActionKind>> as = e.getValue();
+            LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as = e.getValue();
 
-            for (EAction<DynamicActionKind> a : as) {
+            //for (EAction<DynamicActionKind> a : as) {
+            for (Map.Entry<EAction<DynamicActionKind>, Set<RecVar>> e2 : as.entrySet()) {
+                EAction<DynamicActionKind> a = e2.getKey();
 
                 debugPrintln(debug, "\n" + indent + "(" + mark + "-" + step + ")\n"
                         + indent + "Stepping local "
@@ -462,6 +485,7 @@ public class GTCommandLine extends CommandLine {
                 debugPrintln(debug, g_step.right.toString(indent + "   "));
 
                 Map<String, Integer> us = new HashMap<>(unfolds);
+                e2.getValue().forEach(x -> us.put(x.toString(), us.get(x.toString()) + 1));  // !!!
 
                 mystep = mystep + 1;
                 step = step + 1;
@@ -490,10 +514,13 @@ public class GTCommandLine extends CommandLine {
             GTENewTimeout<?> cast = (GTENewTimeout<?>) x;
             return max.map.get(cast.c) > cast.n;
         };
-        for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : y.getActs(lmf).entrySet()) {  // Using getActs unfolds recursion -- intentional?  cf. checking specifically GTLMixedChoice  (GTLSystem.weakStep)
+        //for (Map.Entry<Role, LinkedHashSet<EAction<DynamicActionKind>>> e : y.getActs(lmf).entrySet()) {  // Using getActs unfolds recursion -- intentional?  cf. checking specifically GTLMixedChoice  (GTLSystem.weakStep)
+        for (Map.Entry<Role, LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>>> e
+                : y.getActs(lmf).entrySet()) {  // Using getActs unfolds recursion -- intentional?  cf. checking specifically GTLMixedChoice  (GTLSystem.weakStep)
             Role r = e.getKey();
             Optional<EAction<DynamicActionKind>> opt =
-                    e.getValue().stream().filter(filt::test).findFirst();
+                    //e.getValue().stream().filter(filt::test).findFirst();
+                    e.getValue().keySet().stream().filter(filt::test).findFirst();  // !!!
             if (opt.isPresent()) {
                 Either<Exception, Pair<GTLSystem, Tree<String>>> step = y.step(com, r, opt.get());
                 if (step.isLeft()) {

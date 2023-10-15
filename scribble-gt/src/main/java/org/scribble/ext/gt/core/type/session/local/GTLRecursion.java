@@ -15,6 +15,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GTLRecursion implements GTLType {
 
@@ -45,9 +46,18 @@ public class GTLRecursion implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
+        //return unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
+        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as =
+                unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
+        return as.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> GTUtil.union(x.getValue(), Set.of(this.var)),
+                (x, y) -> x,  // CHECKME
+                LinkedHashMap::new
+        ));
     }
 
     @Override
@@ -82,7 +92,7 @@ public class GTLRecursion implements GTLType {
                 unfoldAllOnce().weakStep(com, self, a, sigma, theta, c, n);
         return step.mapRight(x -> Pair.of(
                 Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
-                        toStepJudgeString("[Rec]", c, n, theta, this, sigma,
+                        toStepJudgeString("[Rec_" + this.var + "]", c, n, theta, this, sigma,
                                 (GTEAction) a, x.left.thrd, x.left.fst, x.left.snd),
                         x.left.frth)),
                 x.right));

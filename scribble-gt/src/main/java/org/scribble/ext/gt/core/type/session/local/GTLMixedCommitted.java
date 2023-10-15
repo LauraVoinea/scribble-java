@@ -10,14 +10,13 @@ import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 // Dup from GTLMixedActive
 public class GTLMixedCommitted implements GTLType {
@@ -55,13 +54,16 @@ public class GTLMixedCommitted implements GTLType {
     /* ... */
 
     @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {  // XXX outer still OK to reduce if inner is fully ended?
 
         // TODO remove blocked
 
-        LinkedHashSet<EAction<DynamicActionKind>> aLeft = this.type.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
-        return aLeft;
+        //LinkedHashSet<EAction<DynamicActionKind>> res = this.type.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> res =
+                this.type.getActs(mf, self, blocked, sigma, theta, this.c, this.n);
+        return res;
     }
 
     // Pre: a in getActs
@@ -96,7 +98,8 @@ public class GTLMixedCommitted implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
     }
 
     @Override

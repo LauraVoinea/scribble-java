@@ -519,6 +519,13 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getRecDecls() {
+        return GTUtil.union(
+                this.left.getRecDecls(),
+                this.right.getRecDecls());
+    }
+
+    @Override
     public String toString() {
         return "(" + this.left + " " + this.committedLeft + " " + ConsoleColors.BLACK_TRIANGLE
                 + this.c + "," + this.n

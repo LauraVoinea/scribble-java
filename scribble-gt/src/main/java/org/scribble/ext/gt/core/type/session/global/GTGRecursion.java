@@ -211,6 +211,11 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getRecDecls() {
+        return GTUtil.union(this.body.getRecDecls(), Set.of(this.var));
+    }
+
+    @Override
     public String toString() {
         return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }

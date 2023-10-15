@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -27,7 +28,8 @@ public class GTLSystem {
         this.configs = Collections.unmodifiableMap(new HashMap<>(configs));
     }
 
-    public Map<Role, LinkedHashSet<EAction<DynamicActionKind>>> getActs(GTEModelFactory mf) {
+    //public Map<Role, LinkedHashSet<EAction<DynamicActionKind>>> getActs(GTEModelFactory mf) {
+    public Map<Role, LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>>> getActs(GTEModelFactory mf) {
         return this.configs.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 x -> x.getValue().getActs(mf)
@@ -104,7 +106,9 @@ public class GTLSystem {
                 GTLType t = cfg.type;
                 while (t instanceof GTLMixedChoice) {  // !!! doesn't unfold recursion -- intended?  cf. using getActs (GTLSystem.ffweak)
                     Either<Exception, Pair<GTLConfig, Tree<String>>> step1 =
-                            cfg.step(com, cfg.getActs((GTEModelFactory) GTEModelFactoryImpl.FACTORY.local).iterator().next());
+                            cfg.step(com,
+                                    //cfg.getActs((GTEModelFactory) GTEModelFactoryImpl.FACTORY.local).iterator().next());
+                                    cfg.getActs((GTEModelFactory) GTEModelFactoryImpl.FACTORY.local).keySet().iterator().next());
                     if (step1.isLeft()) {
                         throw new RuntimeException(step1.getLeft());
                     }
