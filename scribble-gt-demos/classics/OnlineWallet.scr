@@ -1,0 +1,31 @@
+module OnlineWallet;
+
+global protocol OnlineWallet(role S, role C, role A) {
+    login() from C to A;
+        choice at A {
+            login_ok () from A to C;
+            auth () from A to S;
+            rec  LOOP {
+                account() from S to C;
+                mixed{
+                    choice  at C {
+                        pay() from C to S;
+                        ack() from S to C;
+                        empty() from S to A;
+                        continue  LOOP;
+                    } or {
+                        quit() from C to S;
+                        bye() from S to C;
+                        next() from S to A;
+                    }
+                } () or C->S() {
+                         timeout() from S to C;
+                         nextT() from S to A;
+                         }
+            }
+        } or {
+            login_fail() from A to C;
+            auth_fail() from A to S;
+        }
+}
+

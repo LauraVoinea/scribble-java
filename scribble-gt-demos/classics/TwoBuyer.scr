@@ -1,0 +1,26 @@
+module TwoBuyer;
+
+
+global protocol TwoBuyer(role Alice, role Bob, role Seller){
+  mixed{
+      title() from Alice to Seller;
+      quote() from Seller to Alice;
+      quote() from Seller to Bob;
+      quoteByTwo() from Alice to Bob;
+      mixed{
+          choice at Bob{
+              ok() from Bob to Seller;
+              confirmation() from Seller to Bob;
+          } or {
+                cancel() from Bob to Seller;
+                ack() from Seller to Bob;
+          }
+          } () or Bob -> Seller(){
+              timeout() from Seller to Bob;
+          }
+  }() or Alice -> Seller() {
+      notAvailable() from Seller to Alice;
+      notAvailable() from Seller to Bob;
+  }
+
+}

@@ -1,0 +1,19 @@
+module Fibonacci;
+
+
+global protocol Fibonacci(role A, role B){
+	rec Fib	{
+	    mixed{
+            choice at A {
+                fibonacci() from A to B;
+                fibonacci() from B to A;
+                continue Fib;
+            } or {
+                stop() from A to B;
+                ack() from B to A; // otherwise Not left-committing (clear-termination)
+            }
+		} () or A->B() {
+		    error() from B to A;
+		}
+	}
+}

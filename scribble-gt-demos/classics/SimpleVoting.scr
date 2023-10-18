@@ -1,0 +1,21 @@
+module SimpleVoting;
+
+global protocol SimpleVoting(role Voter, role Server){
+    authenticate() from Voter to Server;
+    choice at Server {
+        Ok() from Server to Voter;
+        mixed{
+            choice at Voter {
+                Yes() from Voter to Server;
+                Result() from Server to Voter;
+            } or {
+                No() from Voter to Server;
+                Result() from Server to Voter;
+            }
+        }() or Voter->Server(){
+            error() from Server to Voter;
+        }
+    } or {
+        Reject() from Server to Voter;
+    }
+}
