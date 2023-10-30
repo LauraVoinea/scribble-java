@@ -77,7 +77,6 @@ public class GTLMixedCommitted implements GTLType {
         }*/
         Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> optl =
                 this.type.step(com, self, a, sigma, theta, this.c, this.n);
-
         return optl.mapRight(x -> {
             Quad<GTLType, Sigma, Theta, Tree<String>> step = x.left;
             GTLMixedCommitted succ = this.fact.mixedCommitted(

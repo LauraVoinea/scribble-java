@@ -206,7 +206,8 @@ public class GTGMixedChoice implements GTGType {
             return get_l.equals(get_r) ? optl : Optional.empty();
         }
 
-        // else not indiff
+        // else r not indiff
+
         Sigma s0 = new Sigma(topPeers);
         if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
             return Optional.empty();
@@ -402,8 +403,10 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Set<Op> getCommittingTop(Set<Role> com) {
-        Set<Op> res = this.left.getCommittingLeft(this.observer, com);
-        res.addAll(this.right.getCommittingRight(this.observer, com));
+        /*Set<Op> res = this.left.getCommittingLeft(this.observer, com);
+        res.addAll(this.right.getCommittingRight(this.observer, com));*/
+        Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
+        res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
         return res;
     }
 

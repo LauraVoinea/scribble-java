@@ -130,10 +130,15 @@ public class GTLConfig {
 
     // !!! -- cf. equals
     public boolean isSubtype(GTLConfig sup) {
-        return this.self.equals(sup.self) && GTLConfig.isSubtype(this.theta, this.type, sup.type)
+
+        return this.self.equals(sup.self)
+                //&& this.type.equals(sup.type)
+                && GTLConfig.isSubtype(this.theta, this.type, sup.type)
                 && this.sigma.equals(sup.sigma);
 
-        //&& this.theta.equals(sup.theta);  // FIXME
+        // TODO FIXME
+        //&& this.theta.equals(sup.theta);
+        // ...also this.discard
 
     }
 

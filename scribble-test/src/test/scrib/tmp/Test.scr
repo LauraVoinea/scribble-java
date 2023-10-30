@@ -458,7 +458,7 @@ global protocol P(role A, role B, role C) {
 
 global protocol P(role A, role B, role C) {
     //rec X { mixed { l1() from A to B; l2() from B to A; } () or A->B () { r1() from B to A; continue X; } }
-    mixed { 1() from A to B; 2() from B to C; 4() from B to A; } () or A->B ()
+    mixed { 1() from A to B; 2() from B to C; 4() from B to A; } () or A->B ()  // testing C indiff
           { 3() from B to A; 2() from B to C; 5() from B to A; }
 
 }
