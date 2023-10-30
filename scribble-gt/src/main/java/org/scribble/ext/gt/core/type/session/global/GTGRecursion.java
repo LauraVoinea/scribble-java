@@ -102,11 +102,11 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
-        return this.body.project(rs, r, c, n).map(x ->
+        return this.body.project(topPeers, r, c, n).map(x ->
                 x.left.equals(this.var)
-                        ? Pair.of(lf.end(), new Sigma(rs))
+                        ? Pair.of(lf.end(), new Sigma(topPeers))
                         : Pair.of(lf.recursion(this.var, x.left), x.right)
         );
     }

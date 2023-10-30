@@ -170,6 +170,7 @@ public class GTCorrespondence {
         return e.getRight();
     }
 
+    // CHECKME roles.equals(this.roles) ? -- deprecate roles param below?
     // TODO move to GTGType
     public static Either<Exception, GTLSystem> projectTopLevel(
             Set<Role> roles, GTGType global, Set<Integer> cs) {

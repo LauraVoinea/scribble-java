@@ -53,6 +53,9 @@ public class GTTest {
                 + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
                 + "      { r1() from B to A; }}");
 
+        // TODO
+        // indifferent example for fidelity that needs weak global pre steps
+
     }
 
 

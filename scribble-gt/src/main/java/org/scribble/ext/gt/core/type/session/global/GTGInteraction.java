@@ -178,13 +178,13 @@ public class GTGInteraction implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src) || r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             Sigma sigma = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r, c, n);
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(topPeers, r, c, n);
                 if (opt.isEmpty()) {
                     return Optional.empty();
                 }
@@ -204,11 +204,11 @@ public class GTGInteraction implements GTGType {
                     : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
-                    this.cases.values().stream().map(x -> x.project(rs, r, c, n));
+                    this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));
             Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
             // FIXME stream made twice... -- refactor with GTGWiggly
-            str = this.cases.values().stream().map(x -> x.project(rs, r, c, n));  // !!! XXX
+            str = this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));  // !!! XXX
             return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }

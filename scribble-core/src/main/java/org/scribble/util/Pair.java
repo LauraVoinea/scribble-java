@@ -15,6 +15,8 @@
  */
 package org.scribble.util;
 
+import java.util.function.Function;
+
 public class Pair<T1, T2> {
     public final T1 left;
     public final T2 right;
@@ -26,6 +28,14 @@ public class Pair<T1, T2> {
 
     public static <T1, T2> Pair<T1, T2> of(T1 t1, T2 t2) {
         return new Pair<>(t1, t2);
+    }
+
+    public <T> Pair<T, T2> mapLeft(Function<T1, T> f) {
+        return Pair.of(f.apply(this.left), this.right);
+    }
+
+    public <T> Pair<T1, T> mapRight(Function<T2, T> f) {
+        return Pair.of(this.left, f.apply(this.right));
     }
 
     @Override

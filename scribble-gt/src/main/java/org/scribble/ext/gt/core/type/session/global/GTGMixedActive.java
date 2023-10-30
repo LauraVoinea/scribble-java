@@ -105,7 +105,13 @@ public class GTGMixedActive implements GTGType {
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                        //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                {
+                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
+                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
+                    Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
+                    return res.isPresent() && res.get();
+                })
                 .collect(Collectors.toSet());
     }
 
@@ -213,22 +219,34 @@ public class GTGMixedActive implements GTGType {
 
     // Pre: this.committedLeft.contains(r) xor this.committedRight.contains(r)
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
 
-        // TODO FIXME indifferent case
+        Set<Role> top = GTUtil.union(GTUtil.copyOf(topPeers), Set.of(r));
+        Set<Role> indiff = getIndifferent(top);
+        if (indiff.contains(r)) {
+            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(topPeers, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(topPeers, r, this.c, this.n);
+            if (opt_l.isEmpty() || opt_r.isEmpty()) { return Optional.empty(); }
+            Pair<? extends GTLType, Sigma> get_l = opt_l.get();
+            Pair<? extends GTLType, Sigma> get_r = opt_r.get();
+            if (!get_l.left.equals(get_r.left)) { return Optional.empty(); }
+            return Optional.of(get_l.mapRight(x -> x.circ(get_r.right)));
+        }
+
+        // else not indiff
 
         // Same as MixedChoice except with n -- XXX now GTLCommitted
         if (this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
-            Optional<Pair<? extends GTLType, Sigma>> proj = this.left.project(rs, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> proj = this.left.project(topPeers, r, this.c, this.n);
             return proj.map(x -> Pair.of(lf.mixedCommitted(this.c, this.n, x.left, Side.LEFT), x.right));
         } else if (this.committedRight.contains(r) && !this.committedLeft.contains(r)) {
-            Optional<Pair<? extends GTLType, Sigma>> proj = this.right.project(rs, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> proj = this.right.project(topPeers, r, this.c, this.n);
             return proj.map(x -> Pair.of(lf.mixedCommitted(this.c, this.n, x.left, Side.RIGHT), x.right));
         } else { //if (!this.committedLeft.contains(r) && !this.committedRight.contains(r)) {
             //throw new RuntimeException("TODO: ");  // p,q ??
-            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(rs, r, this.c, this.n);
-            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(rs, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> opt_l = this.left.project(topPeers, r, this.c, this.n);
+            Optional<Pair<? extends GTLType, Sigma>> opt_r = this.right.project(topPeers, r, this.c, this.n);
 
             if (!r.equals(this.other) && !r.equals(this.observer)) {
 
