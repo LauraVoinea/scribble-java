@@ -152,9 +152,10 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommittingAux(this.observer, com, rem)
+        throw new RuntimeException("Deprecated?");
+        /*return this.left.isLeftCommittingAux(this.observer, com, rem)
                 && this.left.isClearTermination()
-                && this.right.isClearTermination();
+                && this.right.isClearTermination();*/
     }
 
     @Override

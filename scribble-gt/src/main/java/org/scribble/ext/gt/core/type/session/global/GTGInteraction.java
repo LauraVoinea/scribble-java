@@ -135,6 +135,7 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+        //System.out.println("3333: " + this + " ,, " + com + " ,, " + rem);
         if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
             return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
         }
@@ -142,6 +143,7 @@ public class GTGInteraction implements GTGType {
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
+        //System.out.println("3333: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
         return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 

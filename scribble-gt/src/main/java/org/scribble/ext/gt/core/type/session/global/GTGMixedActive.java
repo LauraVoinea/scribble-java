@@ -150,7 +150,8 @@ public class GTGMixedActive implements GTGType {
             return true;
         }
 
-        Set<Role> rs = getRoles();
+        //Set<Role> rs = getRoles();
+        Set<Role> rs = this.left.getRoles();  // !!! otherwise (e.g.) roles_left \setminus committedRight
         rs.add(this.observer);  // cf. (A~>B:l1{l1.B->A{l2.end}} [] ▶1,1:A->B [B] B~>A:r1{r1.end}) -- B r-committed so not in getRoles... if obs not in rem, then doesn't get left-committed by aux
 
         /*System.out.println("111111: " + this + " ,, " + rs + " \n " + this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), rs)  // n.b., roles(this) -- "outer" roles not involved at all don't matter

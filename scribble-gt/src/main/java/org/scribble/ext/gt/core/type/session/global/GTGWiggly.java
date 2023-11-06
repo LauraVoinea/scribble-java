@@ -139,6 +139,7 @@ public class GTGWiggly implements GTGType {
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
+        //System.out.println("2222: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
         return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 
