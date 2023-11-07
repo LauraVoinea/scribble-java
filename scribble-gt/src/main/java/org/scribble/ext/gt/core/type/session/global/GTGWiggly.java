@@ -139,6 +139,7 @@ public class GTGWiggly implements GTGType {
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
+        //System.out.println("2222: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
         return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 
@@ -167,18 +168,18 @@ public class GTGWiggly implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src)) {
             //LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
-            return this.cases.get(this.op).project(rs, r, c, n);
+            return this.cases.get(this.op).project(topPeers, r, c, n);
         } else if (r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             Sigma sigma = null;
             Sigma sigma_k = null;
             for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
                 Op op = e.getKey();
-                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(rs, r, c, n);
+                Optional<Pair<? extends GTLType, Sigma>> opt = e.getValue().project(topPeers, r, c, n);
                 if (opt.isEmpty()) {
                     return Optional.empty();
                 }
@@ -219,7 +220,7 @@ public class GTGWiggly implements GTGType {
             Map<Op, Optional<Pair<? extends GTLType, Sigma>>> map =
                     this.cases.entrySet().stream().collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            x -> x.getValue().project(rs, r, c, n)
+                            x -> x.getValue().project(topPeers, r, c, n)
                     ));
 
             /*List<Optional<? extends GTLType>> ts = map.values().stream().map(x -> x.map(y -> y.left)).collect(Collectors.toList());

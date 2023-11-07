@@ -35,15 +35,66 @@ public class GTTest {
         List<String> good = new LinkedList<>();
         List<String> bad = new LinkedList<>();
 
-        addRuntimeTestNoMC(good, bad);
-        addRuntimeTestMC(good, bad);
+        //addRuntimeTestNoMC(good, bad);
+        //addRuntimeTestMC(good, bad);
 
-        add(good, bad);
+        //add(good, bad);
+        ////addFidelityGlobalWeak(good, bad);
+        //addFidelitySubtypingNeededForGCEnvs(good, bad);
+        //addFidelitySubtypingNeededBlackWhiteTriangles(good, bad);
+        addFidelityNested(good, bad);
 
         String title = "run-time correspondence";
         runGoodTests(good, GTTest::runTest, title + " (good)").println();
         runBadTests(bad, GTTest::runTest, title + " (bad)").println();
     }
+
+    // cf. also: addFidelityNested
+    protected static void addFidelitySubtypingNeededBlackWhiteTriangles(List<String> good, List<String> bad) {
+        // N.B. only two roles
+        // weak "catch up" not sufficient due to blocking prefix
+        good.add("P(role A, role B) { "
+                + "rec X { mixed { l1() from A to B; l2() from B to A; } () or A->B () "
+                + "              { r1() from B to A; continue X; }}}");  // white (local async lag) <: black (global projection)
+    }
+
+    protected static void addFidelityNested(List<String> good, List<String> bad) {
+        // N.B. only two roles
+        // is also: FidelitySubtypingNeededBlackWhiteTriangles weak "catch up" -- not sufficient due to blocking prefix
+        good.add("P(role A, role B) { "
+                + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
+                + "      { r1() from B to A; "
+                + "        mixed { l3() from A to B; l4() from B to A; } () or A->B ()"  // !!! committing aux for nested MC
+                + "              { r2() from B to A; }"
+                + "      }"
+                + "}");
+    }
+
+    protected static void addFidelitySubtypingNeededForGCEnvs(List<String> good, List<String> bad) {
+        // currently locals will add entry to GC envs, but global projection has no GC env
+        good.add("P(role A, role B) { "
+                + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
+                + "      { r1() from B to A; }}");
+    }
+
+    protected static void addFidelityGlobalWeak(List<String> good, List<String> bad) {
+
+        // TODO
+        // indifferent example for fidelity that needs weak global pre steps
+
+        /*good.add("P(role A, role B, role C) { "
+                + "mixed { l1() from A to B; l2() from B to A; 3() from C to A; } () or A->B () "  // CHECKME aware needs even indiff to be clear-term?
+                + "      { r1() from B to A; 3() from C to A;  }}");*/
+
+        /*good.add("P(role A, role B, role C) { "
+                + "mixed { l1() from A to B; l2() from B to A; 3() from B to C; } () or A->B () "  // OK
+                + "      { r1() from B to A; 3() from B to C;  }}");*/
+
+        good.add("P(role A, role B, role C) { "
+                + "mixed { l1() from A to B; l2() from B to A; 3() from A to C; } () or A->B () "
+                + "      { r1() from B to A; 3() from A to C;  }}");
+    }
+
 
     protected static void add(List<String> good, List<String> bad) {
 
@@ -128,7 +179,7 @@ public class GTTest {
                 + "      { r1() from B to A; }}");
         good.add("P(role A, role B) { "
                 + "rec X { mixed { l1() from A to B; l2() from B to A; } () or A->B () "
-                + "              { r1() from B to A; continue X; }}}");  // TODO white (local async lag) <: black (global projection)
+                + "              { r1() from B to A; continue X; }}}");  // white (local async lag) <: black (global projection)
 
 
     }

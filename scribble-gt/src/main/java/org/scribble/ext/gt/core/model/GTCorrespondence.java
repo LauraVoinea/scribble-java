@@ -134,7 +134,7 @@ public class GTCorrespondence {
                 System.out.println(indent + "Checking Local subtype of Projection: " + q + " <: " + p);  // FIXME UI output
             }*/
             //*
-            //if (!p.equals(q)) {  // XXXXXX
+            //if (!p.equals(q)) {  // XXXXXX -- N.B. equality including GC env etc.
             if (!q.isSubtype(p)) {
                 return Optional.of(new Exception("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q));
             }
@@ -170,6 +170,7 @@ public class GTCorrespondence {
         return e.getRight();
     }
 
+    // CHECKME roles.equals(this.roles) ? -- deprecate roles param below?
     // TODO move to GTGType
     public static Either<Exception, GTLSystem> projectTopLevel(
             Set<Role> roles, GTGType global, Set<Integer> cs) {

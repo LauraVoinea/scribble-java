@@ -94,7 +94,13 @@ public class GTGMixedChoice implements GTGType {
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                        //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                {
+                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
+                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
+                    Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
+                    return res.isPresent() && res.get();
+                })
                 .collect(Collectors.toSet());
     }
 
@@ -146,9 +152,10 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommittingAux(this.observer, com, rem)
+        throw new RuntimeException("Deprecated?");
+        /*return this.left.isLeftCommittingAux(this.observer, com, rem)
                 && this.left.isClearTermination()
-                && this.right.isClearTermination();
+                && this.right.isClearTermination();*/
     }
 
     @Override
@@ -185,19 +192,24 @@ public class GTGMixedChoice implements GTGType {
     /* ... */
 
     @Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n) {
+    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
 
-        // TODO FIXME indifferent case
-
-        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(rs, r, c, n);
-        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(rs, r, c, n);
-        if (optl.isEmpty() || optr.isEmpty()) {
-            return Optional.empty();
-        }
-        Sigma s0 = new Sigma(rs);
+        Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(topPeers, r, c, n);
+        Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(topPeers, r, c, n);
+        if (optl.isEmpty() || optr.isEmpty()) { return Optional.empty(); }
         Pair<? extends GTLType, Sigma> get_l = optl.get();
         Pair<? extends GTLType, Sigma> get_r = optr.get();
+
+        Set<Role> top = GTUtil.union(GTUtil.copyOf(topPeers), Set.of(r));
+        Set<Role> indiff = getIndifferent(top);
+        if (indiff.contains(r)) {
+            return get_l.equals(get_r) ? optl : Optional.empty();
+        }
+
+        // else r not indiff
+
+        Sigma s0 = new Sigma(topPeers);
         if (!s0.equals(get_l.right) || !s0.equals(get_r.right)) {
             return Optional.empty();
         }
@@ -392,8 +404,10 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Set<Op> getCommittingTop(Set<Role> com) {
-        Set<Op> res = this.left.getCommittingLeft(this.observer, com);
-        res.addAll(this.right.getCommittingRight(this.observer, com));
+        /*Set<Op> res = this.left.getCommittingLeft(this.observer, com);
+        res.addAll(this.right.getCommittingRight(this.observer, com));*/
+        Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
+        res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
         return res;
     }
 

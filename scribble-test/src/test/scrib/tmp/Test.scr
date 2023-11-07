@@ -456,10 +456,47 @@ global protocol P(role A, role B, role C) {
 }
 //*/
 
-global protocol P(role A, role B) {
-    rec X { mixed { l1() from A to B; l2() from B to A; } () or A->B ()
-                  { r1() from B to A; continue X; } }
+/*
+global protocol P(role A, role B, role C) {
+    //rec X { mixed { l1() from A to B; l2() from B to A; } () or A->B () { r1() from B to A; continue X; } }
+    mixed { 1() from A to B; 2() from B to C; 4() from B to A; } () or A->B ()  // testing C indiff
+          { 3() from B to A; 2() from B to C; 5() from B to A; }
+
 }
+//*/
+
+
+
+
+
+
+global protocol Calc(role A, role C, role S){
+    element_1() from C to S;
+    element_2() from C to S;
+
+    mixed{
+         choice at C {
+               sum() from C to S;
+               diff() from S to C;
+               diff() from C to A;
+           } or {
+               diff() from C to S;
+               diff() from S to C;
+               diff() from C to A;
+           }
+       } () or C -> S() {
+           timeout() from S to C;
+           cancel() from C to A;
+    }
+}
+
+
+
+
+
+
+
+
 
 
 /*
@@ -4799,6 +4836,7 @@ global protocol Proto1(role A, role B, role C)
 	}
 }
 //*/
+
 
 
 

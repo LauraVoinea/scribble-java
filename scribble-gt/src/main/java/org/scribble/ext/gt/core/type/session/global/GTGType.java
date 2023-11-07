@@ -99,14 +99,14 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
     /* ... */
 
-    default Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> rs, Role r) {
-        return project(rs, r, GTLType.c_TOP, GTLType.n_INIT);
+    default Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> topPeers, Role r) {
+        return project(topPeers, r, GTLType.c_TOP, GTLType.n_INIT);
     }
 
     //Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r);
 
-    // rs for sigma_0
-    Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r, int c, int n);
+    // topPeers for sigma_0
+    Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n);
 
     /*// cs for theta_0
     default Optional<Theta> projectThetaTop(Set<Integer> cs, Role r) {
