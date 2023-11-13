@@ -192,7 +192,7 @@ public class GTCorrespondence {
             Optional<Theta> opt_theta = global.projectTheta(cs, r);
             if (!opt_theta.isPresent()) {
                 //throw new RuntimeException("Couldn't project onto " + r + ": " + global);
-                return Either.left(new Exception("Couldn't project onto " + r + ": " + global));
+                return Either.left(new Exception("Couldn't project THETA for " + r + ": " + global));
             }
 
             //locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
