@@ -257,8 +257,8 @@ public class GTGMixedActive implements GTGType {
 
                 // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
 
-                System.out.println("bbbbbbb: " + this.left + " ,, " + this.right);
-                System.out.println("bbbbbbb: " + opt_l + " ,, " + opt_r);
+                System.out.println("0bbbbbbb: " + this.left + " ,, " + this.right);
+                System.out.println("0bbbbbbb: " + opt_l + " ,, " + opt_r);
 
                 if (!opt_l.isPresent() || !opt_r.isPresent()) {  // TODO refactor with below
                     return Optional.empty();
@@ -275,6 +275,7 @@ public class GTGMixedActive implements GTGType {
                     // TODO FIXME MC conditions?
                     System.err.println("[Warning] TODO non-mergable MC projection conditions: "
                             + opt_l + " ,, " + opt_r);
+                    System.exit(1);
 
                 }
             }

@@ -246,10 +246,20 @@ public class GTLConfig {
                     && isSubtype(theta, sub_cast.right, sup_cast.right);
         }
 
+        // MixedCommitted
+        else if (sub instanceof GTLMixedCommitted) {
+            if (!(sup instanceof GTLMixedCommitted)) {
+                return false;
+            }
+            GTLMixedCommitted sub_cast = (GTLMixedCommitted) sub;
+            GTLMixedCommitted sup_cast = (GTLMixedCommitted) sup;
+            return sub_cast.c == sup_cast.c && sub_cast.side.equals(sup_cast.side)
+                    && isSubtype(theta, sub_cast.type, sup_cast.type);
 
-        // TODO MixedCommitted
+           
 
-        else {
+
+        } else {
             throw new RuntimeException("TODO: " + sub + " <: " + sup);
         }
     }

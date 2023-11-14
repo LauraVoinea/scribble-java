@@ -172,7 +172,8 @@ public class GTGWiggly implements GTGType {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         if (r.equals(this.src)) {
             //LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
-            return this.cases.get(this.op).project(topPeers, r, c, n);
+            Optional<Pair<? extends GTLType, Sigma>> a = this.cases.get(this.op).project(topPeers, r, c, n);
+            return a;
         } else if (r.equals(this.dst)) {
             LinkedHashMap<Op, GTLType> cases = new LinkedHashMap<>();
             Sigma sigma = null;
@@ -263,12 +264,16 @@ public class GTGWiggly implements GTGType {
             return Optional.of(new Theta(cs));
         } else {
             // FIXME refactor merge
-            List<Optional<Theta>> distinct = this.cases.values().stream()
-                    .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
-            if (distinct.size() != 1) {
-                return Optional.empty();
+            if (this.cases.size() > 1) {
+                List<Optional<Theta>> coll = this.cases.entrySet().stream()
+                        .filter(x -> !x.getKey().equals(this.op))
+                        .map(x -> x.getValue().projectTheta(cs, r))
+                        .distinct().collect(Collectors.toList());
+                if (coll.size() != 1) {
+                    return Optional.empty();
+                }
             }
-            return distinct.get(0);
+            return this.cases.get(this.op).projectTheta(cs, r);
         }
     }
 
