@@ -472,7 +472,7 @@ global protocol P(role A, role B, role C) {
 
 
 
-/*
+//*
 global protocol Calc(role A, role C, role S){
     element_1() from C to S;
     element_2() from C to S;
@@ -494,11 +494,11 @@ global protocol Calc(role A, role C, role S){
 }
 //*/
 
-//*
+/*
 global protocol OnlineWallet(role S, role C, role A) {
     login() from C to A;
         choice at A {
-            login_ok () from A to C;
+            login_ok () from A to C;  // testing project-theta for wiggly third-party
             auth () from A to S;
             rec  LOOP {
                 account() from S to C;
@@ -532,7 +532,7 @@ global protocol TwoBuyer(role Alice, role Bob, role Seller){
       quote() from Seller to Alice;
       quote() from Seller to Bob;
       quoteByTwo() from Alice to Bob;
-      mixed{
+      mixed{  // testing subtyping for local mixed-committed
           choice at Bob{
               ok() from Bob to Seller;
               confirmation() from Seller to Bob;

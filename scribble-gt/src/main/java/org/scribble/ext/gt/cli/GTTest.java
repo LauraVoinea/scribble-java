@@ -44,9 +44,89 @@ public class GTTest {
         //addFidelitySubtypingNeededBlackWhiteTriangles(good, bad);
         addFidelityNested(good, bad);
 
+        addExamples(good, bad);
+
         String title = "run-time correspondence";
         runGoodTests(good, GTTest::runTest, title + " (good)").println();
         runBadTests(bad, GTTest::runTest, title + " (bad)").println();
+    }
+
+    protected static void addExamples(List<String> good, List<String> bad) {
+        // testing clear term -- run-time mixed-active should lookup roles_left (not whole MC, cf. \setminus committedRight)
+        good.add("Calc(role A, role C, role S){" +
+                "    element_1() from C to S;" +
+                "    element_2() from C to S;" +
+                "            mixed{" +
+                "                choice at C {" +
+                "                    sum() from C to S;" +
+                "                    diff() from S to C;" +
+                "                    diff() from C to A;" +
+                "                } or {" +
+                "                    diff() from C to S;" +
+                "                    diff() from S to C;" +
+                "                    diff() from C to A;" +
+                "                }" +
+                "            } () or C -> S() {" +
+                "                timeout() from S to C;" +
+                "                cancel() from C to A;" +
+                "            }" +
+                "        }");
+
+        // testing project-theta for wiggly third-party"
+        good.add(
+                "OnlineWallet(role S, role C, role A) {" +
+                        "login() from C to A;" +
+                        "choice at A {" +
+                        "    login_ok () from A to C;" +
+                        "    auth () from A to S;" +
+                        "    rec  LOOP {" +
+                        "        account() from S to C;" +
+                        "        mixed{" +
+                        "            choice  at C {" +
+                        "                pay() from C to S;" +
+                        "                ack() from S to C;" +
+                        "                empty() from S to A;" +
+                        "                continue  LOOP;" +
+                        "            } or {" +
+                        "                quit() from C to S;" +
+                        "                bye() from S to C;" +
+                        "                next() from S to A;" +
+                        "            }" +
+                        "        } () or C->S() {" +
+                        "            timeout() from S to C;" +
+                        "            nextT() from S to A;" +
+                        "        }" +
+                        "    }" +
+                        "} or {" +
+                        "    login_fail() from A to C;" +
+                        "    auth_fail() from A to S;" +
+                        "}" +
+                        "}");
+
+        // testing subtyping for local mixed-committed
+        good.add(
+                "TwoBuyer(role Alice, role Bob, role Seller) {" +
+                        "mixed{" +
+                        "    title() from Alice to Seller;" +
+                        "    quote() from Seller to Alice;" +
+                        "    quote() from Seller to Bob;" +
+                        "    quoteByTwo() from Alice to Bob;" +
+                        "    mixed{" +
+                        "        choice at Bob{" +
+                        "            ok() from Bob to Seller;" +
+                        "            confirmation() from Seller to Bob;" +
+                        "        } or {" +
+                        "            cancel() from Bob to Seller;" +
+                        "            ack() from Seller to Bob;" +
+                        "        }" +
+                        "    } () or Bob -> Seller(){" +
+                        "        timeout() from Seller to Bob;" +
+                        "    }" +
+                        "}() or Alice -> Seller() {" +
+                        "    notAvailable() from Seller to Alice;" +
+                        "    notAvailable() from Seller to Bob;" +
+                        "}" +
+                        "}");
     }
 
     // cf. also: addFidelityNested
