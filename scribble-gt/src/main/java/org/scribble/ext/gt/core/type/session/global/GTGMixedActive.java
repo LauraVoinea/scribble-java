@@ -177,8 +177,8 @@ public class GTGMixedActive implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
-        return this.left.isChoicePartip() && this.right.isChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    public boolean isRuntimeChoicePartip() {
+        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
     }
 
     @Override
@@ -199,7 +199,7 @@ public class GTGMixedActive implements GTGType {
         }
 
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));  // HERE HERE HERE FIXME rs needs to come from top as param (not re-calc in each recursive step)
+        rs.removeAll(getIndifferent(top));  // rs comes from top as param (not re-calc in each recursive step)
 
         Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
         Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());
@@ -352,11 +352,11 @@ public class GTGMixedActive implements GTGType {
         LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
                 this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                        ? Either.left(newStuck(c, n, theta, this, (GTSAction) a))
+                        ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
                         : this.left.step(theta, a, this.c, this.n);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
                 this.committedLeft.contains(a.subj)
-                        ? Either.left(newStuck(c, n, theta, this, (GTSAction) a))
+                        ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
                         : this.right.step(theta, a, this.c, this.n);
 
         if (optl.isRight() && optr.isRight()) {
@@ -371,7 +371,7 @@ public class GTGMixedActive implements GTGType {
 
         } else if (optl.isRight()) {
             if (optr.isRight() || this.committedRight.contains(a.subj)) {
-                return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+                return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
             }
             Triple<Theta, GTGType, Tree<String>> get = optl.getRight();
             if (a.isReceive()) {
@@ -411,7 +411,7 @@ public class GTGMixedActive implements GTGType {
             if (a.isSend()) {
                 // [RSnd]
                 if (optl.isRight() || this.committedLeft.contains(a.subj)) {
-                    return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+                    return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
                 }
                 cr.add(a.subj);
                 GTGMixedActive succ = this.fact.activeMixedChoice(
@@ -423,7 +423,7 @@ public class GTGMixedActive implements GTGType {
             } else if (a.isReceive()) {
                 // [RRcv]
                 if (optl.isRight()) {  // Redundant due to earlier
-                    return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+                    return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
                 }
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
@@ -444,7 +444,7 @@ public class GTGMixedActive implements GTGType {
                 throw new RuntimeException("TODO: " + a);
             }
         } else {
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         }
     }
 

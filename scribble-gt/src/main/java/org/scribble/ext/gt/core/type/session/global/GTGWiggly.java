@@ -146,8 +146,8 @@ public class GTGWiggly implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
-        return this.cases.get(this.op).isChoicePartip();
+    public boolean isRuntimeChoicePartip() {
+        return this.cases.get(this.op).isRuntimeChoicePartip();
     }
 
     @Override
@@ -294,7 +294,7 @@ public class GTGWiggly implements GTGType {
                                     "[Rcv]", c, n, theta, this, cast, theta, succ))));
                 }
             }
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         } else {  // [Cont2]
             Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> nested
                     = stepNested(theta, a, c, n);

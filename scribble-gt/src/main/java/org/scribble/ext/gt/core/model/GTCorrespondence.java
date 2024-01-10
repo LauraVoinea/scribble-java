@@ -69,7 +69,7 @@ public class GTCorrespondence {
 
         // global
 
-        if (cp && !this.global.isChoicePartip()) {
+        if (cp && !this.global.isRuntimeChoicePartip()) {
             return Optional.of(new Exception("Not choice-participating: " + this.global));
         }
 

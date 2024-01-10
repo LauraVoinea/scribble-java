@@ -78,7 +78,7 @@ public class GTGEnd implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
+    public boolean isRuntimeChoicePartip() {
         return true;
     }
 
@@ -126,7 +126,7 @@ public class GTGEnd implements GTGType {
     @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+        return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
     }
 
     /* ... */

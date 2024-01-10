@@ -167,8 +167,8 @@ public class GTGMixedChoice implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
-        return this.left.isChoicePartip() && this.right.isChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    public boolean isRuntimeChoicePartip() {
+        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
     }
 
     @Override
@@ -338,14 +338,14 @@ public class GTGMixedChoice implements GTGType {
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
 
         if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         }
         GTSNewTimeout<?> cast = (GTSNewTimeout<?>) a;
         /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
         tmp.put(nu.c, tmp.get(nu.c) + 1);
         Theta theta1 = new Theta(tmp);*/
         if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         }
 
         Theta theta1 = theta.inc(this.c);

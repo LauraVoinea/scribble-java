@@ -150,7 +150,7 @@ public class GTGInteraction implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
+    public boolean isRuntimeChoicePartip() {
         Collection<GTGType> cs = this.cases.values();
         if (cs.size() == 1) { return true; }
 
@@ -159,7 +159,7 @@ public class GTGInteraction implements GTGType {
 
         // !!!
         return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
-                && cs.stream().allMatch(GTGType::isChoicePartip);
+                && cs.stream().allMatch(GTGType::isRuntimeChoicePartip);
     }
 
     @Override
@@ -283,7 +283,7 @@ public class GTGInteraction implements GTGType {
                             toStepJudgeString("[Snd]", c, n, theta, this, cast, theta, succ))));
                 }
             }
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         } else if (!this.dst.equals(a.subj)) {  // [Cont1]
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
@@ -297,7 +297,7 @@ public class GTGInteraction implements GTGType {
                         x.right));
             });
         }
-        return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+        return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
     }
 
     protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> stepNested(

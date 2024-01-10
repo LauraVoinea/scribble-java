@@ -80,8 +80,8 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
-        return this.body.isChoicePartip();
+    public boolean isRuntimeChoicePartip() {
+        return this.body.isRuntimeChoicePartip();
     }
 
     @Override

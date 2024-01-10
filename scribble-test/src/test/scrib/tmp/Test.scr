@@ -471,6 +471,18 @@ global protocol P(role A, role B, role C) {
 
 
 
+/*
+global protocol P(role A, role C, role S){
+    mixed {
+        1() from A to C;
+        2() from C to A;  // any way to not be timeout-partic without violating others (e.g., balance)
+        3() from C to S;
+    } () or A->C () {
+        4() from C to A;
+        5() from C to S;
+    }
+}
+//*/
 
 //*
 global protocol Calc(role A, role C, role S){

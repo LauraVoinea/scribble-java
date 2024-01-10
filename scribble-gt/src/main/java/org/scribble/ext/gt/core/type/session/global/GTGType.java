@@ -28,36 +28,69 @@ public interface GTGType extends GTSessType {
     int GLOBAL_RECVAR_HASH = 1709;
 
 
-    /* ... */
+    /* ... static only */
 
-    // Initial and well-set  // TODO refactor using choice-partic and timeout-partic/pattern
+    // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
     default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
 
     boolean isInitialWellSet(Set<Integer> cs);
 
-    boolean isChoicePartip();  // "dynamic" choice-partipication, cf. initial well-set
+    // TODO
+    // - timeout-partic -- XXX balance
+    // - timeout-pattern -- cf. isSinglePointed
 
-    Map<Role, Set<Role>> getStrongDeps();
+
+    /* ... -- top-down, no global weak */
+
+    /*// !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
+    default LinkedHashSet<SAction<DynamicActionKind>> getActsTop(
+            GTSModelFactory mf, Theta theta) {
+        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
+    }*/
+
+    // TODO GTSAction
+    LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf,  // TODO remove
+            Theta theta, Set<Role> blocked, int c, int n);
+
+    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTop(
+            Theta theta, SAction<DynamicActionKind> a) {
+        return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
+    // TODO GTSAction
+    // a is deterministic (including "nested" steps)
+    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
+    Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n);
+
+    default Exception newStepStuck(int c, int n, Theta theta, GTGType t, GTSAction a) {
+        return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "
+                + theta + ", " + t + " --" + a + "-->");
+    }
+
+    default String toStepJudgeString(
+            String tag, int c, int n, Theta theta_l, GTGType left, GTSAction a,
+            Theta theta_r, GTGType right) {
+        return tag + "  " + c + ", " + n + " " + ConsoleColors.VDASH + " "
+                + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
+    }
 
 
-    /* ... */
+    /* ... preserved -- check */
+
+    boolean isRuntimeChoicePartip();  // cf. "static" choice-partic in isInitialAndWellSet
 
     default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
 
     boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
 
 
-    /* ... */
-
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
-
-
-    /* ... */
+    /* ... preserved -- check */
 
     // boolean isBalanced();  // TODO
 
     // CHECKME: Theta not used for "static" version?
-    // !!! currently just single-decision -- clear-termination approx by isLeftCommitting(Top)
     // ...doesn't check "initial"
     boolean isSingleDecision(Set<Role> top, Theta theta);
 
@@ -66,11 +99,44 @@ public interface GTGType extends GTSessType {
     boolean isClearTermination();
 
 
-    /* ... */
+    /* ... preserved */
 
     // HERE HERE HERE separate run-time aware from aware corollaries -- refactor foo loop to enable testing different run-time properties
 
+    // TODO deprecated?  or LR-initiation?
     boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta);  // FIXME refactor mf out of params
+
+
+    /* ... preserved */
+
+    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
+
+
+    /* ... -- fidelity */
+
+    // HERE HERE make weak getActs/step for G/L -- make subtyping for MC (just structural?)
+
+    // \nu actions silent
+    default LinkedHashSet<SAction<DynamicActionKind>> getWeakActsTop(
+            GTSModelFactory mf,  // TODO remove
+            Theta theta) {
+        return getWeakActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
+    }
+
+    LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf,  // TODO remove
+            Theta theta, Set<Role> blocked, int c, int n);
+
+    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStepTop(
+            Theta theta, SAction<DynamicActionKind> a) {
+        return weakStep(theta, a, GTLType.c_TOP, GTLType.n_INIT);
+    }
+
+    // TODO GTSAction
+    // a is deterministic (including "nested" steps)
+    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
+    Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n);
 
 
     /* ... */
@@ -87,68 +153,8 @@ public interface GTGType extends GTSessType {
 
     /* ... */
 
-    //HERE HERE make weak getActs/step for G/L -- make subtyping for MC (just structural?)
-
-    /*// !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
-    default LinkedHashSet<SAction<DynamicActionKind>> getActsTop(
-            GTSModelFactory mf, Theta theta) {
-        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
-    }*/
-
-    // TODO GTSAction
-    LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
-
-    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTop(
-            Theta theta, SAction<DynamicActionKind> a) {
-        return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
-    }
-
-    // TODO GTSAction
-    // a is deterministic (including "nested" steps)
-    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
-    Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n);
-
-    // FIXME: add c, n
-    default Exception newStuck(int c, int n, Theta theta, GTGType t, GTSAction a) {
-        return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "
-                + theta + ", " + t + " --" + a + "-->");
-    }
-
-    // FIXME: add c, n
-    default String toStepJudgeString(
-            String tag, int c, int n, Theta theta_l, GTGType left, GTSAction a,
-            Theta theta_r, GTGType right) {
-        return tag + "  " + c + ", " + n + " " + ConsoleColors.VDASH + " "
-                + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
-    }
-
-
-    /* ... */
-
-    // \nu actions silent
-    default LinkedHashSet<SAction<DynamicActionKind>> getWeakActsTop(
-            GTSModelFactory mf, Theta theta) {
-        return getWeakActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
-    }
-
-    LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n);
-
-    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStepTop(
-            Theta theta, SAction<DynamicActionKind> a) {
-        return weakStep(theta, a, GTLType.c_TOP, GTLType.n_INIT);
-    }
-
-    // TODO GTSAction
-    // a is deterministic (including "nested" steps)
-    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
-    Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n);
-
-
-    /* ... */
+    // N.B. indiff is mixed-choice/active only (not all globals)
+    Map<Role, Set<Role>> getStrongDeps();
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
     default Set<Op> getCommittingTop() {
