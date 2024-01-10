@@ -224,7 +224,7 @@ public class GTGRecursion implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.REC_HASH;
+        int hash = GTGType.GLOBAL_REC_HASH;
         hash = 31 * hash + this.var.hashCode();
         hash = 31 * hash + this.body.hashCode();
         return hash;

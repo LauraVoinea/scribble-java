@@ -10,7 +10,7 @@ import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.type.session.GTSType;
+import org.scribble.ext.gt.core.type.session.GTSessType;
 import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
@@ -19,7 +19,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 
-public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
+public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
 
     int END_HASH = 9851;
     int BRANCH_HASH = 9857;

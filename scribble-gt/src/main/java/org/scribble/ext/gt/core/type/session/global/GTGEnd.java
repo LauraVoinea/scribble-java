@@ -204,7 +204,7 @@ public class GTGEnd implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.END_HASH;
+        int hash = GTGType.GLOBAL_END_HASH;
         return hash;
     }
 

@@ -9,90 +9,66 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.GTSType;
+import org.scribble.ext.gt.core.type.session.GTSessType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
 
-    int END_HASH = 1663;
-    int CHOICE_HASH = 1667;
-    int WIGGLY_HASH = 1669;
-    int MIXED_CHOICE_HASH = 1693;
-    int MIXED_CHOICE_ACTIVE_HASH = 1697;
-    int REC_HASH = 1699;
-    int RECVAR_HASH = 1709;
+public interface GTGType extends GTSessType {
 
-    /* ... */
+    int GLOBAL_END_HASH = 1663;
+    int GLOBAL_CHOICE_HASH = 1667;
+    int GLOBAL_WIGGLY_HASH = 1669;
+    int GLOBAL_MIXED_DEF_HASH = 1693;
+    int GLOBAL_MIXED_ACTIVE_HASH = 1697;
+    int GLOBAL_REC_HASH = 1699;
+    int GLOBAL_RECVAR_HASH = 1709;
 
-    @Deprecated
-    boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
-
-    @Deprecated
-    boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
-
-    // well-set -- init WF
-    // coherence -- run-time invariant (lemma 3)
-
-    // ...G aware Theta -- all t in G aware Theta
-
-    // lemma 4: "aware" + coherent => progress
-    // theorem 1: well-set + choice-participation => progress
-
-    // "awareness properties" -- run-time invariant (lemma 2)
 
     /* ... */
-
-    @Deprecated
-    boolean isInitial();
 
     // Initial and well-set  // TODO refactor using choice-partic and timeout-partic/pattern
     default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
 
     boolean isInitialWellSet(Set<Integer> cs);
 
+    boolean isChoicePartip();  // "dynamic" choice-partipication, cf. initial well-set
+
     Map<Role, Set<Role>> getStrongDeps();
 
 
     /* ... */
 
-    boolean isChoicePartip();  // "dynamic" choice-partipication, cf. initial well-set
-
     default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
 
     boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
 
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
-    // ...well-nested
+    /* ... */
+
+    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
     /* ... */
 
-    //HERE HERE HERE separate run-time aware from aware corollaries -- refactor foo loop to enable testing different run-time properties
+    // boolean isBalanced();  // TODO
 
     // CHECKME: Theta not used for "static" version?
     // !!! currently just single-decision -- clear-termination approx by isLeftCommitting(Top)
     // ...doesn't check "initial"
     boolean isSingleDecision(Set<Role> top, Theta theta);
 
-    // boolean isBalanced();  // TODO awareness
-
     // ..."top-level" left-committing check -- cf. find all mixed-choice within G
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
     boolean isClearTermination();
 
-    //default boolean isLeftCommitting() { return isLeftCommitting(GTUtil.setOf(), getRoles()); }
 
-    @Deprecated
-    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
+    /* ... */
 
-    // ...left-committing check under the context of a specific mixed-choice instance
-    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
+    // HERE HERE HERE separate run-time aware from aware corollaries -- refactor foo loop to enable testing different run-time properties
 
     boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta);  // FIXME refactor mf out of params
 
@@ -103,34 +79,21 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
         return project(topPeers, r, GTLType.c_TOP, GTLType.n_INIT);
     }
 
-    //Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r);
-
     // topPeers for sigma_0
     Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n);
 
-    /*// cs for theta_0
-    default Optional<Theta> projectThetaTop(Set<Integer> cs, Role r) {
-        Optional<Theta> theta = projectTheta(cs, r);
-        return theta.map(x -> {
-            Map<Integer, Integer> tmp = GTUtil.copyOf(x.map);
-            return new Theta(tmp.entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    y -> y.getValue() + 1
-            )));
-        });
-    }*/
-
     Optional<Theta> projectTheta(Set<Integer> cs, Role r);  // TODO refactor (cf. Theta.project)
+
 
     /* ... */
 
     //HERE HERE make weak getActs/step for G/L -- make subtyping for MC (just structural?)
 
-    // !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
+    /*// !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
     default LinkedHashSet<SAction<DynamicActionKind>> getActsTop(
             GTSModelFactory mf, Theta theta) {
         return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
-    }
+    }*/
 
     // TODO GTSAction
     LinkedHashSet<SAction<DynamicActionKind>> getActs(
@@ -161,6 +124,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
                 + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
     }
 
+
     /* ... */
 
     // \nu actions silent
@@ -183,6 +147,7 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
             Theta theta, SAction<DynamicActionKind> a, int c, int n);
 
+
     /* ... */
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
@@ -191,19 +156,13 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     }
 
     Set<Op> getCommittingTop(Set<Role> com);
-    //{ return GTUtil.mapOf(); }
 
     // com does NOT contain obs by default
     Set<Op> getCommittingLeft(Role obs, Set<Role> com);
-    //{ return GTUtil.mapOf(); }
 
     // com does NOT contain obs by default
     Set<Op> getCommittingRight(Role obs, Set<Role> com);
-    //{ return GTUtil.mapOf(); }
 
-    // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
-    // ingore non-mc or mergable in c, never discarded
-    Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
 
     /* ... */
 
@@ -223,4 +182,48 @@ public interface GTGType extends GTSType { //<Global, GSeq>, GNode {
     Set<Op> getOps();
 
     Set<RecVar> getRecDecls();
+
+    // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
+    // ingore non-mc or mergable in c, never discarded
+    Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
+
+
+
+
+
+
+
+    /* deprecated */
+
+    @Deprecated
+    boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
+
+    @Deprecated
+    boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
+
+    // well-set -- init WF
+    // coherence -- run-time invariant (lemma 3)
+
+    // ...G aware Theta -- all t in G aware Theta
+
+    // lemma 4: "aware" + coherent => progress
+    // theorem 1: well-set + choice-participation => progress
+
+    // "awareness properties" -- run-time invariant (lemma 2)
+
+    /* ... */
+
+    @Deprecated
+    boolean isInitial();
+
+
+    /* ... */
+
+    @Deprecated
+    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
+
+    // ...left-committing check under the context of a specific mixed-choice instance
+    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
+
+
 }

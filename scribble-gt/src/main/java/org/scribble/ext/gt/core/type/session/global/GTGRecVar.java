@@ -202,7 +202,7 @@ public class GTGRecVar implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.RECVAR_HASH;
+        int hash = GTGType.GLOBAL_RECVAR_HASH;
         hash = 31 * hash + this.var.hashCode();
         return hash;
     }

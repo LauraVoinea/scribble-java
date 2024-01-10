@@ -561,7 +561,7 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.MIXED_CHOICE_ACTIVE_HASH;
+        int hash = GTGType.GLOBAL_MIXED_ACTIVE_HASH;
         hash = 31 * hash + this.c;
         hash = 31 * hash + this.n;
         hash = 31 * hash + this.left.hashCode();

@@ -517,7 +517,7 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.CHOICE_HASH;
+        int hash = GTGType.GLOBAL_CHOICE_HASH;
         hash = 31 * hash + this.src.hashCode();
         hash = 31 * hash + this.dst.hashCode();
         hash = 31 * hash + this.cases.hashCode();

@@ -35,13 +35,13 @@ public class GTTest {
         List<String> good = new LinkedList<>();
         List<String> bad = new LinkedList<>();
 
-        //addRuntimeTestNoMC(good, bad);
-        //addRuntimeTestMC(good, bad);
+        addRuntimeTestNoMC(good, bad);
+        addRuntimeTestMC(good, bad);
 
-        //add(good, bad);
-        ////addFidelityGlobalWeak(good, bad);
-        //addFidelitySubtypingNeededForGCEnvs(good, bad);
-        //addFidelitySubtypingNeededBlackWhiteTriangles(good, bad);
+        add(good, bad);
+        //addFidelityGlobalWeak(good, bad);
+        addFidelitySubtypingNeededForGCEnvs(good, bad);
+        addFidelitySubtypingNeededBlackWhiteTriangles(good, bad);
         addFidelityNested(good, bad);
 
         addExamples(good, bad);
