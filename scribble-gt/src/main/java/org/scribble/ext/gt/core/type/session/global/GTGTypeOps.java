@@ -88,6 +88,14 @@ public interface GTGTypeOps {
 
     /* ... */
 
+    Set<Role> getRoles();
+
+    // cf. get(Weak)Acts, "bypass" Theta, c, n
+    Set<Role> getReady();
+
+
+    /* ... */
+
     // TODO refactor subs is singleton
     GTGType subs(Map<RecVar, GTGType> subs);
 
@@ -96,19 +104,13 @@ public interface GTGTypeOps {
 
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
 
-    // cf. get(Weak)Acts, "bypass" Theta, c, n
-    Set<Role> getReady();
-
-    Set<Role> getRoles();
-
     Set<Integer> getTimeoutIds();  // c's
 
     Set<Op> getOps();
-
-    Set<RecVar> getRecDecls();
 
     // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
     // ingore non-mc or mergable in c, never discarded
     Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
 
+    Set<RecVar> getRecDecls();
 }
