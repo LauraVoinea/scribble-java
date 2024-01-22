@@ -432,11 +432,11 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        Map<Op, Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>>> collect =
+        /*Map<Op, Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>>> collect =  // ??
                 this.cases.entrySet().stream().collect(Collectors.toMap(
                         Map.Entry::getKey,
                         x -> x.getValue().getLabels()
-                ));
+                ));*/
         Set<Op> imm = GTUtil.setOf();
         Map<Integer, Pair<Set<Op>, Set<Op>>> nested = GTUtil.mapOf();
         for (Map.Entry<Op, GTGType> x : this.cases.entrySet()) {

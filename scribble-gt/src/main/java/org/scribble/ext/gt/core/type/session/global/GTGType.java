@@ -15,10 +15,9 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
-public interface GTGType extends GTSessType {
+public interface GTGType extends GTSessType, GTGTypeOps {
 
     int GLOBAL_END_HASH = 1663;
     int GLOBAL_CHOICE_HASH = 1667;
@@ -32,6 +31,7 @@ public interface GTGType extends GTSessType {
     /* ... static only */
 
     // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
+    @Override
     default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
 
     boolean isInitialWellSet(Set<Integer> cs);
@@ -100,22 +100,18 @@ public interface GTGType extends GTSessType {
     boolean isClearTermination();
 
 
-    /* ... preserved */
-
-    // HERE HERE HERE separate run-time aware from aware corollaries -- refactor foo loop to enable testing different run-time properties
+    /* ... preserved -- check */
 
     // LR-initiation
     boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
 
 
-    /* ... preserved */
+    /* ... preserved -- check */
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
     /* ... -- fidelity */
-
-    // HERE HERE make weak getActs/step for G/L -- make subtyping for MC (just structural?)
 
     // \nu actions silent
     default LinkedHashSet<SAction<DynamicActionKind>> getWeakActsTop(
@@ -198,6 +194,25 @@ public interface GTGType extends GTSessType {
     // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
     // ingore non-mc or mergable in c, never discarded
     Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
