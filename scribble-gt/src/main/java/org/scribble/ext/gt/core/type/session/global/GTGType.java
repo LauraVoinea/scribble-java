@@ -170,7 +170,8 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     /* ... */
 
     // TODO refactor subs is singleton
-    GTGType subs(Map<RecVar, GTGType> subs);
+    @Override
+    GTGType subs(RecVar v, GTGRecursion subs);
 
     // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
     @Override

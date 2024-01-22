@@ -392,11 +392,11 @@ public class GTGWiggly implements GTGType {
     /* Aux */
 
     @Override
-    public GTGWiggly subs(Map<RecVar, GTGType> subs) {
+    public GTGWiggly subs(RecVar v, GTGRecursion subs) {
         LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().subs(subs),
+                        x -> x.getValue().subs(v, subs),
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));

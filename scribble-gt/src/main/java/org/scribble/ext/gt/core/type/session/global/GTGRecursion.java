@@ -182,16 +182,16 @@ public class GTGRecursion implements GTGType {
     /* Aux */
 
     @Override
-    public GTGRecursion subs(Map<RecVar, GTGType> subs) {
-        if (subs.containsKey(this.var)) {
+    public GTGRecursion subs(RecVar v, GTGRecursion subs) {
+        if (this.var.equals(v)) {
             return this;
         }
-        return new GTGRecursion(this.var, this.body.subs(subs));
+        return new GTGRecursion(this.var, this.body.subs(v, subs));
     }
 
     @Override
     public GTGType unfoldAllOnce() {
-        return this.body.subs(GTUtil.mapOf(this.var, this)).unfoldAllOnce();
+        return this.body.subs(this.var, this).unfoldAllOnce();
     }
 
     @Override

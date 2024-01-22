@@ -521,9 +521,9 @@ public class GTGMixedActive implements GTGType {
     /* Aux */
 
     @Override
-    public GTGMixedActive subs(Map<RecVar, GTGType> subs) {
-        GTGType left = this.left.subs(subs);
-        GTGType right = this.left.subs(subs);
+    public GTGMixedActive subs(RecVar v, GTGRecursion subs) {
+        GTGType left = this.left.subs(v, subs);
+        GTGType right = this.left.subs(v, subs);
         return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
                 GTUtil.copyOf(this.committedLeft), GTUtil.copyOf(this.committedRight));  // FIXME repeated copying
     }

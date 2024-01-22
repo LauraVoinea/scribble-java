@@ -454,11 +454,11 @@ public class GTGInteraction implements GTGType {
     /* Aux */
 
     @Override
-    public GTGInteraction subs(Map<RecVar, GTGType> subs) {
+    public GTGInteraction subs(RecVar v, GTGRecursion subs) {
         LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        x -> x.getValue().subs(subs),
+                        x -> x.getValue().subs(v, subs),
                         (x, y) -> null,
                         LinkedHashMap::new
                 ));

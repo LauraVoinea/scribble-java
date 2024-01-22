@@ -168,7 +168,7 @@ public class GTGEnd implements GTGType {
     /* Aux */
 
     @Override
-    public GTGType subs(Map<RecVar, GTGType> subs) {
+    public GTGType subs(RecVar v, GTGRecursion subs) {
         return this;
     }
 

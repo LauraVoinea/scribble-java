@@ -164,8 +164,8 @@ public class GTGRecVar implements GTGType {
     /* Aux */
 
     @Override
-    public GTGType subs(Map<RecVar, GTGType> subs) {
-        return subs.getOrDefault(this.var, this);  // CHECKME default this
+    public GTGType subs(RecVar v, GTGRecursion subs) {
+        return this.var.equals(v) ? subs : this;
     }
 
     @Override

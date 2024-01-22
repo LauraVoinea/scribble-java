@@ -451,9 +451,9 @@ public class GTGMixedChoice implements GTGType {
     /* Aux */
 
     @Override
-    public GTGMixedChoice subs(Map<RecVar, GTGType> subs) {
-        GTGType left = this.left.subs(subs);
-        GTGType right = this.right.subs(subs);
+    public GTGMixedChoice subs(RecVar v, GTGRecursion subs) {
+        GTGType left = this.left.subs(v, subs);
+        GTGType right = this.right.subs(v, subs);
         return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
     }
 
