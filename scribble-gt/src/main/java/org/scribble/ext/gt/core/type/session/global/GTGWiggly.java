@@ -108,8 +108,8 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(top, theta));
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(topAll, theta));
     }
 
     @Override
@@ -156,8 +156,8 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, top, theta));
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, topAll, theta));
     }
 
     @Override
@@ -406,6 +406,13 @@ public class GTGWiggly implements GTGType {
     @Override
     public GTGWiggly unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        Set<Role> b = new HashSet<>(blocked);
+        b.add(this.dst);
+        return this.cases.get(this.op).getReadyAux(b);
     }
 
     @Override

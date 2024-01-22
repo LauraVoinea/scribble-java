@@ -15,6 +15,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public interface GTGType extends GTSessType {
@@ -92,7 +93,7 @@ public interface GTGType extends GTSessType {
 
     // CHECKME: Theta not used for "static" version?
     // ...doesn't check "initial"
-    boolean isSingleDecision(Set<Role> top, Theta theta);
+    boolean isSingleDecision(Set<Role> topAll, Theta theta);  // cf. topPeers in project
 
     // ..."top-level" left-committing check -- cf. find all mixed-choice within G
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
@@ -103,8 +104,8 @@ public interface GTGType extends GTSessType {
 
     // HERE HERE HERE separate run-time aware from aware corollaries -- refactor foo loop to enable testing different run-time properties
 
-    // TODO deprecated?  or LR-initiation?
-    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta);  // FIXME refactor mf out of params
+    // LR-initiation
+    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
 
 
     /* ... preserved */
@@ -133,7 +134,7 @@ public interface GTGType extends GTSessType {
     }
 
     // TODO GTSAction
-    // a is deterministic (including "nested" steps)
+    // a is deterministic (including "nested" steps) -- weak is excluding \nu
     // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
     Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
             Theta theta, SAction<DynamicActionKind> a, int c, int n);
@@ -180,6 +181,11 @@ public interface GTGType extends GTSessType {
     GTGType unfoldAllOnce();
 
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
+
+    // cf. get(Weak)Acts, "bypass" Theta, c, n
+    default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }
+
+    Set<Role> getReadyAux(Set<Role> blocked);
 
     Set<Role> getRoles();
 

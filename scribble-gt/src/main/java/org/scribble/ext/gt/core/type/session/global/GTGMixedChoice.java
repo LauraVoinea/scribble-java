@@ -125,10 +125,10 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));
+        rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
 
@@ -139,7 +139,7 @@ public class GTGMixedChoice implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isSingleDecision(top, theta) && this.right.isSingleDecision(top, theta);
+        return this.left.isSingleDecision(topAll, theta) && this.right.isSingleDecision(topAll, theta);
     }
 
     @Override
@@ -178,9 +178,9 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
         // Can morally just return true
-        return this.left.isAwareCorollary(mf, top, theta) && this.right.isAwareCorollary(mf, top, theta);
+        return this.left.isAwareCorollary(mf, topAll, theta) && this.right.isAwareCorollary(mf, topAll, theta);
     }
 
     @Override
@@ -460,6 +460,16 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public GTGMixedChoice unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+
+        // !!! here doing a "weak" version, implicitly bypassing \nu -- cf. def 7 ready (and lemma 3 LR-initiation, quantified over reachable)
+
+        Set<Role> res = this.left.getReadyAux(blocked);
+        res.addAll(this.right.getReadyAux(blocked));  // Should be just this.observer
+        return res;
     }
 
     @Override

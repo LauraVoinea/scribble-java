@@ -56,7 +56,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         return true;
     }
 
@@ -88,7 +88,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
         return true;
     }
 
@@ -175,6 +175,11 @@ public class GTGEnd implements GTGType {
     @Override
     public GTGEnd unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return GTUtil.setOf();
     }
 
     @Override

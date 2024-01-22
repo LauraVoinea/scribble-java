@@ -57,7 +57,7 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         return true;
     }
 
@@ -89,7 +89,7 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
         return true;
     }
 
@@ -171,6 +171,11 @@ public class GTGRecVar implements GTGType {
     @Override
     public GTGType unfoldAllOnce() {
         throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return GTUtil.setOf();
     }
 
     @Override

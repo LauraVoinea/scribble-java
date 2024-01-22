@@ -63,8 +63,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
-        return this.body.isSingleDecision(top, theta);
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
+        return this.body.isSingleDecision(topAll, theta);
     }
 
     @Override
@@ -90,8 +90,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        return this.body.isAwareCorollary(mf, top, theta);
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return this.body.isAwareCorollary(mf, topAll, theta);
     }
 
     @Override
@@ -192,6 +192,11 @@ public class GTGRecursion implements GTGType {
     @Override
     public GTGType unfoldAllOnce() {
         return this.body.subs(GTUtil.mapOf(this.var, this)).unfoldAllOnce();
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return this.body.getReadyAux(blocked);
     }
 
     @Override

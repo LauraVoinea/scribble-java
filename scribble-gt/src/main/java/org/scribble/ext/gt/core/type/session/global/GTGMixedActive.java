@@ -98,7 +98,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     // Dup from GTGMixedChoice  // TODO factor out
-    public Set<Role> getIndifferent(Set<Role> top) {
+    public Set<Role> getIndifferent(Set<Role> topAll) {  // cf. topPeers in project
         Set<Role> rs = getRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
@@ -107,8 +107,8 @@ public class GTGMixedActive implements GTGType {
         return rs.stream().filter(x ->
                         //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
                 {
-                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
-                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
+                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(topAll, x);
+                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(topAll, x);
                     Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
                     return res.isPresent() && res.get();
                 })
@@ -121,7 +121,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
 
         if (!this.committedRight.isEmpty()) {  // cf. !!! below
             return true;
@@ -129,7 +129,7 @@ public class GTGMixedActive implements GTGType {
 
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));
+        rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
 
@@ -141,7 +141,7 @@ public class GTGMixedActive implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isSingleDecision(top, theta) && this.right.isSingleDecision(top, theta);
+        return this.left.isSingleDecision(topAll, theta) && this.right.isSingleDecision(topAll, theta);
     }
 
     @Override
@@ -193,13 +193,30 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+
+        Set<Role> ready = this.right.getReady();
+        ready.remove(this.observer);
+        ready.removeAll(getIndifferent(topAll));
+        if (!ready.isEmpty() && !this.committedRight.contains(this.observer)) {  // LR-initiation (1)
+            return false;
+        }
+        if (!this.committedRight.contains(this.observer) && !this.committedRight.isEmpty()) {  // LR-initiation (2)
+            return false;
+        }
+        if (!this.committedLeft.contains(this.observer) && !this.committedLeft.isEmpty()) {  // LR-initiation (3)
+            return false;
+        }
+
+
+        // OLD
+
         if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
-            return this.left.getRoles().equals(this.right.getRoles());  // awareness (2)
+            return this.left.getRoles().equals(this.right.getRoles());  // awareness (2) -- OLD
         }
 
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));  // rs comes from top as param (not re-calc in each recursive step)
+        rs.removeAll(getIndifferent(topAll));  // rs comes from top as param (not re-calc in each recursive step)
 
         Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
         Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());
@@ -207,7 +224,7 @@ public class GTGMixedActive implements GTGType {
 
         for (Role r : rs) {
             if (actingR.contains(r)
-                    && !this.committedRight.contains(this.observer)) {  // awareness (1)  // !!! CHECKME this.observer (p)?  or r?
+                    && !this.committedRight.contains(this.observer)) {  // awareness (1) OLD  // !!! CHECKME this.observer (p)?  or r?
                 return false;
             }
         }
@@ -514,6 +531,17 @@ public class GTGMixedActive implements GTGType {
     @Override
     public GTGMixedActive unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        Set<Role> bl = new HashSet<>(blocked);
+        bl.addAll(this.committedRight);
+        Set<Role> res = this.left.getReadyAux(bl);
+        Set<Role> br = new HashSet<>(blocked);
+        br.addAll(this.committedLeft);
+        res.addAll(this.right.getReadyAux(br));
+        return res;
     }
 
     @Override
