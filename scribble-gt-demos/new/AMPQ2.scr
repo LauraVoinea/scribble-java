@@ -1,0 +1,25 @@
+module AMPQ2;
+
+// The Publisher role can send a message to the Exchange role.
+// The Consumer role can subscribe to a queue and receive messages from the Exchange role.
+// The Exchange role can bind a queue and forward messages to the Consumer role, or it can receive a message from the Publisher role and forward it to the Consumer role.
+// The Queue role can enqueue messages to be consumed by the Consumer role or dequeue messages to be published by the Publisher role.
+
+global protocol AMPQ2(role Publisher, role Consumer, role Exchange, role Queue){
+    message() from Publisher to Exchange;
+    rec Retry {
+    mixed{
+        route() from Exchange to Queue;
+        ack() from Queue to Exchange;
+        forward1() from Queue to Consumer;
+    } () or Exchange -> Queue() {
+        error() from Queue to Exchange; // busy queue -- at capacity
+        choice at Queue{
+            forward2() from Queue to Consumer;
+            continue Retry;
+        } or {
+            forward3() from Queue to Consumer;
+        }
+    }
+  }
+}
