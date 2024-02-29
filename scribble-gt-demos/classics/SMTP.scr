@@ -1,0 +1,112 @@
+module SMTP;
+
+global protocol SMTP(role S, role C)
+{
+	220() from S to C;
+	mixed{
+	choice at C {
+    		Ehlo() from C to S;
+    		rec X {
+    			choice at S {
+    				//250 from S to C;
+    				250d() from S to C;
+    				continue X;
+    			} or {
+    				250() from S to C;
+    				choice at C {
+                    	StartTls() from C to S;
+                    	220() from S to C;
+                    	// Do TLS handshake here: level below the application level protocol (like regular TCP handshake)
+                    	choice at C {
+                        		Ehlo() from C to S;
+                        		rec X {
+                        			choice at S {
+                        				250d() from S to C;
+                        				continue X;
+                        			} or {
+                        				250() from S to C;
+                        				rec Y {
+                                    		choice at C {
+                                    			Auth() from C to S;
+                                    			choice at S {
+                                    				235() from S to C;
+                                    			    rec Z1 {
+                                                    		choice at C {
+                                                    			Mail() from C to S; //Mail from:<a@b.com>
+                                                    			choice at S {
+                                                    				501() from S to C;
+                                                    				continue Z1;
+                                                    			}
+                                                    			or {
+                                                    				250() from S to C;
+
+                                                    				rec Z2 {
+                                                    					choice at C {
+                                                    						Rcpt() from C to S; //Rcpt to:<c@d.com>
+                                                    						choice at S {
+                                                    							250() from S to C;
+                                                    							continue Z2;
+                                                    						}
+                                                    					} or {
+                                                    					    Bogus () from C to S;
+                                                    					    mixed{ //error causing mixed
+                                                                                Data() from C to S;
+                                                                                354() from S to C;
+                                                                                //too from C to S; //to:<you>
+                                                                                //froom from C to S; //from:<me>
+                                                                                rec Z3 {
+                                                                                    choice at C {
+                                                                                        DataLine() from C to S;
+                                                                                        continue Z3;
+                                                                                    } or {
+                                                                                        Subject() from C to S; //Subject:<my Subject>
+                                                                                        continue Z3;
+                                                                                    } or {
+                                                                                        EndOfData() from C to S; // CRLF.CRLF
+                                                                                        250() from S to C;
+                                                                                        continue Z1;
+                                                                                    }
+                                                                                }
+                                                                            } () or C -> S() {
+    	                                                                      Timeout () from S to C;
+                                                                            }
+                                                    					}
+                                                    				}
+                                                    			}
+                                                    		}
+                                                    		or {
+                                                    			Quit() from C to S;
+                                                    			221() from S to C;
+                                                    		}
+                                                    	}
+                                    			} or {
+                                    				535() from S to C;
+                                    				continue Y;
+                                    			}
+                                    			//.. 501 Invalid base64 Data
+                                    		} or {
+                                    			Quit() from C to S;
+                                    		}
+                                    	}
+                        			}
+
+                        		}
+                        	} or {
+                        		Quit() from C to S;
+                        		Ack() from S to C; //extra message
+                        	}
+                    } or {
+                    		Quit() from C to S;
+                    		Ack() from S to C; //extra message
+                    	}
+    			}
+    		}
+    	} or {
+    		Quit() from C to S;
+    		Ack() from S to C; //extra message
+    	}
+
+    	} () or C -> S() {
+    	    Timeout() from S to C;
+    	}
+}
