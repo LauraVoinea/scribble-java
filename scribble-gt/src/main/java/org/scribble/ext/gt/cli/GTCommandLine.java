@@ -17,6 +17,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
@@ -25,6 +26,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.*;
+import org.scribble.gt.codegen.ErlangCodeGen;
 import org.scribble.job.Job;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
@@ -273,11 +275,18 @@ public class GTCommandLine extends CommandLine {
             }
             GTCorrespondence s = proj.getRight();
 
+            GTLSystem poof = proj.getRight().local;
+            Map<Role, GTLConfig> configs = poof.configs;
+            String protocolName = g.getSimpleName().toString();
+            ErlangCodeGen.genModule(protocolName, configs);
+
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
                     .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
+
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
                 Optional<Exception> res =
 

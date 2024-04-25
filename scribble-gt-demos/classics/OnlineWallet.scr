@@ -25,7 +25,7 @@ global protocol OnlineWallet(role S, role C, role A) {
             }
         } or {
             login_fail() from A to C;
-            auth_fail() from A to S;
+            //auth_fail() from A to S;
         }
 }
 
