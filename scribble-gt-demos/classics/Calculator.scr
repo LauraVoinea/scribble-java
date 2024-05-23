@@ -1,21 +1,21 @@
 module Calculator;
 
-global protocol Calc(role A, role C, role S){
-    element_1() from C to S;
-    element_2() from C to S;
+global protocol Calc(role Alice, role Carol, role Server){
+    element_1() from Carol to Server;
+    element_2() from Carol to Server;
 
     mixed{
-         choice at C {
-               sum() from C to S;
-               diff() from S to C;
-               diff() from C to A;
+         choice at Carol {
+               sum() from Carol to Server;
+               result() from Server to Carol;
+               sum_result() from Carol to Alice;
            } or {
-               diff() from C to S;
-               diff() from S to C;
-               diff() from C to A;
+               diff() from Carol to Server;
+               result() from Server to Carol;
+               diff_result() from Carol to Alice;
            }
-       } () or C -> S() {
-           timeout() from S to C;
-           cancel() from C to A;
+       } () or Carol -> Server() {
+           timeout() from Server to Carol;
+           cancel() from Carol to Alice;
     }
 }

@@ -278,11 +278,13 @@ public class GTCommandLine extends CommandLine {
             GTLSystem poof = proj.getRight().local;
             Map<Role, GTLConfig> configs = poof.configs;
             String protocolName = g.getSimpleName().toString();
-            ErlangCodeGen.genModule(protocolName, configs);
+            // code gen
+            ErlangCodeGen.genModule(protocolName, configs, translate.getCommittingTop());
 
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+
 
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
                     .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
@@ -419,7 +421,6 @@ public class GTCommandLine extends CommandLine {
                 .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());*/
 
-        //System.out.println("aaaaaaaaa: " + mystep + " ,, " + MAX);
         if (mystep >= MAX) {
             return Optional.empty();
         }

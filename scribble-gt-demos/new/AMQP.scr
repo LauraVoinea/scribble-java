@@ -15,9 +15,11 @@ global protocol AMQP(role Consumer, role Exchange, role Queue){
         error() from Queue to Exchange; // busy queue -- at capacity
         choice at Queue{
             forward2() from Queue to Consumer;
+            dummy1() from Queue to Exchange;
             continue Retry;
         } or {
             forward3() from Queue to Consumer;
+            dummy2() from Queue to Exchange;
         }
     }
   }

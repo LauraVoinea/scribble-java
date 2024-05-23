@@ -1,0 +1,137 @@
+package org.scribble.gt.codegen;
+
+import org.scribble.ext.gt.core.model.local.GTLConfig;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+
+import org.scribble.core.type.name.*;
+import org.scribble.ext.gt.core.type.session.local.*;
+
+import java.util.*;
+
+import static org.scribble.gt.codegen.FSM.GTtoFsm;
+
+public class ErlangCodeGen {
+    private static final String outputDir = "./generated";
+
+    public static void genErl(FSM fsm, StringBuilder erlRole, int indent) {
+        String indentation = "\t".repeat(Math.max(0, indent)); // Indentation string
+
+        List<State> states = fsm.getStates();
+        erlRole.append("-module('").append(fsm.getName()).append("').\n");
+        erlRole.append(" % Define a macro SERVER that is replaced with ?MODULE (current module name)\n");
+        erlRole.append("-define(SERVER, ?MODULE).\n");
+
+        erlRole.append("-behaviour(gen_statem).\n");
+
+        //TODO: list of exported funs instead
+        erlRole.append("-compile(export_all).\n");
+        erlRole.append("-compile(nowarn_export_all).\n\n");
+
+        erlRole.append("% Function to start the state machine\n");
+        erlRole.append("start_link() -> gen_statem:start_link({local, ?SERVER}, ?MODULE, [], []).\n\n");
+        erlRole.append("callback_mode() -> [state_functions].\n\n");
+//        erlRole.append(String.format("init([]) -> {ok, %s, {}}.\n\n", states.get(0).getName()));
+
+        //State transition functions
+        for (Transition t : fsm.getTransitions()){
+            if(t.getEvent().getKind().equals(EventKind.SEND)) {
+                erlRole.append(String.format("send_%s(%sPid) -> \n gen_statem:cast(%sPid, {%s}).\n \n",
+                        t.getEvent().getName(), t.getEvent().getRole(), t.getEvent().getRole(), t.getEvent().getName()));
+            }
+        }
+
+        //State functions
+        for (State state : states) {
+            // create init state
+            String stateName = state.getName();
+            StateKind stateKind = state.getKind();
+            switch (stateKind) {
+                case INIT:
+                    erlRole.append("init([]) -> {ok, state1, {}}.\n\n");
+                    break;
+                case INTERNAL:
+                    for (Transition t : state.getTransitions()) {
+                        State nextState = t.getNextState();
+                        if (nextState.getKind().equals(StateKind.TERMINAL)) {
+                            erlRole.append(String.format("%s(internal, {%s}, Data) -> \n",
+                                    stateName, t.getEvent().getName()));
+                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
+                            erlRole.append("% Stop the state machine with normal termination\n");
+                            erlRole.append(indentation).append("{stop, normal, Data};\n");
+                        } else {
+                            erlRole.append(String.format("%s(internal, {%s}, Data) -> {next_state, %s, Data};\n",
+                                    stateName, t.getEvent().getName(), nextState.getName()));
+                        }
+                    }
+                    erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
+                    break;
+                case EXTERNAL:
+                case MIXED:
+                case REC:
+                    for (Transition t : state.getTransitions()) {
+                        State nextState = t.getNextState();
+                        if (nextState.getKind().equals(StateKind.TERMINAL))
+                            erlRole.append(String.format("%s(cast, {%s}, Data) -> {stop, normal, Data};\n",
+                                    stateName, t.getEvent().getName()));
+                        else
+                            erlRole.append(String.format("%s(cast, {%s}, Data) -> {next_state, %s, Data};\n",
+                                    stateName, t.getEvent().getName(), t.getNextState().getName()));
+                    }
+                    erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
+                    break;
+                case TERMINAL:
+                    //TODO
+//                    erlRole.append(String.format("%s(cast, stop, Data) -> {stop, normal, Data}.\n", stateName));
+                    break;
+//                case REC:
+                    //TODO
+//                    erlRole.append(String.format("%s(cast, stop, Data) -> {stop, normal, Data}.\n", stateName));
+                default:
+                    erlRole.append("\n");
+                    break;
+
+            }
+            erlRole.append("\n");
+        }
+    }
+
+
+    public static void genModule(String protocolName, Map<Role, GTLConfig> locals, Set<Op> committing) {
+        Iterator<Map.Entry<Role, GTLConfig>> iterator = locals.entrySet().iterator();
+        System.err.println("Protocol name" + protocolName);
+
+        while(iterator.hasNext()){
+            Map.Entry<Role, GTLConfig> aux = iterator.next();
+            String role = String.valueOf(aux.getKey());
+            StringBuilder erlRole = new StringBuilder();
+            GTLConfig A = aux.getValue();
+            GTLType type = A.type;
+
+            FSM fsm = GTtoFsm(type, role, committing);
+            fsm.generateDOT(outputDir + File.separator + protocolName , role + ".dot");
+            genErl(fsm, erlRole, 1);
+            createErlangFile(protocolName, role, erlRole);
+
+        }
+    }
+
+    private static void createErlangFile(String protocolName, String moduleName, StringBuilder erlRole) {
+        // Ensure the output directory exists
+        String outputDirectory = outputDir + File.separator + protocolName;
+        File directory = new File(outputDirectory);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        // Create a FileWriter for the Erlang file
+        try (FileWriter fileWriter = new FileWriter(outputDirectory + File.separator + moduleName + ".erl")) {
+            fileWriter.write(String.valueOf(erlRole));
+            fileWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
