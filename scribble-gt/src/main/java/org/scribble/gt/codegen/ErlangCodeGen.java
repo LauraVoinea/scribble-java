@@ -16,6 +16,17 @@ import static org.scribble.gt.codegen.FSM.GTtoFsm;
 public class ErlangCodeGen {
     private static final String outputDir = "./generated";
 
+    public static String lowercaseFirstLetter(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        char firstChar = Character.toLowerCase(str.charAt(0));
+        if (str.length() == 1) {
+            return String.valueOf(firstChar);
+        }
+        return firstChar + str.substring(1);
+    }
+
     public static void genErl(FSM fsm, StringBuilder erlRole, int indent) {
         String indentation = "\t".repeat(Math.max(0, indent)); // Indentation string
 
@@ -37,7 +48,7 @@ public class ErlangCodeGen {
 
         //State transition functions
         for (Transition t : fsm.getTransitions()){
-            if(t.getEvent().getKind().equals(EventKind.SEND)) {
+            if(t.getEvent().getKind().equals(EventKind.SEND) && !t.getEvent().getRole().equals(fsm.getName())){
                 erlRole.append(String.format("send_%s(%sPid) -> \n gen_statem:cast(%sPid, {%s}).\n \n",
                         t.getEvent().getName(), t.getEvent().getRole(), t.getEvent().getRole(), t.getEvent().getName()));
             }
@@ -50,25 +61,66 @@ public class ErlangCodeGen {
             StateKind stateKind = state.getKind();
             switch (stateKind) {
                 case INIT:
-                    erlRole.append("init([]) -> {ok, state1, {}}.\n\n");
+                    erlRole.append("init([]) -> \n");
+                    for (Transition t : state.getTransitions()) {
+                        State nextState = t.getNextState();
+                        if (nextState.getKind().equals(StateKind.TERMINAL)) {
+                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
+                            erlRole.append(indentation).append("% Stop the state machine with normal termination\n");
+                            erlRole.append(indentation).append("{stop, normal, {}}.\n");
+                        } else if (nextState.getKind().equals(StateKind.INTERNAL)){
+                            erlRole.append(indentation).append(String.format("{next_state, %s, {}, " +
+                                            "[{next_event, internal, {send_%s}}]}.\n",
+                                   nextState.getName(), t.getEvent().getName()));
+                        } else {
+                            erlRole.append(indentation).append(String.format("{next_state, %s, {}}.\n", nextState.getName()));
+                        }
+                    }
                     break;
                 case INTERNAL:
                     for (Transition t : state.getTransitions()) {
                         State nextState = t.getNextState();
-                        if (nextState.getKind().equals(StateKind.TERMINAL)) {
-                            erlRole.append(String.format("%s(internal, {%s}, Data) -> \n",
-                                    stateName, t.getEvent().getName()));
-                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
-                            erlRole.append("% Stop the state machine with normal termination\n");
-                            erlRole.append(indentation).append("{stop, normal, Data};\n");
+                        if(t.getEvent().getRole() != fsm.getName()){
+                            erlRole.append(String.format("%s(internal, {%s}, {%sPid, Data}) -> \n",
+                                    stateName, t.getEvent().getName(), t.getEvent().getRole()));
+                            erlRole.append(indentation).append(String.format("send_%s(%sPid), \n",
+                                    t.getEvent().getName(), t.getEvent().getRole()));
                         } else {
-                            erlRole.append(String.format("%s(internal, {%s}, Data) -> {next_state, %s, Data};\n",
-                                    stateName, t.getEvent().getName(), nextState.getName()));
+                            erlRole.append(String.format("%s(send, {%s}, Data) -> \n",
+                                    stateName, t.getEvent().getName()));
+                        }
+
+                        if (nextState.getKind().equals(StateKind.TERMINAL)) {
+                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
+                            erlRole.append(indentation).append("% Stop the state machine with normal termination\n");
+                            erlRole.append(indentation).append("{stop, normal, Data};\n");
+                        } else if (nextState.getKind().equals(StateKind.INTERNAL)){
+                            erlRole.append(String.format("{next_state, %s, Data, " +
+                                            "[{next_event, internal, {send_%s}}]};\n",
+                                     t.getEvent().getName()));
+                        } else {
+                            erlRole.append(String.format("{next_state, %s, Data};\n",
+                                     nextState.getName()));
                         }
                     }
                     erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
                     break;
                 case EXTERNAL:
+                    for (Transition t : state.getTransitions()) {
+                        State nextState = t.getNextState();
+                        if (nextState.getKind().equals(StateKind.TERMINAL)) {
+                            erlRole.append(String.format("%s(cast, {%s}, Data) -> \n",
+                                    stateName, t.getEvent().getName()));
+                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
+                            erlRole.append("% Stop the state machine with normal termination\n");
+                            erlRole.append(indentation).append("{stop, normal, Data};\n");
+                        } else {
+                            erlRole.append(String.format("%s(cast, {%s}, Data) -> {next_state, %s, Data};\n",
+                                    stateName, t.getEvent().getName(), nextState.getName()));
+                        }
+                    }
+                    erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
+                    break;
                 case MIXED:
                 case REC:
                     for (Transition t : state.getTransitions()) {
@@ -134,4 +186,7 @@ public class ErlangCodeGen {
             e.printStackTrace();
         }
     }
+
+
+
 }
