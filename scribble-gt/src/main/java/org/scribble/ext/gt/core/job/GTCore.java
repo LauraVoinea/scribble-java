@@ -34,11 +34,11 @@ public class GTCore extends Core {
                 GTSModelFactoryImpl::new);
     }
 
-    // TODO refactor
+    /*// TODO refactor
     class GTRoleGatherer<K extends ProtoKind, B extends Seq<K, B>>
             extends RoleGatherer<K, B> {
 
-    }
+    }*/
 
     @Override
     protected void runGlobalSyntaxWfPasses() throws ScribException {

@@ -119,9 +119,9 @@ public class GTCommandLine extends CommandLine {
             this.main = new GTMain(inline, args);
         } else {
             List<Path> impaths = hasFlag(CLFlags.IMPORT_PATH_FLAG)
-                    ? CommandLine
-                    .parseImportPaths(getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
-                    : Collections.emptyList();
+                                 ? CommandLine
+                                         .parseImportPaths(getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
+                                 : Collections.emptyList();
             ResourceLocator locator = new DirectoryResourceLocator(impaths);
             Path mainpath = CommandLine
                     .parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
@@ -190,8 +190,8 @@ public class GTCommandLine extends CommandLine {
     // no messages in transit and no active timeouts.
     static Optional<Exception> checkInitialWellSet(GTGType translate) {  // "check..." vs. "is..."
         return translate.isInitialWellSet()
-                ? Optional.empty() :
-                Optional.of(new Exception("Not initial and well-set: " + translate));
+               ? Optional.empty() :
+               Optional.of(new Exception("Not initial and well-set: " + translate));
     }
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
@@ -242,10 +242,16 @@ public class GTCommandLine extends CommandLine {
         return proj.mapRight(x -> new GTCorrespondence(rs, tids, theta, translate, x));
     }
 
+    public static GTSModelFactory GMF;
+    public static GTEModelFactory LMF;
+
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
     protected static Optional<Exception> gtRun(GTCommandLine cl) {
         Core core = cl.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
+
+        GMF = (GTSModelFactory) core.config.mf.global;
+        LMF = (GTEModelFactory) core.config.mf.local;
 
         Map<GProtoName, GTGType> translated = getTranslated(cl);
         for (GProtoName g : translated.keySet()) {
@@ -277,12 +283,13 @@ public class GTCommandLine extends CommandLine {
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
-                    .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
+                                                    .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
                 Optional<Exception> res =
 
-                        //checkExecution(  // top-down
-                        checkExecution2(  // fidelity
+                        // HERE HERE fidelity fine, top-down recursion not terminating
+                        checkExecution(  // top-down
+                                //checkExecution2(  // fidelity
                                 core, "", s, 1, MAX,
                                 unfolds, 2,
                                 translate.getTimeoutIds(),
@@ -594,6 +601,9 @@ public class GTCommandLine extends CommandLine {
                         .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
                         .collect(Collectors.toSet());
 
+        // HERE HERE infinite global \nu ?
+        System.out.println("aaa: " + s.global + "\n\t" + s.global.getWeakActsTop(mf, s.theta));
+
         if (mystep >= MAX) {
             return Optional.empty();
         }
@@ -691,7 +701,7 @@ public class GTCommandLine extends CommandLine {
 
     private String[] getUniqueFlagArgs(String flag) {
         return this.args.stream()
-                .filter(x -> x.left.equals(flag)).findAny().get().right;
+                        .filter(x -> x.left.equals(flag)).findAny().get().right;
     }
 
 }

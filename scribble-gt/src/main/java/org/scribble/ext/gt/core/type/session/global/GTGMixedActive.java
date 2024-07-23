@@ -10,7 +10,9 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.local.*;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.core.type.session.local.Side;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -105,14 +107,14 @@ public class GTGMixedActive implements GTGType {
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
-                {
-                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(topAll, x);
-                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(topAll, x);
-                    Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
-                    return res.isPresent() && res.get();
-                })
-                .collect(Collectors.toSet());
+                         //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                 {
+                     Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(topAll, x);
+                     Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(topAll, x);
+                     Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
+                     return res.isPresent() && res.get();
+                 })
+                 .collect(Collectors.toSet());
     }
 
     @Override
@@ -365,16 +367,24 @@ public class GTGMixedActive implements GTGType {
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
 
-        LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
-        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
                 this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                        ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
-                        : this.left.step(theta, a, this.c, this.n);
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.left.step(theta, a, this.c, this.n);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
                 this.committedLeft.contains(a.subj)
-                        ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
-                        : this.right.step(theta, a, this.c, this.n);
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.right.step(theta, a, this.c, this.n);
+        return stepAux(theta, a, c, n, optl, optr);
+    }
+
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepAux(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n,
+            Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl,
+            Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr) {
+
+        LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
+        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
 
         if (optl.isRight() && optr.isRight()) {
             // [RTAct]
@@ -486,14 +496,34 @@ public class GTGMixedActive implements GTGType {
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep
             (
                     Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+
+        //return step(theta, a, c, n);  // XXX need recursive weakStep
+
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
+                this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.left.weakStep(theta, a, this.c, this.n);
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
+                this.committedLeft.contains(a.subj)
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.right.weakStep(theta, a, this.c, this.n);
+        return stepAux(theta, a, c, n, optl, optr);
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
             int n) {
-        return getActs(mf, theta, blocked, c, n);
+        //return getActs(mf, theta, blocked, c, n);  // XXX must do recursive getWeak (else may get \tau)
+
+        Set<Role> bLeft = Stream.concat(blocked.stream(),
+                this.committedRight.stream()).collect(Collectors.toSet());
+        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getWeakActs(mf, theta, bLeft, this.c, this.n);
+        Set<Role> bRight = Stream.concat(blocked.stream(),
+                this.committedLeft.stream()).collect(Collectors.toSet());
+        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getWeakActs(mf, theta, bRight, this.c, this.n);
+        aLeft.addAll(aRight);
+        return aLeft;
     }
 
     /* ... */

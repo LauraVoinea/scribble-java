@@ -94,14 +94,14 @@ public class GTGMixedChoice implements GTGType {
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
-                {
-                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
-                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
-                    Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
-                    return res.isPresent() && res.get();
-                })
-                .collect(Collectors.toSet());
+                         //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                 {
+                     Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
+                     Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
+                     Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
+                     return res.isPresent() && res.get();
+                 })
+                 .collect(Collectors.toSet());
     }
 
     @Override
@@ -377,7 +377,8 @@ public class GTGMixedChoice implements GTGType {
 
         // FIXME addRuntimeTestMC(good, bad) -- \nu 2, 2 should not be possible global act, all roles blocked
         LinkedHashSet<SAction<DynamicActionKind>> tmp = get.mid.getWeakActs(mf, get.left, blocked, c, n);
-        System.out.println("9999999: " + get.mid + ", " + tmp);
+        //System.out.println("9999999: " + get.mid + ", " + tmp);
+
         return tmp;
     }
 
@@ -386,11 +387,11 @@ public class GTGMixedChoice implements GTGType {
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         Integer m = theta.map.get(this.c);
         SAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
-                new GTSNewTimeout(this.c, m);  // TODO factory?
+                new GTSNewTimeout<>(this.c, m);  // TODO factory?
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> weak =
                 step(theta, tau, c, n);  // mixed active
         return weak.flatMapRight(x ->
-                x.mid.step(x.left, a, c, n).mapRight(y ->  // !!! CHECKME weakStep?  or can MC not be "directly" nested?
+                x.mid.weakStep(x.left, a, c, n).mapRight(y ->  // XXX need to stay recursively in weakStep
                         Triple.of(y.left, y.mid, Tree.of(
                                 toStepJudgeString("[..nu-tau..]", c, n, theta,
                                         this, (GTSAction) a, y.left, y.mid),

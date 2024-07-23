@@ -130,7 +130,7 @@ public class GTLBranch implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        //return getActs(mf, self, blocked, sigma, theta, c, n);
+        ////return getActs(mf, self, blocked, sigma, theta, c, n);
         return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
     }
 

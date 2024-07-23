@@ -39,7 +39,7 @@ public class GTTest {
         addRuntimeTestMC(good, bad);
 
         add(good, bad);
-        //addFidelityGlobalWeak(good, bad);
+        ////addFidelityGlobalWeak(good, bad);
         addFidelitySubtypingNeededForGCEnvs(good, bad);
         addFidelitySubtypingNeededBlackWhiteTriangles(good, bad);
         addFidelityNested(good, bad);

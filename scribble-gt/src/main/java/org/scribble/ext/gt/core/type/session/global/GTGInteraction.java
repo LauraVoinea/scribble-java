@@ -380,13 +380,39 @@ public class GTGInteraction implements GTGType {
     @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+
+        return step(theta, a, c, n);  // XXX FIXME need recursive weakStep
+
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getActs(mf, theta, blocked, c, n);
+        //return getActs(mf, theta, blocked, c, n);  // XXX must do recursive weakActs
+
+        HashSet<Role> tmp = new HashSet<>(blocked);
+        tmp.add(this.src);
+        tmp.add(this.dst);
+        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+
+        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();
+        for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+            if (!blocked.contains(this.src)) {
+                SSend<DynamicActionKind> a = mf.GTSSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
+                res.add(a);
+            }
+            coll.put(e.getKey(), e.getValue().getWeakActs(mf, theta, tmp, c, n));
+        }
+
+        // !!!
+        Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
+        for (SAction<DynamicActionKind> a : vs.iterator().next()) {
+            if (vs.stream().allMatch(x -> x.contains(a))) {
+                res.add(a);
+            }
+        }
+
+        return res;
     }
 
     /* ... */

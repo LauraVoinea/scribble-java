@@ -484,7 +484,7 @@ global protocol P(role A, role C, role S){
 }
 //*/
 
-//*
+/*
 global protocol Calc(role A, role C, role S){
     element_1() from C to S;
     element_2() from C to S;
@@ -505,6 +505,86 @@ global protocol Calc(role A, role C, role S){
     }
 }
 //*/
+
+
+
+/*
+global protocol PPP(role A, role B) {
+    rec X {
+        mixed {
+            l1() from A to B; l2() from B to A;
+        } () or A->B () {
+            r1() from B to A; continue X;  // !!! infinite fresh \nu actions on RHS, cf. top-down correspondence (completeness)
+        }
+    }
+}
+//*/
+
+/*//mu X. B-->A {r1 . x } |> A-->B {l1. B-->a{l2.end}}
+global protocol PPP(role A, role B) {
+    rec X {
+        mixed {
+            l1() from A to B; l2() from B to A; continue X;
+        } () or A->B () {
+            r1() from B to A;
+        }
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
+global protocol Nested(role Alice, role Bob) {
+    mixed {
+        ping1() from Alice to Bob;
+        mixed {
+            ping2() from Alice to Bob;
+            pong2() from Bob to Alice;
+        } () or Alice -> Bob () {
+           error2() from Bob to Alice;
+        }
+    } () or Alice -> Bob () {
+       error1() from Bob to Alice;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 global protocol OnlineWallet(role S, role C, role A) {

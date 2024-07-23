@@ -185,8 +185,15 @@ public class GTLMixedActive implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        //return getActs(mf, self, blocked, sigma, theta, c, n);
-        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
+        ////return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());  // XXX must do recursive getWeakActs
+
+        LinkedHashSet<EAction<DynamicActionKind>> aLeft =
+                this.left.getWeakActs(mf, com, self, blocked, sigma, theta, this.c, this.n);
+        LinkedHashSet<EAction<DynamicActionKind>> aRight =
+                this.right.getWeakActs(mf, com, self, blocked, sigma, theta, this.c, this.n);
+        aLeft.addAll(aRight);
+        return aLeft;
     }
 
     @Override

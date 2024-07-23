@@ -100,8 +100,12 @@ public class GTLSelect implements GTLType {
     @Override
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        //return getActs(mf, self, blocked, sigma, theta, c, n);
-        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
+        ////return getActs(mf, self, blocked, sigma, theta, c, n);
+        //return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());  // XXX must do recursive getWeakAct
+
+        return new LinkedHashSet<>(this.cases.entrySet().stream()
+                .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
+                .collect(Collectors.toSet()));
     }
 
     @Override

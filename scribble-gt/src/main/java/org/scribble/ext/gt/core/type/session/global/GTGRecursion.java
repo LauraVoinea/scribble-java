@@ -106,8 +106,8 @@ public class GTGRecursion implements GTGType {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         return this.body.project(topPeers, r, c, n).map(x ->
                 x.left.equals(this.var)
-                        ? Pair.of(lf.end(), new Sigma(topPeers))
-                        : Pair.of(lf.recursion(this.var, x.left), x.right)
+                ? Pair.of(lf.end(), new Sigma(topPeers))
+                : Pair.of(lf.recursion(this.var, x.left), x.right)
         );
     }
 
@@ -131,8 +131,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         return this.body.getActs(mf, theta, blocked, c, n);
     }
 
@@ -153,8 +153,13 @@ public class GTGRecursion implements GTGType {
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        //return getActs(mf, theta, blocked, c, n);
-        return unfoldAllOnce().getWeakActs(mf, theta, blocked, c, n);
+        ////return getActs(mf, theta, blocked, c, n);
+        //return unfoldAllOnce().getWeakActs(mf, theta, blocked, c, n);
+
+        LinkedHashSet<SAction<DynamicActionKind>> was = this.body.getWeakActs(mf, theta, blocked, c, n);
+        //System.out.println("bbbbbbbb: " + this + " ,,, " + was);
+
+        return was;
     }
 
     /* ... */

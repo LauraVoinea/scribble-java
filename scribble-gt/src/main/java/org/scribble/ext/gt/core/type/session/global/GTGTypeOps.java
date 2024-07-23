@@ -33,7 +33,7 @@ public interface GTGTypeOps extends GTSessType {
 
     // TODO GTSAction
     LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf,  // TODO remove
+            GTSModelFactory mf,  // HERE TODO remove
             Theta theta, Set<Role> blocked, int c, int n);
 
 
