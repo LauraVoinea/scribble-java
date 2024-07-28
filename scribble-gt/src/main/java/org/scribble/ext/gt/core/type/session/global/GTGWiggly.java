@@ -526,7 +526,8 @@ public class GTGWiggly implements GTGType {
     }
 
     protected String msgToString(Op op) {
-        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        return GTGInteraction.msgToString(op, this.pays.get(op));
     }
 
     /* hashCode, equals, canEquals */

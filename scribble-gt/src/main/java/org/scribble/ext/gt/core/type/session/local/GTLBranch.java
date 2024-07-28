@@ -13,6 +13,7 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTERecv;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.ext.gt.util.Quad;
@@ -200,7 +201,8 @@ public class GTLBranch implements GTLType {
     }
 
     protected String msgToString(Op op) {
-        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        return GTGInteraction.msgToString(op, this.pays.get(op));
     }
 
 

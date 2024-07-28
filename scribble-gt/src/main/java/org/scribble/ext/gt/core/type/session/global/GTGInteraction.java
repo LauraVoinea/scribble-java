@@ -561,8 +561,12 @@ public class GTGInteraction implements GTGType {
     }
 
     protected String msgToString(Op op) {
-        //return op + "(" + this.pays.get(op) + ")";
-        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        return msgToString(op, this.pays.get(op));
+    }
+
+    public static String msgToString(Op op, Payload pay) {
+        return op.toString() + pay;
     }
 
     /* hashCode, equals, canEquals */
