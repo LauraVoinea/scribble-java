@@ -119,7 +119,8 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrongDeps() {
-        throw new RuntimeException("Shouldn't get here: " + this);
+        //throw new RuntimeException("Shouldn't get here: " + this);
+        throw new RuntimeException("TODO: " + this);
     }
 
     @Override

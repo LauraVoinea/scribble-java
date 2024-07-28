@@ -15,7 +15,6 @@ import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
@@ -287,7 +286,7 @@ public class GTCommandLine extends CommandLine {
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
                 Optional<Exception> res =
 
-                        // HERE HERE fidelity fine, top-down recursion not terminating
+                        // HERE HERE fidelity fine, top-down recursion TODO
                         checkExecution(  // top-down
                                 //checkExecution2(  // fidelity
                                 core, "", s, 1, MAX,
@@ -657,24 +656,30 @@ public class GTCommandLine extends CommandLine {
 
             GTSAction cast = (GTSAction) a;
             GTEAction a_r = cast.project(lmf);
+            Pair<GTLSystem, Tree<String>> sys1;
 
             debugPrintln(debug, indent + "Stepping local "
                     + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTLType.weakStepTop
                     + ConsoleColors.VDASH + " " + s.local + " --" + a.subj + ":" + a_r + "--> ...");
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
+            if (a_r instanceof GTENewTimeout) {
+                GTLSystem ff = ffweak(lmf, com, g_step.left, s.local, null);  // !!! g_step.left
+                sys1 = new Pair<>(ff, Tree.of("[FF] ... --> " + ff.toString()));
+            } else {
+                Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
 
-            Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
+                        ////s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                        //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
+                        s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
 
-                    ////s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
-                    //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
-                    s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
-            //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
-
-            if (l_step.isLeft()) {
-                throw new RuntimeException("Locals stuck...", l_step.getLeft());
+                if (l_step.isLeft()) {
+                    throw new RuntimeException("Locals stuck...", l_step.getLeft());
+                }
+                sys1 = l_step.getRight();
             }
-            Pair<GTLSystem, Tree<String>> sys1 = l_step.getRight();
+
             debugPrintln(debug, sys1.right.toString(indent + "   "));
 
             //System.out.println(indent + "locals = " + sys1);

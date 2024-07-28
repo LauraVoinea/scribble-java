@@ -39,7 +39,7 @@ public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements G
     public final int n;
 
     public GTENewTimeout(int id, ModelFactory mf, int c, int n) {
-        super(id, mf, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
+        super(id, mf, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // !!! CHECKME record local role?
         this.c = c;
         this.n = n;
     }
