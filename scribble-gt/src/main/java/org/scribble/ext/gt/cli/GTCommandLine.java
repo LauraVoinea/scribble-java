@@ -15,8 +15,7 @@ import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.GTLSystem;
+import org.scribble.ext.gt.core.model.local.*;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
@@ -277,13 +276,18 @@ public class GTCommandLine extends CommandLine {
                 return Optional.of(proj.getLeft());
             }
             GTCorrespondence s = proj.getRight();
+            Set<Op> com = GTUtil.umod(translate.getCommittingTop());
 
             System.out.println("\n[GTCommandLine] projected:\n"
                     + s.local.configs.values().stream().map(x -> x.self + "=" + x.type).collect(Collectors.joining("\n")));
 
+            for (GTLConfig x : s.local.configs.values()) {
+                GTEState init = new GTFsmConstructor().construct(com, x.type);
+                System.out.println("\n[GTCommandLine] FSM for " + x.self + ": " + init.toDot());
+            }
+
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
-            Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
                                                     .collect(Collectors.toMap(AbstractName::toString, x -> 0));  // FIXME don't use String
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
