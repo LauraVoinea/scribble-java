@@ -15,6 +15,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GTGRecursion implements GTGType {
 
@@ -131,9 +132,16 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return this.body.getActs(mf, theta, blocked, c, n);
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> as = this.body.getActs(mf, theta, blocked, c, n);
+        return as.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> GTUtil.union(x.getValue(), Set.of(this.var)),
+                (x, y) -> x,  // CHECKME
+                LinkedHashMap::new
+        ));
     }
 
     /* ... */

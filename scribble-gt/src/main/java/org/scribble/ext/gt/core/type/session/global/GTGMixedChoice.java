@@ -322,12 +322,15 @@ public class GTGMixedChoice implements GTGType {
     /* ... */
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
         if (theta.map.containsKey(this.c)) {
             Integer m = theta.map.get(this.c);
-            res.add(mf.SNewTimeout(this.c, m));
+            //res.add(mf.SNewTimeout(this.c, m));
+            res.put(mf.SNewTimeout(this.c, m), Collections.emptySet());
         }
         return res;
     }
@@ -362,14 +365,17 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        LinkedHashSet<SAction<DynamicActionKind>> tau = getActs(mf, theta, blocked, c, n);
+        //LinkedHashSet<SAction<DynamicActionKind>> tau = getActs(mf, theta, blocked, c, n);
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> tau = getActs(mf, theta, blocked, c, n);
+
         if (tau.isEmpty()) {
-            return tau;
+            return new LinkedHashSet<>();
         } else if (tau.size() > 1) {
             throw new RuntimeException("Shouldn't get in here: " + tau);
         }
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> nu =
-                step(theta, tau.iterator().next(), c, n);
+                //step(theta, tau.iterator().next(), c, n);
+                step(theta, tau.keySet().iterator().next(), c, n);
         if (nu.isLeft()) {
             return GTUtil.setOf();
         }
@@ -377,7 +383,6 @@ public class GTGMixedChoice implements GTGType {
 
         // FIXME addRuntimeTestMC(good, bad) -- \nu 2, 2 should not be possible global act, all roles blocked
         LinkedHashSet<SAction<DynamicActionKind>> tmp = get.mid.getWeakActs(mf, get.left, blocked, c, n);
-        //System.out.println("9999999: " + get.mid + ", " + tmp);
 
         return tmp;
     }

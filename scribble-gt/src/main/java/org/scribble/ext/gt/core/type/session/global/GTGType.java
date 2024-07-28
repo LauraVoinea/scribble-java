@@ -49,10 +49,17 @@ public interface GTGType extends GTSessType, GTGTypeOps {
         return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
     }*/
 
-    // TODO GTSAction
-    LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    default LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActsTop(
             GTSModelFactory mf,  // TODO remove
-            Theta theta, Set<Role> blocked, int c, int n);
+            Theta theta) {
+        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // CHECKME LType, cf. GTGType.getWeakActsTop
+    }
+
+    // TODO GTSAction
+    //LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(  // HERE HERE cf. GTLType,
+                                                                     GTSModelFactory mf,  // TODO remove
+                                                                     Theta theta, Set<Role> blocked, int c, int n);
 
     default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTop(
             Theta theta, SAction<DynamicActionKind> a) {

@@ -319,16 +319,19 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.dst);
-        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
 
         Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             Op op = e.getKey();
-            LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getActs(mf, theta, tmp, c, n);
+            //LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getActs(mf, theta, tmp, c, n);
+            LinkedHashSet<SAction<DynamicActionKind>> as = new LinkedHashSet<>(e.getValue().getActs(mf, theta, tmp, c, n).keySet());
             coll.put(op, new LinkedHashSet<>(
                     as.stream().filter(x -> !x.subj.equals(this.src)).collect(Collectors.toSet())));
         }
@@ -336,16 +339,17 @@ public class GTGWiggly implements GTGType {
         if (!blocked.contains(this.dst)) {
             // N.B. SRecv subj is this.dst
             SRecv<DynamicActionKind> a = mf.GTSRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
-            res.add(a);
+            res.put(a, Collections.emptySet());
         }
-        this.cases.get(this.op).getActs(mf, theta, blocked, c, n).stream()
-                  .filter(x -> x.subj.equals(this.src)).forEach(x -> res.add(x));
+        this.cases.get(this.op).getActs(mf, theta, blocked, c, n).entrySet().stream()
+                  .filter(x -> x.getKey().subj.equals(this.src))
+                  .forEach(x -> res.put(x.getKey(), x.getValue()));
 
         // !!!
         Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
         for (SAction<DynamicActionKind> a : vs.iterator().next()) {
             if (vs.stream().allMatch(x -> x.contains(a))) {
-                res.add(a);
+                res.put(a, Collections.emptySet());
             }
         }
 

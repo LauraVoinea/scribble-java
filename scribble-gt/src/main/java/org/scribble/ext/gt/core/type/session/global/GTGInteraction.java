@@ -85,7 +85,7 @@ public class GTGInteraction implements GTGType {
     public Map<Role, Set<Role>> getStrongDeps() {
         Set<Role> rs = getRoles();
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
-                .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
+                                                     .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
 
         Map<Role, Set<Role>> res = GTUtil.mapOf();
         for (Role r : rs) {
@@ -202,8 +202,8 @@ public class GTGInteraction implements GTGType {
                 cases.put(e.getKey(), p.left);
             }
             return r.equals(this.src)
-                    ? Optional.of(new Pair<>(lf.select(this.dst, cases), sigma))
-                    : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
+                   ? Optional.of(new Pair<>(lf.select(this.dst, cases), sigma))
+                   : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));
@@ -222,7 +222,7 @@ public class GTGInteraction implements GTGType {
         }
         // FIXME refactor merge
         List<Optional<Theta>> distinct = this.cases.values().stream()
-                .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
+                                                   .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
         if (distinct.size() != 1) {
             return Optional.empty();
         }
@@ -344,31 +344,35 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);
         tmp.add(this.dst);
         ////this.cases.values().stream().flatMap(x -> x.getActs(tmp).stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-        //LinkedHashSet<SAction> collect = new LinkedHashSet<>();
-        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        ////LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
 
-        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();
+        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // nested
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             if (!blocked.contains(this.src)) {
                 SSend<DynamicActionKind> a = mf.GTSSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
-                res.add(a);
+                //res.add(a);
+                res.put(a, Collections.emptySet());
             }
             //collect.addAll(e.getValue().getActs(mf, theta, tmp));
-            coll.put(e.getKey(), e.getValue().getActs(mf, theta, tmp, c, n));
+            coll.put(e.getKey(), new LinkedHashSet<>(e.getValue().getActs(mf, theta, tmp, c, n).keySet()));
         }
 
         // !!!
         Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
         for (SAction<DynamicActionKind> a : vs.iterator().next()) {
             if (vs.stream().allMatch(x -> x.contains(a))) {
-                res.add(a);
+                //res.add(a);
+                res.put(a, Collections.emptySet());
             }
         }
 
@@ -421,7 +425,7 @@ public class GTGInteraction implements GTGType {
     public Set<Op> getCommittingTop(Set<Role> com) {
         Set<Op> res = GTUtil.setOf();
         this.cases.values()
-                .forEach(x -> res.addAll(x.getCommittingTop(com)));
+                  .forEach(x -> res.addAll(x.getCommittingTop(com)));
         return res;
     }
 
@@ -435,7 +439,7 @@ public class GTGInteraction implements GTGType {
             com1.add(this.dst);
         }
         this.cases.values().stream()
-                .forEach(x -> res.addAll(x.getCommittingLeft(obs, com1)));
+                  .forEach(x -> res.addAll(x.getCommittingLeft(obs, com1)));
         return res;
     }
 
@@ -452,7 +456,7 @@ public class GTGInteraction implements GTGType {
             com1.add(this.dst);
         }
         this.cases.values().stream()
-                .forEach(x -> res.addAll(x.getCommittingRight(obs, com1)));
+                  .forEach(x -> res.addAll(x.getCommittingRight(obs, com1)));
         return res;
     }
 
@@ -482,12 +486,12 @@ public class GTGInteraction implements GTGType {
     @Override
     public GTGInteraction subs(RecVar v, GTGRecursion subs) {
         LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().subs(v, subs),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
+                                                     .collect(Collectors.toMap(
+                                                             Map.Entry::getKey,
+                                                             x -> x.getValue().subs(v, subs),
+                                                             (x, y) -> null,
+                                                             LinkedHashMap::new
+                                                     ));
         return new GTGInteraction(this.src, this.dst, cases);
     }
 
@@ -501,7 +505,7 @@ public class GTGInteraction implements GTGType {
         Set<Role> b = new HashSet<>(blocked);
         b.add(this.dst);
         Set<Role> nested = this.cases.values().stream()
-                .flatMap(x -> x.getReadyAux(b).stream()).collect(Collectors.toSet());
+                                     .flatMap(x -> x.getReadyAux(b).stream()).collect(Collectors.toSet());
         if (!blocked.contains(this.src)) {
             nested.add(this.src);
         }
@@ -511,8 +515,8 @@ public class GTGInteraction implements GTGType {
     @Override
     public Set<Role> getRoles() {
         return Stream.concat(Stream.of(this.src, this.dst),
-                        this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
-                .collect(Collectors.toSet());
+                             this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
+                     .collect(Collectors.toSet());
     }
 
     public Role getSender() {
@@ -526,8 +530,8 @@ public class GTGInteraction implements GTGType {
     @Override
     public Set<Integer> getTimeoutIds() {
         return this.cases.values().stream()
-                .flatMap(x -> x.getTimeoutIds().stream())
-                .collect(Collectors.toSet());
+                         .flatMap(x -> x.getTimeoutIds().stream())
+                         .collect(Collectors.toSet());
     }
 
     @Override
@@ -540,15 +544,15 @@ public class GTGInteraction implements GTGType {
     @Override
     public Set<RecVar> getRecDecls() {
         return this.cases.values().stream()
-                .flatMap(x -> x.getRecDecls().stream()).collect(Collectors.toSet());
+                         .flatMap(x -> x.getRecDecls().stream()).collect(Collectors.toSet());
     }
 
     @Override
     public String toString() {
         return this.src + "->" + this.dst
                 + "{" + this.cases.entrySet().stream()
-                .map(e -> e.getKey() + "." + e.getValue())
-                .collect(Collectors.joining(", ")) + "}";
+                                  .map(e -> e.getKey() + "." + e.getValue())
+                                  .collect(Collectors.joining(", ")) + "}";
     }
 
     /* hashCode, equals, canEquals */

@@ -275,9 +275,8 @@ public class GTGMixedActive implements GTGType {
             if (!r.equals(this.other) && !r.equals(this.observer)) {
 
                 // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
-
-                System.out.println("0bbbbbbb: " + this.left + " ,, " + this.right);
-                System.out.println("0bbbbbbb: " + opt_l + " ,, " + opt_r);
+                //System.out.println("0bbbbbbb: " + this.left + " ,, " + this.right);
+                //System.out.println("0bbbbbbb: " + opt_l + " ,, " + opt_r);
 
                 if (!opt_l.isPresent() || !opt_r.isPresent()) {  // TODO refactor with below
                     return Optional.empty();
@@ -476,17 +475,25 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
             int n) {  // XXX outer still OK to reduce if inner is fully ended?
 
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
+
+        /*LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
         Set<Role> bRight = Stream.concat(blocked.stream(),
                 this.committedLeft.stream()).collect(Collectors.toSet());
         LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
-        aLeft.addAll(aRight);
+        aLeft.addAll(aRight);*/
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
+        Set<Role> bRight = Stream.concat(blocked.stream(),
+                this.committedLeft.stream()).collect(Collectors.toSet());
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
+        aLeft.putAll(aRight);
+
         return aLeft;
     }
 

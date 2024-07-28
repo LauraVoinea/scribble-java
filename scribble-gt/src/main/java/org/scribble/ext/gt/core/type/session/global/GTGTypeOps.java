@@ -15,10 +15,7 @@ import org.scribble.ext.gt.util.Tree;
 import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 public interface GTGTypeOps extends GTSessType {
@@ -32,7 +29,8 @@ public interface GTGTypeOps extends GTSessType {
     /* ... -- top-down, no global weak */
 
     // TODO GTSAction
-    LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf,  // HERE TODO remove
             Theta theta, Set<Role> blocked, int c, int n);
 

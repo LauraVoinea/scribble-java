@@ -120,9 +120,10 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return new LinkedHashSet<>();
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return new LinkedHashMap<>();
     }
 
     /* ... */
@@ -136,7 +137,7 @@ public class GTGRecVar implements GTGType {
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getActs(mf, theta, blocked, c, n);
+        return new LinkedHashSet<>(getActs(mf, theta, blocked, c, n).keySet());
     }
 
     /* ... */

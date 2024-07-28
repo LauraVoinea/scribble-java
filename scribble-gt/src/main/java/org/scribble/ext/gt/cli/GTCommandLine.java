@@ -283,7 +283,7 @@ public class GTCommandLine extends CommandLine {
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
-                                                    .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
+                                                    .collect(Collectors.toMap(AbstractName::toString, x -> 0));  // FIXME don't use String
             if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
                 Optional<Exception> res =
 
@@ -593,16 +593,31 @@ public class GTCommandLine extends CommandLine {
             return props;
         }
 
-        Set<SAction<DynamicActionKind>> as =
+        // HERE HERE infinite global \nu ?
+        /*Set<SAction<DynamicActionKind>> as =
 
                 //s.global.getActsTop(mf, s.theta).stream()
                 s.global.getWeakActsTop(mf, s.theta).stream()
 
                         .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
-                        .collect(Collectors.toSet());
+                        .collect(Collectors.toSet());*/
 
-        // HERE HERE infinite global \nu ?
-        System.out.println("aaa: " + s.global + "\n\t" + s.global.getWeakActsTop(mf, s.theta));
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> get = s.global.getActsTop(mf, s.theta);
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> filt = GTUtil.mapOf();
+        //LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> all = filt;
+        for (Map.Entry<SAction<DynamicActionKind>, Set<RecVar>> e
+                : get.entrySet()) {
+            //LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as = e.getValue();
+            //for (Map.Entry<SAction<DynamicActionKind>, Set<RecVar>> e2 : as.entrySet()) {
+            SAction<DynamicActionKind> a = e.getKey();
+            Set<RecVar> rvs = e.getValue();
+            if (rvs.stream().allMatch(x -> unfolds.get(x.toString()) < MAX_UNFOLD)) {  // FIXME toString
+                filt.put(a, rvs);
+            }
+            //}
+            //all.put(r, filt);
+        }
+        Set<SAction<DynamicActionKind>> as = filt.keySet();
 
         if (mystep >= MAX) {
             return Optional.empty();
@@ -617,8 +632,8 @@ public class GTCommandLine extends CommandLine {
                     + ConsoleColors.VDASH + " " + s.global + " " + "--" + a + "--> ...");
             Triple<Theta, GTGType, Tree<String>> g_step =
 
-                    //s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
-                    s.global.weakStepTop(s.theta, a).getRight();  // a in as so step is non-empty
+                    //s.global.weakStepTop(s.theta, a).getRight();  // a in as so step is non-empty
+                    s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
 
             debugPrintln(debug, g_step.right.toString(indent + "   "));
 
@@ -650,8 +665,9 @@ public class GTCommandLine extends CommandLine {
 
             Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
 
-                    //s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
-                    s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
+                    ////s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                    //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
+                    s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
 
             //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
