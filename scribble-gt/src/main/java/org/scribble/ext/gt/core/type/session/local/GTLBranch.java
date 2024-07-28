@@ -2,7 +2,10 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.type.name.*;
+import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.RecVar;
+import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -10,7 +13,10 @@ import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTERecv;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.Either;
+import org.scribble.ext.gt.util.GTUtil;
+import org.scribble.ext.gt.util.Quad;
+import org.scribble.ext.gt.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -23,10 +29,10 @@ public class GTLBranch implements GTLType {
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
 
     public final Role src;  // Sender
-    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
+    public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTLType> cases;  // Pre: Unmodifiable
 
-    protected GTLBranch(Role src, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTLType> cases) {
+    protected GTLBranch(Role src, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTLType> cases) {
         this.src = src;
         this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -45,7 +51,7 @@ public class GTLBranch implements GTLType {
         if (!this.src.equals(cast.src)) {
             return Optional.empty();
         }
-        LinkedHashMap<Op, DataName> pays = new LinkedHashMap<>();
+        LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         LinkedHashMap<Op, GTLType> tmp = new LinkedHashMap<>();
         Iterator<Op> it = Stream.of(this.cases.keySet(), cast.cases.keySet()).flatMap(Collection::stream).iterator();
         while (it.hasNext()) {

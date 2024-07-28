@@ -38,7 +38,8 @@ public class GTFsmConstructor {
     protected GTEState constructBranch(Set<Op> com, Map<GTLRecVar, GTEState> recs, GTLBranch t) {
         GTEState s = new GTEState(Collections.emptySet());
         for (Map.Entry<Op, GTLType> e : t.cases.entrySet()) {
-            ERecv<StaticActionKind> a = mf.StaticERecv(t.src, e.getKey(), null);  // HERE HERE payloads
+            Op op = e.getKey();
+            ERecv<StaticActionKind> a = mf.StaticERecv(t.src, op, t.pays.get(op));
             GTEState succ = construct(com, recs, e.getValue());
             s.addEdge(a, succ);
         }

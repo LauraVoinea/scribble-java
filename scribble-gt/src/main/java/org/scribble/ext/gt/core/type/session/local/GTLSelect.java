@@ -2,7 +2,6 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -25,10 +24,10 @@ public class GTLSelect implements GTLType {
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
 
     public final Role dst;
-    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
+    public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTLType> cases;  // Pre: Unmodifiable
 
-    protected GTLSelect(Role dst, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTLType> cases) {
+    protected GTLSelect(Role dst, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTLType> cases) {
         this.dst = dst;
         this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,

@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.ast.MsgNode;
 import org.scribble.ast.SigLitNode;
 import org.scribble.ast.global.*;
-import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
@@ -91,13 +90,9 @@ public class GTGTypeTranslator3 {
         }
         Role dst = dsts.get(0);
 
-        LinkedHashMap<Op, DataName> pays = new LinkedHashMap<>();
+        LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         Payload payload = ((SigLitNode) m).getPayloadListChild().toPayload();
-        if (payload.elems.size() > 1) {
-            throw new RuntimeException("TODO: " + payload);
-        } else if (payload.elems.size() == 1) {
-            pays.put(op, (DataName) payload.elems.get(0));
-        }
+        pays.put(op, payload);
 
         return this.fact.choice(src, dst, pays, cs);
     }
@@ -107,7 +102,7 @@ public class GTGTypeTranslator3 {
         List<GProtoBlock> bs = g.getBlockChildren();
         List<GTGType> cs = bs.stream().map(x -> translate(x))
                              .collect(Collectors.toUnmodifiableList());  // cs.len > 0
-        LinkedHashMap<Op, DataName> pays = new LinkedHashMap<>();
+        LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
         Role dst = null;
         for (GTGType c : cs) {

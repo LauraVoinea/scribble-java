@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
-import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -32,10 +31,10 @@ public class GTGInteraction implements GTGType {
 
     public final Role src;
     public final Role dst;
-    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
+    public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTGType> cases;  // Pre: "Ordered", Unmodifiable, non-empty
 
-    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
         this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(

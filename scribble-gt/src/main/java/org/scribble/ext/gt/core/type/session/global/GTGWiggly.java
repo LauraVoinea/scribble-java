@@ -4,7 +4,6 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.MActionBase;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -35,10 +34,10 @@ public class GTGWiggly implements GTGType {
     public final Role src;
     public final Role dst;
     public final Op op;  // Pre: this.cases.containsKey(this.op)
-    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
+    public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTGType> cases;
 
-    protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
         this.op = op;
