@@ -508,9 +508,11 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public String toString() {
-        return ConsoleColors.toMixedChoiceString("(" + this.left + " " + ConsoleColors.WHITE_TRIANGLE
+        return ConsoleColors.toMixedChoiceString("(" + this.left)
+                + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE  // XXX not fully working, cf. ConsoleColors reset and nested
                 + this.c + ":" + this.other + "->" + this.observer
-                + " " + this.right + ")");
+                + " " + this.right)
+                + ConsoleColors.toMixedChoiceString(")");
     }
 
     /* hashCode, equals, canEquals */

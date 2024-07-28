@@ -278,6 +278,9 @@ public class GTCommandLine extends CommandLine {
             }
             GTCorrespondence s = proj.getRight();
 
+            System.out.println("\n[GTCommandLine] projected:\n"
+                    + s.local.configs.values().stream().map(x -> x.self + "=" + x.type).collect(Collectors.joining("\n")));
+
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
