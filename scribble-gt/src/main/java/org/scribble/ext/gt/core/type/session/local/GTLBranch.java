@@ -2,9 +2,7 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.type.name.Op;
-import org.scribble.core.type.name.RecVar;
-import org.scribble.core.type.name.Role;
+import org.scribble.core.type.name.*;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -25,10 +23,14 @@ public class GTLBranch implements GTLType {
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
 
     public final Role src;  // Sender
+    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTLType> cases;  // Pre: Unmodifiable
 
-    protected GTLBranch(Role src, LinkedHashMap<Op, GTLType> cases) {
+    protected GTLBranch(Role src, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTLType> cases) {
         this.src = src;
+        this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
@@ -43,6 +45,7 @@ public class GTLBranch implements GTLType {
         if (!this.src.equals(cast.src)) {
             return Optional.empty();
         }
+        LinkedHashMap<Op, DataName> pays = new LinkedHashMap<>();
         LinkedHashMap<Op, GTLType> tmp = new LinkedHashMap<>();
         Iterator<Op> it = Stream.of(this.cases.keySet(), cast.cases.keySet()).flatMap(Collection::stream).iterator();
         while (it.hasNext()) {
@@ -55,14 +58,23 @@ public class GTLBranch implements GTLType {
                         return Optional.empty();
                     }
                     tmp.put(x, opt.get());
+                    if (this.pays.containsKey(x)) {
+                        pays.put(x, this.pays.get(x));
+                    }
                 } else {
                     tmp.put(x, this.cases.get(x));
+                    if (this.pays.containsKey(x)) {
+                        pays.put(x, this.pays.get(x));
+                    }
                 }
             } else { //if (cast.cases.keySet().contains(x)) {
                 tmp.put(x, cast.cases.get(x));
+                if (cast.pays.containsKey(x)) {
+                    pays.put(x, cast.pays.get(x));
+                }
             }
         }
-        return Optional.of(this.fact.branch(this.src, tmp));
+        return Optional.of(this.fact.branch(this.src, pays, tmp));
     }
 
     /* ... */
@@ -72,7 +84,7 @@ public class GTLBranch implements GTLType {
     public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         Optional<GTESend<DynamicActionKind>> first = sigma.map.get(this.src)
-                .stream().filter(x -> x.c == c && x.n == n).findFirst();
+                                                              .stream().filter(x -> x.c == c && x.n == n).findFirst();
         if (first.isPresent()) {
             GTESend<DynamicActionKind> m = first.get();
             //return Stream.of(m.toDynamicDual(this.src)).collect(Collectors.toCollection(LinkedHashSet::new));
@@ -146,25 +158,25 @@ public class GTLBranch implements GTLType {
     @Override
     public Map<Integer, Integer> getActive(Theta theta) {
         return this.cases.values().stream()
-                .flatMap(x -> x.getActive(theta).entrySet().stream())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (x, y) -> x < y ? x : y,
-                        LinkedHashMap::new
-                ));
+                         .flatMap(x -> x.getActive(theta).entrySet().stream())
+                         .collect(Collectors.toMap(
+                                 Map.Entry::getKey,
+                                 Map.Entry::getValue,
+                                 (x, y) -> x < y ? x : y,
+                                 LinkedHashMap::new
+                         ));
     }
 
     @Override
     public GTLBranch subs(RecVar rv, GTLType t) {
         LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().subs(rv, t),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return this.fact.branch(this.src, cases);
+                                                     .collect(Collectors.toMap(
+                                                             Map.Entry::getKey,
+                                                             x -> x.getValue().subs(rv, t),
+                                                             (x, y) -> null,
+                                                             LinkedHashMap::new
+                                                     ));
+        return this.fact.branch(this.src, new LinkedHashMap<>(this.pays), cases);
     }
 
     @Override
@@ -176,10 +188,15 @@ public class GTLBranch implements GTLType {
     public String toString() {
         return this.src + "&{"
                 + this.cases.entrySet().stream()
-                .map(e -> e.getKey() + "." + e.getValue())
-                .collect(Collectors.joining(", "))
+                            .map(e -> msgToString(e.getKey()) + "." + e.getValue())
+                            .collect(Collectors.joining(", "))
                 + "}";
     }
+
+    protected String msgToString(Op op) {
+        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+    }
+
 
     /* hashCode, equals, canEquals */
 
@@ -187,6 +204,7 @@ public class GTLBranch implements GTLType {
     public int hashCode() {
         int hash = GTLType.BRANCH_HASH;
         hash = 31 * hash + this.src.hashCode();
+        hash = 31 * hash + this.pays.hashCode();
         hash = 31 * hash + this.cases.hashCode();
         return hash;
     }
@@ -198,6 +216,7 @@ public class GTLBranch implements GTLType {
         GTLBranch them = (GTLBranch) obj;
         return them.canEquals(this)
                 && this.src.equals(them.src)
+                && this.pays.equals(them.pays)
                 && this.cases.equals(them.cases);
     }
 

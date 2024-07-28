@@ -3,6 +3,7 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -31,11 +32,15 @@ public class GTGInteraction implements GTGType {
 
     public final Role src;
     public final Role dst;
+    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTGType> cases;  // Pre: "Ordered", Unmodifiable, non-empty
 
-    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
+        this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
@@ -199,11 +204,12 @@ public class GTGInteraction implements GTGType {
                     return Optional.empty();
                 }
 
-                cases.put(e.getKey(), p.left);
+                Op op = e.getKey();
+                cases.put(op, p.left);
             }
             return r.equals(this.src)
-                   ? Optional.of(new Pair<>(lf.select(this.dst, cases), sigma))
-                   : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
+                   ? Optional.of(new Pair<>(lf.select(this.dst, new LinkedHashMap<>(this.pays), cases), sigma))
+                   : Optional.of(new Pair<>(lf.branch(this.src, new LinkedHashMap<>(this.pays), cases), sigma));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));
@@ -278,7 +284,7 @@ public class GTGInteraction implements GTGType {
                         && cast.c == c && cast.n == n) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    GTGWiggly succ = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp);
+                    GTGWiggly succ = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, new LinkedHashMap<>(this.pays), tmp);
                     return Either.right(new Triple<>(theta, succ, Tree.of(
                             toStepJudgeString("[Snd]", c, n, theta, this, cast, theta, succ))));
                 }
@@ -291,7 +297,7 @@ public class GTGInteraction implements GTGType {
             Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> nested =
                     stepNested(this.cases, theta, a, c, n);
             return nested.mapRight(x -> {
-                GTGInteraction succ = this.fact.choice(this.src, this.dst, x.mid);
+                GTGInteraction succ = this.fact.choice(this.src, this.dst, new LinkedHashMap<>(this.pays), x.mid);
                 return Triple.of(x.left, succ, Tree.of(
                         toStepJudgeString("[Cont1]", c, n, theta, this, (GTSAction) a, x.left, succ),
                         x.right));
@@ -492,7 +498,7 @@ public class GTGInteraction implements GTGType {
                                                              (x, y) -> null,
                                                              LinkedHashMap::new
                                                      ));
-        return new GTGInteraction(this.src, this.dst, cases);
+        return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), cases);
     }
 
     @Override
@@ -551,8 +557,13 @@ public class GTGInteraction implements GTGType {
     public String toString() {
         return this.src + "->" + this.dst
                 + "{" + this.cases.entrySet().stream()
-                                  .map(e -> e.getKey() + "." + e.getValue())
+                                  .map(e -> msgToString(e.getKey()) + "." + e.getValue())
                                   .collect(Collectors.joining(", ")) + "}";
+    }
+
+    protected String msgToString(Op op) {
+        //return op + "(" + this.pays.get(op) + ")";
+        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
     }
 
     /* hashCode, equals, canEquals */
@@ -562,6 +573,7 @@ public class GTGInteraction implements GTGType {
         int hash = GTGType.GLOBAL_CHOICE_HASH;
         hash = 31 * hash + this.src.hashCode();
         hash = 31 * hash + this.dst.hashCode();
+        hash = 31 * hash + this.pays.hashCode();
         hash = 31 * hash + this.cases.hashCode();
         return hash;
     }
@@ -574,6 +586,7 @@ public class GTGInteraction implements GTGType {
         return them.canEquals(this)
                 && this.src.equals(them.src)
                 && this.dst.equals(them.dst)
+                && this.pays.equals(them.pays)
                 && this.cases.equals(them.cases);
     }
 

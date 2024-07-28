@@ -4,6 +4,7 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.MActionBase;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SRecv;
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -34,12 +35,16 @@ public class GTGWiggly implements GTGType {
     public final Role src;
     public final Role dst;
     public final Op op;  // Pre: this.cases.containsKey(this.op)
+    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTGType> cases;
 
-    protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
         this.op = op;
+        this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
@@ -208,7 +213,7 @@ public class GTGWiggly implements GTGType {
 
             tmp.put(this.src, as);
             sigma_k = new Sigma(tmp);
-            return Optional.of(new Pair<>(lf.branch(this.src, cases), sigma_k));
+            return Optional.of(new Pair<>(lf.branch(this.src, new LinkedHashMap<>(this.pays), cases), sigma_k));
         } else {
             /*Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(rs, r, c, n));
@@ -299,7 +304,7 @@ public class GTGWiggly implements GTGType {
             Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> nested
                     = stepNested(theta, a, c, n);
             return nested.mapRight(x -> {
-                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, x.mid);
+                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, new LinkedHashMap<>(this.pays), x.mid);
                 return Triple.of(x.left, succ, Tree.of(
                         toStepJudgeString("[Cont2]", c, n, theta, this, (GTSAction) a, x.left, succ),
                         x.right));
@@ -382,7 +387,7 @@ public class GTGWiggly implements GTGType {
                     = weakStepNested(theta, a, c, n);
 
             return nested.mapRight(x -> {
-                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, x.mid);
+                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, new LinkedHashMap<>(this.pays), x.mid);
                 return Triple.of(x.left, succ, Tree.of(
                         toStepJudgeString("[Cont2]", c, n, theta, this, (GTSAction) a, x.left, succ),
                         x.right));
@@ -470,7 +475,7 @@ public class GTGWiggly implements GTGType {
                                                              (x, y) -> null,
                                                              LinkedHashMap::new
                                                      ));
-        return new GTGWiggly(this.src, this.dst, this.op, cases);
+        return new GTGWiggly(this.src, this.dst, this.op, new LinkedHashMap<>(this.pays), cases);
     }
 
     @Override
@@ -517,8 +522,12 @@ public class GTGWiggly implements GTGType {
     public String toString() {
         return this.src + "~>" + this.dst + ":" + this.op
                 + "{" + this.cases.entrySet().stream()
-                                  .map(e -> e.getKey() + "." + e.getValue())
+                                  .map(e -> msgToString(e.getKey()) + "." + e.getValue())
                                   .collect(Collectors.joining(", ")) + "}";
+    }
+
+    protected String msgToString(Op op) {
+        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
     }
 
     /* hashCode, equals, canEquals */

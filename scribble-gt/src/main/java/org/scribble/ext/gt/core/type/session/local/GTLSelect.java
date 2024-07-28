@@ -2,6 +2,7 @@ package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -24,10 +25,14 @@ public class GTLSelect implements GTLType {
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
 
     public final Role dst;
+    public final Map<Op, DataName> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTLType> cases;  // Pre: Unmodifiable
 
-    protected GTLSelect(Role dst, LinkedHashMap<Op, GTLType> cases) {
+    protected GTLSelect(Role dst, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTLType> cases) {
         this.dst = dst;
+        this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
@@ -53,13 +58,13 @@ public class GTLSelect implements GTLType {
                 .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
                 .collect(Collectors.toCollection(LinkedHashSet::new));*/
         return this.cases.entrySet().stream()
-                .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
-                .collect(Collectors.toMap(
-                        x -> x,
-                        x -> Collections.emptySet(),
-                        (x, y) -> x,
-                        LinkedHashMap::new
-                ));
+                         .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
+                         .collect(Collectors.toMap(
+                                 x -> x,
+                                 x -> Collections.emptySet(),
+                                 (x, y) -> x,
+                                 LinkedHashMap::new
+                         ));
     }
 
     @Override
@@ -104,8 +109,8 @@ public class GTLSelect implements GTLType {
         //return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());  // XXX must do recursive getWeakAct
 
         return new LinkedHashSet<>(this.cases.entrySet().stream()
-                .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
-                .collect(Collectors.toSet()));
+                                             .map(x -> mf.DynamicGTESend(this.dst, x.getKey(), Payload.EMPTY_PAYLOAD, c, n))  // FIXME pay
+                                             .collect(Collectors.toSet()));
     }
 
     @Override
@@ -120,25 +125,25 @@ public class GTLSelect implements GTLType {
     @Override
     public Map<Integer, Integer> getActive(Theta theta) {
         return this.cases.values().stream()
-                .flatMap(x -> x.getActive(theta).entrySet().stream())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (x, y) -> x < y ? x : y,
-                        LinkedHashMap::new
-                ));
+                         .flatMap(x -> x.getActive(theta).entrySet().stream())
+                         .collect(Collectors.toMap(
+                                 Map.Entry::getKey,
+                                 Map.Entry::getValue,
+                                 (x, y) -> x < y ? x : y,
+                                 LinkedHashMap::new
+                         ));
     }
 
     @Override
     public GTLSelect subs(RecVar rv, GTLType t) {
         LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().subs(rv, t),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return this.fact.select(this.dst, cases);
+                                                     .collect(Collectors.toMap(
+                                                             Map.Entry::getKey,
+                                                             x -> x.getValue().subs(rv, t),
+                                                             (x, y) -> null,
+                                                             LinkedHashMap::new
+                                                     ));
+        return this.fact.select(this.dst, new LinkedHashMap<>(this.pays), cases);
     }
 
     @Override
@@ -150,9 +155,13 @@ public class GTLSelect implements GTLType {
     public String toString() {
         return this.dst + (ConsoleColors.OLPLUS + "{")
                 + this.cases.entrySet().stream()
-                .map(e -> e.getKey() + "." + e.getValue())
-                .collect(Collectors.joining(", "))
+                            .map(e -> msgToString(e.getKey()) + "." + e.getValue())
+                            .collect(Collectors.joining(", "))
                 + "}";
+    }
+
+    protected String msgToString(Op op) {
+        return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
     }
 
     /* hashCode, equals, canEquals */
@@ -161,6 +170,7 @@ public class GTLSelect implements GTLType {
     public int hashCode() {
         int hash = GTLType.SELECT_HASH;
         hash = 31 * hash + this.dst.hashCode();
+        hash = 31 * hash + this.pays.hashCode();
         hash = 31 * hash + this.cases.hashCode();
         return hash;
     }
@@ -172,6 +182,7 @@ public class GTLSelect implements GTLType {
         GTLSelect them = (GTLSelect) obj;
         return them.canEquals(this)
                 && this.dst.equals(them.dst)
+                && this.pays.equals(them.pays)
                 && this.cases.equals(them.cases);
     }
 

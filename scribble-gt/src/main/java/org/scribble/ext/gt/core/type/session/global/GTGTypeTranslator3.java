@@ -1,11 +1,12 @@
 package org.scribble.ext.gt.core.type.session.global;
 
 import org.scribble.ast.MsgNode;
-import org.scribble.ast.RoleArgList;
 import org.scribble.ast.SigLitNode;
 import org.scribble.ast.global.*;
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 
@@ -89,14 +90,24 @@ public class GTGTypeTranslator3 {
             throw new RuntimeException("TODO: " + g);
         }
         Role dst = dsts.get(0);
-        return this.fact.choice(src, dst, cs);
+
+        LinkedHashMap<Op, DataName> pays = new LinkedHashMap<>();
+        Payload payload = ((SigLitNode) m).getPayloadListChild().toPayload();
+        if (payload.elems.size() > 1) {
+            throw new RuntimeException("TODO: " + payload);
+        } else if (payload.elems.size() == 1) {
+            pays.put(op, (DataName) payload.elems.get(0));
+        }
+
+        return this.fact.choice(src, dst, pays, cs);
     }
 
     // Pre: role enabling OK (choice subj = first senders)
     protected GTGInteraction translateGChoice(GChoice g) {
         List<GProtoBlock> bs = g.getBlockChildren();
         List<GTGType> cs = bs.stream().map(x -> translate(x))
-                .collect(Collectors.toUnmodifiableList());  // cs.len > 0
+                             .collect(Collectors.toUnmodifiableList());  // cs.len > 0
+        LinkedHashMap<Op, DataName> pays = new LinkedHashMap<>();
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
         Role dst = null;
         for (GTGType c : cs) {
@@ -109,10 +120,12 @@ public class GTGTypeTranslator3 {
             } else if (!dst.equals(cast.dst)) {
                 throw new RuntimeException("Non-directed choice: " + g);
             }
+            pays.putAll(cast.pays);
             ds.putAll(cast.cases);
         }
         Role subj = g.getSubjectChild().toName();
-        return this.fact.choice(subj, dst, ds);
+
+        return this.fact.choice(subj, dst, pays, ds);
     }
 
     protected GTGRecursion translateGRecursion(GRecursion g) {

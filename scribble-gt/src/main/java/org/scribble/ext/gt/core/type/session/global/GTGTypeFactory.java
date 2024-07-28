@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.type.session.global;
 
+import org.scribble.core.type.name.DataName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -14,12 +15,12 @@ public class GTGTypeFactory {
     protected GTGTypeFactory() {
     }
 
-    public GTGInteraction choice(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
-        return new GTGInteraction(src, dst, cases);
+    public GTGInteraction choice(Role src, Role dst, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTGType> cases) {
+        return new GTGInteraction(src, dst, pays, cases);
     }
 
-    public GTGWiggly wiggly(Role src, Role dst, Op op, LinkedHashMap<Op, GTGType> cases) {
-        return new GTGWiggly(src, dst, op, cases);
+    public GTGWiggly wiggly(Role src, Role dst, Op op, LinkedHashMap<Op, DataName> pays, LinkedHashMap<Op, GTGType> cases) {
+        return new GTGWiggly(src, dst, op, pays, cases);
     }
 
     public GTGRecursion recursion(RecVar var, GTGType body) {
