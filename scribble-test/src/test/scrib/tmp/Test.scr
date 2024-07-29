@@ -540,6 +540,7 @@ global protocol PPP(role A, role B) {
 
 
 
+/*/
 global protocol Nested(role Alice, role Bob) {
     mixed {
         ping1() from Alice to Bob;
@@ -553,6 +554,34 @@ global protocol Nested(role Alice, role Bob) {
        error1() from Bob to Alice;
     }
 }
+//*/
+
+//*/
+global protocol Proto1(role A, role B) {
+    mixed {
+        ping1() from A to B;
+        pong1() from B to A;
+        /*a() from B to A;
+        b() from A to B;*/
+    } () or A -> B () {
+        error1() from B to A;
+    }
+}
+//*/
+
+/*/
+global protocol Proto1(role A, role B) {
+    rec X {
+        ping1() from A to B;
+        choice at B {
+            pong1() from B to A;
+            continue X;
+        } or {
+            pong2() from B to A;
+        }
+    }
+}
+//*/
 
 
 

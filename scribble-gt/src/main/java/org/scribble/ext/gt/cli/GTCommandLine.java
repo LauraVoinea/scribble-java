@@ -283,7 +283,7 @@ public class GTCommandLine extends CommandLine {
 
             for (GTLConfig x : s.local.configs.values()) {
                 GTEState init = new GTFsmConstructor().construct(com, x.type);
-                System.out.println("\n[GTCommandLine] FSM for " + x.self + ": " + init.toDot());
+                System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
             }
 
             // Check correspondence

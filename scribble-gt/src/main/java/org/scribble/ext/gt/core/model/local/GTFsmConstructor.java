@@ -18,6 +18,7 @@ public class GTFsmConstructor {
     public static final GTEModelFactory mf = (GTEModelFactory) GTEModelFactoryImpl.FACTORY.local;
 
     public GTEState construct(Set<Op> com, GTLType t) {
+        System.out.println("aaaa: " + com);
         return construct(com, new HashMap<>(), newState(), t, newState());
     }
 
@@ -25,7 +26,7 @@ public class GTFsmConstructor {
         return new GTEState(Collections.emptySet());
     }
 
-    // HERE HERE Optional<Pair<GTEState, EAction<StaticActionKind>> prev
+    // HERE HERE Optional<Triple<GTEState, EAction<StaticActionKind>, GTEState> pending
     protected GTEState construct(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLType t, GTEState s) {
         if (t instanceof GTLBranch) {
             return constructBranch(com, recs, end, (GTLBranch) t, s);
