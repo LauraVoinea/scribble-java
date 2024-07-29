@@ -8,10 +8,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.gt.core.type.session.local.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GTFsmConstructor {
 
@@ -82,7 +79,12 @@ public class GTFsmConstructor {
     protected GTEState constructMixed(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLMixedChoice t, GTEState s) {
         GTEState left = construct(com, recs, end, t.left, newState());
         GTEState right = construct(com, recs, end, t.right, newState());
-
+        List<EAction<StaticActionKind>> as = right.getActions();
+        if (as.size() != 1) {
+            throw new RuntimeException("CHECKME " + as);
+        }
+        EAction<StaticActionKind> fst = as.get(0);
+        join(new HashSet<>(), com, left, fst, right.getDetSuccessor(fst));
         return left;
     }
 
@@ -91,9 +93,9 @@ public class GTFsmConstructor {
             return;
         }
         seen.add(left.id);
-        for (EAction<StaticActionKind> a : left.getActions()) {
-            if (!com.contains(a)) {
-                left.addEdge(aRight, rightSucc);
+        left.addEdge(aRight, rightSucc);
+        for (EAction<StaticActionKind> a : new ArrayList<>(left.getActions())) {
+            if (!com.contains((Op) a.mid)) {
                 join(seen, com, left.getDetSuccessor(a), aRight, rightSucc);
             }
         }
