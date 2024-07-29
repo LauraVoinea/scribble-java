@@ -161,17 +161,17 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     Map<Role, Set<Role>> getStrongDeps();
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
-    default Set<Op> getCommittingTop() {
+    default Map<Role, Set<Op>> getCommittingTop() {
         return getCommittingTop(GTUtil.setOf());
     }
 
-    Set<Op> getCommittingTop(Set<Role> com);
+    Map<Role, Set<Op>> getCommittingTop(Set<Role> com);
 
     // com does NOT contain obs by default
-    Set<Op> getCommittingLeft(Role obs, Set<Role> com);
+    Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com);
 
     // com does NOT contain obs by default
-    Set<Op> getCommittingRight(Role obs, Set<Role> com);
+    Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com);
 
 
     /* ... */

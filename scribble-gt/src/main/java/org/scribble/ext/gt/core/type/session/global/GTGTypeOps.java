@@ -82,7 +82,7 @@ public interface GTGTypeOps extends GTSessType {
     Map<Role, Set<Role>> getStrongDeps();
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
-    Set<Op> getCommittingTop();
+    Map<Role, Set<Op>> getCommittingTop();
 
 
     /* ... */

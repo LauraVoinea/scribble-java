@@ -444,17 +444,17 @@ public class GTGWiggly implements GTGType {
     /* ... */
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 

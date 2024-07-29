@@ -427,41 +427,52 @@ public class GTGInteraction implements GTGType {
     /* ... */
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        Set<Op> res = GTUtil.setOf();
-        this.cases.values()
-                  .forEach(x -> res.addAll(x.getCommittingTop(com)));
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
+        Map<Role, Set<Op>> res = GTUtil.mapOf();
+        this.cases.values().forEach(x -> res.putAll(x.getCommittingTop(com)));
         return res;
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        Set<Op> res = GTUtil.setOf();
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
+        Map<Role, Set<Op>> res = GTUtil.mapOf();
         Set<Role> com1 = GTUtil.copyOf(com);
         if ((this.dst.equals(obs) && !com.contains(obs))  // src doesn't need to be com, cf. below case
                 || (com.contains(this.src) && !com.contains(this.dst))) {
-            res.addAll(this.cases.keySet());
+            Set<Op> ops = res.computeIfAbsent(this.dst, x -> new HashSet<>());
+            ops.addAll(this.cases.keySet());
             com1.add(this.dst);
         }
-        this.cases.values().stream()
-                  .forEach(x -> res.addAll(x.getCommittingLeft(obs, com1)));
+        this.cases.values().forEach(x ->
+                x.getCommittingLeft(obs, com1).forEach((k, v) -> {
+                    Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
+                    ops.addAll(v);
+                }));
         return res;
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        Set<Op> res = GTUtil.setOf();
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
+        Map<Role, Set<Op>> res = GTUtil.mapOf();
         Set<Role> com1 = GTUtil.copyOf(com);
         if (!com.contains(this.src) && this.src.equals(obs)) {
-            res.addAll(this.cases.keySet());
+            Set<Op> ops1 = res.computeIfAbsent(obs, x -> new HashSet<>());
+            ops1.addAll(this.cases.keySet());
             com1.add(obs);
+            Set<Op> ops2 = res.computeIfAbsent(this.dst, x -> new HashSet<>());  // dst != obs because obs = src
+            ops2.addAll(this.cases.keySet());
             com1.add(this.dst);
         } else if (com.contains(this.src) && !com.contains(this.dst)) {
-            res.addAll(this.cases.keySet());
+            Set<Op> v = res.computeIfAbsent(this.dst, x -> new HashSet<>());
+            v.addAll(this.cases.keySet());
             com1.add(this.dst);
         }
-        this.cases.values().stream()
-                  .forEach(x -> res.addAll(x.getCommittingRight(obs, com1)));
+        //this.cases.values().stream().forEach(x -> res.putAll(x.getCommittingRight(obs, com1)));
+        this.cases.values().forEach(x ->
+                x.getCommittingRight(obs, com1).forEach((k, v) -> {
+                    Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
+                    ops.addAll(v);
+                }));
         return res;
     }
 

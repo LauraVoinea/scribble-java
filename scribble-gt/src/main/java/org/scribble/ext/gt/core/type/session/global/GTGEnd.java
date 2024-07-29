@@ -147,18 +147,18 @@ public class GTGEnd implements GTGType {
     /* ... */
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override

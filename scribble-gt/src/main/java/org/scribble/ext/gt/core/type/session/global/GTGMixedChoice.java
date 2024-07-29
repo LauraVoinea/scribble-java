@@ -409,22 +409,27 @@ public class GTGMixedChoice implements GTGType {
     /* ... */
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         /*Set<Op> res = this.left.getCommittingLeft(this.observer, com);
         res.addAll(this.right.getCommittingRight(this.observer, com));*/
-        Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
-        res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
+        //Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
+        //res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
+        Map<Role, Set<Op>> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
+        this.right.getCommittingRight(this.observer, GTUtil.setOf()).forEach((k, v) -> {
+            Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
+            ops.addAll(v);
+        });
         return res;
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
         //return getCommittingTop();
         return getCommittingTop(com);
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
         //return getCommittingTop();
         return getCommittingTop(com);
     }

@@ -276,13 +276,13 @@ public class GTCommandLine extends CommandLine {
                 return Optional.of(proj.getLeft());
             }
             GTCorrespondence s = proj.getRight();
-            Set<Op> com = GTUtil.umod(translate.getCommittingTop());
+            Map<Role, Set<Op>> com = GTUtil.umod(translate.getCommittingTop());
 
             System.out.println("\n[GTCommandLine] projected:\n"
                     + s.local.configs.values().stream().map(x -> x.self + "=" + x.type).collect(Collectors.joining("\n")));
 
             for (GTLConfig x : s.local.configs.values()) {
-                GTEState init = new GTFsmConstructor().construct(com, x.type);
+                GTEState init = new GTFsmConstructor().construct(com.get(x.self), x.type);
                 System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
             }
 
@@ -342,7 +342,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj) {
         mystep = 1;
         return checkExecutionAux2(core, indent, s, step, MAX, unfolds, depth, tids, labs, com,
@@ -361,7 +361,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
     ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
@@ -448,7 +448,7 @@ public class GTCommandLine extends CommandLine {
                 // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
 
                 Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
-                        s.local.step(com, r, a);
+                        s.local.step(com.get(r), r, a);
 
                 //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
@@ -474,7 +474,7 @@ public class GTCommandLine extends CommandLine {
                 /*
                 GTLSystem gc = sys1.left;
                 /*/
-                GTLSystem ff = ffweak(lmf, com, t1, sys1.left, r);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
+                GTLSystem ff = ffweak(lmf, com.get(r), t1, sys1.left, r);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
                 if (!ff.equals(sys1.left)) {
                     debugPrintln(debug, indent + "Catch up: ... --" + ConsoleColors.NU + "-" + ConsoleColors.RIGHT_ARROW + ConsoleColors.SUPER_PLUS + " " + ff);//....toString(indent + "ff " + ConsoleColors.NU + ": " + ff));
                 }
@@ -558,7 +558,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj) {
         mystep = 1;
         return checkExecutionAux(core, indent, s, step, MAX, unfolds, depth, tids, labs, com,
@@ -572,7 +572,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
     ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
@@ -670,14 +670,14 @@ public class GTCommandLine extends CommandLine {
                     + ConsoleColors.VDASH + " " + s.local + " --" + a.subj + ":" + a_r + "--> ...");
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
             if (a_r instanceof GTENewTimeout) {
-                GTLSystem ff = ffweak(lmf, com, g_step.left, s.local, null);  // !!! g_step.left
+                GTLSystem ff = ffweak(lmf, Collections.emptySet(), g_step.left, s.local, null);  // !!! g_step.left  // CHECKME empty com
                 sys1 = new Pair<>(ff, Tree.of("[FF] ... --> " + ff.toString()));
             } else {
                 Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
 
                         ////s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
                         //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
-                        s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                        s.local.step(com.get(a.subj), a.subj, (EAction<DynamicActionKind>) a_r);
 
                 //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
