@@ -67,10 +67,18 @@ public class GTCommandLine extends CommandLine {
     static Map<GProtoName, GTGType> getTranslated(GTCommandLine cl) {
         Map<GProtoName, GTGType> res = new HashMap<>();
 
-        Core core = cl.getJob().getCore();
+        Job job = cl.getJob();
+        Core core = job.getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
-        Map<ModuleName, Module> parsed = cl.main.getParsedModules();  // !!! Using main rather than job
+        /*try {
+            job.runVisitorPassOnAllModules(job.config.vf.NameDisambiguator(job));  // Includes validating names used in subprotocol calls..
+        } catch (ScribException e) {
+            e.printStackTrace();
+        }*/
+
+        //Map<ModuleName, Module> parsed = cl.main.getParsedModules();  // XXX original source, no disamb
+        Map<ModuleName, Module> parsed = job.getContext().getParsed();  // !!! post disamb
         if (debug) {
             System.out.println("\n----- GT -----\n");
             System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
@@ -101,6 +109,9 @@ public class GTCommandLine extends CommandLine {
             throws
             AntlrSourceException, ScribParserException,  // Latter in case needed by subclasses
             CommandLineException {
+
+        System.out.println("abcdef");
+
         job.runPasses();
 
         //job.getCore().runPasses();  // HERE HERE FIXME: base imed GTGMixedChoice visit/agg/gather overrides

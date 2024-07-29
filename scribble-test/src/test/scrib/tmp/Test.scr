@@ -557,14 +557,16 @@ global protocol Nested(role Alice, role Bob) {
 //*/
 
 //*/
+type <java> "java.lang.String" from "rt.jar" as String;
+
 global protocol Proto1(role A, role B) {
     mixed {
-        ping1() from A to B;
-        pong1() from B to A;
+        ping1(String) from A to B;
+        pong1(String) from B to A;
         /*a() from B to A;
         b() from A to B;*/
     } () or A -> B () {
-        error1() from B to A;
+        error1(String) from B to A;
     }
 }
 //*/

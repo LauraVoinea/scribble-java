@@ -28,7 +28,7 @@ public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel {
 
     @Override
     public GNode translate(ScribNode n, GTypeTranslator t) {
-        return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel
+        return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel  // Currently Core not used -- GTCommandLine takes JobConfig parsed (post disamb)
         ////throw new RuntimeException("TODO");  // HERE HERE in base core MixedChoice, override visit methods to do general homomorphic visit of mixed choice
 
         /* cf. GTGTypeTranslator2
