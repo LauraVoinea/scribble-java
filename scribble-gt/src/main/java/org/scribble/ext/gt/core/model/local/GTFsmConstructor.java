@@ -76,7 +76,7 @@ public class GTFsmConstructor {
 
     // Pre: t.right init is not recursive
     protected GTEState constructMixed(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLMixedChoice t, GTEState s) {
-        GTEState left = construct(com, recs, end, t.left, newState());
+        GTEState left = construct(com, recs, end, t.left, s);
         GTEState right = construct(com, recs, end, t.right, newState());
         List<EAction<StaticActionKind>> as = right.getActions();
         if (as.size() != 1) {
