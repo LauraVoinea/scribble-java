@@ -75,7 +75,7 @@ public class GTApiGen {
         String name = "send_" + a.peer + "_" + a.mid;
         List<GParam> params = List.of(new GParam(List.of(), getPayType(a.payload), "x"));
         String ret = getStateTypeName(names, succ);
-        String body = "return " + ret + "();";  // TODO
+        String body = "return new " + ret + "();";  // TODO
 
         return new GMethod(mods, name, List.of(), params, ret, body);
     }
