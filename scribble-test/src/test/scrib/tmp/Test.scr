@@ -538,7 +538,23 @@ global protocol PPP(role A, role B) {
 
 
 
-/*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*/ // Testing CFSM translation
 global protocol Proto1(role A, role B) {
     rec X {
         ping1() from A to B;
@@ -568,7 +584,7 @@ global protocol Proto1(role A, role B) {
 /*/
 global protocol Nested(role Alice, role Bob) {
     mixed {
-        ping1() from Alice to Bob;
+        ping1() from Alice to Bob;   // A -> B: ping1
         mixed {
             ping2() from Bob to Alice;
             pong2() from Alice to Bob;
@@ -614,7 +630,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-//*/
+/*/
 global protocol Proto1(role A, role B) {
     rec Y {
         c() from B to A;  // !!! non blocking for B with error1
@@ -624,7 +640,7 @@ global protocol Proto1(role A, role B) {
                 pong1(String) from B to A;  // !!! conservative left committing
                 continue X;
             } () or A -> B () {
-                error1(String) from B to A;
+                error1(String) from B to A;  // XXX RHS exception for A -- but cf. ping1, LHS _not_ exception for B (XXX timeout?) -- cf. A try ?error1 and timeout? (cf. asymmetric)
                 continue Y;
             }
         }
@@ -642,6 +658,16 @@ global protocol Proto1(role A, role B) {
 
 
 
+
+
+
+
+
+
+global protocol Proto1(role A, role B) {
+    1(String) from A to B;
+    2(String) from B to A;
+}
 
 
 

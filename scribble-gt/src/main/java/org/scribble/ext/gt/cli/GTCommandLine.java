@@ -11,6 +11,7 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
+import org.scribble.ext.gt.codegen.GTApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -295,6 +296,8 @@ public class GTCommandLine extends CommandLine {
             for (GTLConfig x : s.local.configs.values()) {
                 GTEState init = new GTFsmConstructor().construct(com.get(x.self), x.type);
                 System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
+
+                System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
             }
 
             // Check correspondence

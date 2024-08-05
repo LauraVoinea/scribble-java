@@ -33,6 +33,7 @@ import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
 
+// !!! not a CFSM action...
 public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements GTEAction {
 
     public final int c;
