@@ -77,7 +77,7 @@ public class GTApiGen {
         String ret = getStateTypeName(names, succ);
         String body = "return new " + ret + "();";  // TODO
 
-        return new GMethod(mods, name, List.of(), params, ret, body);
+        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret), body);
     }
 
     protected static String getPayType(Payload pay) {
@@ -110,7 +110,7 @@ public class GTApiGen {
         String ret = getStateTypeName(names, succ);
         String body = "return new " + ret + "();";  // TODO
 
-        return new GMethod(mods, name, List.of(), params, ret, body);
+        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret), body);
     }
 
 
@@ -137,7 +137,7 @@ public class GTApiGen {
         String ret = getCasesInterfaceName(names, s);
         String body = "return null;  // TODO";  // TODO
 
-        return new GMethod(mods, name, List.of(), params, ret, body);
+        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret), body);
     }
 
     protected List<GIndentable> generateCases(Map<Integer, String> names, GProtoName proto, Role r, GTEState s) {
@@ -411,20 +411,22 @@ public class GTApiGen {
 
     class GMethod implements GIndentable {
         // TODO GMethodSig
-        public final List<String> mods;
+        /*public final List<String> mods;
         public final String name;
         public final List<GTParam> tParams;
         public final List<GParam> params;
-        public final String ret;
+        public final String ret;*/
+        public final GMethodSig sig;
 
         public final String body;
 
-        public GMethod(List<String> mods, String name, List<GTParam> tParams, List<GParam> params, String ret, String body) {
-            this.mods = List.copyOf(mods);
+        public GMethod(GMethodSig sig, String body) {
+            /*this.mods = List.copyOf(mods);
             this.name = name;
             this.tParams = List.copyOf(tParams);
             this.params = List.copyOf(params);
-            this.ret = ret;
+            this.ret = ret;*/
+            this.sig = sig;
             this.body = body;
         }
 
@@ -435,7 +437,7 @@ public class GTApiGen {
 
         @Override
         public String toString(String pref) {
-            return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + this.ret + " " + this.name + (this.tParams.isEmpty() ? "" : "[" + this.tParams.stream().map(GTParam::toString).collect(Collectors.joining(", ")) + "]") + "(" + this.params.stream().map(GParam::toString).collect(Collectors.joining(", ")) + ") {"
+            return this.sig.toString(pref) + " {"
                     + "\n" + pref + "\t" + this.body.replaceAll("\\n", "\n" + pref + "\t")
                     + "\n" + pref + "}";
         }
