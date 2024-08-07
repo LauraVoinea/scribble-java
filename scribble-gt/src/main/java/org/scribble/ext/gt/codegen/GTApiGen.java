@@ -1,22 +1,22 @@
 package org.scribble.ext.gt.codegen;
 
+import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.EStateKind;
+import org.scribble.core.model.endpoint.actions.ERecv;
 import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.local.GTEState;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GTApiGen {
 
     public static final String OSTATE_TYPE = "GTOStateChan";
     public static final String ISTATE_TYPE = "GTIStateChan";
+    public static final String BSTATE_TYPE = "GTBStateChan";
     public static final String END_TYPE = "GTEnd";
 
     public String generate(GProtoName proto, Role r, GTEState init) {
@@ -25,7 +25,7 @@ public class GTApiGen {
         reach.putAll(init.getReachableStates());
 
         Map<Integer, String> names = new LinkedHashMap<>();
-        reach.values().forEach(x -> names.put(x.id, makeName(x)));
+        reach.values().forEach(x -> names.put(x.id, makeName(proto, r, x)));
 
         //GProtoName proto = inlined.fullname.getSimpleName();
         List<GIndentable> membs = new LinkedList<>();
@@ -44,7 +44,7 @@ public class GTApiGen {
             switch (kind) {
                 case OUTPUT -> membs.add(generateOutputState(names, proto, r, s));
                 case UNARY_RECEIVE -> membs.add(generateUnaryInputState(names, proto, r, s));
-                //case POLY_RECIEVE -> membs.addAll(generateInputState(names, proto, r, s));
+                case POLY_RECIEVE -> membs.addAll(generateBranchState(names, proto, r, s));
                 case TERMINAL -> membs.add(generateTerminalState(names, proto, r, s));
                 default -> throw new RuntimeException("Unexpected state kind: " + kind);
             }
@@ -63,10 +63,10 @@ public class GTApiGen {
 
         GConstructor ctor = new GConstructor(mods, name, List.of(), List.of(), "");
 
-        List<String> supers = List.of(OSTATE_TYPE);
+        Optional<String> ext = Optional.of(OSTATE_TYPE);
         List<GMethod> methods = s.getDetActions().stream()
-                                 .map(x -> generateSend(names, (ESend<?>) x, s.getDetSuccessor(x))).toList();
-        return new GClass(mods, name, List.of(ctor), List.of(), methods, supers);
+                                 .map(x -> generateSend(names, (ESend<StaticActionKind>) x, s.getDetSuccessor(x))).toList();
+        return new GClass(mods, name, List.of(ctor), List.of(), methods, ext, List.of());
     }
 
     // ESend<StaticActionKind> from GTFsmConstructor -- GTESend is only used dynamically?
@@ -96,11 +96,76 @@ public class GTApiGen {
 
         GConstructor ctor = new GConstructor(mods, name, List.of(), List.of(), "");
 
-        List<String> supers = List.of(ISTATE_TYPE);
-        List<GMethod> methods = List.of(); //generateFinish(r));
-        return new GClass(mods, name, List.of(ctor), List.of(), methods, supers);
+        Optional<String> ext = Optional.of(ISTATE_TYPE);
+        ERecv<StaticActionKind> a = (ERecv<StaticActionKind>) s.getDetActions().get(0);
+        List<GMethod> methods = List.of(generateReceive(names, a, s.getDetSuccessor(a)));
+        return new GClass(mods, name, List.of(ctor), List.of(), methods, ext, List.of());
     }
 
+    // ESend<StaticActionKind> from GTFsmConstructor -- GTESend is only used dynamically?
+    protected GMethod generateReceive(Map<Integer, String> names, ERecv<?> a, GTEState succ) {
+        List<String> mods = List.of();
+        String name = "receive_" + a.peer + "_" + a.mid;
+        List<GParam> params = List.of(new GParam(List.of(), "Buf<" + getPayType(a.payload) + ">", "x"));
+        String ret = getStateTypeName(names, succ);
+        String body = "return new " + ret + "();";  // TODO
+
+        return new GMethod(mods, name, List.of(), params, ret, body);
+    }
+
+
+    /* ... */
+
+    protected List<GIndentable> generateBranchState(Map<Integer, String> names, GProtoName proto, Role r, GTEState s) {
+        List<String> mods = List.of();
+        String name = getStateTypeName(names, s);
+
+        GConstructor ctor = new GConstructor(mods, name, List.of(), List.of(), "");
+
+        Optional<String> ext = Optional.of(BSTATE_TYPE);
+        List<GMethod> methods = List.of(generateBranch(names, proto, r, s));
+        List<GIndentable> res = new LinkedList<>();
+        res.add(new GClass(mods, name, List.of(ctor), List.of(), methods, ext, List.of()));
+        res.addAll(generateCases(names, proto, r, s));
+        return res;
+    }
+
+    protected GMethod generateBranch(Map<Integer, String> names, GProtoName proto, Role r, GTEState s) {
+        List<String> mods = List.of();
+        String name = "branch_" + s.getDetActions().get(0).peer;
+        List<GParam> params = List.of();
+        String ret = getCasesInterfaceName(names, s);
+        String body = "return null;  // TODO";  // TODO
+
+        return new GMethod(mods, name, List.of(), params, ret, body);
+    }
+
+    protected List<GIndentable> generateCases(Map<Integer, String> names, GProtoName proto, Role r, GTEState s) {
+        List<GIndentable> res = new LinkedList<>();
+        res.add(new GInterface(List.of(), getCasesInterfaceName(names, s), List.of(), List.of(), List.of()));
+        res.addAll(s.getDetActions().stream().map(x -> generateCase(names, proto, r, s, (ERecv<StaticActionKind>) x)).toList());
+        return res;
+    }
+
+    protected GIndentable generateCase(Map<Integer, String> names, GProtoName proto, Role r, GTEState s, ERecv<StaticActionKind> a) {
+        List<String> mods = List.of();
+        String name = getCaseName(names, s, a);
+
+        GConstructor ctor = new GConstructor(mods, name, List.of(), List.of(), "");
+
+        Optional<String> ext = Optional.of(ISTATE_TYPE);
+        List<String> impls = List.of(getCasesInterfaceName(names, s));
+        List<GMethod> methods = List.of(generateReceive(names, a, s.getDetSuccessor(a)));
+        return new GClass(mods, name, List.of(ctor), List.of(), methods, ext, impls);
+    }
+
+    protected String getCasesInterfaceName(Map<Integer, String> names, GTEState s) {
+        return getStateTypeName(names, s) + "_Cases";
+    }
+
+    protected String getCaseName(Map<Integer, String> names, GTEState s, ERecv<StaticActionKind> a) {
+        return getStateTypeName(names, s) + "_" + a.mid;
+    }
 
     /* ... */
 
@@ -108,9 +173,9 @@ public class GTApiGen {
         List<String> mods = List.of();
         String name = getStateTypeName(names, s);
         List<GConstructor> ctors = List.of();
-        List<String> supers = List.of(END_TYPE);
+        Optional<String> ext = Optional.of(END_TYPE);
         List<GMethod> methods = List.of(); //generateFinish(r));
-        return new GClass(mods, name, ctors, List.of(), methods, supers);
+        return new GClass(mods, name, ctors, List.of(), methods, ext, List.of());
     }
 
 
@@ -122,8 +187,11 @@ public class GTApiGen {
 
     private int count = 1;
 
-    protected String makeName(GTEState s) {
-        return s.getActions().isEmpty() ? "End" : "S" + this.count++;
+    protected String makeName(GProtoName proto, Role r, GTEState s) {
+        return s.getActions().isEmpty()
+               ? "End"
+               : // "S" + this.count++;
+               proto + "_" + r + "_" + this.count++;
     }
 
 
@@ -216,8 +284,8 @@ public class GTApiGen {
 
     class GClass extends GClassOrCompanion {
         public GClass(List<String> mods, String name, List<GConstructor> ctors,
-                      List<GField> fields, List<GMethod> methods, List<String> supers) {
-            super("class", mods, name, ctors, fields, methods, supers);
+                      List<GField> fields, List<GMethod> methods, Optional<String> ext, List<String> impls) {
+            super("class", mods, name, ctors, fields, methods, ext, impls);
         }
     }
 
@@ -236,19 +304,21 @@ public class GTApiGen {
         public final List<GConstructor> ctors;
         public final List<GField> fields;
         public final List<GMethod> methods;
-        public final List<String> supers;
+        public final Optional<String> ext;
+        public final List<String> impls;
 
         public GClassOrCompanion(String kind, List<String> mods, String name,
                                  //List<GParam> params,
                                  List<GConstructor> ctors,
-                                 List<GField> fields, List<GMethod> methods, List<String> supers) {
+                                 List<GField> fields, List<GMethod> methods, Optional<String> ext, List<String> impls) {
             this.kind = kind;
             this.mods = List.copyOf(mods);
             this.name = name;
             this.ctors = List.copyOf(ctors);
             this.fields = List.copyOf(fields);
             this.methods = List.copyOf(methods);
-            this.supers = List.copyOf(supers);
+            this.ext = ext;
+            this.impls = List.copyOf(impls);
         }
 
         @Override
@@ -259,7 +329,9 @@ public class GTApiGen {
         @Override
         public String toString(String pref) {
             return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + this.kind + " " + this.name
-                    + (this.supers.isEmpty() ? "" : " extends " + String.join(", ", supers)) + " {\n"
+                    + (this.ext.isEmpty() ? "" : " extends " + String.join(", ", this.ext.get()))
+                    + (this.impls.isEmpty() ? "" : " implements " + String.join(", ", this.impls))
+                    + " {\n"
                     + (this.fields.isEmpty()
                        ? ""
                        : " \n" + pref + this.fields.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining("\n")) + "\n")
@@ -269,6 +341,42 @@ public class GTApiGen {
                     + (this.methods.isEmpty()
                        ? ""
                        : " \n" + pref + this.methods.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining("\n\n")) + "\n")
+                    + "}";
+        }
+    }
+
+    class GInterface implements GIndentable {
+        public final List<String> mods;
+        public final String name;
+        public final List<GField> fields;
+        public final List<GMethodSig> sigs;
+        public final List<String> exts;
+
+        public GInterface(List<String> mods, String name,
+                          List<GField> fields, List<GMethodSig> sigs, List<String> exts) {
+            this.mods = List.copyOf(mods);
+            this.name = name;
+            this.fields = List.copyOf(fields);
+            this.sigs = List.copyOf(sigs);
+            this.exts = List.copyOf(exts);
+        }
+
+        @Override
+        public String toString() {
+            return toString("");
+        }
+
+        @Override
+        public String toString(String pref) {
+            return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + "interface " + this.name
+                    + (this.exts.isEmpty() ? "" : " implements " + String.join(", ", this.exts))
+                    + " {\n"
+                    + (this.fields.isEmpty()
+                       ? ""
+                       : " \n" + pref + this.fields.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining("\n")) + "\n")
+                    + (this.sigs.isEmpty()
+                       ? ""
+                       : " \n" + pref + this.sigs.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining(";\n\n")) + "\n")
                     + "}";
         }
     }
@@ -302,11 +410,13 @@ public class GTApiGen {
     }
 
     class GMethod implements GIndentable {
+        // TODO GMethodSig
         public final List<String> mods;
         public final String name;
         public final List<GTParam> tParams;
         public final List<GParam> params;
         public final String ret;
+
         public final String body;
 
         public GMethod(List<String> mods, String name, List<GTParam> tParams, List<GParam> params, String ret, String body) {
@@ -328,6 +438,33 @@ public class GTApiGen {
             return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + this.ret + " " + this.name + (this.tParams.isEmpty() ? "" : "[" + this.tParams.stream().map(GTParam::toString).collect(Collectors.joining(", ")) + "]") + "(" + this.params.stream().map(GParam::toString).collect(Collectors.joining(", ")) + ") {"
                     + "\n" + pref + "\t" + this.body.replaceAll("\\n", "\n" + pref + "\t")
                     + "\n" + pref + "}";
+        }
+    }
+
+    // No trailing `;`
+    class GMethodSig implements GIndentable {
+        public final List<String> mods;
+        public final String name;
+        public final List<GTParam> tParams;
+        public final List<GParam> params;
+        public final String ret;
+
+        public GMethodSig(List<String> mods, String name, List<GTParam> tParams, List<GParam> params, String ret) {
+            this.mods = List.copyOf(mods);
+            this.name = name;
+            this.tParams = List.copyOf(tParams);
+            this.params = List.copyOf(params);
+            this.ret = ret;
+        }
+
+        @Override
+        public String toString() {
+            return toString("");
+        }
+
+        @Override
+        public String toString(String pref) {
+            return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + this.ret + " " + this.name + (this.tParams.isEmpty() ? "" : "[" + this.tParams.stream().map(GTParam::toString).collect(Collectors.joining(", ")) + "]") + "(" + this.params.stream().map(GParam::toString).collect(Collectors.joining(", ")) + ")";
         }
     }
 

@@ -69,7 +69,7 @@ public class GTEState extends MPrettyState<RecVar, EAction<StaticActionKind>, GT
             }
 
             /*else if (as.size() == 2) {
-                // mixed choice -- two actions, one I one O
+                // internal/external mixed choice -- two actions, one I one O
             }*/
 
             /*else if (as.stream().allMatch(EAction<StaticActionKind>::isAccept)) {
