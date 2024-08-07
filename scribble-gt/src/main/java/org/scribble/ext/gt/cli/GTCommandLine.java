@@ -44,7 +44,7 @@ public class GTCommandLine extends CommandLine {
 
     public static void main(String[] args) {
         GTCommandLine cl = init(args);
-        Optional<Exception> run = gtRun(cl);
+        Optional<Exception> run = cl.gtRun();
         if (run.isPresent()) {
             throw new RuntimeException(run.get());
         }
@@ -52,7 +52,7 @@ public class GTCommandLine extends CommandLine {
 
     public static Optional<Exception> mainTest(String[] args) {
         GTCommandLine cl = init(args);
-        return gtRun(cl);
+        return cl.gtRun();
     }
 
     static GTCommandLine init(String[] args) {
@@ -118,6 +118,25 @@ public class GTCommandLine extends CommandLine {
         //job.getCore().runPasses();  // HERE HERE FIXME: base imed GTGMixedChoice visit/agg/gather overrides
 
     }
+
+    /* // if -gt-api-gen is an `enact` flag
+    @Override
+    protected void tryBarrierTask(Job job,
+                                  Pair<String, String[]> task) throws ScribException, CommandLineException {
+        switch (task.left) {
+            case GTCLFlags.GT_API_GEN_FLAG -> {
+                /* //outputEndpointApi(job, task.right, true, true, false);
+                GProtoName g = new GProtoName(task.right[0]);
+                Role r = new Role(task.right[1]);
+                if (this.hasFlag(GTCLFlags.GT_API_GEN_FLAG)) {
+                    System.out.println("\n[GTCommandLine] API for " + r + ":\n" + new GTApiGen().generate(g, r, this.fsms.get(r)));
+                }* /
+
+                // !!! skip -- run is happening before gtRun
+            }
+            default -> super.tryBarrierTask(job, task);
+        }
+    }*/
 
     // Duplicated from AssrtCommandLine
     // Based on CommandLine.newMainContext
@@ -255,15 +274,17 @@ public class GTCommandLine extends CommandLine {
     public static GTSModelFactory GMF;
     public static GTEModelFactory LMF;
 
+    private Map<Role, GTEState> fsms = new HashMap<>();
+
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
-    protected static Optional<Exception> gtRun(GTCommandLine cl) {
-        Core core = cl.getJob().getCore();
+    protected Optional<Exception> gtRun() {
+        Core core = this.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
         GMF = (GTSModelFactory) core.config.mf.global;
         LMF = (GTEModelFactory) core.config.mf.local;
 
-        Map<GProtoName, GTGType> translated = getTranslated(cl);
+        Map<GProtoName, GTGType> translated = getTranslated(this);
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
             //Set<Role> rs = translate.getRoles();
@@ -295,16 +316,20 @@ public class GTCommandLine extends CommandLine {
 
             for (GTLConfig x : s.local.configs.values()) {
                 GTEState init = new GTFsmConstructor().construct(com.get(x.self), x.type);
+                this.fsms.put(x.self, init);
                 System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
 
-                System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
+                // !!! gtRun happens before run (i.e., tryBarrierTask running before gtRun, cf. `enact` flags`)
+                if (this.hasFlag(GTCLFlags.GT_API_GEN_FLAG)) {
+                    System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
+                }
             }
 
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
                                                     .collect(Collectors.toMap(AbstractName::toString, x -> 0));  // FIXME don't use String
-            if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
+            if (!this.hasFlag(GTCLFlags.NO_CORRESPONDENCE) && !this.hasFlag(GTCLFlags.GT_NO_CORRESPONDENCE_FLAG)) {
                 Optional<Exception> res =
 
                         // HERE HERE fidelity fine, top-down recursion TODO

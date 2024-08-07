@@ -28,7 +28,11 @@ import java.util.Map;
 public class GTCLFlags extends CLFlags {
 
     // Unique flags
+    @Deprecated
     public static final String NO_CORRESPONDENCE = "-nocorr";
+
+    public static final String GT_NO_CORRESPONDENCE_FLAG = "-gt-no-corr";
+    public static final String GT_API_GEN_FLAG = "-gt-api-gen";
 
     // Non-unique flags
     // ...
@@ -46,6 +50,15 @@ public class GTCLFlags extends CLFlags {
         // Unique; barrier irrelevant
         flags.put(NO_CORRESPONDENCE, new CLFlag(NO_CORRESPONDENCE,
                 0, true, false, false, "Duplicate flag: "));
+        flags.put(GT_NO_CORRESPONDENCE_FLAG, new CLFlag(GT_NO_CORRESPONDENCE_FLAG,
+                0, true, false, false, "Duplicate flag: "));
+        flags.put(GT_API_GEN_FLAG, new CLFlag(GT_API_GEN_FLAG,
+                0, true, false, false, "Duplicate flag: "));
+
+        // // Non-unique, barrier
+        /*flags.put(GT_API_GEN_FLAG,
+                new CLFlag(GT_API_GEN_FLAG, 2, false, true, true,
+                        "Missing protocol/role arguments: "));*/
 
         return flags;
     }
