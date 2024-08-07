@@ -15,11 +15,16 @@ public class GTFsmConstructor {
     public static final GTEModelFactory mf = (GTEModelFactory) GTEModelFactoryImpl.FACTORY.local;
 
     public GTEState construct(Set<Op> com, GTLType t) {
-        return construct(com, new HashMap<>(), newState(), t, newState());
+        GTEState init = (t instanceof GTLMixedChoice) ? newMixedState() : newState();
+        return construct(com, new HashMap<>(), newState(), t, init);
     }
 
     protected GTEState newState() {
         return new GTEState(Collections.emptySet());
+    }
+
+    protected GTEMixedState newMixedState() {
+        return new GTEMixedState(Collections.emptySet());
     }
 
     // HERE HERE Optional<Triple<GTEState, EAction<StaticActionKind>, GTEState> pending -- cf. recvar under rec; recursion doesn't use patch (this case not supported)
@@ -45,7 +50,7 @@ public class GTFsmConstructor {
             ERecv<StaticActionKind> a = mf.StaticERecv(t.src, op, t.pays.get(op));
             //GTEState succ = construct(com, recs, e.getValue(), newState());
             //s.addEdge(a, succ);
-            patch(com, recs, end, s, a, e.getValue());
+            peek(com, recs, end, s, a, e.getValue());
         }
         return s;
     }
@@ -56,14 +61,18 @@ public class GTFsmConstructor {
             ESend<StaticActionKind> a = mf.StaticESend(t.dst, op, t.pays.get(op));
             //GTEState succ = construct(com, recs, e.getValue(), newState());
             //s.addEdge(a, succ);
-            patch(com, recs, end, s, a, e.getValue());
+            peek(com, recs, end, s, a, e.getValue());
         }
         return s;
     }
 
-    protected GTEState patch(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTEState prev, EAction<StaticActionKind> a, GTLType t) {
+    protected GTEState peek(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTEState prev, EAction<StaticActionKind> a, GTLType t) {
         GTEState succ;
-        succ = (t instanceof GTLRecVar) ? recs.get(((GTLRecVar) t).var) : construct(com, recs, end, t, newState());
+        succ = (t instanceof GTLRecVar)
+               ? recs.get(((GTLRecVar) t).var)
+               : (t instanceof GTLMixedChoice)
+                 ? construct(com, recs, end, t, newMixedState())
+                 : construct(com, recs, end, t, newState());
         prev.addEdge(a, succ);
         return succ;
     }

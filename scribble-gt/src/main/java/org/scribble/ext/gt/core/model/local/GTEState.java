@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.model.local;
 import org.scribble.core.model.MPrettyState;
 import org.scribble.core.model.MState;
 import org.scribble.core.model.StaticActionKind;
-import org.scribble.core.model.endpoint.EStateKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.RecVar;
@@ -55,17 +54,17 @@ public class GTEState extends MPrettyState<RecVar, EAction<StaticActionKind>, GT
     /* ... */
 
     // Dup from EState
-    public EStateKind getStateKind() {
+    public GTEStateKind getStateKind() {
         List<EAction<StaticActionKind>> as = this.getActions();
         if (as.size() == 0) {
-            return EStateKind.TERMINAL;
+            return GTEStateKind.TERMINAL;
         } else {
             if (as.stream()
                   .allMatch(a -> a.isSend())) // || a.isRequest() || a.isClientWrap()))  // ClientWrap should be unary?
             {
-                return EStateKind.OUTPUT;
+                return GTEStateKind.OUTPUT;
             } else if (as.stream().allMatch(EAction<StaticActionKind>::isReceive)) {
-                return (as.size() == 1) ? EStateKind.UNARY_RECEIVE : EStateKind.POLY_RECIEVE;
+                return (as.size() == 1) ? GTEStateKind.UNARY_RECEIVE : GTEStateKind.POLY_RECIEVE;
             }
 
             /*else if (as.size() == 2) {

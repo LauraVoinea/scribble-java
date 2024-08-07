@@ -671,7 +671,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-//*
+/*
 global protocol Proto1(role A, role B) {
     choice at A {
         1(String) from A to B;
@@ -683,6 +683,16 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
+//*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1(String) from A to B;
+        2(String) from B to A;
+    } () or A -> B () {
+        right(String) from B to A;
+    }
+}
+//*/
 
 
 

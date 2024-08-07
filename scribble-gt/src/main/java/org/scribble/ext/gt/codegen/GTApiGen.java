@@ -8,6 +8,7 @@ import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.local.GTEState;
+import org.scribble.ext.gt.core.model.local.GTEStateKind;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +41,7 @@ public class GTApiGen {
 
         for (GTEState s : reach.values()) {
 
-            EStateKind kind = s.getStateKind();
+            GTEStateKind kind = s.getStateKind();
             switch (kind) {
                 case OUTPUT -> membs.add(generateOutputState(names, proto, r, s));
                 case UNARY_RECEIVE -> membs.add(generateUnaryInputState(names, proto, r, s));
