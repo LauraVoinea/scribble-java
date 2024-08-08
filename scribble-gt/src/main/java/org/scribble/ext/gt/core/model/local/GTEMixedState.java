@@ -27,18 +27,20 @@ public class GTEMixedState extends GTEState {
     @Override
     public GTEStateKind getStateKind() {
         List<EAction<StaticActionKind>> as = getDetActions();
-        if (as.size() != 2) {
-            throw new RuntimeException("CHECKME");
+        if (as.stream().filter(x -> !x.mid.toString().startsWith("*")).count() != 1
+                || as.size() < 2) {
+            throw new RuntimeException("CHECKME: " + as);
         }
         EAction<StaticActionKind> right = getRight();
         if (right instanceof ESend<?>) {
             if (getLeft() instanceof ERecv<?>) {
                 return GTEStateKind.INTERNAL_MIXED;
             }
+            throw new RuntimeException("CHECKME: " + as);
         } else if (right instanceof ERecv<?>) {
-            if (getLeft() instanceof ESend<?>) {
-                return GTEStateKind.EXTERNAL_MIXED;
-            }
+            //if (getLeft() instanceof ESend<?>) {
+            return GTEStateKind.EXTERNAL_MIXED;  // !!! left either send/receive
+            //}
         }
         throw new RuntimeException("CHECKME: " + as);
     }

@@ -1,14 +1,18 @@
 package org.scribble.ext.gt.codegen;
 
+import org.jetbrains.annotations.NotNull;
 import org.scribble.core.model.StaticActionKind;
-import org.scribble.core.model.endpoint.EStateKind;
+import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.endpoint.actions.ERecv;
 import org.scribble.core.model.endpoint.actions.ESend;
 import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.local.GTEMixedState;
 import org.scribble.ext.gt.core.model.local.GTEState;
 import org.scribble.ext.gt.core.model.local.GTEStateKind;
+import org.scribble.ext.gt.core.model.local.GTFsmConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +22,10 @@ public class GTApiGen {
     public static final String OSTATE_TYPE = "GTOStateChan";
     public static final String ISTATE_TYPE = "GTIStateChan";
     public static final String BSTATE_TYPE = "GTBStateChan";
+    public static final String IMSTATE_TYPE = "GTIMStateChan";
+    public static final String EMSTATE_TYPE = "GTEMStateChan";
     public static final String END_TYPE = "GTEnd";
+    public static final String MIXED_EXCEPTION_TYPE = "GTMixedException";
 
     public String generate(GProtoName proto, Role r, GTEState init) {
         LinkedHashMap<Integer, GTEState> reach = new LinkedHashMap<>();
@@ -33,7 +40,9 @@ public class GTApiGen {
 
         // !!! FIXME
         //membs.add(new GPackage("tmp.scratch.scratch07." + getProtoPackageName(proto)));
-        //membs.add(new GImport("tmp.scratch.scratch07.eventactor", List.of("Actor", "Done", "Session")));
+        membs.add(new GImport("java.io.IOException"));
+        membs.add(new GImport("org.scribble.ext.gt.runtime.*"));
+        membs.add(new GImport("org.scribble.runtime.util.Buf"));
 
         /*List<Role> peers = //inlined.roles.stream().filter(x -> !x.equals(r)).sorted((o1, o2) -> Comparator.<String>naturalOrder().compare(o1.toString(), o2.toString())).toList();
                 inlined.roles.stream().filter(x -> !x.equals(r)).toList();
@@ -47,6 +56,8 @@ public class GTApiGen {
                 case UNARY_RECEIVE -> membs.add(generateUnaryInputState(names, proto, r, s));
                 case POLY_RECIEVE -> membs.addAll(generateBranchState(names, proto, r, s));
                 case TERMINAL -> membs.add(generateTerminalState(names, proto, r, s));
+                case INTERNAL_MIXED -> membs.add(generateInternalMixedState(names, proto, r, (GTEMixedState) s));
+                case EXTERNAL_MIXED -> membs.addAll(generateExternalMixedState(names, proto, r, (GTEMixedState) s));
                 default -> throw new RuntimeException("Unexpected state kind: " + kind);
             }
         }
@@ -54,6 +65,105 @@ public class GTApiGen {
         //return generateTop(proto, r) + "\n" + res;
         return membs.stream().map(GIndentable::toString).collect(Collectors.joining("\n\n"));
 
+    }
+
+
+    /* ... */
+
+    protected List<GIndentable> generateExternalMixedState(Map<Integer, String> names, GProtoName proto, Role r, GTEMixedState s) {
+        List<GIndentable> res = new LinkedList<>();
+        res.add(generateExternalMixedException(names, proto, r, s));
+
+        List<String> mods = List.of();
+        String name = getStateTypeName(names, s);
+
+        List<GConstructor> ctors = List.of(new GConstructor(mods, name, List.of(), List.of(), ""));
+
+        Optional<String> ext = Optional.of(EMSTATE_TYPE);
+
+        EAction<StaticActionKind> left = s.getLeft();
+        List<GMethod> methods = List.of(
+                generateExternalMixedAction(names, s, left, s.getDetSuccessor(left)));
+        res.add(new GClass(mods, name, ctors, List.of(), methods, ext, List.of()));
+        return res;
+    }
+
+    protected GIndentable generateExternalMixedException(Map<Integer, String> names, GProtoName proto, Role r, GTEMixedState s) {
+        List<String> mods = List.of();
+        String name = getExternalMixedExceptionName(names, s);
+
+        List<GConstructor> ctors = List.of(new GConstructor(mods, name, List.of(), List.of(), ""));
+
+        Optional<String> ext = Optional.of(MIXED_EXCEPTION_TYPE);
+
+        ERecv<StaticActionKind> right = (ERecv<StaticActionKind>) s.getRight();
+        GTEState succ = s.getDetSuccessor(right);
+        List<GField> fields = List.of(new GField(List.of(), getStateTypeName(names, succ), "succ", "null"));  // TODO
+        return new GClass(mods, name, ctors, fields, List.of(), ext, List.of());
+    }
+
+    @NotNull
+    private String getExternalMixedExceptionName(Map<Integer, String> names, GTEMixedState s) {
+        ERecv<StaticActionKind> right = (ERecv<StaticActionKind>) s.getRight();
+        //return getStateTypeName(names, s) + "_" + right.mid + "Exception";
+        return getExternalMixedExceptionName((Op) right.mid);
+    }
+
+    // Pre: op prefix *
+    private String getExternalMixedExceptionName(Op op) {
+        return op.toString().substring(1) + "Exception";
+    }
+
+    // ...actually can be O-I or I-I
+    protected GMethod generateExternalMixedAction(Map<Integer, String> names, GTEMixedState s, EAction<?> a, GTEState succ) {
+        List<String> excs = new LinkedList<>();
+        excs.add("IOException");
+        excs.add(getExternalMixedExceptionName(names, s));
+
+        ERecv<StaticActionKind> right = (ERecv<StaticActionKind>) s.getRight();
+        List<EAction<StaticActionKind>> as = s.getDetActions();
+        excs.addAll(as.stream()
+                      .filter(x -> x.mid.toString().startsWith("*") && !x.equals(right))
+                      .map(x -> getExternalMixedExceptionName(((Op) x.mid)))
+                      .toList());
+
+        if (a instanceof ERecv<?>) {
+            return generateReceiveAux(names, (ERecv<?>) a, succ, excs);
+        } else if (a instanceof ESend<?>) {
+            return generateSendAux(names, (ESend<?>) a, succ, excs);
+        } else {
+            throw new RuntimeException("CHECKME: " + a);
+        }
+    }
+
+
+    /* ... */
+
+    protected GIndentable generateInternalMixedState(Map<Integer, String> names, GProtoName proto, Role r, GTEMixedState s) {
+        List<String> mods = List.of();
+        String name = getStateTypeName(names, s);
+
+        List<GConstructor> ctors = List.of(new GConstructor(mods, name, List.of(), List.of(), ""));
+
+        Optional<String> ext = Optional.of(IMSTATE_TYPE);
+
+        ERecv<StaticActionKind> left = (ERecv<StaticActionKind>) s.getLeft();
+        ESend<StaticActionKind> right = (ESend<StaticActionKind>) s.getRight();
+        ESend<StaticActionKind> noStar = GTFsmConstructor.MF.StaticESend(
+                right.peer, new Op(right.mid.toString().substring(1)), right.payload);
+
+        List<EAction<StaticActionKind>> as = s.getDetActions();
+        List<String> excs = new LinkedList<>();
+        excs.add("IOException");
+        excs.addAll(as.stream()
+                      .filter(x -> x.mid.toString().startsWith("*") && !x.equals(right))
+                      .map(x -> getExternalMixedExceptionName(((Op) x.mid)))
+                      .toList());
+
+        List<GMethod> methods = List.of(
+                generateReceiveAux(names, left, s.getDetSuccessor(left), excs),
+                generateSendAux(names, noStar, s.getDetSuccessor(right), excs));
+        return new GClass(mods, name, ctors, List.of(), methods, ext, List.of());
     }
 
     /* ... */
@@ -65,20 +175,35 @@ public class GTApiGen {
         GConstructor ctor = new GConstructor(mods, name, List.of(), List.of(), "");
 
         Optional<String> ext = Optional.of(OSTATE_TYPE);
-        List<GMethod> methods = s.getDetActions().stream()
-                                 .map(x -> generateSend(names, (ESend<StaticActionKind>) x, s.getDetSuccessor(x))).toList();
+
+        List<EAction<StaticActionKind>> as = s.getDetActions();
+        List<String> excs = new LinkedList<>();
+        excs.add("IOException");
+        excs.addAll(as.stream()
+                      .filter(x -> x.mid.toString().startsWith("*"))
+                      .map(x -> getExternalMixedExceptionName(((Op) x.mid)))
+                      .toList());
+
+        List<GMethod> methods = as.stream()
+                                  .filter(x -> !x.mid.toString().startsWith("*"))
+                                  .map(x -> generateSendAux(names, (ESend<StaticActionKind>) x, s.getDetSuccessor(x), excs)).toList();
         return new GClass(mods, name, List.of(ctor), List.of(), methods, ext, List.of());
     }
 
-    // ESend<StaticActionKind> from GTFsmConstructor -- GTESend is only used dynamically?
+    /*// ESend<StaticActionKind> from GTFsmConstructor -- GTESend is only used dynamically?
     protected GMethod generateSend(Map<Integer, String> names, ESend<?> a, GTEState succ) {
+        List<String> excs = List.of("IOException");
+        return generateSendAux(names, a, succ, excs);
+    }*/
+
+    protected GMethod generateSendAux(Map<Integer, String> names, ESend<?> a, GTEState succ, List<String> excs) {
         List<String> mods = List.of();
         String name = "send_" + a.peer + "_" + a.mid;
         List<GParam> params = List.of(new GParam(List.of(), getPayType(a.payload), "x"));
         String ret = getStateTypeName(names, succ);
         String body = "return new " + ret + "();";  // TODO
 
-        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret), body);
+        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret, excs), body);
     }
 
     protected static String getPayType(Payload pay) {
@@ -98,20 +223,35 @@ public class GTApiGen {
         GConstructor ctor = new GConstructor(mods, name, List.of(), List.of(), "");
 
         Optional<String> ext = Optional.of(ISTATE_TYPE);
-        ERecv<StaticActionKind> a = (ERecv<StaticActionKind>) s.getDetActions().get(0);
-        List<GMethod> methods = List.of(generateReceive(names, a, s.getDetSuccessor(a)));
+
+        List<EAction<StaticActionKind>> as = s.getDetActions();
+        List<String> excs = new LinkedList<>();
+        excs.add("IOException");
+        excs.addAll(as.stream()
+                      .filter(x -> x.mid.toString().startsWith("*"))
+                      .map(x -> getExternalMixedExceptionName(((Op) x.mid)))
+                      .toList());
+
+        ERecv<StaticActionKind> a = (ERecv<StaticActionKind>)
+                as.stream().filter(x -> !x.mid.toString().startsWith("*")).findFirst().get();
+        List<GMethod> methods = List.of(generateReceiveAux(names, a, s.getDetSuccessor(a), excs));
         return new GClass(mods, name, List.of(ctor), List.of(), methods, ext, List.of());
     }
 
-    // ESend<StaticActionKind> from GTFsmConstructor -- GTESend is only used dynamically?
+    /*// ESend<StaticActionKind> from GTFsmConstructor -- GTESend is only used dynamically?
     protected GMethod generateReceive(Map<Integer, String> names, ERecv<?> a, GTEState succ) {
+        List<String> excs = List.of("IOException");
+        return generateReceiveAux(names, a, succ, excs);
+    }*/
+
+    protected GMethod generateReceiveAux(Map<Integer, String> names, ERecv<?> a, GTEState succ, List<String> excs) {
         List<String> mods = List.of();
         String name = "receive_" + a.peer + "_" + a.mid;
         List<GParam> params = List.of(new GParam(List.of(), "Buf<" + getPayType(a.payload) + ">", "x"));
         String ret = getStateTypeName(names, succ);
         String body = "return new " + ret + "();";  // TODO
 
-        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret), body);
+        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret, excs), body);
     }
 
 
@@ -137,8 +277,9 @@ public class GTApiGen {
         List<GParam> params = List.of();
         String ret = getCasesInterfaceName(names, s);
         String body = "return null;  // TODO";  // TODO
+        List<String> excs = List.of("IOException");
 
-        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret), body);
+        return new GMethod(new GMethodSig(mods, name, List.of(), params, ret, excs), body);
     }
 
     protected List<GIndentable> generateCases(Map<Integer, String> names, GProtoName proto, Role r, GTEState s) {
@@ -156,7 +297,7 @@ public class GTApiGen {
 
         Optional<String> ext = Optional.of(ISTATE_TYPE);
         List<String> impls = List.of(getCasesInterfaceName(names, s));
-        List<GMethod> methods = List.of(generateReceive(names, a, s.getDetSuccessor(a)));
+        List<GMethod> methods = List.of(generateReceiveAux(names, a, s.getDetSuccessor(a), List.of()));
         return new GClass(mods, name, List.of(ctor), List.of(), methods, ext, impls);
     }
 
@@ -189,10 +330,11 @@ public class GTApiGen {
     private int count = 1;
 
     protected String makeName(GProtoName proto, Role r, GTEState s) {
-        return s.getActions().isEmpty()
-               ? "End"
-               : // "S" + this.count++;
-               proto + "_" + r + "_" + this.count++;
+        return proto.getSimpleName() + "_" + r + "_"
+                + (s.getActions().isEmpty()
+                   ? "End"
+                   : // "S" + this.count++;
+                   this.count++);
     }
 
 
@@ -221,12 +363,10 @@ public class GTApiGen {
     }
 
     class GImport implements GIndentable {
-        public final String pref;  // no trailing "."
-        public final List<String> names;  // non-empty
+        public final String name;
 
-        public GImport(String pref, List<String> names) {
-            this.pref = pref;
-            this.names = List.copyOf(names);
+        public GImport(String name) {
+            this.name = name;
         }
 
         @Override
@@ -236,8 +376,7 @@ public class GTApiGen {
 
         @Override
         public String toString(String pref) {
-            return pref + "import " + this.pref + "."
-                    + (this.names.size() == 1 ? this.names.get(0) : "{" + String.join(", ", this.names) + "}");
+            return pref + "import " + this.name + ";";
         }
     }
 
@@ -335,7 +474,7 @@ public class GTApiGen {
                     + " {\n"
                     + (this.fields.isEmpty()
                        ? ""
-                       : " \n" + pref + this.fields.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining("\n")) + "\n")
+                       : " \n" + pref + this.fields.stream().map(x -> x.toString(pref + "\t") + ";").collect(Collectors.joining("\n")) + "\n")
                     + (this.ctors.isEmpty()
                        ? ""
                        : " \n" + pref + this.ctors.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining("\n\n")) + "\n")
@@ -374,10 +513,10 @@ public class GTApiGen {
                     + " {\n"
                     + (this.fields.isEmpty()
                        ? ""
-                       : " \n" + pref + this.fields.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining("\n")) + "\n")
+                       : " \n" + pref + this.fields.stream().map(x -> x.toString(pref + "\t") + ";").collect(Collectors.joining("\n")) + "\n")
                     + (this.sigs.isEmpty()
                        ? ""
-                       : " \n" + pref + this.sigs.stream().map(x -> x.toString(pref + "\t")).collect(Collectors.joining(";\n\n")) + "\n")
+                       : " \n" + pref + this.sigs.stream().map(x -> x.toString(pref + "\t") + ";").collect(Collectors.joining("\n\n")) + "\n")
                     + "}";
         }
     }
@@ -451,13 +590,15 @@ public class GTApiGen {
         public final List<GTParam> tParams;
         public final List<GParam> params;
         public final String ret;
+        public final List<String> excs;
 
-        public GMethodSig(List<String> mods, String name, List<GTParam> tParams, List<GParam> params, String ret) {
+        public GMethodSig(List<String> mods, String name, List<GTParam> tParams, List<GParam> params, String ret, List<String> excs) {
             this.mods = List.copyOf(mods);
             this.name = name;
             this.tParams = List.copyOf(tParams);
             this.params = List.copyOf(params);
             this.ret = ret;
+            this.excs = List.copyOf(excs);
         }
 
         @Override
@@ -467,7 +608,8 @@ public class GTApiGen {
 
         @Override
         public String toString(String pref) {
-            return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + this.ret + " " + this.name + (this.tParams.isEmpty() ? "" : "[" + this.tParams.stream().map(GTParam::toString).collect(Collectors.joining(", ")) + "]") + "(" + this.params.stream().map(GParam::toString).collect(Collectors.joining(", ")) + ")";
+            return pref + (this.mods.isEmpty() ? "" : String.join(" ", this.mods) + " ") + this.ret + " " + this.name + (this.tParams.isEmpty() ? "" : "[" + this.tParams.stream().map(GTParam::toString).collect(Collectors.joining(", ")) + "]") + "(" + this.params.stream().map(GParam::toString).collect(Collectors.joining(", ")) + ")"
+                    + (this.excs.isEmpty() ? "" : " throws " + String.join(", ", this.excs));
         }
     }
 

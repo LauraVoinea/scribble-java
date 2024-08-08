@@ -663,6 +663,7 @@ global protocol Proto1(role A, role B) {
 
 
 
+// Testing Java API gen
 
 /*
 global protocol Proto1(role A, role B) {
@@ -673,17 +674,20 @@ global protocol Proto1(role A, role B) {
 
 /*
 global protocol Proto1(role A, role B) {
-    choice at A {
-        1(String) from A to B;
-        2(String) from B to A;
-    } or {
-        3(String) from A to B;
-        4(String) from B to A;
+    rec X {
+        choice at A {
+            1(String) from A to B;
+            2(String) from B to A;
+            continue X;
+        } or {
+            3(String) from A to B;
+            4(String) from B to A;
+        }
     }
 }
 //*/
 
-//*
+//* // Scratch01
 global protocol Proto1(role A, role B) {
     mixed {
         1(String) from A to B;
@@ -694,6 +698,38 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
+/*/ // Scratch02
+global protocol Proto1(role Alice, role Bob) {
+    mixed {
+        ping1(String) from Alice to Bob;
+        mixed {
+            ping2(String) from Bob to Alice;
+            pong2(String) from Alice to Bob;
+        } () or Bob -> Alice () {
+           error2(String) from Alice to Bob;
+           b(String) from Bob to Alice;  // !!! left committing for outer
+        }
+    } () or Alice -> Bob () {
+       error1(String) from Bob to Alice;
+    }
+}
+//*/
+
+/*/ // Scratch03
+global protocol Proto1(role Alice, role Bob) {
+    mixed {
+        ping1(String) from Alice to Bob;
+        mixed {
+            ping2(String) from Alice to Bob;
+            pong2(String) from Bob to Alice;
+        } () or Alice -> Bob () {
+           error2(String) from Bob to Alice;
+        }
+    } () or Alice -> Bob () {
+       error1(String) from Bob to Alice;
+    }
+}
+//*/
 
 
 

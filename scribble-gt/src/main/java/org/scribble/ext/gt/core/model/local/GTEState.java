@@ -59,12 +59,15 @@ public class GTEState extends MPrettyState<RecVar, EAction<StaticActionKind>, GT
         if (as.size() == 0) {
             return GTEStateKind.TERMINAL;
         } else {
-            if (as.stream()
-                  .allMatch(a -> a.isSend())) // || a.isRequest() || a.isClientWrap()))  // ClientWrap should be unary?
+            if (as.stream().filter(x -> !x.mid.toString().startsWith("*"))  // !!! cf. GTFsmConstructor.makeStar
+                  .allMatch(a -> a.isSend()))  // || a.isRequest() || a.isClientWrap()))  // ClientWrap should be unary?
             {
                 return GTEStateKind.OUTPUT;
-            } else if (as.stream().allMatch(EAction<StaticActionKind>::isReceive)) {
-                return (as.size() == 1) ? GTEStateKind.UNARY_RECEIVE : GTEStateKind.POLY_RECIEVE;
+            } else if (as.stream().filter(x -> !x.mid.toString().startsWith("*"))
+                         .allMatch(EAction<StaticActionKind>::isReceive)) {
+                return (as.stream().filter(x -> !x.mid.toString().startsWith("*")).count() == 1)  // !!! cf. GTFsmConstructor.makeStar
+                       ? GTEStateKind.UNARY_RECEIVE
+                       : GTEStateKind.POLY_RECIEVE;
             }
 
             /*else if (as.size() == 2) {
