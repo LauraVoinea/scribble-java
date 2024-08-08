@@ -97,7 +97,7 @@ public class ErlangCodeGen {
                         } else if (nextState.getKind().equals(StateKind.INTERNAL)){
                             erlRole.append(String.format("{next_state, %s, Data, " +
                                             "[{next_event, internal, {send_%s}}]};\n",
-                                     t.getEvent().getName()));
+                                     t.getEvent().getName(), t.getEvent().getName()));
                         } else {
                             erlRole.append(String.format("{next_state, %s, Data};\n",
                                      nextState.getName()));
@@ -163,7 +163,10 @@ public class ErlangCodeGen {
             GTLType type = A.type;
 
             FSM fsm = GTtoFsm(type, role, committing);
+            StateM stateM = StateM.stateRenaming(StateM.translate(type, aux.getKey(), committing, null));
+            System.out.println("StateM: " + stateM);
             fsm.generateDOT(outputDir + File.separator + protocolName , role + ".dot");
+            stateM.generateDOT(outputDir + File.separator + protocolName , role + "_stateM.dot");
             genErl(fsm, erlRole, 1);
             createErlangFile(protocolName, role, erlRole);
 
