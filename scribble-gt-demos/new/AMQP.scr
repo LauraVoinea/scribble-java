@@ -1,10 +1,10 @@
 module AMQP;
-
+data <erlang> "Payload" from "" as Payload;
 // The Publisher role can send a message to the Exchange role.
 // The Consumer role can subscribe to a queue and receive messages from the Exchange role.
 // The Exchange role can bind a queue and forward messages to the Consumer role, or it can receive a message from the Publisher role and forward it to the Consumer role.
 // The Queue role can enqueue messages to be consumed by the Consumer role or dequeue messages to be published by the Publisher role.
-
+/*
 global protocol AMQP(role Consumer, role Exchange, role Queue){
     rec Retry {
     mixed{
@@ -15,12 +15,41 @@ global protocol AMQP(role Consumer, role Exchange, role Queue){
         error() from Queue to Exchange; // busy queue -- at capacity
         choice at Queue{
             forward2() from Queue to Consumer;
-            dummy1() from Queue to Exchange;
+            forwarded1() from Queue to Exchange;
             continue Retry;
         } or {
             forward3() from Queue to Consumer;
-            dummy2() from Queue to Exchange;
+            forwarded2() from Queue to Exchange;
         }
     }
   }
+}
+*/
+
+// consumer acknowledgements
+global protocol AMQP(role Consumer, role Broker){
+    start_connection() from Consumer to Broker;
+    choice at Broker{
+        ok() from Broker to Consumer;
+        start_channel() from Consumer to Broker;
+        choice at Broker{
+            channel() from Broker to Consumer;
+            declare_queue() from Consumer to Broker;
+            choice at Broker{
+                queue_ok(Payload) from Broker to Consumer;
+                mixed{
+                    consume() from Broker to Consumer;
+                    ack() from Consumer to Broker;
+                } () or Broker -> Consumer() {
+                    stop() from Consumer to Broker;
+                }
+            } or {
+                queue_error() from Broker to Consumer;
+            }
+        } or {
+            channel_error() from Broker to Consumer;
+        }
+    } or {
+        connection_error() from Broker to Consumer;
+    }
 }
