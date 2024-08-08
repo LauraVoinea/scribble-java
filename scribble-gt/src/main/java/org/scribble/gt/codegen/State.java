@@ -1,7 +1,9 @@
 package org.scribble.gt.codegen;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -10,7 +12,7 @@ import java.util.List;
  */
 public class State {
     private String name;
-    private List<Transition> transitions;
+    private Set<Transition> transitions;
     private StateKind kind;
     private boolean committed;
 
@@ -23,7 +25,7 @@ public class State {
     public State(String name, StateKind kind) {
         this.name = name;
         this.kind = kind;
-        this.transitions = new ArrayList<>();
+        this.transitions = new HashSet<>();
         this.committed = false;
     }
 
@@ -32,7 +34,7 @@ public class State {
      *
      * @return A list of transitions.
      */
-    public List<Transition> getTransitions() {
+    public Set<Transition> getTransitions() {
         return transitions;
     }
 
