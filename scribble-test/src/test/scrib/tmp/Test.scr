@@ -554,21 +554,21 @@ global protocol PPP(role A, role B) {
 
 
 
-/*/ // Testing CFSM translation
+//* // Testing CFSM translation
 global protocol Proto1(role A, role B) {
     rec X {
-        ping1() from A to B;
+        ping1(String) from A to B;
         choice at B {
-            pong1() from B to A;
+            pong1(String) from B to A;
             continue X;
         } or {
-            pong2() from B to A;
+            pong2(String) from B to A;
         }
     }
 }
 //*/
 
-/*/
+/*
 global protocol Proto1(role A, role B) {
     mixed {
         ping1(String) from A to B;
@@ -581,7 +581,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-/*/
+/*
 global protocol Nested(role Alice, role Bob) {
     mixed {
         ping1() from Alice to Bob;   // A -> B: ping1
@@ -599,7 +599,7 @@ global protocol Nested(role Alice, role Bob) {
 }
 //*/
 
-/*/
+/*
 global protocol Nested(role Alice, role Bob) {
     mixed {
         ping1() from Alice to Bob;
@@ -616,7 +616,7 @@ global protocol Nested(role Alice, role Bob) {
 }
 //*/
 
-/*/
+/*
 global protocol Proto1(role A, role B) {
     rec X {
         mixed {
@@ -630,7 +630,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-/*/
+/*
 global protocol Proto1(role A, role B) {
     rec Y {
         c() from B to A;  // !!! non blocking for B with error1
@@ -731,7 +731,7 @@ global protocol Proto1(role Alice, role Bob) {
 }
 //*/
 
-//* // Testing rec outside mixed
+/* // Testing rec outside mixed
 global protocol Proto1(role Alice, role Bob ) {
     //aa(String) from Alice to Bob;
     rec Loop {
