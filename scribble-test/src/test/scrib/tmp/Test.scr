@@ -705,7 +705,7 @@ global protocol Proto1(role Alice, role Bob) {
         mixed {
             ping2(String) from Bob to Alice;
             pong2(String) from Alice to Bob;
-        } () or Bob -> Alice () {
+        } () or Bob -> Alice () {  // reverse observer
            error2(String) from Alice to Bob;
            b(String) from Bob to Alice;  // !!! left committing for outer
         }
@@ -731,11 +731,11 @@ global protocol Proto1(role Alice, role Bob) {
 }
 //*/
 
-//*
+//* // Testing rec outside mixed
 global protocol Proto1(role Alice, role Bob ) {
     //aa(String) from Alice to Bob;
     rec Loop {
-        mixed {
+        mixed {  // Testing mixed directly under rec (peek)
             ping(String) from Alice to Bob;
             pong(String) from Bob to Alice;  // !!! o/w not left-comm due to syntactic WF
             continue Loop;
@@ -770,8 +770,9 @@ global protocol Proto1(role Alice, role Bob ) {
         mixed {
             ping(String) from Alice to Bob;
 
-            rec Loop{
-                mixed{
+            // manual unfolding -- !!! but (still) no pong, so not left committing (syntactic WF)
+            rec Loop {
+                mixed {
                     ping(String) from Alice to Bob;
                     continue Loop;
                 } () or Alice -> Bob () {
@@ -786,15 +787,14 @@ global protocol Proto1(role Alice, role Bob ) {
 }
 //*/
 
-/*
+/* // Testing rec inside mixed
 global protocol Proto1(role Alice, role Bob ) {
         mixed {
             ping(String) from Alice to Bob;  // cf. aa a bit above
-            //  pong1(String) from Bob to Alice; // necessary message to commit alice before the loop
             rec Loop {
                 ping2(String) from Alice to Bob;
                 pong2(String) from Bob to Alice;
-                continue Loop;
+                continue Loop;  // !!! non-terminating
             }
         } () or Alice -> Bob () {
             error(String) from Bob to Alice;

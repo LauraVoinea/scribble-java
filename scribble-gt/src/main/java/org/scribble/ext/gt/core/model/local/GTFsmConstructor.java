@@ -26,17 +26,17 @@ public class GTFsmConstructor {
     protected GTEState construct(
             Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
             Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLType t, GTEState s) {
-        if (t instanceof GTLBranch) {
-            return constructBranch(com, recs, end, pend, (GTLBranch) t, s);
-        } else if (t instanceof GTLSelect) {
-            return constructSelect(com, recs, end, pend, (GTLSelect) t, s);
-        } else if (t instanceof GTLRecursion) {
-            return constructRecursion(com, recs, end, pend, (GTLRecursion) t, s);
+        if (t instanceof GTLBranch cast) {
+            return constructBranch(com, recs, end, pend, cast, s);
+        } else if (t instanceof GTLSelect cast) {
+            return constructSelect(com, recs, end, pend, cast, s);
+        } else if (t instanceof GTLRecursion cast) {
+            return constructRecursion(com, recs, end, pend, cast, s);
             //} else if (t instanceof GTLRecVar) {
-        } else if (t instanceof GTLMixedChoice) {
-            return constructMixed(com, recs, end, pend, (GTLMixedChoice) t, (GTEMixedState) s);
-        } else if (t instanceof GTLEnd) {
-            return end;  //constructEnd(com, recs, end, (GTLRecursion) t, s);
+        } else if (t instanceof GTLMixedChoice cast) {
+            return constructMixed(com, recs, end, pend, cast, (GTEMixedState) s);
+        } else if (t instanceof GTLEnd cast) {
+            return constructEnd(end, pend);
         }
         throw new RuntimeException("CHECKME: " + t.getClass());
     }
@@ -44,7 +44,7 @@ public class GTFsmConstructor {
     protected GTEState constructBranch(
             Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
             Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLBranch t, GTEState s) {
-        prePeek(pend, s);
+        prePeekAndEnd(pend, s);
         for (Map.Entry<Op, GTLType> e : t.cases.entrySet()) {
             Op op = e.getKey();
             ERecv<StaticActionKind> a = MF.StaticERecv(t.src, op, t.pays.get(op));
@@ -55,7 +55,7 @@ public class GTFsmConstructor {
         return s;
     }
 
-    private void prePeek(Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTEState s) {
+    private void prePeekAndEnd(Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTEState s) {
         if (pend.isPresent()) {
             Pair<GTEState, EAction<StaticActionKind>> p = pend.get();
             p.left.addEdge(p.right, s);
@@ -65,7 +65,7 @@ public class GTFsmConstructor {
     protected GTEState constructSelect(
             Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
             Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLSelect t, GTEState s) {
-        prePeek(pend, s);
+        prePeekAndEnd(pend, s);
         for (Map.Entry<Op, GTLType> e : t.cases.entrySet()) {
             Op op = e.getKey();
             ESend<StaticActionKind> a = MF.StaticESend(t.dst, op, t.pays.get(op));
@@ -79,12 +79,13 @@ public class GTFsmConstructor {
     protected GTEState peek(
             Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
             GTEState prev, EAction<StaticActionKind> a, GTLType t) {
-        GTEState succ;
-        succ = (t instanceof GTLRecVar)
-               ? recs.get(((GTLRecVar) t).var)
-               : construct(com, recs, end, Optional.of(new Pair<>(prev, a)), t, peekNewState(t));
-        //prev.addEdge(a, succ);
-        return succ;
+        if (t instanceof GTLRecVar) {
+            GTEState succ = recs.get(((GTLRecVar) t).var);
+            prev.addEdge(a, succ);
+            return succ;
+        } else {
+            return construct(com, recs, end, Optional.of(new Pair<>(prev, a)), t, peekNewState(t));
+        }
     }
 
     protected GTEState constructRecursion(
@@ -131,6 +132,12 @@ public class GTFsmConstructor {
         left.addEdge(aRightStar, rightSucc);  // Must come after recursive visit above
     }
 
+    protected GTEState constructEnd(
+            GTEState end, Optional<Pair<GTEState, EAction<StaticActionKind>>> pend) {
+        prePeekAndEnd(pend, end);
+        return end;
+    }
+
 
     /* ... */
 
@@ -163,10 +170,6 @@ public class GTFsmConstructor {
             throw new RuntimeException("CHECKME: " + a);
         }
     }
-
-    /*protected GTEState constructEnd(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLRecursion t, GTEState s) {
-        return end;
-    }*/
 
 
 }
