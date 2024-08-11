@@ -687,7 +687,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-//* // Scratch01
+/* // Scratch01
 global protocol Proto1(role A, role B) {
     mixed {
         1(String) from A to B;
@@ -731,8 +731,76 @@ global protocol Proto1(role Alice, role Bob) {
 }
 //*/
 
+//*
+global protocol Proto1(role Alice, role Bob ) {
+    //aa(String) from Alice to Bob;
+    rec Loop {
+        mixed {
+            ping(String) from Alice to Bob;
+            pong(String) from Bob to Alice;  // !!! o/w not left-comm due to syntactic WF
+            continue Loop;
+        } () or Alice -> Bob () {
+            error(String) from Bob to Alice;
+            bb(String) from Alice to Bob;
+            cc(String) from Bob to Alice;
+        }
+    }
+}
+//*/
 
+/*  // cf. above, would be same CFSMs -- but static committing set undefined, ping committing first loop, then not committing
+global protocol Proto1(role Alice, role Bob ) {
+    mixed {
+        rec Loop {
+            ping(String) from Alice to Bob;
+            pong(String) from Bob to Alice;  // !!! o/w not left-comm due to syntactic WF
+            continue Loop;
+        }
+    } () or Alice -> Bob () {
+        error(String) from Bob to Alice;
+        bb(String) from Alice to Bob;
+        cc(String) from Bob to Alice;
+    }
+}
+//*/
 
+/*
+global protocol Proto1(role Alice, role Bob ) {
+    rec Loop {
+        mixed {
+            ping(String) from Alice to Bob;
+
+            rec Loop{
+                mixed{
+                    ping(String) from Alice to Bob;
+                    continue Loop;
+                } () or Alice -> Bob () {
+                    error(String) from Bob to Alice;
+                }
+            }
+
+        } () or Alice -> Bob () {
+            error(String) from Bob to Alice;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role Alice, role Bob ) {
+        mixed {
+            ping(String) from Alice to Bob;  // cf. aa a bit above
+            //  pong1(String) from Bob to Alice; // necessary message to commit alice before the loop
+            rec Loop {
+                ping2(String) from Alice to Bob;
+                pong2(String) from Bob to Alice;
+                continue Loop;
+            }
+        } () or Alice -> Bob () {
+            error(String) from Bob to Alice;
+        }
+}
+//*/
 
 
 

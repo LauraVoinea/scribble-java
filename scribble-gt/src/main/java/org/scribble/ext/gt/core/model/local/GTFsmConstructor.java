@@ -16,20 +16,11 @@ public class GTFsmConstructor {
     public static final GTEModelFactory MF = (GTEModelFactory) GTEModelFactoryImpl.FACTORY.local;
 
     public GTEState construct(Set<Op> com, GTLType t) {
-        GTEState init = (t instanceof GTLMixedChoice) ? newMixedState() : newState();
+        GTEState init = peekNewState(t);
         return construct(com, new HashMap<>(), newState(), t, init);
     }
 
-    protected GTEState newState() {
-        return new GTEState(Collections.emptySet());
-    }
-
-    protected GTEMixedState newMixedState() {
-        // mark right action instead of |> -- n.b. need to handle nested mixed -- XXX `*` join edges enough?
-        return new GTEMixedState(Set.of(new RecVar(Character.toString(ConsoleColors.WHITE_TRIANGLE))));
-    }
-
-    // HERE HERE Optional<Triple<GTEState, EAction<StaticActionKind>, GTEState> pending -- cf. recvar under rec; recursion doesn't use patch (this case not supported)
+    // HERE HERE Optional<Triple<GTEState, EAction<StaticActionKind>, GTEState> pending -- cf. recvar under rec; recursion doesn't use peek (this case not supported)
     protected GTEState construct(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLType t, GTEState s) {
         if (t instanceof GTLBranch) {
             return constructBranch(com, recs, end, (GTLBranch) t, s);
@@ -72,17 +63,35 @@ public class GTFsmConstructor {
         GTEState succ;
         succ = (t instanceof GTLRecVar)
                ? recs.get(((GTLRecVar) t).var)
-               : (t instanceof GTLMixedChoice)
-                 ? construct(com, recs, end, t, newMixedState())
-                 : construct(com, recs, end, t, newState());
+               : construct(com, recs, end, t, peekNewState(t));
         prev.addEdge(a, succ);
         return succ;
+    }
+
+    // Pre: t static and not recvar
+    protected static GTEState peekNewState(GTLType t) {
+        if (t instanceof GTLMixedChoice) {
+            return newMixedState();
+        } else if (t instanceof GTLRecursion cast) {
+            return peekNewState(cast.body);
+        } else {
+            return newState();
+        }
+    }
+
+    protected static GTEState newState() {
+        return new GTEState(Collections.emptySet());
+    }
+
+    protected static GTEMixedState newMixedState() {
+        // mark right action instead of |> -- n.b. need to handle nested mixed -- XXX `*` join edges enough?
+        return new GTEMixedState(Set.of(new RecVar(Character.toString(ConsoleColors.WHITE_TRIANGLE))));
     }
 
     protected GTEState constructRecursion(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLRecursion t, GTEState s) {
         HashMap<RecVar, GTEState> recs1 = new HashMap<>(recs);
         recs1.put(t.var, s);
-        return construct(com, recs1, end, t.body, s);  // CHECKME can t.body be recvar? (then need patch)
+        return construct(com, recs1, end, t.body, s);  // CHECKME can t.body be recvar? (then need peek)
     }
 
     // Pre: t.right init is not recursive
