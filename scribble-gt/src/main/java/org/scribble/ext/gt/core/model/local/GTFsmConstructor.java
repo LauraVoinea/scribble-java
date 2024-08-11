@@ -8,6 +8,7 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.util.Pair;
 
 import java.util.*;
 
@@ -17,27 +18,33 @@ public class GTFsmConstructor {
 
     public GTEState construct(Set<Op> com, GTLType t) {
         GTEState init = peekNewState(t);
-        return construct(com, new HashMap<>(), newState(), t, init);
+        GTEState end = newState();
+        return construct(com, new HashMap<>(), end, Optional.empty(), t, init);
     }
 
-    // HERE HERE Optional<Triple<GTEState, EAction<StaticActionKind>, GTEState> pending -- cf. recvar under rec; recursion doesn't use peek (this case not supported)
-    protected GTEState construct(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLType t, GTEState s) {
+    // pend, cf. recvar under rec; recursion doesn't use peek (this case not supported)
+    protected GTEState construct(
+            Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
+            Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLType t, GTEState s) {
         if (t instanceof GTLBranch) {
-            return constructBranch(com, recs, end, (GTLBranch) t, s);
+            return constructBranch(com, recs, end, pend, (GTLBranch) t, s);
         } else if (t instanceof GTLSelect) {
-            return constructSelect(com, recs, end, (GTLSelect) t, s);
+            return constructSelect(com, recs, end, pend, (GTLSelect) t, s);
         } else if (t instanceof GTLRecursion) {
-            return constructRecursion(com, recs, end, (GTLRecursion) t, s);
+            return constructRecursion(com, recs, end, pend, (GTLRecursion) t, s);
             //} else if (t instanceof GTLRecVar) {
         } else if (t instanceof GTLMixedChoice) {
-            return constructMixed(com, recs, end, (GTLMixedChoice) t, (GTEMixedState) s);
+            return constructMixed(com, recs, end, pend, (GTLMixedChoice) t, (GTEMixedState) s);
         } else if (t instanceof GTLEnd) {
             return end;  //constructEnd(com, recs, end, (GTLRecursion) t, s);
         }
         throw new RuntimeException("CHECKME: " + t.getClass());
     }
 
-    protected GTEState constructBranch(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLBranch t, GTEState s) {
+    protected GTEState constructBranch(
+            Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
+            Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLBranch t, GTEState s) {
+        prePeek(pend, s);
         for (Map.Entry<Op, GTLType> e : t.cases.entrySet()) {
             Op op = e.getKey();
             ERecv<StaticActionKind> a = MF.StaticERecv(t.src, op, t.pays.get(op));
@@ -48,7 +55,17 @@ public class GTFsmConstructor {
         return s;
     }
 
-    protected GTEState constructSelect(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLSelect t, GTEState s) {
+    private void prePeek(Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTEState s) {
+        if (pend.isPresent()) {
+            Pair<GTEState, EAction<StaticActionKind>> p = pend.get();
+            p.left.addEdge(p.right, s);
+        }
+    }
+
+    protected GTEState constructSelect(
+            Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
+            Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLSelect t, GTEState s) {
+        prePeek(pend, s);
         for (Map.Entry<Op, GTLType> e : t.cases.entrySet()) {
             Op op = e.getKey();
             ESend<StaticActionKind> a = MF.StaticESend(t.dst, op, t.pays.get(op));
@@ -59,14 +76,63 @@ public class GTFsmConstructor {
         return s;
     }
 
-    protected GTEState peek(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTEState prev, EAction<StaticActionKind> a, GTLType t) {
+    protected GTEState peek(
+            Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
+            GTEState prev, EAction<StaticActionKind> a, GTLType t) {
         GTEState succ;
         succ = (t instanceof GTLRecVar)
                ? recs.get(((GTLRecVar) t).var)
-               : construct(com, recs, end, t, peekNewState(t));
-        prev.addEdge(a, succ);
+               : construct(com, recs, end, Optional.of(new Pair<>(prev, a)), t, peekNewState(t));
+        //prev.addEdge(a, succ);
         return succ;
     }
+
+    protected GTEState constructRecursion(
+            Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
+            Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLRecursion t, GTEState s) {
+        HashMap<RecVar, GTEState> recs1 = new HashMap<>(recs);
+        recs1.put(t.var, s);
+        return construct(com, recs1, end, pend, t.body, s);  // CHECKME can t.body be recvar? (then need peek)
+    }
+
+    // Pre: t.right init is not recursive
+    protected GTEState constructMixed(
+            Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
+            Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLMixedChoice t, GTEMixedState s) {
+        //*
+        GTEState left = construct(com, recs, end, pend, t.left, s);
+        GTEState right = construct(com, recs, end, Optional.empty(), t.right, newState());
+        List<EAction<StaticActionKind>> as = right.getActions();
+        if (as.size() != 1) {
+            throw new RuntimeException("CHECKME " + as);
+        }
+        EAction<StaticActionKind> fst = as.get(0);
+        join(new HashSet<>(), com, left, makeStar(fst), right.getDetSuccessor(fst));  // HERE HERE draw joins as special exception edges -- just add *
+        return left;
+        /*/ // XXX doesn't draw nested mixed exception edges
+        construct(com, recs, end, t.left, s);
+        construct(com, recs, end, t.right, s);
+        return s;
+        //*/
+    }
+
+    protected void join(
+            Set<Integer> seen, Set<Op> com, GTEState left,
+            EAction<StaticActionKind> aRightStar, GTEState rightSucc) {
+        if (seen.contains(left.id)) {
+            return;
+        }
+        seen.add(left.id);
+        for (EAction<StaticActionKind> a : new ArrayList<>(left.getActions())) {
+            if (!com.contains((Op) a.mid)) {
+                join(seen, com, left.getDetSuccessor(a), aRightStar, rightSucc);
+            }
+        }
+        left.addEdge(aRightStar, rightSucc);  // Must come after recursive visit above
+    }
+
+
+    /* ... */
 
     // Pre: t static and not recvar
     protected static GTEState peekNewState(GTLType t) {
@@ -86,44 +152,6 @@ public class GTFsmConstructor {
     protected static GTEMixedState newMixedState() {
         // mark right action instead of |> -- n.b. need to handle nested mixed -- XXX `*` join edges enough?
         return new GTEMixedState(Set.of(new RecVar(Character.toString(ConsoleColors.WHITE_TRIANGLE))));
-    }
-
-    protected GTEState constructRecursion(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLRecursion t, GTEState s) {
-        HashMap<RecVar, GTEState> recs1 = new HashMap<>(recs);
-        recs1.put(t.var, s);
-        return construct(com, recs1, end, t.body, s);  // CHECKME can t.body be recvar? (then need peek)
-    }
-
-    // Pre: t.right init is not recursive
-    protected GTEState constructMixed(Set<Op> com, Map<RecVar, GTEState> recs, GTEState end, GTLMixedChoice t, GTEMixedState s) {
-        //*
-        GTEState left = construct(com, recs, end, t.left, s);
-        GTEState right = construct(com, recs, end, t.right, newState());
-        List<EAction<StaticActionKind>> as = right.getActions();
-        if (as.size() != 1) {
-            throw new RuntimeException("CHECKME " + as);
-        }
-        EAction<StaticActionKind> fst = as.get(0);
-        join(new HashSet<>(), com, left, makeStar(fst), right.getDetSuccessor(fst));  // HERE HERE draw joins as special exception edges -- just add *
-        return left;
-        /*/ // XXX doesn't draw nested mixed exception edges
-        construct(com, recs, end, t.left, s);
-        construct(com, recs, end, t.right, s);
-        return s;
-        //*/
-    }
-
-    protected void join(Set<Integer> seen, Set<Op> com, GTEState left, EAction<StaticActionKind> aRightStar, GTEState rightSucc) {
-        if (seen.contains(left.id)) {
-            return;
-        }
-        seen.add(left.id);
-        for (EAction<StaticActionKind> a : new ArrayList<>(left.getActions())) {
-            if (!com.contains((Op) a.mid)) {
-                join(seen, com, left.getDetSuccessor(a), aRightStar, rightSucc);
-            }
-        }
-        left.addEdge(aRightStar, rightSucc);  // Must come after recursive visit above
     }
 
     protected static EAction<StaticActionKind> makeStar(EAction<StaticActionKind> a) {
