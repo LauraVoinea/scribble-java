@@ -23,6 +23,16 @@ public enum StateKind {
          * This is used for MIXED CHOICE
          */
         MIXED,
+        MIXED_INTERNAL,
+        /**
+         * Represents a mixed state in the state machine.
+         * This is used for MIXED CHOICE
+         */
+        MIXED_EXTERNAL,
+        /**
+         * Represents a recursive state in the state machine.
+         * This is used in the construction of the state machine.
+         */
         /**
          * Represents a recursive state in the state machine.
          * This is used in the construction of the state machine.

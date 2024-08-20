@@ -11,7 +11,6 @@ import org.scribble.ext.gt.core.type.session.local.*;
 
 import java.util.*;
 
-import static org.scribble.gt.codegen.FSM.GTtoFsm;
 
 public class ErlangCodeGen {
     private static final String outputDir = "./generated";
@@ -27,10 +26,15 @@ public class ErlangCodeGen {
         return firstChar + str.substring(1);
     }
 
-    public static void genErl(FSM fsm, StringBuilder erlRole, int indent) {
+    public static void genTerminal(StringBuilder erlRole, String indentation) {
+        erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
+        erlRole.append(indentation).append("% Stop the state machine with normal termination\n");
+        erlRole.append(indentation).append("{stop, normal, {}}.\n");
+    }
+    public static void genErl(StateM fsm, StringBuilder erlRole, int indent) {
         String indentation = "\t".repeat(Math.max(0, indent)); // Indentation string
 
-        List<State> states = fsm.getStates();
+        Set<State> states = fsm.getStates();
         erlRole.append("-module('").append(fsm.getName()).append("').\n");
         erlRole.append(" % Define a macro SERVER that is replaced with ?MODULE (current module name)\n");
         erlRole.append("-define(SERVER, ?MODULE).\n");
@@ -44,7 +48,7 @@ public class ErlangCodeGen {
         erlRole.append("% Function to start the state machine\n");
         erlRole.append("start_link() -> gen_statem:start_link({local, ?SERVER}, ?MODULE, [], []).\n\n");
         erlRole.append("callback_mode() -> [state_functions].\n\n");
-//        erlRole.append(String.format("init([]) -> {ok, %s, {}}.\n\n", states.get(0).getName()));
+//        erlRole.append(String.format("init([]) -> {ok, %s, {}}.\n\n", states.iterator().next().getName()));
 
         //State transition functions
         for (Transition t : fsm.getTransitions()){
@@ -65,9 +69,7 @@ public class ErlangCodeGen {
                     for (Transition t : state.getTransitions()) {
                         State nextState = t.getNextState();
                         if (nextState.getKind().equals(StateKind.TERMINAL)) {
-                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
-                            erlRole.append(indentation).append("% Stop the state machine with normal termination\n");
-                            erlRole.append(indentation).append("{stop, normal, {}}.\n");
+                            genTerminal(erlRole, indentation);
                         } else if (nextState.getKind().equals(StateKind.INTERNAL)){
                             erlRole.append(indentation).append(String.format("{next_state, %s, {}, " +
                                             "[{next_event, internal, {send_%s}}]}.\n",
@@ -91,9 +93,7 @@ public class ErlangCodeGen {
                         }
 
                         if (nextState.getKind().equals(StateKind.TERMINAL)) {
-                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
-                            erlRole.append(indentation).append("% Stop the state machine with normal termination\n");
-                            erlRole.append(indentation).append("{stop, normal, Data};\n");
+                            genTerminal(erlRole, indentation);
                         } else if (nextState.getKind().equals(StateKind.INTERNAL)){
                             erlRole.append(String.format("{next_state, %s, Data, " +
                                             "[{next_event, internal, {send_%s}}]};\n",
@@ -107,21 +107,44 @@ public class ErlangCodeGen {
                     break;
                 case EXTERNAL:
                     for (Transition t : state.getTransitions()) {
-                        State nextState = t.getNextState();
-                        if (nextState.getKind().equals(StateKind.TERMINAL)) {
-                            erlRole.append(String.format("%s(cast, {%s}, Data) -> \n",
-                                    stateName, t.getEvent().getName()));
-                            erlRole.append(indentation).append("io:format(\"Good bye!~n\"),\n");
-                            erlRole.append("% Stop the state machine with normal termination\n");
-                            erlRole.append(indentation).append("{stop, normal, Data};\n");
-                        } else {
-                            erlRole.append(String.format("%s(cast, {%s}, Data) -> {next_state, %s, Data};\n",
-                                    stateName, t.getEvent().getName(), nextState.getName()));
-                        }
+                        genExternal(erlRole, indentation, stateName, t);
                     }
                     erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
                     break;
-                case MIXED:
+                case MIXED_INTERNAL:
+                    List<Transition> transitions = new ArrayList<>(state.getTransitions());
+
+                    Transition rhs = transitions.get(transitions.size() - 1);
+                    State next = rhs.getNextState();
+                    if(!rhs.getEvent().getRole().equals(fsm.getName())){
+                        erlRole.append(String.format("%s(internal, {%s}, {%sPid, Data}) -> \n",
+                                stateName, rhs.getEvent().getName(), rhs.getEvent().getRole()));
+                        erlRole.append(indentation).append(String.format("send_%s(%sPid), \n",
+                                rhs.getEvent().getName(), rhs.getEvent().getRole()));
+                    } else {
+                        erlRole.append(String.format("%s(send, {%s}, Data) -> \n",
+                                stateName, rhs.getEvent().getName()));
+                    }
+
+                    if (next.getKind().equals(StateKind.TERMINAL)) {
+                        genTerminal(erlRole, indentation);
+                    } else if (next.getKind().equals(StateKind.INTERNAL)){
+                        erlRole.append(String.format("{next_state, %s, Data, " +
+                                        "[{next_event, internal, {send_%s}}]};\n",
+                                rhs.getEvent().getName(), rhs.getEvent().getName()));
+                    } else {
+                        erlRole.append(String.format("{next_state, %s, Data};\n",
+                                next.getName()));
+                    }
+
+                    for (int i = 0 ; i < transitions.size() - 1; i++) {
+                        Transition t = transitions.get(i);
+                        genExternal(erlRole, indentation, stateName, t);
+                    }
+
+                    erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
+                    break;
+                case MIXED_EXTERNAL:
                 case REC:
                     for (Transition t : state.getTransitions()) {
                         State nextState = t.getNextState();
@@ -135,18 +158,24 @@ public class ErlangCodeGen {
                     erlRole.replace(erlRole.length() - 2, erlRole.length(), ".\n");
                     break;
                 case TERMINAL:
-                    //TODO
-//                    erlRole.append(String.format("%s(cast, stop, Data) -> {stop, normal, Data}.\n", stateName));
-                    break;
-//                case REC:
-                    //TODO
-//                    erlRole.append(String.format("%s(cast, stop, Data) -> {stop, normal, Data}.\n", stateName));
                 default:
                     erlRole.append("\n");
                     break;
 
             }
             erlRole.append("\n");
+        }
+    }
+
+    private static void genExternal(StringBuilder erlRole, String indentation, String stateName, Transition t) {
+        State nextState = t.getNextState();
+        erlRole.append(String.format("%s(cast, {%s}, Data) -> \n",
+                stateName, t.getEvent().getName()));
+        if (nextState.getKind().equals(StateKind.TERMINAL)) {
+            genTerminal(erlRole, indentation);
+        } else {
+            erlRole.append(String.format("{next_state, %s, Data};\n",
+                    nextState.getName()));
         }
     }
 
@@ -162,12 +191,11 @@ public class ErlangCodeGen {
             GTLConfig A = aux.getValue();
             GTLType type = A.type;
 
-            FSM fsm = GTtoFsm(type, role, committing);
-            StateM stateM = StateM.stateRenaming(StateM.translate(type, aux.getKey(), committing, null));
+            StateM stateM = StateM.translate(type, aux.getKey(), committing, null);
+            stateM.stateRenaming();
             System.out.println("StateM: " + stateM);
-            fsm.generateDOT(outputDir + File.separator + protocolName , role + ".dot");
-            stateM.generateDOT(outputDir + File.separator + protocolName , role + "_stateM.dot");
-            genErl(fsm, erlRole, 1);
+            stateM.generateDOT(outputDir + File.separator + protocolName , role + "_fsm.dot");
+            genErl(stateM, erlRole, 1);
             createErlangFile(protocolName, role, erlRole);
 
         }

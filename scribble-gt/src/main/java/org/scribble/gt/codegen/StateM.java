@@ -106,7 +106,7 @@ public class StateM {
         this.transitions.addAll(fsm.getTransitions());
     }
 
-    private Set<Transition> getTransitions() {
+    Set<Transition> getTransitions() {
         return this.transitions;
     }
 
@@ -128,21 +128,44 @@ public class StateM {
 
             // Write states
             for (State state : this.states) {
-                writer.write(state.getName() + " [shape=circle];\n");
+                switch (state.getKind()) {
+                    case TERMINAL:
+                        writer.write(state.getName() + "[shape=doublecircle];\n");
+                        break;
+                    case MIXED_EXTERNAL:
+                    case MIXED_INTERNAL:
+                        writer.write(state.getName() + "[shape=Mcircle,style=filled];\n");
+                        break;
+                    default:
+                        writer.write(state.getName() + "[shape=circle];\n");
+
+                }
+//                writer.write(state.getName() + " [shape=circle];\n");
                 // Write transitions
                 for (Transition t : state.getTransitions()){
                     switch (t.getEvent().getKind()){
                         case SEND:
                             writer.write(t.getCurrentState().getName() + " -> " + t.getNextState().getName()
-                                    + " [label=\" ! " + t.getEvent().getName() + " to " + t.getEvent().getRole() + "\"];\n");
+                                    + " [label=\" ! " + t.getEvent().getName() + " to " + t.getEvent().getRole()
+                                    + "\"];\n");
                             break;
                         case RECEIVE:
                             writer.write(t.getCurrentState().getName() + " -> " + t.getNextState().getName()
-                                    + " [label=\" ? " + t.getEvent().getName() + " from " + t.getEvent().getRole() + "\"];\n");
+                                    + " [label=\" ? " + t.getEvent().getName() + " from " + t.getEvent().getRole()
+                                    + "\"];\n");
+                            break;
+                        case MIXED_RECEIVE:
+                            writer.write(t.getCurrentState().getName() + " -> " + t.getNextState().getName()
+                                    + " [style=dotted, label=\" ? " + t.getEvent().getName() + " from " + t.getEvent().getRole() + "\"];\n");
+                            break;
+                        case MIXED_SEND:
+                            writer.write(t.getCurrentState().getName() + " -> " + t.getNextState().getName()
+                                    + " [style=dotted, label=\" ! " + t.getEvent().getName() + " to " + t.getEvent().getRole() + "\"];\n");
                             break;
                         default:
                             writer.write(t.getCurrentState().getName() + " -> " + t.getNextState().getName()
-                                    + " [label=\"" + t.getEvent().getKind() + " " + t.getEvent().getName() + "\"];\n");
+                                    + " [label=\"" + t.getEvent().getKind() + " " + t.getEvent().getName()
+                                    + t.getEvent().getKind() + "\"];\n");
                     }
                 }
             }
@@ -165,6 +188,7 @@ public class StateM {
      * @return The generated state machine.
      */
     public static StateM translate(GTLType G, Role R, Set<Op> committing, Event e) {
+        System.err.println("Translating " + G + " for role " + R + " index " + index);
         // Handle GTLBranch type
         if (G instanceof GTLBranch) {
             GTLBranch cast = (GTLBranch) G;
@@ -201,10 +225,6 @@ public class StateM {
 
             result.addState(root);
             result.setInitState(root);
-            System.out.println("Branch root " + root);
-            System.out.println("-------------> ");
-
-            System.out.println("Branch " + result);
             return result;
         }
         // Handle GTLMixedChoice type
@@ -220,28 +240,36 @@ public class StateM {
 
             Event rhsEvent = firstTransition.get().getEvent();
 
+            rightFsm.getStates().remove(rightFsm.getInitState());
+            result.addStateM(leftFsm);
+            result.addStateM(rightFsm);
+
+            State rootLeft = leftFsm.getInitState();
+
+
+
             if(rhsEvent.getKind().equals(EventKind.RECEIVE)) {
                 for (State s : leftFsm.getNonCommitedStates()) {
                     Transition t = new Transition(rhsEvent, s, rootRight);
                     s.addTransition(t);
                     result.getTransitions().add(t);
                 }
+                rhsEvent.setKind(EventKind.MIXED_RECEIVE);
+                rootLeft.setKind(StateKind.MIXED_EXTERNAL);
+            } else {
+                Transition t = new Transition(rhsEvent, rootLeft, rootRight);
+                rootLeft.addTransition(t);
+                result.getTransitions().add(t);
+                rhsEvent.setKind(EventKind.MIXED_SEND);
+                rootLeft.setKind(StateKind.MIXED_INTERNAL);
             }
 
-            rightFsm.getStates().remove(rightFsm.getInitState());
-            result.addStateM(leftFsm);
-            result.addStateM(rightFsm);
-
-            State rootLeft = leftFsm.getInitState();
-            Transition t = new Transition(rhsEvent, rootLeft, rootRight);
-            rootLeft.addTransition(t);
             result.setInitState(leftFsm.getInitState());
-            result.getTransitions().add(t);
             return result;
         } else if (G instanceof GTLSelect) {
             GTLSelect cast = (GTLSelect) G;
-            List<StateM> fsms = new ArrayList<StateM>();
-            List<Event> events = new ArrayList<Event>();
+            List<StateM> fsms = new ArrayList<>();
+            List<Event> events = new ArrayList<>();
 
             for (Map.Entry<Op, GTLType> entry : cast.cases.entrySet()) {
                 Event event = new Event(EventKind.SEND, entry.getKey().toString(), cast.dst.toString());
@@ -262,7 +290,6 @@ public class StateM {
                 result.getTransitions().add(t);
 
             }
-            System.out.println("Select ?? " + result);
             return result;
         } else if (G instanceof GTLEnd) {
             StateM result = new StateM(R.toString());
@@ -315,7 +342,7 @@ public class StateM {
         this.states.addAll(states);
     }
 
-    private Set<State> getStates() {
+    Set<State> getStates() {
         return this.states;
     }
 
@@ -337,12 +364,15 @@ public class StateM {
     }
 
 
-    public static StateM stateRenaming(StateM fsm){
+    public void stateRenaming(){
         int i = 1;
-        for (State s : fsm.getStates()){
+        for (State s : this.states){
             s.setName("state" + i);
             i++;
         }
-        return fsm;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

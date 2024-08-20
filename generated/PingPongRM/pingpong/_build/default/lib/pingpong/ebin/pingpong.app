@@ -1,0 +1,10 @@
+{application,pingpong,
+             [{description,"An OTP application"},
+              {vsn,"0.1.0"},
+              {registered,[]},
+              {mod,{pingpong_app,[]}},
+              {applications,[kernel,stdlib]},
+              {env,[]},
+              {modules,[alice,alice_alt,bob,pingpong_app,pingpong_sup]},
+              {licenses,["Apache-2.0"]},
+              {links,[]}]}.
