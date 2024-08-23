@@ -191,8 +191,7 @@ public class ErlangCodeGen {
             GTLConfig A = aux.getValue();
             GTLType type = A.type;
 
-            StateM stateM = StateM.translate(type, aux.getKey(), committing, null);
-            stateM.stateRenaming();
+            StateM stateM = StateM.translate(type, aux.getKey(), committing, null, 1).rename();
             System.out.println("StateM: " + stateM);
             stateM.generateDOT(outputDir + File.separator + protocolName , role + "_fsm.dot");
             genErl(stateM, erlRole, 1);
