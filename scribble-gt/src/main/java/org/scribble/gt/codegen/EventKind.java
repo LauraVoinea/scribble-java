@@ -12,8 +12,6 @@ public enum EventKind {
      * Represents a receive event in the state machine.
      */
     RECEIVE,
-
-    MIXED,
     /**
      * Represents a recursive event in the state machine.
      */

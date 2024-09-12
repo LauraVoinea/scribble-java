@@ -17,10 +17,10 @@ public class StateM {
     private static int index;
     private static Map<String, State> recMap = new HashMap<>();
     private String name;
-    private Set<State> states;
+    private TreeSet<State> states;
     private State initState;
     private Set<State> nonCommitedStates;
-    private Set<Transition> transitions;
+    private LinkedHashSet<Transition> transitions;
 
     /**
      * Constructor for StateM.
@@ -29,9 +29,9 @@ public class StateM {
      */
     public StateM(String string, int index) {
         this.name = string;
-        this.states = new HashSet<>();
+        this.states = new TreeSet<>();
         this.nonCommitedStates = new HashSet<>();
-        this.transitions = new HashSet<>();
+        this.transitions = new LinkedHashSet<>();
         this.index = index;
     }
 
@@ -40,7 +40,7 @@ public class StateM {
      *
      * @return The initial state.
      */
-    private State getInitState() {
+    State getInitState() {
         return this.initState;
     }
 
@@ -102,7 +102,7 @@ public class StateM {
         this.transitions.addAll(fsm.getTransitions());
     }
 
-    Set<Transition> getTransitions() {
+    LinkedHashSet<Transition> getTransitions() {
         return this.transitions;
     }
 
@@ -161,6 +161,7 @@ public class StateM {
      * @return The generated state machine.
      */
     public static StateM translate(GTLType G, Role R, Set<Op> committing, Event e, int currentIndex) {
+
         // Handle GTLBranch type
         if (G instanceof GTLBranch) {
             GTLBranch cast = (GTLBranch) G;
@@ -331,7 +332,7 @@ public class StateM {
         return this.index;
     }
 
-    Set<State> getStates() {
+    public Set<State> getStates() {
         return this.states;
     }
 
@@ -362,6 +363,7 @@ public class StateM {
         StateM result = new StateM(this.name, 0);
         State root = new State("state" + 0, StateKind.INIT);
         Transition t = new Transition(new Event(EventKind.INIT, "init", "init"), root, this.getInitState());
+        result.setInitState(root);
         root.addTransition(t);
         result.addStateM(this);
         result.addState(root);

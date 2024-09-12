@@ -1,18 +1,11 @@
 package org.scribble.gt.codegen;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
-/**
- * Represents an internal state in the state machine.
- * This is typically used for SEND/SELECT operations.
- */
-public class State {
+public class State implements Comparable<State> {
     private String name;
-    private Set<Transition> transitions;
+    private LinkedHashSet<Transition> transitions;
     private StateKind kind;
     private boolean committed;
 
@@ -25,7 +18,7 @@ public class State {
     public State(String name, StateKind kind) {
         this.name = name;
         this.kind = kind;
-        this.transitions = new HashSet<>();
+        this.transitions = new LinkedHashSet<>();
         this.committed = false;
     }
 
@@ -34,7 +27,7 @@ public class State {
      *
      * @return A list of transitions.
      */
-    public Set<Transition> getTransitions() {
+    public LinkedHashSet<Transition> getTransitions() {
         return transitions;
     }
 
@@ -113,5 +106,18 @@ public class State {
 //                ", transitions=" + transitions.toString() +
                 ", kind=" + kind +
                 '}';
+    }
+
+    private int extractStateNumber(String name) {
+        return Integer.parseInt(name.replaceAll("[^0-9]", ""));
+    }
+
+    @Override
+    public int compareTo(State other) {
+        // Extract the number from the name (assuming names are in the format 'state0', 'state1', etc.)
+        int thisNumber = extractStateNumber(this.name);
+        int otherNumber = extractStateNumber(other.name);
+
+        return Integer.compare(thisNumber, otherNumber);
     }
 }

@@ -45,17 +45,26 @@ state1(internal, coin_toss, #state_data{alice_pid = AlicePid} = Data) ->
   end;
 
 % Waiting for ping from Alice
-state1(cast, {ping}, Data) ->
+state1(cast, {ping, _}, Data) ->
   io:format("Bob: Received ping from Alice~n"),
   {next_state, state3, Data, [{next_event, internal, {pong}}]}.
 
 % Waiting for ping from Alice
-waiting_for_ping(cast, {ping}, Data) ->
+waiting_for_ping(cast, {ping, _}, Data) ->
   io:format("Bob: Received ping from Alice~n"),
-  {next_state, state3, Data, [{next_event, internal, {pong}}]}.
+  {next_state, state2, Data, [{next_event, internal, {pong}}]}.
 
 % State3: Send pong and transition back to state1
-state3(internal, {pong}, #state_data{alice_pid = AlicePid} = Data) ->
+state2(internal, {pong}, #state_data{alice_pid = AlicePid} = Data) ->
   send_pong(AlicePid),
   io:format("Bob: Sending pong to Alice from State3~n"),
   {next_state, state1, Data, [{next_event, internal, coin_toss}]}.
+
+%%state4(cast, {banana}, Data) ->
+%%  {stop, normal, Data}.
+%%state4(cast, {ping, Counter}, Data) ->
+%%  if LocalCounter > Counter ->
+%%    io:format("Bob: Received ping with counter ~p, but I already received a ping with counter ~p~n", [Counter, LocalCounter]),
+%%    {keep_state, Data};
+%%  true ->
+%%  {next_state, , Data}.
