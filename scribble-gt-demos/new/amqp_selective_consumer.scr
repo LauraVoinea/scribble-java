@@ -1,0 +1,57 @@
+module amqp_selective_consumer;
+data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
+data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
+data <java> "java.lang.String" from "rt.jar" as nowait;
+data <java> "java.lang.String" from "rt.jar" as exchange;
+data <java> "java.lang.String" from "rt.jar" as routing_key;
+
+
+global protocol AMQP(role Consumer, role Channel, role Server){
+
+    // Consumer sends a basic.consume message to the Channel
+    basic_consume(consumer_tag, nowait) from Consumer to Channel;
+
+    // Channel sends a basic.consume message to the Server
+    basic_consume(consumer_tag, nowait) from Channel to Server;
+
+    // Server acknowledges the consume request by sending basic.consume_ok to the Channel
+    basic_consume_ok(consumer_tag) from Server to Channel;
+
+    // Channel forwards the basic.consume_ok message to the Consumer
+    basic_consume_ok(consumer_tag) from Channel to Consumer;
+
+    choice at Server {
+         // Server delivers messages to the Channel based on consumer tags
+         basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Server to Channel;
+         temp() from Channel to Consumer;
+        // Mixed block to represent selective message delivery
+        mixed {
+            choice at Channel {
+                // Deliver message to the registered Consumer based on the consumer tag
+                basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Channel to Consumer;
+                // Consumer acknowledges the message delivery
+                basic_ack(delivery_tag) from Channel to Server;
+                bogus1() from Consumer to Channel;
+                dummy1() from Channel to Server;
+            } or {
+                // Handle case where no Consumer is registered for the tag, send message to default consumer
+                default_consumer_deliver(delivery_tag, exchange, routing_key) from Channel to Consumer;
+                // Default consumer sends acknowledgement
+                basic_ack(delivery_tag) from Channel to Server;
+                bogus2() from Consumer to Channel;
+                dummy2() from Channel to Server;
+            }
+        }() or Channel -> Consumer() {
+            // Handle basic cancel flow
+            basic_cancel(consumer_tag, nowait) from Consumer to Channel;
+            basic_cancel(consumer_tag, nowait) from Channel to Server;
+            // Server confirms the cancel request
+            basic_cancel_ok(consumer_tag) from Server to Channel;
+            basic_cancel_ok(consumer_tag) from Channel to Consumer;
+        }
+    } or{
+        // Handle server-initiated cancellation
+        basic_cancel(consumer_tag, nowait) from Server to Channel;
+        basic_cancel(consumer_tag, nowait) from Channel to Consumer;
+    }
+}
