@@ -12,7 +12,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
 
         // Consumer registers default consumer with Channel
         register_default_consumer() from Consumer to Channel;
-   // mixed{
+
         // Consumer sends a basic.consume message to the Channel
         basic_consume(consumer_tag, nowait) from Consumer to Channel;
 
@@ -22,6 +22,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
         // Server acknowledges the consume request by sending basic.consume_ok to the Channel
         basic_consume_ok(consumer_tag) from Server to Channel;
 
+   // mixed{
         // Channel forwards the basic.consume_ok message to the Consumer
         basic_consume_ok(consumer_tag) from Channel to Consumer;
 
@@ -33,37 +34,25 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                     // If consumer is registered, deliver message to the Consumer
                     basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Server to Channel;
 
-                    // Request acknowledgment from Consumer
-                    request_acknowledgment() from Channel to Consumer; // dummy message
+                    // Abstracted message for syntactic purposes: projection onto Consumer
+                    process_message() from Channel to Consumer;
 
                     // Mixed block to represent selective message delivery
                     mixed {
-                        choice at Channel {
-                            // Deliver to registered Consumer
-                            basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Channel to Consumer;
+                        // Deliver to registered Consumer
+                        basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Channel to Consumer;
 
-                            // Consumer acknowledges the message delivery
-                            basic_ack(delivery_tag) from Consumer to Channel;
+                        // Abstracted message for syntactic purposes: left-committing
+                        processing_complete(delivery_tag) from Consumer to Channel;
 
-                            // Channel acknowledges to Server
-                            basic_ack(delivery_tag) from Channel to Server;
-                        } or {
-                            // If no Consumer is registered, check for default consumer
-                            // Deliver to default consumer
-                            default_consumer_deliver(delivery_tag, exchange, routing_key) from Channel to Consumer;
+                        // Abstracted message for syntactic purposes: left-committing
+                        // Shouldn't introduce conflicting behaviour
+                        update_delivery_state(delivery_tag) from Channel to Server;
 
-                            // Default consumer sends acknowledgment
-                            basic_ack(delivery_tag) from Consumer to Channel;
-                            basic_ack(delivery_tag) from Channel to Server;
-                        } or {
-                           // If no Consumer or Default Consumer is available, handle error
-                           exit_with_error() from Channel to Consumer;
+                        continue SelectiveMessageDelivery;
 
-                           // Consumer reports lack of registered consumer
-                           no_registered_consumer() from Consumer to Channel; // dummy message
-                           log_error_event() from Channel to Server; // Log the error event for monitoring; dummy message
-                        }
                     }() or Channel -> Consumer() {
+                        // In reality, the Consumer can cancel at any time
                         // Consumer initiates cancel
                         basic_cancel(consumer_tag, nowait) from Consumer to Channel;
 
@@ -77,6 +66,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                         basic_cancel_ok(consumer_tag) from Channel to Consumer;
                     }
                 } or {
+                    // In reality, the Server can cancel at any time
                     // Server initiates cancel
                     basic_cancel(consumer_tag, nowait) from Server to Channel;
 
@@ -87,7 +77,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                     basic_cancel(consumer_tag, nowait) from Channel to Consumer;
 
                     // Consumer acknowledges the cancel request
-                    basic_cancel_ok(consumer_tag) from Consumer to Channel;
+                   // basic_cancel_ok(consumer_tag) from Consumer to Channel; //dummy message
                 }
             } () or Server -> Channel() {
                 // Consumer initiates cancel
@@ -106,7 +96,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
         }
    /* } () or Consumer -> Channel() {
         // Monitoring and lifecycle management of Consumers
-        consumer_down(Pid) from Channel to Consumer;
+        consumer_down(Pid) from Consumer to Channel;
     } */
     }
 
