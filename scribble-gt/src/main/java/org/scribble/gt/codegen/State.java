@@ -8,6 +8,7 @@ public class State implements Comparable<State> {
     private LinkedHashSet<Transition> transitions;
     private StateKind kind;
     private boolean committed;
+    private LinkedHashSet<Event> gcEvents;
 
     /**
      * Constructor for the State class.
@@ -20,6 +21,7 @@ public class State implements Comparable<State> {
         this.kind = kind;
         this.transitions = new LinkedHashSet<>();
         this.committed = false;
+        this.gcEvents = new LinkedHashSet<>();
     }
 
     /**
@@ -94,6 +96,18 @@ public class State implements Comparable<State> {
         this.committed = committed;
     }
 
+    public LinkedHashSet<Event> getGcEvents() {
+        return gcEvents;
+    }
+
+    public void setGcEvents(LinkedHashSet<Event> gcEvents) {
+        this.gcEvents = gcEvents;
+    }
+
+    public void addGcEvent(Event gcEvent) {
+        this.gcEvents.add(gcEvent);
+    }
+
     /**
      * Returns a string representation of the state.
      *
@@ -103,7 +117,6 @@ public class State implements Comparable<State> {
     public String toString() {
         return "State{" +
                 "name='" + name + '\'' +
-//                ", transitions=" + transitions.toString() +
                 ", kind=" + kind +
                 '}';
     }

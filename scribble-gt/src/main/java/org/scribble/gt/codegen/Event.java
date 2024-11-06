@@ -11,6 +11,8 @@ public class Event {
     private EventKind kind;
     private Boolean committing;
 
+    private int mc = 0;
+
     /**
      * Constructor for the Event class.
      *
@@ -35,6 +37,14 @@ public class Event {
         this.kind = kind;
         this.role = role;
         this.committing = false;
+    }
+
+    public int getMc() {
+        return mc;
+    }
+
+    public void setMc(int mc) {
+        this.mc = mc;
     }
 
     /**
@@ -121,7 +131,8 @@ public class Event {
         if (o == null || getClass() != o.getClass()) return false;
         Event event = (Event) o;
         return Objects.equals(name, event.name) && Objects.equals(role, event.role) &&
-                kind == event.kind && Objects.equals(committing, event.committing);
+                kind == event.kind;
+//        && Objects.equals(committing, event.committing);
     }
 
     /**

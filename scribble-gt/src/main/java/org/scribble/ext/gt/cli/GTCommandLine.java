@@ -26,6 +26,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.*;
+import org.scribble.gt.codegen.CodeGen;
 import org.scribble.gt.codegen.ErlangCodeGen;
 import org.scribble.job.Job;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
@@ -279,8 +280,7 @@ public class GTCommandLine extends CommandLine {
             Map<Role, GTLConfig> configs = poof.configs;
             String protocolName = g.getSimpleName().toString();
             // code gen
-            ErlangCodeGen.genModule(protocolName, configs, translate.getCommittingTop());
-
+            CodeGen.genErl(protocolName, configs, translate.getCommittingTop(), false);
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());

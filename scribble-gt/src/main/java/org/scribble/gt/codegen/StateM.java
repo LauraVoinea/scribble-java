@@ -22,6 +22,8 @@ public class StateM {
     private Set<State> nonCommitedStates;
     private LinkedHashSet<Transition> transitions;
 
+    private static int mcCounter = 0;
+
     /**
      * Constructor for StateM.
      *
@@ -33,6 +35,10 @@ public class StateM {
         this.nonCommitedStates = new HashSet<>();
         this.transitions = new LinkedHashSet<>();
         this.index = index;
+    }
+
+    public static Map<String, State> getRecMap() {
+        return recMap;
     }
 
     /**
@@ -144,10 +150,10 @@ public class StateM {
 
     private String getTransitionLabel(Transition t) {
         return switch (t.getEvent().getKind()) {
-            case SEND -> " [label=\"! " + t.getEvent().getName() + " to " + t.getEvent().getRole() + "\"]";
-            case RECEIVE -> " [label=\"? " + t.getEvent().getName() + " from " + t.getEvent().getRole() + "\"]";
-            case MIXED_RECEIVE -> " [style=dotted, label=\"? " + t.getEvent().getName() + " from " + t.getEvent().getRole() + "\"]";
-            case MIXED_SEND -> " [style=dotted, label=\"! " + t.getEvent().getName() + " to " + t.getEvent().getRole() + "\"]";
+            case SEND -> " [label=\"" + t.getEvent().getRole() + " ! " + t.getEvent().getName() + "\"]";
+            case RECEIVE -> " [label=\"" + t.getEvent().getRole() + " ? " + t.getEvent().getName() + "\"]";
+            case MIXED_RECEIVE -> " [style=dotted, label=\"" + t.getEvent().getRole() + " ? " + t.getEvent().getName() + "\"]";
+            case MIXED_SEND -> " [style=dotted, label=\"" + t.getEvent().getRole() + " ! " + t.getEvent().getName() + "\"]";
             default -> " [label=\"" + t.getEvent().getName() + "\"]";
         };
     }
@@ -171,8 +177,9 @@ public class StateM {
             State rootState = new State("state" + currentIndex, StateKind.EXTERNAL);
 
             // inherit committing property from the parent event
-            if (e != null && !e.getCommitting())
+            if (e != null && !e.getCommitting()) {
                 resultFsm.addNonCommitedState(rootState);
+            }
 
             for (Map.Entry<Op, GTLType> entry : cast.cases.entrySet()) {
                 Op label = entry.getKey();
@@ -184,6 +191,7 @@ public class StateM {
                 else{
                     event.setCommitting(false);
                 }
+//                rootState.addGcEvent(event);
                 StateM fsm = translate(continuation, R, committing, event, currentIndex + 1);
                 currentIndex = fsm.getIndex();
                 fsms.add(fsm);
@@ -197,9 +205,13 @@ public class StateM {
                 resultFsm.getTransitions().add(t);
                 if ( !events.get(fsms.indexOf(fsm)).getCommitting()) {
                     fsm.getInitState().setCommitted(false);
+                    //add the gc events of root state to the fsm init state
                     fsm.addNonCommitedState(fsm.getInitState());
                 } else {
                     fsm.getInitState().setCommitted(true);
+
+                    // the gc list should be empty for committed states
+                    fsm.getInitState().getGcEvents().clear();
                 }
 
                 resultFsm.addStateM(fsm);
@@ -211,16 +223,26 @@ public class StateM {
             return resultFsm;
         }
         // Handle GTLMixedChoice type
+        // add gc events
         else if (G instanceof GTLMixedChoice) {
             GTLMixedChoice cast = (GTLMixedChoice) G;
             StateM leftFsm = translate(cast.left, R, committing, e, currentIndex);
             currentIndex = leftFsm.getIndex();
-            StateM rightFsm = translate(cast.right, R, committing, e, currentIndex);
+            StateM rightFsm = translate(cast.right, R, committing, e, currentIndex );
             currentIndex = rightFsm.getIndex();
             StateM result = new StateM(R.toString(), currentIndex);
             State rootRight = rightFsm.getInitState();
             Optional<Transition> firstTransition = rootRight.getTransitions().stream().findFirst();
             rootRight = firstTransition.get().getNextState();
+
+
+            // Collect labels from both sides of the mixed choice
+            Map<String, List<Event>> Labels = new HashMap<>();
+            Labels.put("lhs", new ArrayList<>());
+            Labels.put("rhs", new ArrayList<>());
+            mcCounter++;
+            collectLabels(leftFsm, Labels.get("lhs"), mcCounter);
+            collectLabels(rightFsm, Labels.get("rhs"), mcCounter);
 
             Event rhsEvent = firstTransition.get().getEvent();
             // remove the initial state and the first transition from the right FSM
@@ -232,6 +254,7 @@ public class StateM {
 
             State rootLeft = leftFsm.getInitState();
 
+
             Transition t = new Transition(rhsEvent, rootLeft, rootRight);
             rootLeft.addTransition(t);
             result.getTransitions().add(t);
@@ -242,17 +265,36 @@ public class StateM {
                     s.addTransition(rhs);
                     result.getTransitions().add(rhs);
                 }
+
+                Labels.get("rhs").remove(rhsEvent);
+
                 rhsEvent.setKind(EventKind.MIXED_RECEIVE);
                 rootLeft.setKind(StateKind.MIXED_EXTERNAL);
+
+
             } else {
                 // if first event in rhs is a send event we're in the observer
                 rhsEvent.setKind(EventKind.MIXED_SEND);
                 rootLeft.setKind(StateKind.MIXED_INTERNAL);
+
             }
 
             // if rootLeft is committed, then the result fsm is committed.
-            if(rootLeft.isCommitted())
+            if(rootLeft.isCommitted()) {
                 result.nonCommitedStates.clear();
+                rootLeft.getGcEvents().clear();
+            } else {
+                result.addNonCommitedState(rootLeft);
+                // add the gc events to all states in the left fsm
+                for (State s : leftFsm.getStates()) {
+                    s.setGcEvents(new LinkedHashSet<>(Labels.get("rhs")));
+                }
+
+            }
+            for (State s : rightFsm.getStates()) {
+                s.setGcEvents(new LinkedHashSet<>(Labels.get("lhs")));
+            }
+
             result.setInitState(leftFsm.getInitState());
             result.setIndex(currentIndex);
             return result;
@@ -274,8 +316,9 @@ public class StateM {
                 events.add(event);
             }
 
-            if (e != null && !e.getCommitting())
+            if (e != null && !e.getCommitting()) {
                 result.addNonCommitedState(root);
+            }
 
             for (StateM fsm : fsms) {
                 Transition t = new Transition(events.get(fsms.indexOf(fsm)), root, fsm.getInitState());
@@ -307,6 +350,20 @@ public class StateM {
                 }
 
                 fsm.getStates().remove(recState);
+                // add the gc events of the rec state to the fsm init state
+                fsm.getInitState().getGcEvents().addAll(recState.getGcEvents());
+                LinkedHashSet<Event> gcEvents = new LinkedHashSet<>();
+                for (State s : fsm.getStates()) {
+//                    s.setGcEvents(new LinkedHashSet<>(recState.getGcEvents()));
+                    //collect all gc events from the fsm states
+                    gcEvents.addAll(s.getGcEvents());
+                }
+                fsm.getInitState().setGcEvents(gcEvents);
+                //add gc events to each fsm state that is External or Mixed_External or Mixed_Internal
+                for (State s : fsm.getStates()) {
+                        s.setGcEvents(gcEvents);
+
+                }
             }
             result.setInitState(fsm.getInitState());
             result.addStateM(fsm);
@@ -348,6 +405,10 @@ public class StateM {
                         .append(t.getEvent().getName()).append("--").append(t.getEvent().getCommitting())
                         .append(" --> ").append(t.getNextState().getName()).append(" ; ");
             }
+            s.append(" \n GC events: ").append(state.getGcEvents().size());
+            for (Event e : state.getGcEvents()) {
+                s.append(" \n GC:").append(e.getName()).append(" MC " + e.getMc()).append("; ");
+            }
             s.append("\n");
         }
         return s.toString();
@@ -367,6 +428,77 @@ public class StateM {
         root.addTransition(t);
         result.addStateM(this);
         result.addState(root);
+        mcCounter = 0;
         return result;
     }
+
+
+    /**
+     * Collects lhs and rhs labels from a mixed choice.
+     *
+     * @param G The GTLType to be checked.
+     * @return A map containing lhs and rhs labels.
+     */
+    public static Map<String, List<Event>> collectMixedChoiceLabels(GTLType G, Set<Op> committing, int mcCounter) {
+        Map<String, List<Event>> labels = new HashMap<>();
+        labels.put("lhs", new ArrayList<>());
+        labels.put("rhs", new ArrayList<>());
+
+        if (G instanceof GTLMixedChoice) {
+            GTLMixedChoice cast = (GTLMixedChoice) G;
+            mcCounter++;
+            collectLabels(cast.left, labels.get("lhs"), committing, mcCounter);
+            collectLabels(cast.right, labels.get("rhs"), committing, mcCounter);
+        }
+
+        return labels;
+    }
+
+    private static void collectLabels(GTLType G, List<Event> labels, Set<Op> committing, int mcCounter) {
+        if (G instanceof GTLBranch) {
+            GTLBranch cast = (GTLBranch) G;
+            for (Op label : cast.cases.keySet()) {
+                Event event = new Event(EventKind.RECEIVE, label.toString(), cast.src.toString());
+                event.setMc(mcCounter);
+                labels.add(event);
+                collectLabels(cast.cases.get(label), labels, committing, mcCounter);
+            }
+        } else if (G instanceof GTLSelect) {
+            GTLSelect cast = (GTLSelect) G;
+            for (Op label : cast.cases.keySet()) {
+                //if label in committing then skip it
+                if(!committing.contains(label))
+                    collectLabels(cast.cases.get(label), labels, committing, mcCounter);
+            }
+        } else if (G instanceof GTLMixedChoice) {
+            GTLMixedChoice cast = (GTLMixedChoice) G;
+            collectLabels(cast.left, labels, committing, mcCounter + 1);
+            collectLabels(cast.right, labels, committing, mcCounter + 1);
+        } else if (G instanceof GTLRecursion) {
+            GTLRecursion cast = (GTLRecursion) G;
+            collectLabels(cast.body, labels, committing, mcCounter);
+        }
+    }
+
+    private static void collectLabels(StateM fsm, List<Event> labels, int mcCounter) {
+        for (State s : fsm.getStates()) {
+            for (Transition t : s.getTransitions()){
+                t.getEvent().setMc(mcCounter);
+                if(t.getEvent().getKind().equals(EventKind.RECEIVE)
+                        || t.getEvent().getKind().equals(EventKind.MIXED_RECEIVE)) {
+//                    if (!t.getEvent().getCommitting()) {
+                        labels.add(t.getEvent());
+//                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Resets the MC counter to zero.
+     */
+    public static void resetMcCounter() {
+        mcCounter = 0;
+    }
+
 }
