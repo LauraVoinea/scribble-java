@@ -54,7 +54,7 @@ public class GTLSelect implements GTLType {
         S.add(init);
         Set<GTVEvent> E = new LinkedHashSet<>();
         Set<GTVAction> A = new LinkedHashSet<>();
-        Map<Pair<GTVState, GTVEvent>, Pair<GTVAction, GTVState>> delta = new LinkedHashMap<>();
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
             Op op = x.getKey();
             GTLType succ = x.getValue();
@@ -64,7 +64,9 @@ public class GTLSelect implements GTLType {
             A.addAll(m.A);
             GTVTau e = new GTVTau(op);
             GTVSend a = new GTVSend(this.dst, op, this.pays.get(op));
-            delta.put(new Pair<>(init, e), new Pair<>(a, m.init));
+            LinkedHashSet<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
+            tmp.add(new Pair<>(a, m.init));
+            delta.put(new Pair<>(init, e), tmp);
             delta.putAll(m.delta);
         }
         return new GTEFSM(S, init, E, A, delta);

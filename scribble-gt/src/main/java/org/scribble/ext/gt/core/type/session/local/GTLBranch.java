@@ -94,7 +94,7 @@ public class GTLBranch implements GTLType {
         S.add(init);
         Set<GTVEvent> E = new LinkedHashSet<>();
         Set<GTVAction> A = new LinkedHashSet<>();
-        Map<Pair<GTVState, GTVEvent>, Pair<GTVAction, GTVState>> delta = new LinkedHashMap<>();
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
             Op op = x.getKey();
             GTLType succ = x.getValue();
@@ -103,7 +103,9 @@ public class GTLBranch implements GTLType {
             E.addAll(m.E);
             A.addAll(m.A);
             GTVRecv e = new GTVRecv(this.src, op, this.pays.get(op));
-            delta.put(new Pair<>(init, e), new Pair<>(GTVEpsilon.EPSILON, m.init));
+            LinkedHashSet<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
+            tmp.add(new Pair<>(GTVEpsilon.EPSILON, m.init));
+            delta.put(new Pair<>(init, e), tmp);
             delta.putAll(m.delta);
         }
         return new GTEFSM(S, init, E, A, delta);

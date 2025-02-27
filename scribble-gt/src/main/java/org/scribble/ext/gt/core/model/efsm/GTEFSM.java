@@ -13,16 +13,19 @@ public class GTEFSM {
     public final GTVState init;
     public final Set<GTVEvent> E;
     public final Set<GTVAction> A;
-    public final Map<Pair<GTVState, GTVEvent>, Pair<GTVAction, GTVState>> delta;
+    public final Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta;
 
     public GTEFSM(Set<GTVState> S, GTVState init, Set<GTVEvent> E, Set<GTVAction> A,
-                  Map<Pair<GTVState, GTVEvent>, Pair<GTVAction, GTVState>> delta) {
+                  Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta) {
         this.S = Collections.unmodifiableSet(new LinkedHashSet<>(S));
         this.init = init;
         this.E = Collections.unmodifiableSet(new LinkedHashSet<>(E));
         this.A = Collections.unmodifiableSet(new LinkedHashSet<>(A));
         this.delta = delta.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
+                Map.Entry::getKey,
+                x -> Collections.unmodifiableSet(new LinkedHashSet<>(x.getValue())),
+                (x, y) -> null,
+                LinkedHashMap::new));
     }
 
     public String toDot() {
@@ -35,18 +38,19 @@ public class GTEFSM {
             b.append(s.id);
             b.append(":\" ];\n");
         }
-        for (Map.Entry<Pair<GTVState, GTVEvent>, Pair<GTVAction, GTVState>> x : this.delta.entrySet()) {
+        for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> x : this.delta.entrySet()) {
             Pair<GTVState, GTVEvent> k = x.getKey();
-            Pair<GTVAction, GTVState> v = x.getValue();
-            b.append("\"");
-            b.append(k.left);
-            b.append("\" -> \"");
-            b.append(v.right);
-            b.append("\" [ label=\"");
-            b.append(k.right);
-            b.append("/");
-            b.append(v.left);
-            b.append("\" ];\n");
+            for (Pair<GTVAction, GTVState> v : x.getValue()) {
+                b.append("\"");
+                b.append(k.left);
+                b.append("\" -> \"");
+                b.append(v.right);
+                b.append("\" [ label=\"");
+                b.append(k.right);
+                b.append("/");
+                b.append(v.left);
+                b.append("\" ];\n");
+            }
         }
         b.append("}");
         return b.toString();

@@ -65,6 +65,7 @@ public class GTLMixedChoice implements GTLType {
         // No consideration of "nested interrupts" due to nature of committing
         GTEFSM m_left = this.left.construct(end);
         GTLSelect right = (GTLSelect) this.right;
+       
         throw new RuntimeException("TODO");
     }
 
