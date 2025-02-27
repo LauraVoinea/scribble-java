@@ -8,6 +8,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.*;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -19,6 +20,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // HERE extend ANTLR -- copy frontend stuff from scrib-assrt
 public class GTLMixedChoice implements GTLType {
@@ -53,23 +55,71 @@ public class GTLMixedChoice implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(GTVState end) {
+    public GTEFSM construct(Map<Role, Set<Op>> com, GTVState end) {
         return switch (getKind()) {
-            case INTERNAL -> constructInternal(end);
-            case EXTERNAL_OI -> constructExternal(end);
-            case EXTERNAL_II -> constructExternal(end);
+            case INTERNAL -> constructInternal(com, end);
+            case EXTERNAL_OI -> constructExternal(com, end);
+            case EXTERNAL_II -> constructExternal(com, end);
         };
     }
 
-    protected GTEFSM constructInternal(GTVState end) {
-        // No consideration of "nested interrupts" due to nature of committing
-        GTEFSM m_left = this.left.construct(end);
+    // No consideration of "nested interrupt edges" due to observer immediately committing on both left/right
+    protected GTEFSM constructInternal(Map<Role, Set<Op>> com, GTVState end) {
+        GTLBranch left = (GTLBranch) this.left;
+        GTEFSM m_left = left.construct(com, end);
         GTLSelect right = (GTLSelect) this.right;
-       
-        throw new RuntimeException("TODO");
+        Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> x.getValue().construct(com, end),
+                (x, y) -> null,
+                LinkedHashMap::new
+        ));
+
+        GTVState init = m_left.init;
+        Set<GTVState> S = new LinkedHashSet<>(m_left.S);
+        Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
+        Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
+        for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
+            Op op_right = x.getKey();
+            GTEFSM m_right = x.getValue();
+            S.addAll(m_right.S);
+            E.addAll(m_right.E);
+            A.addAll(m_right.A);
+
+            GTVSendStar a = new GTVSendStar(right.dst, op_right);
+            Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
+            tmp.add(new Pair<>(a, m_right.init));
+            for (Map.Entry<Op, GTLType> y : left.cases.entrySet()) {
+                Op op_left = y.getKey();
+                GTVRecv e = new GTVRecv(left.src, op_left, left.pays.get(op_left));
+                delta.put(new Pair<>(init, e), tmp);
+            }
+
+            tmp = new LinkedHashSet<>();
+            tmp.add(new Pair<>(a, m_right.init));
+            GTVTau tau = new GTVTau(op_right);
+            delta.put(new Pair<>(init, tau), tmp);
+
+            delta.putAll(m_right.delta);
+        }
+
+        return new GTEFSM(S, init, E, A, delta);
     }
 
-    protected GTEFSM constructExternal(GTVState end) {
+    HERE HERE
+    com needs
+    to be
+    Map<Role, Map<Integer, Set<Op>>>  // int is c
+
+            ...
+    or calc/
+    env manually
+    during construction  <<<<
+
+    protected GTEFSM constructExternal(Map<Role, Set<Op>> com, GTVState end) {
+
+
         throw new RuntimeException("TODO");
     }
 

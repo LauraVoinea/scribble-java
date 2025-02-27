@@ -3,7 +3,7 @@ package org.scribble.ext.gt.core.model.efsm.event;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 
-public class GTVSendStar implements GTVEvent {
+public class GTVSendStar implements GTVAction {
 
     public final Role role;
     public final Op op;

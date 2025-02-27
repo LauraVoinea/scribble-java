@@ -33,7 +33,7 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(GTVState end) {
+    public GTEFSM construct(Map<Role, Set<Op>> com, GTVState end) {
         return new GTEFSM(Set.of(end), end, Set.of(), Set.of(), Map.of());
     }
 
@@ -81,7 +81,7 @@ public class GTLEnd implements GTLType {
     public boolean canEquals(Object o) {
         return o instanceof GTLEnd;
     }
-   
+
 
 
 

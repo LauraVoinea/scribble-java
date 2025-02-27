@@ -48,7 +48,7 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(GTVState end) {
+    public GTEFSM construct(Map<Role, Set<Op>> com, GTVState end) {
         GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
         S.add(init);
@@ -58,13 +58,13 @@ public class GTLSelect implements GTLType {
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
             Op op = x.getKey();
             GTLType succ = x.getValue();
-            GTEFSM m = succ.construct(end);
+            GTEFSM m = succ.construct(com, end);
             S.addAll(m.S);
             E.addAll(m.E);
             A.addAll(m.A);
             GTVTau e = new GTVTau(op);
             GTVSend a = new GTVSend(this.dst, op, this.pays.get(op));
-            LinkedHashSet<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
+            Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
             tmp.add(new Pair<>(a, m.init));
             delta.put(new Pair<>(init, e), tmp);
             delta.putAll(m.delta);
