@@ -13,6 +13,7 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
 import org.scribble.ext.gt.codegen.GTApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
@@ -323,6 +324,9 @@ public class GTCommandLine extends CommandLine {
                 if (this.hasFlag(GTCLFlags.GT_API_GEN_FLAG)) {
                     System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
                 }
+
+                GTVState end = new GTVState();
+                System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + x.type.construct(end) + "\n" + x.type.construct(end).toDot());
             }
 
             // Check correspondence

@@ -184,6 +184,9 @@ public class GTTest {
                 + "mixed { l1() from A to B; l2() from B to A; } () or A->B () "
                 + "      { r1() from B to A; }}");
 
+        /*good.add("P(role A, role B, role C) { "
+                + "rec X { mixed { l1() from A to B; l2() from A to C; l2() from B to A; l2() from C to A; } () or A->B () "
+                + "              { r1() from B to A; r2() from B to C; continue X; }}}");*/
     }
 
 

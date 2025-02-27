@@ -6,6 +6,9 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.*;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -38,10 +41,106 @@ public class GTLSelect implements GTLType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+
     @Override
     public Optional<? extends GTLType> merge(GTLType t) {
         return this.equals(t) ? Optional.of(this) : Optional.empty();
     }
+
+    @Override
+    public GTEFSM construct(GTVState end) {
+        GTVState init = new GTVState();
+        Set<GTVState> S = new LinkedHashSet<>();
+        S.add(init);
+        Set<GTVEvent> E = new LinkedHashSet<>();
+        Set<GTVAction> A = new LinkedHashSet<>();
+        Map<Pair<GTVState, GTVEvent>, Pair<GTVAction, GTVState>> delta = new LinkedHashMap<>();
+        for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
+            Op op = x.getKey();
+            GTLType succ = x.getValue();
+            GTEFSM m = succ.construct(end);
+            S.addAll(m.S);
+            E.addAll(m.E);
+            A.addAll(m.A);
+            GTVTau e = new GTVTau(op);
+            GTVSend a = new GTVSend(this.dst, op, this.pays.get(op));
+            delta.put(new Pair<>(init, e), new Pair<>(a, m.init));
+            delta.putAll(m.delta);
+        }
+        return new GTEFSM(S, init, E, A, delta);
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTLSelect subs(RecVar rv, GTLType t) {
+        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
+                                                     .collect(Collectors.toMap(
+                                                             Map.Entry::getKey,
+                                                             x -> x.getValue().subs(rv, t),
+                                                             (x, y) -> null,
+                                                             LinkedHashMap::new
+                                                     ));
+        return this.fact.select(this.dst, new LinkedHashMap<>(this.pays), cases);
+    }
+
+    @Override
+    public GTLSelect unfoldAllOnce() {
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return this.dst + (ConsoleColors.OLPLUS + "{")
+                + this.cases.entrySet().stream()
+                            .map(e -> msgToString(e.getKey()) + "." + e.getValue())
+                            .collect(Collectors.joining(", "))
+                + "}";
+    }
+
+    protected String msgToString(Op op) {
+        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        return GTGInteraction.msgToString(op, this.pays.get(op));
+    }
+
+    /* hashCode, equals, canEquals */
+
+    @Override
+    public int hashCode() {
+        int hash = GTLType.SELECT_HASH;
+        hash = 31 * hash + this.dst.hashCode();
+        hash = 31 * hash + this.pays.hashCode();
+        hash = 31 * hash + this.cases.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLSelect)) { return false; }
+        GTLSelect them = (GTLSelect) obj;
+        return them.canEquals(this)
+                && this.dst.equals(them.dst)
+                && this.pays.equals(them.pays)
+                && this.cases.equals(them.cases);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GTLSelect;
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     /* ... */
 
@@ -132,63 +231,5 @@ public class GTLSelect implements GTLType {
                                  (x, y) -> x < y ? x : y,
                                  LinkedHashMap::new
                          ));
-    }
-
-    @Override
-    public GTLSelect subs(RecVar rv, GTLType t) {
-        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
-                                                     .collect(Collectors.toMap(
-                                                             Map.Entry::getKey,
-                                                             x -> x.getValue().subs(rv, t),
-                                                             (x, y) -> null,
-                                                             LinkedHashMap::new
-                                                     ));
-        return this.fact.select(this.dst, new LinkedHashMap<>(this.pays), cases);
-    }
-
-    @Override
-    public GTLSelect unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return this.dst + (ConsoleColors.OLPLUS + "{")
-                + this.cases.entrySet().stream()
-                            .map(e -> msgToString(e.getKey()) + "." + e.getValue())
-                            .collect(Collectors.joining(", "))
-                + "}";
-    }
-
-    protected String msgToString(Op op) {
-        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
-        return GTGInteraction.msgToString(op, this.pays.get(op));
-    }
-
-    /* hashCode, equals, canEquals */
-
-    @Override
-    public int hashCode() {
-        int hash = GTLType.SELECT_HASH;
-        hash = 31 * hash + this.dst.hashCode();
-        hash = 31 * hash + this.pays.hashCode();
-        hash = 31 * hash + this.cases.hashCode();
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null || !(obj instanceof GTLSelect)) { return false; }
-        GTLSelect them = (GTLSelect) obj;
-        return them.canEquals(this)
-                && this.dst.equals(them.dst)
-                && this.pays.equals(them.pays)
-                && this.cases.equals(them.cases);
-    }
-
-    @Override
-    public boolean canEquals(Object o) {
-        return o instanceof GTLSelect;
     }
 }

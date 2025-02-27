@@ -197,6 +197,7 @@ public class GTGMixedChoice implements GTGType {
 
         Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(topPeers, r, c, n);
         Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(topPeers, r, c, n);
+        System.out.println("XXXXXX " + r + ": " + optl + " ,, " + optr);
         if (optl.isEmpty() || optr.isEmpty()) { return Optional.empty(); }
         Pair<? extends GTLType, Sigma> get_l = optl.get();
         Pair<? extends GTLType, Sigma> get_r = optr.get();
@@ -255,16 +256,18 @@ public class GTGMixedChoice implements GTGType {
 
         if (!r.equals(this.other) && !r.equals(this.observer)) {
 
-            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
+            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC) -- e.g., MC with third-party receiving from different peers
 
-            if (isMergableIOModes(get_l.left, get_r.left)) {
+            if (isMergableIOModes(get_l.left, get_r.left)) {  // "modes"
                 Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
-                if (!merge.isPresent()) {
+                System.out.println("XXXXXX " + r + " " + merge);
+                if (merge.isEmpty()) {
                     return Optional.empty();
                 }
 
             } else {
                 // TODO FIXME MC conditions?
+                throw new RuntimeException("XXXXXX " + r + " TODO ");
             }
         }
         return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));

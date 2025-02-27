@@ -6,6 +6,8 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -34,6 +36,7 @@ public class GTLMixedChoice implements GTLType {
         this.right = right;
     }
 
+
     @Override
     public Optional<? extends GTLType> merge(GTLType t) {
         if (!(t instanceof GTLMixedChoice)) {
@@ -47,6 +50,98 @@ public class GTLMixedChoice implements GTLType {
         Optional<? extends GTLType> opt_l = this.left.merge(cast.left);
         Optional<? extends GTLType> opt_r = this.right.merge(cast.right);
         return opt_l.flatMap(x -> opt_r.map(y -> this.fact.mixedChoice(this.c, x, y)));
+    }
+
+    @Override
+    public GTEFSM construct(GTVState end) {
+        return switch (getKind()) {
+            case INTERNAL -> constructInternal(end);
+            case EXTERNAL_OI -> constructExternal(end);
+            case EXTERNAL_II -> constructExternal(end);
+        };
+    }
+
+    protected GTEFSM constructInternal(GTVState end) {
+        // No consideration of "nested interrupts" due to nature of committing
+        GTEFSM m_left = this.left.construct(end);
+        GTLSelect right = (GTLSelect) this.right;
+        throw new RuntimeException("TODO");
+    }
+
+    protected GTEFSM constructExternal(GTVState end) {
+        throw new RuntimeException("TODO");
+    }
+
+    enum MixedKind {
+        INTERNAL,
+        EXTERNAL_OI,
+        EXTERNAL_II,
+    }
+
+    protected MixedKind getKind() {
+        if (this.right instanceof GTLSelect) {
+            if (this.left instanceof GTLBranch) {
+                return MixedKind.INTERNAL;
+            }
+        } else if (this.right instanceof GTLBranch) {
+            if (this.left instanceof GTLSelect) {
+                return MixedKind.EXTERNAL_OI;
+            } else if (this.left instanceof GTLBranch) {
+                return MixedKind.EXTERNAL_II;
+            }
+        }
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+
+    /* ... */
+
+    @Override
+
+    public GTLMixedChoice subs(RecVar rv, GTLType t) {
+        GTLType left = this.left.subs(rv, t);
+        GTLType right = this.right.subs(rv, t);
+        return this.fact.mixedChoice(this.c, left, right);
+    }
+
+    @Override
+    public GTLMixedChoice unfoldAllOnce() {
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return ConsoleColors.toMixedChoiceString(this.left.toString())
+                + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE
+                + this.c + " " + this.right);
+    }
+
+
+    /* hashCode, equals, canEquals */
+
+    @Override
+    public int hashCode() {
+        int hash = GTLType.MIXED_CHOICE_HASH;
+        hash = 31 * hash + this.c;
+        hash = 31 * hash + this.left.hashCode();
+        hash = 31 * hash + this.right.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLMixedChoice)) { return false; }
+        GTLMixedChoice them = (GTLMixedChoice) obj;
+        return them.canEquals(this)
+                && this.c == them.c
+                && this.left.equals(them.left)
+                && this.right.equals(them.right);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GTLMixedChoice;
     }
 
     /* ... */
@@ -152,51 +247,5 @@ public class GTLMixedChoice implements GTLType {
             throw new RuntimeException("Shouldn't get here: " + this);
         }
         return GTUtil.mapOf(this.c, theta.map.get(this.c));
-    }
-
-    @Override
-    public GTLMixedChoice subs(RecVar rv, GTLType t) {
-        GTLType left = this.left.subs(rv, t);
-        GTLType right = this.right.subs(rv, t);
-        return this.fact.mixedChoice(this.c, left, right);
-    }
-
-    @Override
-    public GTLMixedChoice unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return ConsoleColors.toMixedChoiceString(this.left.toString())
-                + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE
-                + this.c + " " + this.right);
-    }
-
-    /* hashCode, equals, canEquals */
-
-    @Override
-    public int hashCode() {
-        int hash = GTLType.MIXED_CHOICE_HASH;
-        hash = 31 * hash + this.c;
-        hash = 31 * hash + this.left.hashCode();
-        hash = 31 * hash + this.right.hashCode();
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null || !(obj instanceof GTLMixedChoice)) { return false; }
-        GTLMixedChoice them = (GTLMixedChoice) obj;
-        return them.canEquals(this)
-                && this.c == them.c
-                && this.left.equals(them.left)
-                && this.right.equals(them.right);
-    }
-
-    @Override
-    public boolean canEquals(Object o) {
-        return o instanceof GTLMixedChoice;
     }
 }

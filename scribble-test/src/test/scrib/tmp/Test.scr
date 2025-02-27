@@ -554,7 +554,7 @@ global protocol PPP(role A, role B) {
 
 
 
-//* // Testing CFSM translation
+/* // Testing CFSM translation
 global protocol Proto1(role A, role B) {
     rec X {
         ping1(String) from A to B;
@@ -752,8 +752,25 @@ global protocol Proto1(role Alice, role Bob ) {
 global protocol Proto1(role Alice, role Bob ) {
     mixed {
         rec Loop {
-            ping(String) from Alice to Bob;
+            ping(String) from Alice to Bob;  // XXX "committing" on the first iteration, but also "not committing" after that
             pong(String) from Bob to Alice;  // !!! o/w not left-comm due to syntactic WF
+            continue Loop;
+        }
+    } () or Alice -> Bob () {
+        error(String) from Bob to Alice;
+        bb(String) from Alice to Bob;
+        cc(String) from Bob to Alice;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role Alice, role Bob ) {
+    mixed {
+        aa(String) from Alice to Bob;  // !!! hack for static committing WF
+        rec Loop {
+            ping(String) from Alice to Bob;
+            pong(String) from Bob to Alice;
             continue Loop;
         }
     } () or Alice -> Bob () {
@@ -788,7 +805,7 @@ global protocol Proto1(role Alice, role Bob ) {
 //*/
 
 /* // Testing rec inside mixed
-global protocol Proto1(role Alice, role Bob ) {
+global protocol Proto1(role Alice, role Bob) {
         mixed {
             ping(String) from Alice to Bob;  // cf. aa a bit above
             rec Loop {
@@ -802,11 +819,103 @@ global protocol Proto1(role Alice, role Bob ) {
 }
 //*/
 
+/*
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        aa(String) from A to C;
+        //bb(String) from A to B;  // useless
+        yy(String) from C to A;
+        yy(String) from C to B;  // !!! static committing WF -- forces commitment before any potential recursion
+        rec X {
+            mixed {
+                1(String) from A to B;
+                2(String) from B to C;
+                2(String) from B to A;  // !!! iterations are "synchronous" -- rec-GC not needed ??? (XXX actually wrong?)
+                continue X;
+            } () or A -> B () {
+                right(String) from B to A;
+                right(String) from B to C;
+                zz(String) from C to A;
+            }
+        }
+    } () or A -> C () {
+        err(String) from C to A;
+        err(String) from C to B;
+    }
+}
+//*/
 
 
 
 
 
+global protocol Proto1(role A, role B) {
+    1() from A to B;
+}
+
+
+
+
+
+
+
+
+
+
+/*
+global protocol Foo(role p, role q) {
+    rec t {
+        mixed {
+            choice at p {
+                a1(String) from p to q;
+                continue t;  // TODO improved syntactic awareness (rec env)
+            } or {
+                a2(String) from p to q;
+                b1(String) from q to p;
+            }
+        } () or p->q () {
+            b2(String) from q to p;
+        }
+    }
+}
+//*/
+
+
+/*
+global protocol Timeout(role A, role B, role C) {
+    mixed {
+        1(String) from A to B;
+
+        2(String) from B to C;
+        //2(String) from A to C;  // XXX CHECKME -- currently cannot project (fake merge?)
+
+        3(String) from B to A;
+        4(String) from A to C;
+    } () or A->B () {
+        Exception(String) from B to A; // or "Exception" or "Interrupt"
+        Exception(String) from B to C;
+        //5(String) from A to C;
+    }
+}
+//*/
+
+/*
+global protocol FailureHandling(role M, role W, role FD) {
+    init(String) from M to W;
+    rec X {
+        mixed {
+            HB(String) from W to FD;
+            OK(String) from FD to M;
+            result(String) from W to M;
+            next(String) from M to W;
+            continue X;
+        } () or W->FD () {
+            Timeout(String) from FD to W;  // ...redundant
+            Crash(String) from FD to M;
+        }
+    }
+}
+//*/
 
 
 

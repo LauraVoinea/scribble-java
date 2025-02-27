@@ -1,10 +1,13 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.endpoint.EFsm;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -29,9 +32,6 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     int REC_HASH = 9887;
     int RECVAR_HASH = 9901;
 
-    //int c_TOP = -1;
-    int c_TOP = 0;
-    int n_INIT = 1;
 
     /* ... */
 
@@ -40,7 +40,39 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     //return this.equals(t) ? Optional.of(this) : Optional.empty();
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
+    // cf. s param
+    default GTEFSM construct(GTVState end) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+
+
+    /* ... */
+
+    GTLType subs(RecVar rv, GTLType t);
+
+    @Override
+    GTLType unfoldAllOnce();
+
+    // Substitution inlined into this op -- probably better to separate unf/subs
+    //GTLType unfoldContext(Map<RecVar, GTLType> env);
+
+
+
+
+
+
+
+
+
+
+
+
     /* ... -- n.b. formal local LTS is config LTS (hence sigma, theta etc params below) */
+
+    //int c_TOP = -1;
+    int c_TOP = 0;
+    int n_INIT = 1;
 
     //default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(
     default LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActsTop(
@@ -100,16 +132,9 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
             Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
+
     /* ... */
 
     // c -> smallest active n -- structurally a Theta
     Map<Integer, Integer> getActive(Theta theta);
-
-    GTLType subs(RecVar rv, GTLType t);
-
-    @Override
-    GTLType unfoldAllOnce();
-
-    // Substitution inlined into this op -- probably better to separate unf/subs
-    //GTLType unfoldContext(Map<RecVar, GTLType> env);
 }

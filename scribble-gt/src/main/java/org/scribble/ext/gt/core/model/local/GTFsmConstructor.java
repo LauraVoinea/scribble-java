@@ -22,7 +22,7 @@ public class GTFsmConstructor {
         return construct(com, new HashMap<>(), end, Optional.empty(), t, init);
     }
 
-    // pend, cf. recvar under rec; recursion doesn't use peek (this case not supported)
+    // pend, cf. recvar directly under rec/mixed, recursion/mixed don't directly do peek -- but maybe impossible in core?
     protected GTEState construct(
             Set<Op> com, Map<RecVar, GTEState> recs, GTEState end,
             Optional<Pair<GTEState, EAction<StaticActionKind>>> pend, GTLType t, GTEState s) {
