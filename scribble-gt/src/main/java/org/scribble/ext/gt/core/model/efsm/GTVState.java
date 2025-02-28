@@ -1,24 +1,37 @@
 package org.scribble.ext.gt.core.model.efsm;
 
+import org.scribble.core.type.name.RecVar;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class GTVState {
 
     private static int count = 1;
 
     public final int id;
+    public final Set<RecVar> recvars;
 
     public GTVState() {
+        this(Set.of());
+    }
+
+    public GTVState(Set<RecVar> recvars) {
         this.id = GTVState.count++;
+        this.recvars = Collections.unmodifiableSet(new LinkedHashSet<>(recvars));
     }
 
     @Override
     public String toString() {
-        return String.valueOf(this.id);
+        return this.id + this.recvars.toString();
     }
 
     @Override
     public int hashCode() {
         int hash = 15443;
         hash = 31 * hash + this.id;
+        hash = 31 * hash + this.recvars.hashCode();
         return hash;
     }
 
@@ -30,6 +43,6 @@ public class GTVState {
         if (!(o instanceof GTVState cast)) {
             return false;
         }
-        return this.id == cast.id;
+        return this.id == cast.id && this.recvars.equals(cast.recvars);
     }
 }

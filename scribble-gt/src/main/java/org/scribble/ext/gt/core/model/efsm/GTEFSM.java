@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.core.model.efsm;
 
+import org.scribble.core.type.name.RecVar;
 import org.scribble.ext.gt.core.model.efsm.event.GTVAction;
 import org.scribble.ext.gt.core.model.efsm.event.GTVEvent;
 import org.scribble.util.Pair;
@@ -28,6 +29,32 @@ public class GTEFSM {
                 LinkedHashMap::new));
     }
 
+    public GTEFSM fix() {
+        Set<GTVState> S;
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta;
+
+        Map<RecVar, GTVState> recvars = new HashMap<>();
+        S = this.S.stream().filter(x -> {
+            x.recvars.forEach(y -> recvars.put(y, x));
+            return !(x instanceof GTVRecVar);
+        }).collect(Collectors.toCollection(LinkedHashSet::new));
+
+        delta = this.delta.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> x.getValue().stream().map(y -> {
+                            if (y.right instanceof GTVRecVar cast) {
+                                return new Pair<>(y.left, recvars.get(cast.recvar));
+                            } else {
+                                return y;
+                            }
+                        }
+                ).collect(Collectors.toCollection(LinkedHashSet::new))
+        ));
+
+        return new GTEFSM(S, this.init, this.E, this.A, delta);
+    }
+
+
     public String toDot() {
         StringBuilder b = new StringBuilder();
         b.append("digraph G {\ncompound = true;\n");
@@ -35,16 +62,16 @@ public class GTEFSM {
             b.append("\"");
             b.append(s.id);
             b.append("\" [ label=\"");
-            b.append(s.id);
+            b.append(s);
             b.append(":\" ];\n");
         }
         for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> x : this.delta.entrySet()) {
             Pair<GTVState, GTVEvent> k = x.getKey();
             for (Pair<GTVAction, GTVState> v : x.getValue()) {
                 b.append("\"");
-                b.append(k.left);
+                b.append(k.left.id);
                 b.append("\" -> \"");
-                b.append(v.right);
+                b.append(v.right.id);
                 b.append("\" [ label=\"");
                 b.append(k.right);
                 b.append("/");

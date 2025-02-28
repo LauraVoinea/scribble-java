@@ -5,6 +5,11 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.GTVAction;
+import org.scribble.ext.gt.core.model.efsm.event.GTVEvent;
+import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -42,6 +47,81 @@ public class GTLRecursion implements GTLType {
             return Optional.empty();
         }
     }
+
+    @Override
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+        GTEFSM m_body = this.body.construct(r, com, recvStars, end);
+        Set<RecVar> recvars = new LinkedHashSet<>();
+        recvars.add(this.var);
+        recvars.addAll(m_body.init.recvars);
+        GTVState init = new GTVState(recvars);
+
+        Set<GTVState> tmp = new LinkedHashSet<>(m_body.S);
+        tmp.remove(m_body.init);
+        Set<GTVState> S = new LinkedHashSet<>();
+        S.add(init);
+        S.addAll(tmp);
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
+        for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> x : m_body.delta.entrySet()) {
+            Pair<GTVState, GTVEvent> k = x.getKey();
+            Set<Pair<GTVAction, GTVState>> v = x.getValue();
+            if (k.left.equals(m_body.init)) {
+                delta.put(new Pair<>(init, k.right), v);
+            } else {
+                delta.put(k, v);
+            }
+        }
+        return new GTEFSM(S, init, m_body.E, m_body.A, delta);
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTLType subs(RecVar rv, GTLType t) {
+        if (rv.equals(this.var)) {
+            return this;
+        }
+        return new GTLRecursion(this.var, this.body.subs(rv, t));
+    }
+
+    @Override
+    public GTLType unfoldAllOnce() {
+        return this.body.subs(this.var, this).unfoldAllOnce();
+    }
+
+    @Override
+    public String toString() {
+        return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
+    }
+
+
+    /* hashCode, equals, canEquals */
+
+    @Override
+    public int hashCode() {
+        int hash = GTLType.REC_HASH;
+        hash = 31 * hash + this.var.hashCode();
+        hash = 31 * hash + this.body.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTLRecursion)) { return false; }
+        GTLRecursion them = (GTLRecursion) obj;
+        return them.canEquals(this)
+                && this.var.equals(them.var)
+                && this.body.equals(them.body);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GTLRecursion;
+    }
+
 
     /* ... */
 
@@ -103,48 +183,5 @@ public class GTLRecursion implements GTLType {
     @Override
     public Map<Integer, Integer> getActive(Theta theta) {
         return GTUtil.mapOf();
-    }
-
-    @Override
-    public GTLType subs(RecVar rv, GTLType t) {
-        if (rv.equals(this.var)) {
-            return this;
-        }
-        return new GTLRecursion(this.var, this.body.subs(rv, t));
-    }
-
-    @Override
-    public GTLType unfoldAllOnce() {
-        return this.body.subs(this.var, this).unfoldAllOnce();
-    }
-
-    @Override
-    public String toString() {
-        return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
-    }
-
-    /* hashCode, equals, canEquals */
-
-    @Override
-    public int hashCode() {
-        int hash = GTLType.REC_HASH;
-        hash = 31 * hash + this.var.hashCode();
-        hash = 31 * hash + this.body.hashCode();
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null || !(obj instanceof GTLRecursion)) { return false; }
-        GTLRecursion them = (GTLRecursion) obj;
-        return them.canEquals(this)
-                && this.var.equals(them.var)
-                && this.body.equals(them.body);
-    }
-
-    @Override
-    public boolean canEquals(Object o) {
-        return o instanceof GTLRecursion;
     }
 }

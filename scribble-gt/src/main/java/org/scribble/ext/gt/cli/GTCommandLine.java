@@ -328,7 +328,7 @@ public class GTCommandLine extends CommandLine {
 
                 GTVState end = new GTVState();
                 Set<Op> com_self = com.getOrDefault(x.self, Set.of());
-                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), end);
+                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), end).fix();
                 System.out.println("aaaaa: " + x.self + ": " + x.type + "\n"
                         + efsm + "\n" + efsm.toDot());
             }
