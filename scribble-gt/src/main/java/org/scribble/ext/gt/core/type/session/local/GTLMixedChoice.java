@@ -55,32 +55,38 @@ public class GTLMixedChoice implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
         return switch (getKind()) {
-            case INTERNAL -> constructInternal(recvStars, end);
-            case EXTERNAL_OI -> constructExternal(recvStars, end);
-            case EXTERNAL_II -> constructExternal(recvStars, end);
+            case INTERNAL -> constructInternal(r, com, recvStars, end);
+            case EXTERNAL_OI -> constructExternal(r, com, recvStars, end);
+            case EXTERNAL_II -> constructExternal(r, com, recvStars, end);
         };
     }
 
     // No consideration of "nested interrupt edges" due to observer immediately committing on both left/right
-    protected GTEFSM constructInternal(Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+    protected GTEFSM constructInternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
         GTLBranch left = (GTLBranch) this.left;
-        GTEFSM m_left = left.construct(recvStars, end);
         GTLSelect right = (GTLSelect) this.right;
+
         // !!! right.cases.size() == 1
         Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> x.getValue().construct(recvStars, end),
+                x -> x.getValue().construct(r, com, recvStars, end),
                 (x, y) -> null,
                 LinkedHashMap::new
         ));
+
+        /*Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
+        Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
+        leftStars.put(this.c, new Pair<>(new GTVRecv(r, op, right.pays.get(op)), cases_right.get(op).init));*/
+        GTEFSM m_left = left.construct(r, com, recvStars, end);
 
         GTVState init = m_left.init;
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
         Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
         Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
+        //Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = m_left.delta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new LinkedHashSet<>(x.getValue())));
         // !!! right.cases.size() == 1
         for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
             Op op_right = x.getKey();
@@ -90,36 +96,93 @@ public class GTLMixedChoice implements GTLType {
             A.addAll(m_right.A);
 
             GTVSendStar a = new GTVSendStar(right.dst, op_right);
-            Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
-            tmp.add(new Pair<>(a, m_right.init));
+            //Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
+            //tmp.add(new Pair<>(a, m_right.init));
             // !!! left.cases.size() == 1
             for (Map.Entry<Op, GTLType> y : left.cases.entrySet()) {
                 Op op_left = y.getKey();
                 GTVRecv e = new GTVRecv(left.src, op_left, left.pays.get(op_left));
-                delta.put(new Pair<>(init, e), tmp);
+                //delta.put(new Pair<>(init, e), tmp);
+                Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(new Pair<>(init, e), z -> new LinkedHashSet<>());
+                tmp2.add(new Pair<>(a, m_right.init));
             }
 
-            tmp = new LinkedHashSet<>();
-            tmp.add(new Pair<>(a, m_right.init));
+            Set<Pair<GTVAction, GTVState>> tmp3 = new LinkedHashSet<>();
+            tmp3.add(new Pair<>(a, m_right.init));
             GTVTau tau = new GTVTau(op_right);
-            delta.put(new Pair<>(init, tau), tmp);
+            delta.put(new Pair<>(init, tau), tmp3);
 
-            delta.putAll(m_right.delta);
+            //delta.putAll(m_right.delta);
+            for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m_right.delta.entrySet()) {
+                Pair<GTVState, GTVEvent> k = y.getKey();
+                Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(k, z -> new LinkedHashSet<>());
+                tmp2.addAll(y.getValue());
+            }
         }
 
+        drawExternals(recvStars, init, delta);
+
         return new GTEFSM(S, init, E, A, delta);
+    }
+
+    protected static void drawExternals(Map<Integer,
+            Pair<GTVRecv, GTVState>> recvStars, GTVState init, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta) {
+        for (Pair<GTVRecv, GTVState> x : recvStars.values()) {
+            Set<Pair<GTVAction, GTVState>> tmp = delta.computeIfAbsent(new Pair<>(init, x.left), z -> new LinkedHashSet<>());
+            tmp.add(new Pair<>(GTVEpsilonStar.EPSILON_STAR, x.right));
+        }
     }
 
     /* com needs to be Map<Role, Map<Integer, Set<Op>>>  // int is c
     ... or calc/ env manually during construction !!! local is easier than global <<<< */
 
-    protected GTEFSM constructExternal(Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+    protected GTEFSM constructExternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
 
         // HERE HERE
         // - use existing com to test paper examples => API gen
-        // - generalise com to per MC
+        // - generalise com to per MC -- in getCommittingTop record recursively collected committing inside each MC
 
-        throw new RuntimeException("TODO");
+        GTLType left = this.left;
+        GTLBranch right = (GTLBranch) this.right;
+
+        // !!! right.cases.size() == 1
+        Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> x.getValue().construct(r, com, recvStars, end),
+                (x, y) -> null,
+                LinkedHashMap::new
+        ));
+
+        Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
+        Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
+        leftStars.put(this.c, new Pair<>(new GTVRecv(r, op, right.pays.get(op)), cases_right.get(op).init));
+        GTEFSM m_left = left.construct(r, com, leftStars, end);
+
+        GTVState init = m_left.init;
+        Set<GTVState> S = new LinkedHashSet<>(m_left.S);
+        Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
+        Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
+        //Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = m_left.delta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new LinkedHashSet<>(x.getValue())));
+        // !!! right.cases.size() == 1
+        for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
+            Op op_right = x.getKey();
+            GTEFSM m_right = x.getValue();
+            S.addAll(m_right.S);
+            E.addAll(m_right.E);
+            A.addAll(m_right.A);
+
+            //delta.putAll(m_right.delta);
+            for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m_right.delta.entrySet()) {
+                Pair<GTVState, GTVEvent> k = y.getKey();
+                Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(k, z -> new LinkedHashSet<>());
+                tmp2.addAll(y.getValue());
+            }
+        }
+
+        drawExternals(recvStars, init, delta);
+
+        return new GTEFSM(S, init, E, A, delta);
     }
 
     enum MixedKind {

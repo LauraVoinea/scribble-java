@@ -48,7 +48,7 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
         GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
         S.add(init);
@@ -58,17 +58,26 @@ public class GTLSelect implements GTLType {
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
             Op op = x.getKey();
             GTLType succ = x.getValue();
-            GTEFSM m = succ.construct(recvStars, end);
+            Map<Integer, Pair<GTVRecv, GTVState>> stars =
+                    com.contains(op) ? Map.of() : recvStars;
+            GTEFSM m = succ.construct(r, com, stars, end);
             S.addAll(m.S);
             E.addAll(m.E);
             A.addAll(m.A);
             GTVTau e = new GTVTau(op);
             GTVSend a = new GTVSend(this.dst, op, this.pays.get(op));
-            Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
+
+            Set<Pair<GTVAction, GTVState>> tmp = delta.computeIfAbsent(new Pair<>(init, e), y -> new LinkedHashSet<>());
             tmp.add(new Pair<>(a, m.init));
-            delta.put(new Pair<>(init, e), tmp);
-            delta.putAll(m.delta);
+            for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m.delta.entrySet()) {
+                Pair<GTVState, GTVEvent> k = y.getKey();
+                Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(k, z -> new LinkedHashSet<>());
+                tmp2.addAll(y.getValue());
+            }
         }
+
+        GTLMixedChoice.drawExternals(recvStars, init, delta);
+
         return new GTEFSM(S, init, E, A, delta);
     }
 

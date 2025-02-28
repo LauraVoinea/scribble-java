@@ -13,6 +13,7 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
 import org.scribble.ext.gt.codegen.GTApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
@@ -326,7 +327,10 @@ public class GTCommandLine extends CommandLine {
                 }
 
                 GTVState end = new GTVState();
-                //System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + x.type.construct(com, end) + "\n" + x.type.construct(com, end).toDot());
+                Set<Op> com_self = com.getOrDefault(x.self, Set.of());
+                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), end);
+                System.out.println("aaaaa: " + x.self + ": " + x.type + "\n"
+                        + efsm + "\n" + efsm.toDot());
             }
 
             // Check correspondence
