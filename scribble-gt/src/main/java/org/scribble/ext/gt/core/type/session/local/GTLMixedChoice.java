@@ -155,7 +155,7 @@ public class GTLMixedChoice implements GTLType {
 
         Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
         Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
-        leftStars.put(this.c, new Pair<>(new GTVRecv(r, op, right.pays.get(op)), cases_right.get(op).init));
+        leftStars.put(this.c, new Pair<>(new GTVRecv(right.src, op, right.pays.get(op)), cases_right.get(op).init));
         GTEFSM m_left = left.construct(r, com, leftStars, end);
 
         GTVState init = m_left.init;

@@ -168,6 +168,7 @@ module tmp.Test;
 //data <java> "..." from "..." as T;
 data <java> "java.lang.Integer" from "rt.jar" as Int;
 data <java> "java.lang.String" from "rt.jar" as String;
+data <java> "java.lang.String" from "rt.jar" as Data;
 
 
 /*
@@ -849,13 +850,64 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-//*
+
+
+
+
+
+
+
+/* // Testing EFSM gen
+
 global protocol Proto1(role A, role B) {
     mixed {
         1() from A to B;
         2() from B to A;
     } () or A->B () {
         3() from B to A;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        2() from A to B;
+        3() from B to A;
+        4() from A to B;
+    } () or A->B () {
+        5() from B to A;
+        6() from A to B;
+    }
+}
+//*/
+
+/* // Exception, Interrupt, etc. similar
+global protocol Timeout(role A, role B, role C) {
+    mixed { // "Left-hand" side (LHS)
+        a1() from A to B;
+        a2() from B to C;
+        a5() from B to A;
+        a6() from A to C;
+    } () or A -> B () { // "Right-hand" side (RHS)
+        Timeout() from B to A;
+        Timeout() from B to C;
+    }
+}
+//*/
+
+//*
+global protocol FailureHandling(role M, role W, role FD) {
+    init(Data) from M to W;
+    rec X {
+        mixed { // LHS
+            HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
+            continue X;
+        } () or W -> FD () { // RHS
+            Timeout() from FD to W; //@'failed W'  // !!!
+            Crash() from FD to M;
+        }
     }
 }
 //*/
@@ -892,6 +944,10 @@ global protocol Proto1(role A, role B, role C) {
     //}
 }
 //*/
+
+
+
+
 
 
 
