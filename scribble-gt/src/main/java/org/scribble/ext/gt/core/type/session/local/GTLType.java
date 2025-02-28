@@ -8,6 +8,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -41,7 +42,7 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
     // cf. s param
-    default GTEFSM construct(Map<Role, Set<Op>> com, GTVState end) {
+    default GTEFSM construct(Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 

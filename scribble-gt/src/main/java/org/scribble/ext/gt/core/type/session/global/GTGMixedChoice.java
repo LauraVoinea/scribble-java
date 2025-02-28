@@ -267,6 +267,8 @@ public class GTGMixedChoice implements GTGType {
 
             } else {
                 // TODO FIXME MC conditions?
+                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;mixed { 2() from A to B;3() from A to C;a() from B to A;b() from B to C;e() from C to A;f() from C to B; } () or A -> B () { 4() from B to A;c() from B to C;d() from C to A;g() from C to B; } } () or A -> C () { 5() from C to A;5() from C to B; }}
+                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;2() from C to A;/*3() from C to B;*/mixed { a() from A to B;b() from B to A;c() from B to C;3a() from C to B; } () or A -> B () { d() from B to A;e() from B to C;3b() from C to B; } } () or A -> C () { 4() from C to A;5() from C to B; } }
                 throw new RuntimeException("XXXXXX " + r + " TODO ");
             }
         }

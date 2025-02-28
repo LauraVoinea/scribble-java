@@ -326,7 +326,7 @@ public class GTCommandLine extends CommandLine {
                 }
 
                 GTVState end = new GTVState();
-                System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + x.type.construct(end) + "\n" + x.type.construct(end).toDot());
+                //System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + x.type.construct(com, end) + "\n" + x.type.construct(com, end).toDot());
             }
 
             // Check correspondence

@@ -7,6 +7,7 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
@@ -33,7 +34,8 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Map<Role, Set<Op>> com, GTVState end) {
+    public GTEFSM construct(Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+        // CHECKME draw recvStars?
         return new GTEFSM(Set.of(end), end, Set.of(), Set.of(), Map.of());
     }
 
