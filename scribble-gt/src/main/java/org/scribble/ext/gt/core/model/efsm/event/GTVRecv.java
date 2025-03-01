@@ -17,6 +17,11 @@ public class GTVRecv implements GTVEvent {
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.EXTERNAL;
+    }
+
+    @Override
     public String toString() {
         return this.role + "?" + this.op + this.pay;
     }

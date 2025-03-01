@@ -1,4 +1,4 @@
-package org.scribble.ext.gt.codegen;
+package org.scribble.ext.gt.codegen.java;
 
 import org.jetbrains.annotations.NotNull;
 import org.scribble.core.model.StaticActionKind;
@@ -64,7 +64,6 @@ public class GTApiGen {
 
         //return generateTop(proto, r) + "\n" + res;
         return membs.stream().map(GIndentable::toString).collect(Collectors.joining("\n\n"));
-
     }
 
 

@@ -5,10 +5,15 @@ import org.scribble.ext.gt.util.ConsoleColors;
 
 public class GTVTau implements GTVEvent {
 
-    public final Op op;
+    public final Op op;  // !!! pay?
 
     public GTVTau(Op op) {
         this.op = op;
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.INTERNAL;
     }
 
     @Override
