@@ -50,11 +50,11 @@ public class GTLRecursion implements GTLType {
 
     @Override
     public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
-                            GTVState s, GTVState end) {
+                            int c, GTVState s, GTVState end) {
         Set<RecVar> recvars = new LinkedHashSet<>(s.recvars);
         recvars.add(this.var);
-        GTVState s1 = new GTVState(s.c, recvars);
-        return this.body.construct(r, com, recvStars, s1, end);
+        GTVState s1 = new GTVState(s.isEntry, c, recvars);
+        return this.body.construct(r, com, recvStars, c, s1, end);
 
         /*GTEFSM m_body = this.body.construct(r, com, recvStars, end);
         Set<RecVar> recvars = new LinkedHashSet<>();

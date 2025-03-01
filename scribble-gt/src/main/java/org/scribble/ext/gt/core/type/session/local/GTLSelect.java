@@ -49,7 +49,7 @@ public class GTLSelect implements GTLType {
 
     @Override
     public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
-                            GTVState s, GTVState end) {
+                            int c, GTVState s, GTVState end) {
         //GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
         //S.add(init);
@@ -62,8 +62,8 @@ public class GTLSelect implements GTLType {
             GTLType succ_i = x.getValue();
             Map<Integer, Pair<GTVRecv, GTVState>> stars =
                     com.contains(op_i) ? Map.of() : recvStars;
-            GTVState s_i = new GTVState();
-            GTEFSM m_i = succ_i.construct(r, com, stars, s_i, end);
+            GTVState s_i = new GTVState(c);
+            GTEFSM m_i = succ_i.construct(r, com, stars, c, s_i, end);
             S.addAll(m_i.S);
             E.addAll(m_i.E);
             A.addAll(m_i.A);

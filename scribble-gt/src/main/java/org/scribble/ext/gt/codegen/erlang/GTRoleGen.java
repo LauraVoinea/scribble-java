@@ -235,7 +235,8 @@ public class GTRoleGen {
             return StateKind.END;
         }
         Set<Pair<GTVState, GTVEvent>> ks = filt.keySet();
-        if (s.isMixedEntry()) {
+        //if (s.isMixedEntry()) {
+        if (s.isEntry) {
             if (ks.stream().allMatch(x -> x.right.getKind() == GTVEvent.Kind.EXTERNAL)) {
                 return StateKind.EXTERNAL_MIXED_II;
             } else {

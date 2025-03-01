@@ -43,7 +43,7 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
 
     // cf. s param
     default GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
-                             GTVState s, GTVState end) {
+                             int c, GTVState s, GTVState end) {  // c == s.c on call
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 

@@ -6,7 +6,8 @@ public class GTVRecVar extends GTVState {
 
     public final RecVar recvar;
 
-    public GTVRecVar(RecVar recvar) {
+    public GTVRecVar(int c, RecVar recvar) {
+        super(c);
         this.recvar = recvar;
     }
 

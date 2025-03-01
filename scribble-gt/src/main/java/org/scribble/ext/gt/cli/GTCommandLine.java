@@ -15,6 +15,7 @@ import org.scribble.ext.gt.codegen.java.GTApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.GTVTau;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
@@ -326,10 +327,10 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
                 }
 
-                GTVState s_init = new GTVState();
-                GTVState end = new GTVState();
+                GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
+                GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
                 Set<Op> com_self = com.getOrDefault(x.self, Set.of());
-                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), s_init, end).fix();
+                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
                 System.out.println("aaaaa: " + x.self + ": " + x.type + "\n"
                         + efsm + "\n" + efsm.toDot());
             }

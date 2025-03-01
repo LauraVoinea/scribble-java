@@ -56,24 +56,24 @@ public class GTLMixedChoice implements GTLType {
 
     @Override
     public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
-                            GTVState s, GTVState end) {
+                            int c, GTVState s, GTVState end) {
         return switch (getKind()) {
-            case INTERNAL -> constructInternal(r, com, recvStars, s, end);
-            case EXTERNAL_OI -> constructExternal(r, com, recvStars, s, end);
-            case EXTERNAL_II -> constructExternal(r, com, recvStars, s, end);
+            case INTERNAL -> constructInternal(r, com, recvStars, c, s, end);
+            case EXTERNAL_OI -> constructExternal(r, com, recvStars, c, s, end);
+            case EXTERNAL_II -> constructExternal(r, com, recvStars, c, s, end);
         };
     }
 
     // No consideration of "nested interrupt edges" due to observer immediately committing on both left/right
     protected GTEFSM constructInternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
-                                       GTVState s, GTVState end) {
+                                       int c, GTVState s, GTVState end) {
         GTLBranch left = (GTLBranch) this.left;
         GTLSelect right = (GTLSelect) this.right;
 
         // !!! right.cases.size() == 1
         Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> x.getValue().construct(r, com, recvStars, new GTVState(), end),
+                x -> x.getValue().construct(r, com, recvStars, this.c, new GTVState(this.c), end),
                 (x, y) -> null,
                 LinkedHashMap::new
         ));
@@ -81,11 +81,11 @@ public class GTLMixedChoice implements GTLType {
         /*Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
         Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
         leftStars.put(this.c, new Pair<>(new GTVRecv(r, op, right.pays.get(op)), cases_right.get(op).init));*/
-        if (s.c != GTVState.NON_MIXED_ENTRY) {
+        /*if (s.c != GTVState.NON_MIXED_ENTRY) {
             throw new RuntimeException("Shouldn't get here: " + s.c);
-        }
-        GTVState s1 = new GTVState(this.c, s.recvars);
-        GTEFSM m_left = left.construct(r, com, recvStars, s1, end);
+        }*/
+        GTVState s1 = new GTVState(true, this.c, s.recvars);
+        GTEFSM m_left = left.construct(r, com, recvStars, this.c, s1, end);
 
         GTVState init = m_left.init;
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
@@ -142,14 +142,14 @@ public class GTLMixedChoice implements GTLType {
     ... or calc/ env manually during construction !!! local is easier than global <<<< */
 
     protected GTEFSM constructExternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
-                                       GTVState s, GTVState end) {
+                                       int c, GTVState s, GTVState end) {
         GTLType left = this.left;
         GTLBranch right = (GTLBranch) this.right;
 
         // !!! right.cases.size() == 1
         Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> x.getValue().construct(r, com, recvStars, new GTVState(), end),
+                x -> x.getValue().construct(r, com, recvStars, this.c, new GTVState(this.c), end),
                 (x, y) -> null,
                 LinkedHashMap::new
         ));
@@ -157,11 +157,11 @@ public class GTLMixedChoice implements GTLType {
         Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
         Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
         leftStars.put(this.c, new Pair<>(new GTVRecv(right.src, op, right.pays.get(op)), cases_right.get(op).init));
-        if (s.c != GTVState.NON_MIXED_ENTRY) {
+        /*if (s.c != GTVState.NON_MIXED_ENTRY) {
             throw new RuntimeException("Shouldn't get here: " + s.c);
-        }
+        }*/
         GTVState s1 = new GTVState(this.c, s.recvars);
-        GTEFSM m_left = left.construct(r, com, leftStars, s1, end);
+        GTEFSM m_left = left.construct(r, com, leftStars, this.c, s1, end);
 
         GTVState init = m_left.init;
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
