@@ -9,6 +9,7 @@ import org.scribble.ext.gt.core.model.efsm.event.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GTRoleGen {
@@ -32,9 +33,13 @@ public class GTRoleGen {
     }
 
     protected List<ErlangFunc> generateBranch(GTEFSM m, GTVState s) {
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdges(m, s);
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
+        return generateBranchAux(m, s, filt);
+    }
 
-        return filt.entrySet().stream().flatMap(x -> {
+    protected List<ErlangFunc> generateBranchAux(
+            GTEFSM m, GTVState s, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> edges) {
+        return edges.entrySet().stream().flatMap(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
             GTVRecv e = (GTVRecv) k.right;
             Set<Pair<GTVAction, GTVState>> v = x.getValue();
@@ -49,11 +54,15 @@ public class GTRoleGen {
     }
 
     protected List<ErlangFunc> generateSelect(GTEFSM m, GTVState s) {
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdges(m, s);
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
+        return generateSelectAux(m, s, filt);
+    }
 
+    protected List<ErlangFunc> generateSelectAux(
+            GTEFSM m, GTVState s, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> edges) {
         List<ErlangFunc> res = new LinkedList<>();
         //res.add(genMakeChoice_s(s));
-        res.addAll(filt.entrySet().stream().flatMap(x -> {
+        res.addAll(edges.entrySet().stream().flatMap(x -> {
             //Pair<GTVState, GTVEvent> k = x.getKey();  // tau_a
             Set<Pair<GTVAction, GTVState>> v = x.getValue();
             return v.stream().map(y -> {
@@ -70,17 +79,20 @@ public class GTRoleGen {
     }
 
     protected List<ErlangFunc> generateInternalMixed(GTEFSM m, GTVState s) {
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdges(m, s);
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
 
         String name = stateToFuncName(s);
         List<ErlangFunc> res = new LinkedList<>();
 
         //res.add(genMakeChoice_s(s));
 
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
+        // !!! TODO missing ?/!* case
+        /*Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 filt.entrySet().stream().filter(x ->
                         x.getValue().stream().anyMatch(y -> y.left instanceof GTVSendStar)).collect(
-                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));*/
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
+                filterEdgesByEvent(filt, x -> x instanceof GTVTau);
         if (rhs.size() != 1) {
             throw new RuntimeException("Shouldn't get here? " + rhs);
         }
@@ -88,6 +100,7 @@ public class GTRoleGen {
         if (sendStars.size() != 1) {
             throw new RuntimeException("Shouldn't get here? " + rhs);
         }
+
         Pair<GTVAction, GTVState> sendStar = sendStars.iterator().next();
         GTVSendStar a = (GTVSendStar) sendStar.left;
         String param_a = actionToParam(a);
@@ -96,9 +109,8 @@ public class GTRoleGen {
                 + genNextState(m, sendStar.right);
         res.add(new ErlangFunc(name, params, body));
 
-        LinkedHashMap<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
-                filt.entrySet().stream().filter(x -> x.getKey().right.getKind() == GTVEvent.Kind.EXTERNAL)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
+                filterEdgesByEvent(filt, x -> x.getKind() == GTVEvent.Kind.EXTERNAL);
         res.addAll(lhs.entrySet().stream().map(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
             Set<Pair<GTVAction, GTVState>> v = x.getValue();
@@ -121,16 +133,38 @@ public class GTRoleGen {
     }
 
     protected List<ErlangFunc> generateExternalMixedOI(GTEFSM m, GTVState s) {
-        // also make_choice
-        throw new RuntimeException("TODO");
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
+        List<ErlangFunc> res = new LinkedList<>();
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
+                filterEdgesByEvent(filt, x -> x instanceof GTVTau);
+        res.addAll(generateSelectAux(m, s, lhs));
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
+                filterEdgesByEvent(filt, x -> x instanceof GTVRecv);
+        res.addAll(generateBranchAux(m, s, rhs));
+
+        return res;
     }
 
     protected List<ErlangFunc> generateExternalMixedII(GTEFSM m, GTVState s) {
-        throw new RuntimeException("TODO");
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
+        List<ErlangFunc> res = new LinkedList<>();
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
+                filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
+        res.addAll(generateBranchAux(m, s, lhs));
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
+                filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
+        res.addAll(generateBranchAux(m, s, rhs));
+
+        return res;
     }
 
     protected List<ErlangFunc> generateExternalMixedNotEntry(GTEFSM m, GTVState s) {
-        throw new RuntimeException("TODO");
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
+        return generateBranchAux(m, s, filt);
     }
 
     // !!! move to gen_role
@@ -158,7 +192,7 @@ public class GTRoleGen {
             case INTERNAL_MIXED:  // !!! what if don't want to interrupt (yet)?
             case EXTERNAL_MIXED_OI:
                 Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt
-                        = filterEdges(m, succ);
+                        = filterEdgesByState(m, succ);
                 String s = stateToFuncName(succ);
                 return
                         "case make_choice_" + s + "(Data) of\n" + filt.keySet().stream().map(x -> {
@@ -196,7 +230,7 @@ public class GTRoleGen {
     }
 
     public StateKind getStateKind(GTEFSM m, GTVState s) {
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdges(m, s);
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = filterEdgesByState(m, s);
         if (filt.isEmpty()) {
             return StateKind.END;
         }
@@ -218,9 +252,21 @@ public class GTRoleGen {
         }
     }
 
-    protected static Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filterEdges(
+    protected static Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filterEdgesByState(
             GTEFSM m, GTVState s) {
         return m.delta.entrySet().stream().filter(x -> x.getKey().left.equals(s))
                       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
+    }
+
+    protected static Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filterEdgesByEvent(
+            Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt, Predicate<GTVEvent> p) {
+        return filt.entrySet().stream().filter(x -> p.test(x.getKey().right)).collect(Collectors.toMap(
+                Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
+    }
+
+    protected static Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filterEdgesByAnyAction(
+            Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt, Predicate<GTVAction> p) {
+        return filt.entrySet().stream().filter(x -> x.getValue().stream().anyMatch(y -> p.test(y.left)))
+                   .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
     }
 }
