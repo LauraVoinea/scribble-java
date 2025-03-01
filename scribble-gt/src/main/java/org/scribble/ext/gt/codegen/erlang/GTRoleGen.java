@@ -223,9 +223,9 @@ public class GTRoleGen {
         END,
         BRANCH,  //            &      -- events ?        -- actions eps
         SELECT,  //            (+)    -- events tau      -- actions !
-        INTERNAL_MIXED,  //    ? |> | -- events ? |> tau -- actions eps |> !*
-        EXTERNAL_MIXED_OI,  // ! |< ? -- events tau |> ? -- actions ! |> eps*
-        EXTERNAL_MIXED_II,  // ? |> ? -- events ?        -- actions eps |> eps*
+        INTERNAL_MIXED,  //    ? |> ! -- events ? |> tau -- actions eps |> !*  -- !!! XXX all states can have ?/eps*, incl. int_mixed
+        EXTERNAL_MIXED_OI,  // ! |> ? -- events tau |> ? -- actions ! |> eps*
+        EXTERNAL_MIXED_II,  // ? |> ? -- events ? |> ?   -- actions eps |> eps*
         EXTERNAL_MIXED_NOT_ENTRY  // Can be ? |> ? or ! |> ? -- events/actions same as prev
     }
 
