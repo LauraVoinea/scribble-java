@@ -49,8 +49,14 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
-        GTEFSM m_body = this.body.construct(r, com, recvStars, end);
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+                            GTVState s, GTVState end) {
+        Set<RecVar> recvars = new LinkedHashSet<>(s.recvars);
+        recvars.add(this.var);
+        GTVState s1 = new GTVState(s.c, recvars);
+        return this.body.construct(r, com, recvStars, s1, end);
+
+        /*GTEFSM m_body = this.body.construct(r, com, recvStars, end);
         Set<RecVar> recvars = new LinkedHashSet<>();
         recvars.add(this.var);
         recvars.addAll(m_body.init.recvars);
@@ -72,7 +78,7 @@ public class GTLRecursion implements GTLType {
                 delta.put(k, v);
             }
         }
-        return new GTEFSM(S, init, m_body.E, m_body.A, delta);
+        return new GTEFSM(S, init, m_body.E, m_body.A, delta);*/
     }
 
 

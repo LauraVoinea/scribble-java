@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.model.efsm;
 
 import org.scribble.core.type.name.RecVar;
+import org.scribble.ext.gt.util.ConsoleColors;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -25,20 +26,21 @@ public class GTVState {
     }
 
     public GTVState(int c, Set<RecVar> recvars) {
-        this.c = c;
         this.id = GTVState.count++;
+        this.c = c;
         this.recvars = Collections.unmodifiableSet(new LinkedHashSet<>(recvars));
     }
 
     @Override
     public String toString() {
-        return this.id + this.recvars.toString();
+        return this.id + this.recvars.toString() + (this.c == NON_MIXED_ENTRY ? "" : (" " + ConsoleColors.WHITE_TRIANGLE + c));
     }
 
     @Override
     public int hashCode() {
         int hash = 15443;
         hash = 31 * hash + this.id;
+        hash = 31 * hash + this.c;
         hash = 31 * hash + this.recvars.hashCode();
         return hash;
     }
@@ -51,6 +53,6 @@ public class GTVState {
         if (!(o instanceof GTVState cast)) {
             return false;
         }
-        return this.id == cast.id && this.recvars.equals(cast.recvars);
+        return this.id == cast.id && this.c == cast.c && this.recvars.equals(cast.recvars);
     }
 }

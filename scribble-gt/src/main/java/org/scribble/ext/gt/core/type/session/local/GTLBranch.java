@@ -88,36 +88,38 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
-        GTVState init = new GTVState();
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+                            GTVState s, GTVState end) {
+        //GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
-        S.add(init);
+        //S.add(init);
+        S.add(s);
         Set<GTVEvent> E = new LinkedHashSet<>();
         Set<GTVAction> A = new LinkedHashSet<>();
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
-            Op op = x.getKey();
-            GTLType succ = x.getValue();
+            Op op_i = x.getKey();
+            GTLType succ_i = x.getValue();
             Map<Integer, Pair<GTVRecv, GTVState>> stars =
-                    com.contains(op) ? Map.of() : recvStars;
-            GTEFSM m = succ.construct(r, com, stars, end);
-            S.addAll(m.S);
-            E.addAll(m.E);
-            A.addAll(m.A);
-            GTVRecv e = new GTVRecv(this.src, op, this.pays.get(op));
+                    com.contains(op_i) ? Map.of() : recvStars;
+            GTVState s_i = new GTVState();
+            GTEFSM m_i = succ_i.construct(r, com, stars, s_i, end);
+            S.addAll(m_i.S);
+            E.addAll(m_i.E);
+            A.addAll(m_i.A);
+            GTVRecv e = new GTVRecv(this.src, op_i, this.pays.get(op_i));
 
-            Set<Pair<GTVAction, GTVState>> tmp = delta.computeIfAbsent(new Pair<>(init, e), y -> new LinkedHashSet<>());
-            tmp.add(new Pair<>(GTVEpsilon.EPSILON, m.init));
-            for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m.delta.entrySet()) {
+            Set<Pair<GTVAction, GTVState>> tmp = delta.computeIfAbsent(new Pair<>(s, e), y -> new LinkedHashSet<>());
+            tmp.add(new Pair<>(GTVEpsilon.EPSILON, m_i.init));
+            for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m_i.delta.entrySet()) {
                 Pair<GTVState, GTVEvent> k = y.getKey();
                 Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(k, z -> new LinkedHashSet<>());
                 tmp2.addAll(y.getValue());
             }
         }
 
-        GTLMixedChoice.drawExternals(recvStars, init, delta);
-
-        return new GTEFSM(S, init, E, A, delta);
+        GTLMixedChoice.drawExternals(recvStars, s, delta);
+        return new GTEFSM(S, s, E, A, delta);
     }
 
 

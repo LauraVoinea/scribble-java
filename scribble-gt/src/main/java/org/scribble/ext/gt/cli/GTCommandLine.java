@@ -326,9 +326,10 @@ public class GTCommandLine extends CommandLine {
                     System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
                 }
 
+                GTVState s_init = new GTVState();
                 GTVState end = new GTVState();
                 Set<Op> com_self = com.getOrDefault(x.self, Set.of());
-                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), end).fix();
+                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), s_init, end).fix();
                 System.out.println("aaaaa: " + x.self + ": " + x.type + "\n"
                         + efsm + "\n" + efsm.toDot());
             }

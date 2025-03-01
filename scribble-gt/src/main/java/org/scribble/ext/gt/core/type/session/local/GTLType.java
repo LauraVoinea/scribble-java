@@ -42,7 +42,8 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
     // cf. s param
-    default GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+    default GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+                             GTVState s, GTVState end) {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 

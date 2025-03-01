@@ -34,7 +34,8 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+                            GTVState s, GTVState end) {
         // CHECKME draw recvStars?
         return new GTEFSM(Set.of(end), end, Set.of(), Set.of(), Map.of());
     }

@@ -36,9 +36,10 @@ public class GTLRecVar implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
-        GTVRecVar s = new GTVRecVar(this.var);
-        return new GTEFSM(Set.of(s), s, Set.of(), Set.of(), Map.of());
+    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+                            GTVState s, GTVState end) {
+        GTVRecVar s1 = new GTVRecVar(this.var);
+        return new GTEFSM(Set.of(s1), s1, Set.of(), Set.of(), Map.of());
     }
 
     /* ... */
