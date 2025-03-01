@@ -10,14 +10,22 @@ public class GTVState {
 
     private static int count = 1;
 
+    public static final int NON_MIXED_ENTRY = -1;
+
     public final int id;
+    public final int c;  // -1 for non-mixed entry
     public final Set<RecVar> recvars;
 
     public GTVState() {
-        this(Set.of());
+        this(NON_MIXED_ENTRY, Set.of());
     }
 
     public GTVState(Set<RecVar> recvars) {
+        this(NON_MIXED_ENTRY, recvars);
+    }
+
+    public GTVState(int c, Set<RecVar> recvars) {
+        this.c = c;
         this.id = GTVState.count++;
         this.recvars = Collections.unmodifiableSet(new LinkedHashSet<>(recvars));
     }

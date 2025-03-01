@@ -137,11 +137,6 @@ public class GTLMixedChoice implements GTLType {
     ... or calc/ env manually during construction !!! local is easier than global <<<< */
 
     protected GTEFSM constructExternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars, GTVState end) {
-
-        // HERE HERE
-        // - use existing com to test paper examples => API gen
-        // - generalise com to per MC -- in getCommittingTop record recursively collected committing inside each MC
-
         GTLType left = this.left;
         GTLBranch right = (GTLBranch) this.right;
 

@@ -254,24 +254,25 @@ public class GTGMixedChoice implements GTGType {
             }
         }*/
 
-        if (!r.equals(this.other) && !r.equals(this.observer)) {
-
-            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC) -- e.g., MC with third-party receiving from different peers
-
-            if (isMergableIOModes(get_l.left, get_r.left)) {  // "modes"
-                Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
-                System.out.println("XXXXXX " + r + " " + merge);
-                if (merge.isEmpty()) {
-                    return Optional.empty();
-                }
-
-            } else {
-                // TODO FIXME MC conditions?
-                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;mixed { 2() from A to B;3() from A to C;a() from B to A;b() from B to C;e() from C to A;f() from C to B; } () or A -> B () { 4() from B to A;c() from B to C;d() from C to A;g() from C to B; } } () or A -> C () { 5() from C to A;5() from C to B; }}
-                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;2() from C to A;/*3() from C to B;*/mixed { a() from A to B;b() from B to A;c() from B to C;3a() from C to B; } () or A -> B () { d() from B to A;e() from B to C;3b() from C to B; } } () or A -> C () { 4() from C to A;5() from C to B; } }
-                throw new RuntimeException("XXXXXX " + r + " TODO " + get_l.left + ", " + getMode(get_l.left) + "\n " + get_r.left + ", " + getMode(get_r.left));
-            }
-        }
+//        // theory doesn't use merge in white triangle projection...
+//        if (!r.equals(this.other) && !r.equals(this.observer)) {
+//
+//            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC) -- e.g., MC with third-party receiving from different peers
+//
+//            if (isMergableIOModes(get_l.left, get_r.left)) {  // "modes"
+//                Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
+//                System.out.println("XXXXXX " + r + " " + merge);
+//                if (merge.isEmpty()) {
+//                    return Optional.empty();
+//                }
+//
+//            } else {
+//                // TODO FIXME MC conditions?
+//                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;mixed { 2() from A to B;3() from A to C;a() from B to A;b() from B to C;e() from C to A;f() from C to B; } () or A -> B () { 4() from B to A;c() from B to C;d() from C to A;g() from C to B; } } () or A -> C () { 5() from C to A;5() from C to B; }}
+//                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;2() from C to A;/*3() from C to B;*/mixed { a() from A to B;b() from B to A;c() from B to C;3a() from C to B; } () or A -> B () { d() from B to A;e() from B to C;3b() from C to B; } } () or A -> C () { 4() from C to A;5() from C to B; } }
+//                throw new RuntimeException("XXXXXX " + r + " TODO " + get_l.left + ", " + getMode(get_l.left) + "\n " + get_r.left + ", " + getMode(get_r.left));
+//            }
+//        }
         return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
     }
 

@@ -8,6 +8,11 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+// HERE HERE
+// - use existing com to test paper examples => API gen
+// - generalise com to per MC -- in getCommittingTop record recursively collected committing inside each MC
+
 public class GTEFSM {
 
     public final Set<GTVState> S;
@@ -41,19 +46,15 @@ public class GTEFSM {
 
         delta = this.delta.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> x.getValue().stream().map(y -> {
-                            if (y.right instanceof GTVRecVar cast) {
-                                return new Pair<>(y.left, recvars.get(cast.recvar));
-                            } else {
-                                return y;
-                            }
-                        }
+                x -> x.getValue().stream().map(y ->
+                        y.right instanceof GTVRecVar cast
+                        ? new Pair<>(y.left, recvars.get(cast.recvar))
+                        : y
                 ).collect(Collectors.toCollection(LinkedHashSet::new))
         ));
 
         return new GTEFSM(S, this.init, this.E, this.A, delta);
     }
-
 
     public String toDot() {
         StringBuilder b = new StringBuilder();
