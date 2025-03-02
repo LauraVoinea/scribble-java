@@ -87,7 +87,6 @@ public class GTLMixedChoice implements GTLType {
         }*/
         GTVState s1 = new GTVState(true, this.c, s.recvars);
         GTEFSM m_left = left.construct(r, com, recvStars, this.c, s1, end);
-
         GTVState init = m_left.init;
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
         Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
@@ -161,7 +160,7 @@ public class GTLMixedChoice implements GTLType {
         /*if (s.c != GTVState.NON_MIXED_ENTRY) {
             throw new RuntimeException("Shouldn't get here: " + s.c);
         }*/
-        GTVState s1 = new GTVState(this.c, s.recvars);
+        GTVState s1 = new GTVState(true, this.c, s.recvars);
         GTEFSM m_left = left.construct(r, com, leftStars, this.c, s1, end);
 
         GTVState init = m_left.init;

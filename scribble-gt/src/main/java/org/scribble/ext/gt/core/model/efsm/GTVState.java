@@ -48,7 +48,7 @@ public class GTVState {
     @Override
     public String toString() {
         return this.id + this.recvars.toString() + " "
-                + (this.isEntry ? ConsoleColors.WHITE_TRIANGLE + this.c : "")
+                + (this.isEntry ? ConsoleColors.WHITE_TRIANGLE : "")
                 + this.c;
         //+ (this.c == TOP_SCOPE ? "" : (" " + ConsoleColors.WHITE_TRIANGLE + c));
     }
