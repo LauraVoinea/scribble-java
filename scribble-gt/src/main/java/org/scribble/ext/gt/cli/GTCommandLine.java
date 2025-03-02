@@ -13,11 +13,10 @@ import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
 import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
 import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
-import org.scribble.ext.gt.codegen.java.GTApiGen;
+import org.scribble.ext.gt.codegen.java.GTJavaApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
-import org.scribble.ext.gt.core.model.efsm.event.GTVTau;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
@@ -290,6 +289,7 @@ public class GTCommandLine extends CommandLine {
         LMF = (GTEModelFactory) core.config.mf.local;
 
         Map<GProtoName, GTGType> translated = getTranslated(this);
+        Map<String, Map<String, GTEFSM>> efsms = new HashMap<>();  // proto -> role -> EFSM
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
             //Set<Role> rs = translate.getRoles();
@@ -325,19 +325,19 @@ public class GTCommandLine extends CommandLine {
                 System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
 
                 // !!! gtRun happens before run (i.e., tryBarrierTask running before gtRun, cf. `enact` flags`)
-                if (this.hasFlag(GTCLFlags.GT_API_GEN_FLAG)) {
-                    System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTApiGen().generate(g, x.self, init));
+                if (this.hasFlag(GTCLFlags.GT_JAVA_API_GEN_FLAG)) {
+                    System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTJavaApiGen().generate(g, x.self, init));
                 }
 
                 GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
                 GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
                 Set<Op> com_self = com.getOrDefault(x.self, Set.of());
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
-                System.out.println("aaaaa: " + x.self + ": " + x.type + "\n"
-                        + efsm + "\n" + efsm.toDot());
-
-                System.out.println("bbbbb:\n" + new GTRoleGen().generate(null, null, efsm));
-                System.out.println("ccccc:\n" + new GTGenRoleGen().generate(null, null, efsm));
+                //System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + efsm + "\n" + efsm.toDot());
+                //System.out.println("bbbbb:\n" + new GTRoleGen().generate(null, null, efsm));
+                //System.out.println("ccccc:\n" + new GTGenRoleGen().generate(null, null, efsm));
+                Map<String, GTEFSM> tmp = efsms.computeIfAbsent(g.toString(), y -> new LinkedHashMap<>());
+                tmp.put(x.self.toString(), efsm);
             }
 
             // Check correspondence
@@ -358,6 +358,28 @@ public class GTCommandLine extends CommandLine {
                 if (res.isPresent()) {
                     return res;
                 }
+            }
+        }
+
+        /*if (this.hasFlag(GTCLFlags.GT_ED_FSM_GEN_FLAG)) {
+            System.out.println("\n[GTCommandLine] event-driven FSM for: ")
+        }*/
+        for (Pair<String, String[]> a : this.args) {
+            if (a.left.equals(GTCLFlags.GT_ED_FSM_GEN_FLAG)) {
+                String proto = a.right[0];
+                String r = a.right[1];
+                System.out.println("\n[GTCommandLine] event-driven FSM for " + proto + "@" + r + ":");
+                System.out.println(efsms.get(proto).get(r).toDot());
+            } else if (a.left.equals(GTCLFlags.GT_ERLANG_API_GEN_FLAG)) {
+                String proto = a.right[0];
+                String r = a.right[1];
+                GTEFSM m = efsms.get(proto).get(r);
+                GTGenRoleGen g1 = new GTGenRoleGen();
+                GTRoleGen g2 = new GTRoleGen();
+                System.out.println("\n[GTCommandLine] Gen role for " + proto + "@" + r + ":");
+                System.out.println(g1.generate(null, null, m));
+                System.out.println("\n[GTCommandLine] Role for " + proto + "@" + r + ":");
+                System.out.println(g2.generate(null, null, m));
             }
         }
 

@@ -17,7 +17,7 @@ import org.scribble.ext.gt.core.model.local.GTFsmConstructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GTApiGen {
+public class GTJavaApiGen {
 
     public static final String OSTATE_TYPE = "GTOStateChan";
     public static final String ISTATE_TYPE = "GTIStateChan";
