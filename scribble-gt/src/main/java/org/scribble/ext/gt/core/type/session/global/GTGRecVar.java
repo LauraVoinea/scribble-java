@@ -73,6 +73,13 @@ public class GTGRecVar implements GTGType {
     /* ... */
 
     @Override
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        return GTUtil.umodMapOf();
+    }
+
+    // ...
+
+    @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         return GTUtil.umodMapOf();
     }
@@ -208,7 +215,7 @@ public class GTGRecVar implements GTGType {
     public boolean isCoherent() {
         return true;
     }
-   
+
 
     /* ... */
 

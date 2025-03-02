@@ -328,7 +328,24 @@ public class GTCommandLine extends CommandLine {
                 return Optional.of(proj.getLeft());
             }
             GTCorrespondence s = proj.getRight();
-            Map<Role, Set<Op>> com = GTUtil.umod(translate.getCommittingTop());
+
+            //Map<Role, Set<Op>> com = GTUtil.umod(translate.getCommittingTop());
+            Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
+            Map<Role, Set<Op>> com = new HashMap<>();
+            Map<Role, Map<Integer, Set<Op>>> comInvert = new HashMap<>();
+            comFull.entrySet().forEach(x -> {
+                int c = x.getKey();
+                Map<Role, Set<Op>> vs = x.getValue();
+                for (Map.Entry<Role, Set<Op>> y : vs.entrySet()) {
+                    Role r = y.getKey();
+                    Set<Op> ops = y.getValue();
+
+                    com.computeIfAbsent(r, z -> new HashSet<>()).addAll(ops);
+
+                    Map<Integer, Set<Op>> invert = comInvert.computeIfAbsent(r, z -> new HashMap<>());
+                    invert.computeIfAbsent(c, z -> new HashSet<>()).addAll(ops);
+                }
+            });
 
             System.out.println("\n[GTCommandLine] projected:\n"
                     + s.local.configs.values().stream().map(x -> x.self + "=" + x.type).collect(Collectors.joining("\n")));
@@ -345,7 +362,8 @@ public class GTCommandLine extends CommandLine {
 
                 GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
                 GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
-                Set<Op> com_self = com.getOrDefault(x.self, Set.of());
+                //Set<Op> com_self = com.getOrDefault(x.self, Set.of());
+                Map<Integer, Set<Op>> com_self = comInvert.get(x.self);
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
                 System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
                 System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, null, efsm));

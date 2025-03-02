@@ -15,6 +15,7 @@ import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.type.session.GTSessType;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
@@ -42,7 +43,7 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
     // cf. s param
-    default GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+    default GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                              int c, GTVState s, GTVState end) {  // c == s.c on call
         throw new RuntimeException("Shouldn't get here: " + this);
     }
@@ -73,7 +74,7 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     /* ... -- n.b. formal local LTS is config LTS (hence sigma, theta etc params below) */
 
     //int c_TOP = -1;
-    int c_TOP = 0;
+    int c_TOP = GTGType.c_TOP;
     int n_INIT = 1;
 
     //default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(

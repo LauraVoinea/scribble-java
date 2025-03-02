@@ -73,7 +73,15 @@ public class GTGEnd implements GTGType {
         return Optional.of(new Theta(cs));
     }
 
+
     /* ... */
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        return GTUtil.umodMapOf();
+    }
+
+    // ...
 
     @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {

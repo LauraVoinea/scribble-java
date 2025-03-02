@@ -1,6 +1,7 @@
 package org.scribble.ext.gt.core.model.efsm;
 
 import org.scribble.core.type.name.RecVar;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.util.ConsoleColors;
 
 import java.util.Collections;
@@ -13,7 +14,7 @@ public class GTVState {
     private static int count = 1;
 
     //public static final int NON_MIXED_ENTRY = -1;
-    public static final int TOP_SCOPE = -1;
+    public static final int TOP_SCOPE = GTLType.c_TOP;
 
     public final int id;
     public final boolean isEntry;

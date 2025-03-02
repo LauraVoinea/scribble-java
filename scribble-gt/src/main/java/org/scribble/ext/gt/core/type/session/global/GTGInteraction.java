@@ -178,6 +178,7 @@ public class GTGInteraction implements GTGType {
         return distinct.get(0);
     }
 
+
     /* ... */
 
     // TODO refactor with GTMixedActive -- XXX mixed active needs to do Sigma.circ
@@ -218,6 +219,35 @@ public class GTGInteraction implements GTGType {
 
     /* ... */
 
+    @Override
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        if (com.contains(this.src)) {
+            Set<Role> tmp = new HashSet<>(com);
+            tmp.add(this.dst);
+            Map<Role, Set<Op>> res = new HashMap<>();
+            this.cases.values().stream().map(x -> x.getCommittingAux(c, tmp)).forEach(x -> {
+                for (Map.Entry<Role, Set<Op>> y : x.entrySet()) {
+                    Set<Op> bar = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    bar.addAll(y.getValue());
+                }
+            });
+            Set<Op> ops = res.computeIfAbsent(this.dst, x -> new HashSet<>());
+            ops.addAll(this.cases.keySet());
+            return res;
+        } else {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            this.cases.values().stream().map(x -> x.getCommittingAux(c, com)).forEach(x -> {
+                for (Map.Entry<Role, Set<Op>> y : x.entrySet()) {
+                    Set<Op> bar = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    bar.addAll(y.getValue());
+                }
+            });
+            return res;
+        }
+    }
+
+    // ...
+   
     @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         Map<Role, Set<Op>> res = GTUtil.mapOf();
@@ -450,7 +480,7 @@ public class GTGInteraction implements GTGType {
         return this.cases.values().stream().allMatch(GTGType::isCoherent);
     }
 
-   
+
     /* ... */
 
     @Override

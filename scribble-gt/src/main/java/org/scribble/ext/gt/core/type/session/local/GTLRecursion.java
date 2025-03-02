@@ -49,7 +49,7 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+    public GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                             int c, GTVState s, GTVState end) {
         Set<RecVar> recvars = new LinkedHashSet<>(s.recvars);
         recvars.add(this.var);

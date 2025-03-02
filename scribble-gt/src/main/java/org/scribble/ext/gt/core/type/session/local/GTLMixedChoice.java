@@ -56,7 +56,7 @@ public class GTLMixedChoice implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+    public GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                             int c, GTVState s, GTVState end) {
         return switch (getKind()) {
             case INTERNAL -> constructInternal(r, com, recvStars, c, s, end);
@@ -66,7 +66,7 @@ public class GTLMixedChoice implements GTLType {
     }
 
     // No consideration of "nested interrupt edges" due to observer immediately committing on both left/right
-    protected GTEFSM constructInternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+    protected GTEFSM constructInternal(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                                        int c, GTVState s, GTVState end) {
         GTLBranch left = (GTLBranch) this.left;
         GTLSelect right = (GTLSelect) this.right;
@@ -142,7 +142,7 @@ public class GTLMixedChoice implements GTLType {
     /* com needs to be Map<Role, Map<Integer, Set<Op>>>  // int is c
     ... or calc/ env manually during construction !!! local is easier than global <<<< */
 
-    protected GTEFSM constructExternal(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+    protected GTEFSM constructExternal(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                                        int c, GTVState s, GTVState end) {
         GTLType left = this.left;
         GTLBranch right = (GTLBranch) this.right;

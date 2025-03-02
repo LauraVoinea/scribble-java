@@ -15,6 +15,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public interface GTGType extends GTSessType, GTGTypeOps {
@@ -26,6 +27,8 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     int GLOBAL_MIXED_ACTIVE_HASH = 1697;
     int GLOBAL_REC_HASH = 1699;
     int GLOBAL_RECVAR_HASH = 1709;
+
+    int c_TOP = 0;
 
 
     /* ... static only */
@@ -73,6 +76,22 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     // N.B. indiff is mixed-choice/active only (not all globals)
     Map<Role, Set<Role>> getStrongDeps();
+
+    default Map<Integer, Map<Role, Set<Op>>> getCommitting() {
+        Set<Integer> cs = getTimeoutIds();
+        return cs.stream().collect(Collectors.toMap(x -> x, this::getCommitting));
+    }
+
+    // cf. getTimeoutIds
+    default Map<Role, Set<Op>> getCommitting(int c) {
+        return getCommittingAux(c, Set.of());
+    }
+
+    default Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        throw new RuntimeException("TODO");
+    }
+
+    // ...
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
     default Map<Role, Set<Op>> getCommittingTop() {

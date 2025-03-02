@@ -88,7 +88,7 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public GTEFSM construct(Role r, Set<Op> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+    public GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                             int c, GTVState s, GTVState end) {
         //GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
@@ -100,8 +100,13 @@ public class GTLBranch implements GTLType {
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
             Op op_i = x.getKey();
             GTLType succ_i = x.getValue();
-            Map<Integer, Pair<GTVRecv, GTVState>> stars =
-                    com.contains(op_i) ? Map.of() : recvStars;
+            //Map<Integer, Pair<GTVRecv, GTVState>> stars = com.contains(op_i) ? Map.of() : recvStars;
+            Map<Integer, Pair<GTVRecv, GTVState>> stars = new HashMap<>(recvStars);
+            for (Map.Entry<Integer, Set<Op>> y : com.entrySet()) {
+                if (y.getValue().contains(op_i)) {
+                    stars.remove(y.getKey());
+                }
+            }
             GTVState s_i = new GTVState(c);
             GTEFSM m_i = succ_i.construct(r, com, stars, c, s_i, end);
             S.addAll(m_i.S);

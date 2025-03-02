@@ -26,8 +26,8 @@ public class GTGMixedChoice implements GTGType {
     public final int c;       // Currently assigned by GTGTypeTranslator2
     public final Role other;  // other->observer.L |> observer->other.R
     public final Role observer;  // observer?  "monitor"?
-    public final GTGType left;
-    public final GTGType right;
+    public final GTGType left;  // !!! interaction (other -> obs)
+    public final GTGType right;  // !!! interaction (obs -> other)
 
     protected GTGMixedChoice(
             int c, GTGType left, GTGType right, Role other, Role observer) {
@@ -250,6 +250,52 @@ public class GTGMixedChoice implements GTGType {
 
 
     /* ... */
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        GTGInteraction left = (GTGInteraction) this.left;
+        GTGInteraction right = (GTGInteraction) this.right;
+        Map<Role, Set<Op>> res = new HashMap<>();
+        if (c == this.c) {
+            Set<Role> tmp1 = new HashSet<>(com);
+            tmp1.add(this.observer);
+            for (GTGType x : left.cases.values()) {
+                for (Map.Entry<Role, Set<Op>> y : x.getCommittingAux(c, tmp1).entrySet()) {
+                    Set<Op> ops = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    ops.addAll(y.getValue());
+                }
+            }
+
+            Set<Role> tmp2 = new HashSet<>(tmp1);
+            tmp2.add(this.other);
+            for (GTGType x : right.cases.values()) {
+                for (Map.Entry<Role, Set<Op>> y : x.getCommittingAux(c, tmp2).entrySet()) {
+                    Set<Op> ops = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    ops.addAll(y.getValue());
+                }
+            }
+
+            Set<Op> obs = res.computeIfAbsent(this.observer, x -> new HashSet<>());
+            obs.addAll(left.cases.keySet());
+            obs.addAll(right.cases.keySet());
+            Set<Op> other = res.computeIfAbsent(this.other, x -> new HashSet<>());
+            other.addAll(right.cases.keySet());
+
+            return res;
+        } else {
+            for (Map.Entry<Role, Set<Op>> x : this.left.getCommittingAux(c, com).entrySet()) {
+                Set<Op> ops = res.computeIfAbsent(x.getKey(), y -> new HashSet<>());
+                ops.addAll(x.getValue());
+            }
+            for (Map.Entry<Role, Set<Op>> x : this.right.getCommittingAux(c, com).entrySet()) {
+                Set<Op> ops = res.computeIfAbsent(x.getKey(), y -> new HashSet<>());
+                ops.addAll(x.getValue());
+            }
+            return res;
+        }
+    }
+
+    // ...
 
     @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
@@ -477,7 +523,7 @@ public class GTGMixedChoice implements GTGType {
         // Morally can just return true
         return this.left.isCoherent() && this.right.isCoherent();
     }
-   
+
 
     /* ... */
 

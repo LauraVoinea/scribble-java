@@ -79,6 +79,13 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        return this.body.getCommittingAux(c, com);
+    }
+
+    // ...
+
+    @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         return this.body.getCommittingTop();
     }
@@ -214,7 +221,7 @@ public class GTGRecursion implements GTGType {
     public boolean isCoherent() {
         return this.body.isCoherent();
     }
-   
+
 
     /* ... */
 
