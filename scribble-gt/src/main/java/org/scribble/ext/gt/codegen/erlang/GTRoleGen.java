@@ -44,10 +44,10 @@ public class GTRoleGen {
         return edges.entrySet().stream().flatMap(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
             GTVRecv e = (GTVRecv) k.right;
+            String name = GTGenUtil.stateToFuncName(s);
+            String param_a = GTGenUtil.eventToParam(e);
             Set<Pair<GTVAction, GTVState>> vs = x.getValue();
             return vs.stream().map(y -> {
-                String name = GTGenUtil.stateToFuncName(s);
-                String param_a = GTGenUtil.actionToParam(y.left);  // !!! epsilon?
                 List<String> params = List.of("cast", "{" + e.role + "Pid, " + param_a + "}", "Data");
                 String body = genNextState(m, y.right);
                 return new ErlangFunc(name, params, body);
@@ -71,7 +71,7 @@ public class GTRoleGen {
                 GTVSend a = (GTVSend) y.left;
                 //Role r = (a instanceof GTVSend) ? ((GTVSend) a).role : ((GTVSendStar) a).role;
                 String name = GTGenUtil.stateToFuncName(s);
-                String param_a = GTGenUtil.actionToParam(a);
+                String param_a = GTGenUtil.sendToParam(a);
                 List<String> params = List.of("internal", "{" + param_a + "}", "Data");
                 String body = "gen_role:send_" + param_a + "(" + a.role + "Pid, " + param_a + "),\n"
                         + genNextState(m, y.right);
@@ -106,7 +106,7 @@ public class GTRoleGen {
 
         Pair<GTVAction, GTVState> sendStar = sendStars.iterator().next();
         GTVSendStar a = (GTVSendStar) sendStar.left;
-        String param_a = GTGenUtil.actionToParam(a);
+        String param_a = GTGenUtil.sendToParam(a);
         List<String> params = List.of("internal", "{" + param_a + "}", "Data");
         String body = "case make_choice_" + param_a + "(" + a.role + "Pid, Data),\n"
                 + genNextState(m, sendStar.right);
@@ -122,7 +122,7 @@ public class GTRoleGen {
                 throw new RuntimeException("Shouldn't get here: " + k + " ,, " + vs);
             }
             Pair<GTVAction, GTVState> succ = vs.iterator().next();
-            String a1 = e.op.toString();  // !!! pay?
+            String a1 = GTGenUtil.eventToParam(e);  // !!! pay?
             List<String> ps = List.of("cast", "{" + e.role + "Pid, " + a1 + ", Data");
             String next = genNextState(m, succ.right);
             String b = "case make_choice_" + a1 + "(Data) of\n"
@@ -210,7 +210,7 @@ public class GTRoleGen {
                 return
                         "case make_choice_" + s + "(Data) of\n" + filt.keySet().stream().map(x -> {
                             GTVTau tau = (GTVTau) x.right;
-                            String a = tau.op.toString();  //actionToParam(tau.op...);   // !!! pay?
+                            String a = GTGenUtil.eventToParam(tau);  // !!! pay?
                             return a + " -> {next_state, " + s + ", Data, [next_event, internal, {" + a + "}]}";
                         }).collect(Collectors.joining("\n"));
             case BRANCH:

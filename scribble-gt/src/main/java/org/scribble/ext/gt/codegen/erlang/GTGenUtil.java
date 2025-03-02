@@ -2,9 +2,7 @@ package org.scribble.ext.gt.codegen.erlang;
 
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
-import org.scribble.ext.gt.core.model.efsm.event.GTVAction;
-import org.scribble.ext.gt.core.model.efsm.event.GTVEvent;
-import org.scribble.ext.gt.core.model.efsm.event.GTVSendStar;
+import org.scribble.ext.gt.core.model.efsm.event.*;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -15,12 +13,27 @@ import java.util.stream.Collectors;
 
 public class GTGenUtil {
 
-    public static String actionToParam(GTVAction a) {
-        return a.toString();  // XXX epsilon
-    }
 
     public static String stateToFuncName(GTVState s) {
         return "s" + s.id;
+    }
+
+    public static String eventToParam(GTVEvent e) {
+        if (e instanceof GTVRecv cast) {
+            return cast.op.toString();  // !!! pay?
+        } else if (e instanceof GTVTau cast) {
+            return cast.op.toString();  // !!! pay?
+        } else {
+            throw new RuntimeException("Shouldn't get here: ");
+        }
+    }
+
+    public static String sendToParam(GTVSend a) {
+        return a.op.toString();  // !!! pay?
+    }
+
+    public static String sendToParam(GTVSendStar a) {
+        return a.op.toString();  // !!! pay?
     }
 
 

@@ -54,11 +54,11 @@ public class GTGenRoleGen {
             GTVState s, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt) {
         return filt.entrySet().stream().flatMap(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
+            GTVRecv e = (GTVRecv) k.right;
+            String name = GTGenUtil.stateToFuncName(s);
+            String param_a = GTGenUtil.eventToParam(e);
             Set<Pair<GTVAction, GTVState>> vs = x.getValue();
             return vs.stream().flatMap(y -> {
-                String name = GTGenUtil.stateToFuncName(s);
-                GTVRecv e = (GTVRecv) k.right;
-                String param_a = GTGenUtil.actionToParam(y.left);
                 List<String> params = List.of(
                         "EventType",
                         "{" + e.role + ", " + param_a + ", Counter}",
@@ -95,8 +95,17 @@ public class GTGenRoleGen {
                 }
                 a = tmp.iterator().next().left;
             }
-            Role r = (a instanceof GTVSend) ? ((GTVSend) a).role : ((GTVSendStar) a).role;  // !!!
-            String param_a = GTGenUtil.actionToParam(a);
+            Role r;
+            String param_a;
+            if (a instanceof GTVSend cast) {
+                r = cast.role;
+                param_a = GTGenUtil.sendToParam(cast);
+            } else if (a instanceof GTVSendStar cast) {
+                r = cast.role;
+                param_a = GTGenUtil.sendToParam(cast);
+            } else {
+                throw new RuntimeException("Shouldn't get here: ");
+            }
 
             String name1 = "send_" + param_a;
             List<String> params1 = List.of(r + "Pid", "Data");
@@ -130,7 +139,7 @@ public class GTGenRoleGen {
             Set<Pair<GTVAction, GTVState>> vs = x.getValue();
             return vs.stream().filter(y -> y.left instanceof GTVSendStar).flatMap(y -> {  // ignore eps
                 GTVSendStar a = (GTVSendStar) y.left;
-                String param_a = GTGenUtil.actionToParam(a);
+                String param_a = GTGenUtil.sendToParam(a);
 
                 List<String> params = List.of("EventType", "{" + a.role + ", " + param_a + ", Counter}, Data = #state_data{mc_counter_" + s.c + " = MC}");
                 String when = "Counter >= MC";
@@ -144,7 +153,7 @@ public class GTGenRoleGen {
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVRecv);
         res.addAll(lhs.entrySet().stream().map(x -> {
             GTVRecv e = (GTVRecv) x.getKey().right;
-            String param_a = e.op.toString();  // !!! pay
+            String param_a = GTGenUtil.eventToParam(e);  // !!! pay
             List<String> params = List.of("EventType", "{" + param_a + "}", "Data = #state_data{mc_counter_" + s.c + " = MC}");
             String body = "NewData = Data#State_data{mc_counter_" + s.c + " = MC + 1,\n"
                     + "CallbackModule = get(callback_module),\n"
@@ -178,9 +187,9 @@ public class GTGenRoleGen {
         String name = GTGenUtil.stateToFuncName(s);
         return lhs.entrySet().stream().flatMap(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
+            String param_a = GTGenUtil.eventToParam(k.right);
             Set<Pair<GTVAction, GTVState>> vs = x.getValue();
             return vs.stream().flatMap(y -> {
-                String param_a = GTGenUtil.actionToParam(y.left);
                 List<String> params = List.of("EventType", "{" + param_a + "}", "Data = #state_data{mc_counter_" + s.c + " = MC}");
                 String body = "NewData = Data#state_data{mc_counter_" + s.c + " = MC + 1},\n"
                         + "CallbackModule get(callback_module),\n"
@@ -196,7 +205,7 @@ public class GTGenRoleGen {
         return rhs.entrySet().stream().map(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
             GTVRecv e = (GTVRecv) k.right;
-            String param_a = e.op.toString();  // !!! pay?
+            String param_a = GTGenUtil.eventToParam(e);  // !!! pay?
             List<String> params = List.of("EventType", "{" + e.role + ", " + param_a + ", Counter}", "Data = #state_data{mc_counter_" + s.c + " = MC}");
             String when = "Clounter >= MC";
             String body = "NewData = Data#state_data{mc_counter_" + s.c + " = MC + 1},\n"
@@ -243,7 +252,7 @@ public class GTGenRoleGen {
         res.addAll(rhs.entrySet().stream().map(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
             GTVRecv e = (GTVRecv) k.right;
-            String param_a = e.op.toString();  // !!! pay?
+            String param_a = GTGenUtil.eventToParam(e);  // !!! pay?
             List<String> params = List.of("EventType", "{" + e.role + ", " + param_a + ", Counter}", "Data = #state_data{mc_counter_" + s.c + " = MC}");
             String when = "Clounter >= MC";
             String body = "CallbackModule get(callback_module),\n"

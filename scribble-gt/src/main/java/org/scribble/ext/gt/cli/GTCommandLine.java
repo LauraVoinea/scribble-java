@@ -347,9 +347,10 @@ public class GTCommandLine extends CommandLine {
                 GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
                 Set<Op> com_self = com.getOrDefault(x.self, Set.of());
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
-                //System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + efsm + "\n" + efsm.toDot());
-                //System.out.println("bbbbb:\n" + new GTRoleGen().generate(null, null, efsm));
-                //System.out.println("ccccc:\n" + new GTGenRoleGen().generate(null, null, efsm));
+                System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type //+ "\n" + efsm
+                        + "\n" + efsm.toDot());
+                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, null, efsm));
+                System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(null, null, efsm));
                 Map<String, GTEFSM> tmp = efsms.computeIfAbsent(g.getSimpleName().toString(), y -> new LinkedHashMap<>());  // !!! simple name
                 tmp.put(x.self.toString(), efsm);
             }
