@@ -167,6 +167,7 @@ public class GTRoleGen {
 
     protected List<ErlangFunc> generateExternalMixedNotEntry(GTEFSM m, GTVState s) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
+        // !!! FIXME ! |> ?
         return generateBranchAux(m, s, filt);
     }
 
