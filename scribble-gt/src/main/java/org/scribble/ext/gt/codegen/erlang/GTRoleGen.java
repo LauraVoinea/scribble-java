@@ -44,8 +44,8 @@ public class GTRoleGen {
         return edges.entrySet().stream().flatMap(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
             GTVRecv e = (GTVRecv) k.right;
-            Set<Pair<GTVAction, GTVState>> v = x.getValue();
-            return v.stream().map(y -> {
+            Set<Pair<GTVAction, GTVState>> vs = x.getValue();
+            return vs.stream().map(y -> {
                 String name = GTGenUtil.stateToFuncName(s);
                 String param_a = GTGenUtil.actionToParam(y.left);  // !!! epsilon?
                 List<String> params = List.of("cast", "{" + e.role + "Pid, " + param_a + "}", "Data");
@@ -66,8 +66,8 @@ public class GTRoleGen {
         //res.add(genMakeChoice_s(s));
         res.addAll(edges.entrySet().stream().flatMap(x -> {
             //Pair<GTVState, GTVEvent> k = x.getKey();  // tau_a
-            Set<Pair<GTVAction, GTVState>> v = x.getValue();
-            return v.stream().map(y -> {
+            Set<Pair<GTVAction, GTVState>> vs = x.getValue();
+            return vs.stream().map(y -> {
                 GTVSend a = (GTVSend) y.left;
                 //Role r = (a instanceof GTVSend) ? ((GTVSend) a).role : ((GTVSendStar) a).role;
                 String name = GTGenUtil.stateToFuncName(s);
@@ -116,12 +116,12 @@ public class GTRoleGen {
                 GTGenUtil.filterEdgesByEvent(filt, x -> x.getKind() == GTVEvent.Kind.EXTERNAL);
         res.addAll(lhs.entrySet().stream().map(x -> {
             Pair<GTVState, GTVEvent> k = x.getKey();
-            Set<Pair<GTVAction, GTVState>> v = x.getValue();
+            Set<Pair<GTVAction, GTVState>> vs = x.getValue();
             GTVRecv e = (GTVRecv) k.right;
-            if (v.size() != 1) {
-                throw new RuntimeException("Shouldn't get here: ");
+            if (vs.size() != 1 && vs.stream().filter(y -> y.left instanceof GTVEpsilon).count() != 1) {
+                throw new RuntimeException("Shouldn't get here: " + k + " ,, " + vs);
             }
-            Pair<GTVAction, GTVState> succ = v.iterator().next();
+            Pair<GTVAction, GTVState> succ = vs.iterator().next();
             String a1 = e.op.toString();  // !!! pay?
             List<String> ps = List.of("cast", "{" + e.role + "Pid, " + a1 + ", Data");
             String next = genNextState(m, succ.right);
@@ -167,8 +167,17 @@ public class GTRoleGen {
 
     protected List<ErlangFunc> generateExternalMixedNotEntry(GTEFSM m, GTVState s) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        // !!! FIXME ! |> ?
-        return generateBranchAux(m, s, filt);
+        List<ErlangFunc> res = new LinkedList<>();
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
+                GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
+        res.addAll(generateBranchAux(m, s, lhs));
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs_tau =  // !!! -- ! |> ?
+                GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
+        res.addAll(generateSelectAux(m, s, lhs_tau));
+
+        return res;
     }
 
     // !!! move to gen_role

@@ -85,10 +85,16 @@ public class GTGenRoleGen {
             //Pair<GTVState, GTVEvent> k = x.getKey();
             Set<Pair<GTVAction, GTVState>> vs = x.getValue();
             //GTVTau e = (GTVTau) k.right;
-            if (vs.size() != 1 && vs.stream().filter(y -> y.left instanceof GTVSendStar).count() != 1) {  // !!! internal-mix has ? with both eps and !*:w
-                throw new RuntimeException("Shouldn't get in here: " + s);
+            GTVAction a; //= vs.stream().filter();
+            if (vs.size() == 1) {
+                a = vs.stream().iterator().next().left;
+            } else {  // !!! internal-mix has ? with both eps and !*
+                List<Pair<GTVAction, GTVState>> tmp = vs.stream().filter(y -> y.left instanceof GTVSendStar).collect(Collectors.toList());
+                if (tmp.size() != 1) {
+                    throw new RuntimeException("Shouldn't get in here: " + s);
+                }
+                a = tmp.iterator().next().left;
             }
-            GTVAction a = vs.iterator().next().left;
             Role r = (a instanceof GTVSend) ? ((GTVSend) a).role : ((GTVSendStar) a).role;  // !!!
             String param_a = GTGenUtil.actionToParam(a);
 
@@ -122,10 +128,11 @@ public class GTGenRoleGen {
         String name = GTGenUtil.stateToFuncName(s);
         res.addAll(rhs.entrySet().stream().flatMap(x -> {
             Set<Pair<GTVAction, GTVState>> vs = x.getValue();
-            return vs.stream().flatMap(y -> {
+            return vs.stream().filter(y -> y.left instanceof GTVSendStar).flatMap(y -> {  // ignore eps
                 GTVSendStar a = (GTVSendStar) y.left;
+                String param_a = GTGenUtil.actionToParam(a);
 
-                List<String> params = List.of("EventType", "{" + a.role + "");
+                List<String> params = List.of("EventType", "{" + a.role + ", " + param_a + ", Counter}, Data = #state_data{mc_counter_" + s.c + " = MC}");
                 String when = "Counter >= MC";
                 String body = "CallbackModule = get(callback_module)\n"
                         + "CallbackModule" + name + "(EventType, {" + a.role + "}, Data}";
@@ -227,7 +234,7 @@ public class GTGenRoleGen {
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs_tau =  // !!!
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
-        res.addAll(generateBranchAux(s, lhs_tau));
+        res.addAll(generateSelectAux(s, lhs_tau));
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);

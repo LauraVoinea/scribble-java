@@ -11,6 +11,8 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
+import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
+import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
 import org.scribble.ext.gt.codegen.java.GTApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
@@ -333,6 +335,9 @@ public class GTCommandLine extends CommandLine {
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
                 System.out.println("aaaaa: " + x.self + ": " + x.type + "\n"
                         + efsm + "\n" + efsm.toDot());
+
+                System.out.println("bbbbb:\n" + new GTRoleGen().generate(null, null, efsm));
+                System.out.println("ccccc:\n" + new GTGenRoleGen().generate(null, null, efsm));
             }
 
             // Check correspondence
