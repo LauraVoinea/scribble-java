@@ -29,24 +29,8 @@ public class GTGRecursion implements GTGType {
         this.body = body;
     }
 
-    /* ... */
-
-    @Override
-    public boolean isSinglePointed() {
-        return this.body.isSinglePointed();
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.body.isGood();
-    }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return this.body.isInitial();
-    }
 
     @Override
     public boolean isClearTermination() {
@@ -69,14 +53,10 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommitting(com, rem);
-    }
-
-    @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
         return this.body.isLeftCommittingAux(obs, com, rem);
     }
+
 
     /* ... */
 
@@ -100,6 +80,7 @@ public class GTGRecursion implements GTGType {
         return this.body.isCoherent();
     }
 
+
     /* ... */
 
     @Override
@@ -116,6 +97,123 @@ public class GTGRecursion implements GTGType {
     public Optional<Theta> projectTheta(Set<Integer> cs, Role r) {
         return Optional.of(new Theta(cs));
     }
+
+
+    /* ... */
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
+        return this.body.getCommittingTop();
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
+        return this.body.getCommittingLeft(obs, com);
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
+        return this.body.getCommittingRight(obs, com);
+    }
+
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        return this.body.getLabels();
+    }
+
+
+    /* Aux */
+
+    @Override
+    public GTGRecursion subs(RecVar v, GTGRecursion subs) {
+        if (this.var.equals(v)) {
+            return this;
+        }
+        return new GTGRecursion(this.var, this.body.subs(v, subs));
+    }
+
+    @Override
+    public GTGType unfoldAllOnce() {
+        return this.body.subs(this.var, this).unfoldAllOnce();
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return this.body.getReadyAux(blocked);
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return this.body.getRoles();
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.body.getTimeoutIds();
+    }
+
+
+    @Override
+    public Set<Op> getOps() {
+        return this.body.getOps();
+    }
+
+    @Override
+    public Set<RecVar> getRecDecls() {
+        return GTUtil.union(this.body.getRecDecls(), Set.of(this.var));
+    }
+
+    @Override
+    public String toString() {
+        return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
+    }
+
+
+    /* hashCode, equals, canEquals */
+
+    @Override
+    public int hashCode() {
+        int hash = GTGType.GLOBAL_REC_HASH;
+        hash = 31 * hash + this.var.hashCode();
+        hash = 31 * hash + this.body.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGRecursion)) { return false; }
+        GTGRecursion them = (GTGRecursion) obj;
+        return them.canEquals(this)
+                && this.var.equals(them.var)
+                && this.body.equals(them.body);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GTGRecursion;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /* ... */
 
@@ -170,96 +268,47 @@ public class GTGRecursion implements GTGType {
         return was;
     }
 
-    /* ... */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ...deprecated */
 
     @Override
-    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
-        return this.body.getCommittingTop();
+    public boolean isSinglePointed() {
+        return this.body.isSinglePointed();
     }
 
     @Override
-    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
-        return this.body.getCommittingLeft(obs, com);
+    public boolean isGood() {
+        return this.body.isGood();
     }
 
     @Override
-    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
-        return this.body.getCommittingRight(obs, com);
+    public boolean isInitial() {
+        return this.body.isInitial();
     }
 
     @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        return this.body.getLabels();
-    }
-
-    /* Aux */
-
-    @Override
-    public GTGRecursion subs(RecVar v, GTGRecursion subs) {
-        if (this.var.equals(v)) {
-            return this;
-        }
-        return new GTGRecursion(this.var, this.body.subs(v, subs));
-    }
-
-    @Override
-    public GTGType unfoldAllOnce() {
-        return this.body.subs(this.var, this).unfoldAllOnce();
-    }
-
-    @Override
-    public Set<Role> getReadyAux(Set<Role> blocked) {
-        return this.body.getReadyAux(blocked);
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return this.body.getRoles();
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.body.getTimeoutIds();
-    }
-
-
-    @Override
-    public Set<Op> getOps() {
-        return this.body.getOps();
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() {
-        return GTUtil.union(this.body.getRecDecls(), Set.of(this.var));
-    }
-
-    @Override
-    public String toString() {
-        return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
-    }
-
-    /* hashCode, equals, canEquals */
-
-    @Override
-    public int hashCode() {
-        int hash = GTGType.GLOBAL_REC_HASH;
-        hash = 31 * hash + this.var.hashCode();
-        hash = 31 * hash + this.body.hashCode();
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null || !(obj instanceof GTGRecursion)) { return false; }
-        GTGRecursion them = (GTGRecursion) obj;
-        return them.canEquals(this)
-                && this.var.equals(them.var)
-                && this.body.equals(them.body);
-    }
-
-    @Override
-    public boolean canEquals(Object o) {
-        return o instanceof GTGRecursion;
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommitting(com, rem);
     }
 }
