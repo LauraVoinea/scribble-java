@@ -142,6 +142,20 @@ public class GTCommandLine extends CommandLine {
         }
     }*/
 
+    @Override
+    protected void tryBarrierTask(Job job, Pair<String, String[]> task) throws ScribException, CommandLineException {
+        // `run` happens before `gtRun` -- skip GT flags in `run`
+        switch (task.left) {
+            case GTCLFlags.GT_ED_FSM_GEN_FLAG:
+                break;
+            case GTCLFlags.GT_ERLANG_API_GEN_FLAG:
+                break;
+            default:
+                super.tryBarrierTask(job, task);
+        }
+    }
+
+
     // Duplicated from AssrtCommandLine
     // Based on CommandLine.newMainContext
     @Override
@@ -336,7 +350,7 @@ public class GTCommandLine extends CommandLine {
                 //System.out.println("aaaaa: " + x.self + ": " + x.type + "\n" + efsm + "\n" + efsm.toDot());
                 //System.out.println("bbbbb:\n" + new GTRoleGen().generate(null, null, efsm));
                 //System.out.println("ccccc:\n" + new GTGenRoleGen().generate(null, null, efsm));
-                Map<String, GTEFSM> tmp = efsms.computeIfAbsent(g.toString(), y -> new LinkedHashMap<>());
+                Map<String, GTEFSM> tmp = efsms.computeIfAbsent(g.getSimpleName().toString(), y -> new LinkedHashMap<>());  // !!! simple name
                 tmp.put(x.self.toString(), efsm);
             }
 

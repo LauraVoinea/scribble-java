@@ -53,20 +53,21 @@ public class GTCLFlags extends CLFlags {
                 0, true, false, false, "Duplicate flag: "));
         flags.put(GT_NO_CORRESPONDENCE_FLAG, new CLFlag(GT_NO_CORRESPONDENCE_FLAG,
                 0, true, false, false, "Duplicate flag: "));
+
         flags.put(GT_JAVA_API_GEN_FLAG, new CLFlag(GT_JAVA_API_GEN_FLAG,
                 0, true, false, false, "Duplicate flag: "));
 
-        flags.put(GT_ED_FSM_GEN_FLAG,
-                new CLFlag(GT_ED_FSM_GEN_FLAG, 2, false, true, false,
-                        "Missing protocol/role arguments: "));
-        flags.put(GT_ERLANG_API_GEN_FLAG,
-                new CLFlag(GT_ERLANG_API_GEN_FLAG, 2, false, true, true,
-                        "Missing protocol/role arguments: "));
 
         // // Non-unique, barrier
         /*flags.put(GT_API_GEN_FLAG,
                 new CLFlag(GT_API_GEN_FLAG, 2, false, true, true,
                         "Missing protocol/role arguments: "));*/
+        flags.put(GT_ED_FSM_GEN_FLAG,
+                new CLFlag(GT_ED_FSM_GEN_FLAG, 2, false, true, true,
+                        "Missing protocol/role arguments: "));
+        flags.put(GT_ERLANG_API_GEN_FLAG,
+                new CLFlag(GT_ERLANG_API_GEN_FLAG, 2, false, true, true,
+                        "Missing protocol/role arguments: "));
 
         return flags;
     }
