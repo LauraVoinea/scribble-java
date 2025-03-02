@@ -61,29 +61,6 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
-    public boolean isRuntimeChoicePartip() {
-        return this.body.isRuntimeChoicePartip();
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return this.body.isUniqueInstan(seen);
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return this.body.isAwareCorollary(mf, topAll, theta);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.body.isCoherent();
-    }
-
-
-    /* ... */
-
-    @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         return this.body.project(topPeers, r, c, n).map(x ->
@@ -214,6 +191,30 @@ public class GTGRecursion implements GTGType {
 
 
 
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return this.body.isRuntimeChoicePartip();
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.body.isUniqueInstan(seen);
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return this.body.isAwareCorollary(mf, topAll, theta);
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return this.body.isCoherent();
+    }
+   
 
     /* ... */
 

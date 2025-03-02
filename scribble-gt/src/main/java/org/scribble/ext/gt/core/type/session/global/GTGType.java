@@ -43,15 +43,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     /* ... preserved -- check */
 
-    boolean isRuntimeChoicePartip();  // cf. "static" choice-partic in isInitialAndWellSet
-
-    default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
-
-    boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
-
-
-    /* ... preserved -- check */
-
     // boolean isBalanced();  // TODO
 
     // CHECKME: Theta not used for "static" version?
@@ -64,17 +55,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     // ...left-committing check under the context of a specific mixed-choice instance
     boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
-
-
-    /* ... preserved -- check */
-
-    // LR-initiation
-    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
-
-
-    /* ... preserved -- check */
-
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
     /* ... */
@@ -164,6 +144,19 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
 
 
+
+    /* ... preserved -- check */
+
+    boolean isRuntimeChoicePartip();  // cf. "static" choice-partic in isInitialAndWellSet
+
+    default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
+
+    boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
+
+    // LR-initiation
+    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
+
+    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
     /* ... -- top-down, no global weak */

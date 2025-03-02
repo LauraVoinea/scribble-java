@@ -115,32 +115,6 @@ public class GTGMixedChoice implements GTGType {
     /* ... */
 
     @Override
-    public boolean isRuntimeChoicePartip() {
-        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        // !!! morally can prune if starting from initial
-        return this.left.isUniqueInstan(seen) && this.right.isUniqueInstan(seen);
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        // Can morally just return true
-        return this.left.isAwareCorollary(mf, topAll, theta) && this.right.isAwareCorollary(mf, topAll, theta);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        // Morally can just return true
-        return this.left.isCoherent() && this.right.isCoherent();
-    }
-
-
-    /* ... */
-
-    @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
 
@@ -476,6 +450,34 @@ public class GTGMixedChoice implements GTGType {
 
 
 
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        // !!! morally can prune if starting from initial
+        return this.left.isUniqueInstan(seen) && this.right.isUniqueInstan(seen);
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        // Can morally just return true
+        return this.left.isAwareCorollary(mf, topAll, theta) && this.right.isAwareCorollary(mf, topAll, theta);
+    }
+
+    @Override
+    public boolean isCoherent() {
+        // Morally can just return true
+        return this.left.isCoherent() && this.right.isCoherent();
+    }
+   
 
     /* ... */
 

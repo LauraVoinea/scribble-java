@@ -124,35 +124,6 @@ public class GTGInteraction implements GTGType {
         return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        Collection<GTGType> cs = this.cases.values();
-        if (cs.size() == 1) { return true; }
-
-        // !!! cf. def 4
-        Set<Role> fst = GTUtil.union(cs.iterator().next().getRoles(), Set.of(this.src, this.dst));
-
-        // !!!
-        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
-                && cs.stream().allMatch(GTGType::isRuntimeChoicePartip);
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, topAll, theta));
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(GTGType::isCoherent);
-    }
 
     /* ... */
 
@@ -448,6 +419,38 @@ public class GTGInteraction implements GTGType {
 
 
 
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        Collection<GTGType> cs = this.cases.values();
+        if (cs.size() == 1) { return true; }
+
+        // !!! cf. def 4
+        Set<Role> fst = GTUtil.union(cs.iterator().next().getRoles(), Set.of(this.src, this.dst));
+
+        // !!!
+        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
+                && cs.stream().allMatch(GTGType::isRuntimeChoicePartip);
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, topAll, theta));
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return this.cases.values().stream().allMatch(GTGType::isCoherent);
+    }
+
+   
     /* ... */
 
     @Override

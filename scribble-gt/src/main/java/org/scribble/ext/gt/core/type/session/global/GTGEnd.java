@@ -54,27 +54,6 @@ public class GTGEnd implements GTGType {
         return rem.isEmpty();
     }
 
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        return true;
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return true;
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return true;
-    }
 
     /* ... */
     
@@ -187,6 +166,29 @@ public class GTGEnd implements GTGType {
 
 
 
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return true;
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return true;
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return true;
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return true;
+    }
 
 
     /* ... */

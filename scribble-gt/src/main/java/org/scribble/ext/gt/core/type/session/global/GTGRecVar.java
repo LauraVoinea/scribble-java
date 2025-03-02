@@ -59,28 +59,6 @@ public class GTGRecVar implements GTGType {
     /* ... */
 
     @Override
-    public boolean isRuntimeChoicePartip() {
-        return true;
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return true;
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return true;
-    }
-
-    /* ... */
-
-    @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         return Optional.of(new Pair<>(lf.recVar(this.var), new Sigma(topPeers)));
@@ -206,6 +184,31 @@ public class GTGRecVar implements GTGType {
 
 
 
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return true;
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return true;
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return true;
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return true;
+    }
+   
 
     /* ... */
 
