@@ -1,4 +1,4 @@
-package org.scribble.ext.gt.core.type.session.local;
+package org.scribble.ext.gt.core.type.session.local.runtime;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
@@ -11,6 +11,9 @@ import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.core.type.session.local.Side;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -27,7 +30,7 @@ public class GTLMixedActive implements GTLType {
 
     public final int n;
 
-    protected GTLMixedActive(int c, int n, GTLType left, GTLType right) {
+    public GTLMixedActive(int c, int n, GTLType left, GTLType right) {
         this.c = c;
         this.n = n;
         this.left = left;

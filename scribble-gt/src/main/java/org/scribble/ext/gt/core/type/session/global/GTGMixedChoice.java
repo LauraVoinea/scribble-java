@@ -10,7 +10,9 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.session.global.runtime.GTGMixedActive;
 import org.scribble.ext.gt.core.type.session.local.*;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -144,7 +146,7 @@ public class GTGMixedChoice implements GTGType {
 
         Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(topPeers, r, c, n);
         Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(topPeers, r, c, n);
-        System.out.println("XXXXXX " + r + ": " + optl + " ,, " + optr);
+        //System.out.println("XXXXXX " + r + ": " + optl + " ,, " + optr);
         if (optl.isEmpty() || optr.isEmpty()) { return Optional.empty(); }
         Pair<? extends GTLType, Sigma> get_l = optl.get();
         Pair<? extends GTLType, Sigma> get_r = optr.get();
@@ -233,7 +235,7 @@ public class GTGMixedChoice implements GTGType {
         }
     }*/
 
-    protected static boolean isMergableIOModes(GTLType left, GTLType right) {
+    public static boolean isMergableIOModes(GTLType left, GTLType right) {
         IOMode m_left = getMode(left);
         IOMode m_right = getMode(right);
         return m_left == m_right
@@ -516,7 +518,7 @@ public class GTGMixedChoice implements GTGType {
                 "[Inst]", c, n, theta, this, cast, theta1, succ))));
     }
 
-   
+
     /* ... */
 
     @Override

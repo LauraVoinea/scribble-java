@@ -16,6 +16,7 @@ import org.scribble.ext.gt.core.model.local.GTEModelFactoryImpl;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 

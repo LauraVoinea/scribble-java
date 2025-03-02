@@ -208,7 +208,8 @@ public class GTRoleGen {
                         = GTGenUtil.filterEdgesByState(m, succ);
                 String s = GTGenUtil.stateToFuncName(succ);
                 return
-                        "case make_choice_" + s + "(Data) of\n" + filt.keySet().stream().map(x -> {
+                        "case make_choice_" + s + "(Data) of\n"
+                                + filt.keySet().stream().filter(x -> x.right instanceof GTVTau).map(x -> {
                             GTVTau tau = (GTVTau) x.right;
                             String a = GTGenUtil.eventToParam(tau);  // !!! pay?
                             return a + " -> {next_state, " + s + ", Data, [next_event, internal, {" + a + "}]}";

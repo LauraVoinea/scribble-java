@@ -1,4 +1,4 @@
-package org.scribble.ext.gt.core.type.session.global;
+package org.scribble.ext.gt.core.type.session.global.runtime;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.session.global.*;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.core.type.session.local.Side;
@@ -35,9 +36,9 @@ public class GTGMixedActive implements GTGType {
     public final Set<Role> committedLeft;
     public final Set<Role> committedRight;
 
-    protected GTGMixedActive(int c, int n,
-                             GTGType left, GTGType right, Role other, Role observer,
-                             LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
+    public GTGMixedActive(int c, int n,
+                          GTGType left, GTGType right, Role other, Role observer,
+                          LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
         this.c = c;
         this.n = n;
         this.left = left;

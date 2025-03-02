@@ -4,6 +4,8 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedCommitted;
 
 import java.util.LinkedHashMap;
 

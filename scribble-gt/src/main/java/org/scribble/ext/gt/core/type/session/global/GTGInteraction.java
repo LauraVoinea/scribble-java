@@ -12,6 +12,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.session.global.runtime.GTGWiggly;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.Either;

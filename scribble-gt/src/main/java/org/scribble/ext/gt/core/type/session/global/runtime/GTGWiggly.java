@@ -1,4 +1,4 @@
-package org.scribble.ext.gt.core.type.session.global;
+package org.scribble.ext.gt.core.type.session.global.runtime;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.MActionBase;
@@ -14,6 +14,10 @@ import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
+import org.scribble.ext.gt.core.type.session.global.GTGRecursion;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
+import org.scribble.ext.gt.core.type.session.global.GTGTypeFactory;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.Either;
@@ -37,7 +41,7 @@ public class GTGWiggly implements GTGType {
     public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTGType> cases;
 
-    protected GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTGType> cases) {
+    public GTGWiggly(Role src, Role dst, Op op, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
         this.op = op;
