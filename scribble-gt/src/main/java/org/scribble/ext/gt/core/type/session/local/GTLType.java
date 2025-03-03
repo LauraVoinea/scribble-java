@@ -1,16 +1,21 @@
 package org.scribble.ext.gt.core.type.session.local;
 
 import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.endpoint.EFsm;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
+import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.type.session.GTSType;
+import org.scribble.ext.gt.core.type.session.GTSessType;
+import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
@@ -19,7 +24,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 
-public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
+public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
 
     int END_HASH = 9851;
     int BRANCH_HASH = 9857;
@@ -29,9 +34,6 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     int REC_HASH = 9887;
     int RECVAR_HASH = 9901;
 
-    //int c_TOP = -1;
-    int c_TOP = 0;
-    int n_INIT = 1;
 
     /* ... */
 
@@ -40,7 +42,40 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
     //return this.equals(t) ? Optional.of(this) : Optional.empty();
     //return GTGInteraction.merge(Optional.of(this), Optional.of(t));
 
+    // cf. s param
+    default GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
+                             int c, GTVState s, GTVState end) {  // c == s.c on call
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+
+
+    /* ... */
+
+    GTLType subs(RecVar rv, GTLType t);
+
+    @Override
+    GTLType unfoldAllOnce();
+
+    // Substitution inlined into this op -- probably better to separate unf/subs
+    //GTLType unfoldContext(Map<RecVar, GTLType> env);
+
+
+
+
+
+
+
+
+
+
+
+
     /* ... -- n.b. formal local LTS is config LTS (hence sigma, theta etc params below) */
+
+    //int c_TOP = -1;
+    int c_TOP = GTGType.c_TOP;
+    int n_INIT = 1;
 
     //default LinkedHashSet<EAction<DynamicActionKind>> getActsTop(
     default LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActsTop(
@@ -100,16 +135,9 @@ public interface GTLType extends GTSType { //<Global, GSeq>, GNode {
             Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n);
 
+
     /* ... */
 
     // c -> smallest active n -- structurally a Theta
     Map<Integer, Integer> getActive(Theta theta);
-
-    GTLType subs(RecVar rv, GTLType t);
-
-    @Override
-    GTLType unfoldAllOnce();
-
-    // Substitution inlined into this op -- probably better to separate unf/subs
-    //GTLType unfoldContext(Map<RecVar, GTLType> env);
 }

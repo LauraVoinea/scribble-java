@@ -10,7 +10,9 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.session.global.runtime.GTGMixedActive;
 import org.scribble.ext.gt.core.type.session.local.*;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -24,8 +26,8 @@ public class GTGMixedChoice implements GTGType {
     public final int c;       // Currently assigned by GTGTypeTranslator2
     public final Role other;  // other->observer.L |> observer->other.R
     public final Role observer;  // observer?  "monitor"?
-    public final GTGType left;
-    public final GTGType right;
+    public final GTGType left;  // !!! interaction (other -> obs)
+    public final GTGType right;  // !!! interaction (obs -> other)
 
     protected GTGMixedChoice(
             int c, GTGType left, GTGType right, Role other, Role observer) {
@@ -36,37 +38,8 @@ public class GTGMixedChoice implements GTGType {
         this.right = right;
     }
 
-    /* ... */
-
-    // TODO revisit global props vs. syntactic WF approximations (cf. projection)
-    @Override
-    public boolean isSinglePointed() {
-        Set<Op> ops = this.left.getOps();
-        ops.retainAll(this.right.getOps());
-        if (!ops.isEmpty()) {
-            return false;
-        }
-        if (!(this.left instanceof GTGInteraction) || !(this.right instanceof GTGInteraction)) {
-            return false;
-        }
-        GTGInteraction left = (GTGInteraction) this.left;
-        GTGInteraction right = (GTGInteraction) this.right;
-        return left.src.equals(right.dst) && right.dst.equals(this.other)
-                && left.dst.equals(right.src) && right.src.equals(this.observer)
-                && this.left.isSinglePointed() && this.right.isSinglePointed();
-    }
-
-    @Override
-    public boolean isGood() {
-        return isCoherent();  // TODO redo as full participation
-    }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return this.left.isInitial() && this.right.isInitial();
-    }
 
     @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
@@ -84,24 +57,6 @@ public class GTGMixedChoice implements GTGType {
                 && left.getRoles().equals(right.getRoles())  // timeout participation
                 && this.other.equals(left.getSender()) && this.other.equals(right.getReceiver())
                 && this.observer.equals(left.getReceiver()) && this.observer.equals(right.getSender());
-    }
-
-    // Dup with GTGMixedActive  // TODO factor out
-    public Set<Role> getIndifferent(Set<Role> top) {
-        Set<Role> rs = getRoles();
-        Set<Role> copy = GTUtil.copyOf(rs);
-        copy.remove(this.other);
-        copy.remove(this.observer);
-        // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
-        return rs.stream().filter(x ->
-                        //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
-                {
-                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
-                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
-                    Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
-                    return res.isPresent() && res.get();
-                })
-                .collect(Collectors.toSet());
     }
 
     @Override
@@ -125,10 +80,10 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));
+        rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
 
@@ -139,7 +94,7 @@ public class GTGMixedChoice implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isSingleDecision(top, theta) && this.right.isSingleDecision(top, theta);
+        return this.left.isSingleDecision(topAll, theta) && this.right.isSingleDecision(topAll, theta);
     }
 
     @Override
@@ -151,43 +106,11 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        throw new RuntimeException("Deprecated?");
-        /*return this.left.isLeftCommittingAux(this.observer, com, rem)
-                && this.left.isClearTermination()
-                && this.right.isClearTermination();*/
-    }
-
-    @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
         return this.left.isLeftCommittingAux(obs, com, rem)
                 && this.right.isLeftCommittingAux(obs, com, rem);
     }
 
-    /* ... */
-
-    @Override
-    public boolean isChoicePartip() {
-        return this.left.isChoicePartip() && this.right.isChoicePartip();  // XXX CHECKME (cf. merge third parties)
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        // !!! morally can prune if starting from initial
-        return this.left.isUniqueInstan(seen) && this.right.isUniqueInstan(seen);
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        // Can morally just return true
-        return this.left.isAwareCorollary(mf, top, theta) && this.right.isAwareCorollary(mf, top, theta);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        // Morally can just return true
-        return this.left.isCoherent() && this.right.isCoherent();
-    }
 
     /* ... */
 
@@ -197,6 +120,7 @@ public class GTGMixedChoice implements GTGType {
 
         Optional<Pair<? extends GTLType, Sigma>> optl = this.left.project(topPeers, r, c, n);
         Optional<Pair<? extends GTLType, Sigma>> optr = this.right.project(topPeers, r, c, n);
+        //System.out.println("XXXXXX " + r + ": " + optl + " ,, " + optr);
         if (optl.isEmpty() || optr.isEmpty()) { return Optional.empty(); }
         Pair<? extends GTLType, Sigma> get_l = optl.get();
         Pair<? extends GTLType, Sigma> get_r = optr.get();
@@ -253,24 +177,29 @@ public class GTGMixedChoice implements GTGType {
             }
         }*/
 
-        if (!r.equals(this.other) && !r.equals(this.observer)) {
-
-            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
-
-            if (isMergableIOModes(get_l.left, get_r.left)) {
-                Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
-                if (!merge.isPresent()) {
-                    return Optional.empty();
-                }
-
-            } else {
-                // TODO FIXME MC conditions?
-            }
-        }
+//        // theory doesn't use merge in white triangle projection...
+//        if (!r.equals(this.other) && !r.equals(this.observer)) {
+//
+//            // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC) -- e.g., MC with third-party receiving from different peers
+//
+//            if (isMergableIOModes(get_l.left, get_r.left)) {  // "modes"
+//                Optional<? extends GTLType> merge = get_l.left.merge(get_r.left);
+//                System.out.println("XXXXXX " + r + " " + merge);
+//                if (merge.isEmpty()) {
+//                    return Optional.empty();
+//                }
+//
+//            } else {
+//                // TODO FIXME MC conditions?
+//                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;mixed { 2() from A to B;3() from A to C;a() from B to A;b() from B to C;e() from C to A;f() from C to B; } () or A -> B () { 4() from B to A;c() from B to C;d() from C to A;g() from C to B; } } () or A -> C () { 5() from C to A;5() from C to B; }}
+//                //global protocol Proto1(role A, role B, role C) { mixed { 1() from A to C;2() from C to A;/*3() from C to B;*/mixed { a() from A to B;b() from B to A;c() from B to C;3a() from C to B; } () or A -> B () { d() from B to A;e() from B to C;3b() from C to B; } } () or A -> C () { 4() from C to A;5() from C to B; } }
+//                throw new RuntimeException("XXXXXX " + r + " TODO " + get_l.left + ", " + getMode(get_l.left) + "\n " + get_r.left + ", " + getMode(get_r.left));
+//            }
+//        }
         return Optional.of(Pair.of(lf.mixedChoice(this.c, get_l.left, get_r.left), s0));
     }
 
-    protected static Role getPeer(GTLType t) {
+    /*protected static Role getPeer(GTLType t) {
         if (t instanceof GTLBranch) {
             return ((GTLBranch) t).src;
         } else if (t instanceof GTLSelect) {
@@ -278,9 +207,9 @@ public class GTGMixedChoice implements GTGType {
         } else {
             throw new RuntimeException("Shouldn't get here: " + t);
         }
-    }
+    }*/
 
-    protected static boolean isMergableIOModes(GTLType left, GTLType right) {
+    public static boolean isMergableIOModes(GTLType left, GTLType right) {
         IOMode m_left = getMode(left);
         IOMode m_right = getMode(right);
         return m_left == m_right
@@ -319,106 +248,77 @@ public class GTGMixedChoice implements GTGType {
         return Optional.of(new Theta(cs));
     }
 
-    /* ... */
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
-        if (theta.map.containsKey(this.c)) {
-            Integer m = theta.map.get(this.c);
-            res.add(mf.SNewTimeout(this.c, m));
-        }
-        return res;
-    }
-
-    // c, n not checked?
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-
-        if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
-        }
-        GTSNewTimeout<?> cast = (GTSNewTimeout<?>) a;
-        /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
-        tmp.put(nu.c, tmp.get(nu.c) + 1);
-        Theta theta1 = new Theta(tmp);*/
-        if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
-        }
-
-        Theta theta1 = theta.inc(this.c);
-        GTGMixedActive succ = new GTGMixedActive(cast.c, cast.n,  // FIXME use factory?
-                this.left, this.right, this.other, this.observer,
-                new LinkedHashSet<>(), new LinkedHashSet<>());
-
-        return Either.right(Triple.of(theta1, succ, Tree.of(toStepJudgeString(
-                "[Inst]", c, n, theta, this, cast, theta1, succ))));
-    }
 
     /* ... */
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        LinkedHashSet<SAction<DynamicActionKind>> tau = getActs(mf, theta, blocked, c, n);
-        if (tau.isEmpty()) {
-            return tau;
-        } else if (tau.size() > 1) {
-            throw new RuntimeException("Shouldn't get in here: " + tau);
-        }
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> nu =
-                step(theta, tau.iterator().next(), c, n);
-        if (nu.isLeft()) {
-            return GTUtil.setOf();
-        }
-        Triple<Theta, GTGType, Tree<String>> get = nu.getRight();  // mixed active
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        GTGInteraction left = (GTGInteraction) this.left;
+        GTGInteraction right = (GTGInteraction) this.right;
+        Map<Role, Set<Op>> res = new HashMap<>();
+        if (c == this.c) {
+            Set<Role> tmp1 = new HashSet<>(com);
+            tmp1.add(this.observer);
+            for (GTGType x : left.cases.values()) {
+                for (Map.Entry<Role, Set<Op>> y : x.getCommittingAux(c, tmp1).entrySet()) {
+                    Set<Op> ops = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    ops.addAll(y.getValue());
+                }
+            }
 
-        // FIXME addRuntimeTestMC(good, bad) -- \nu 2, 2 should not be possible global act, all roles blocked
-        LinkedHashSet<SAction<DynamicActionKind>> tmp = get.mid.getWeakActs(mf, get.left, blocked, c, n);
-        System.out.println("9999999: " + get.mid + ", " + tmp);
-        return tmp;
+            Set<Role> tmp2 = new HashSet<>(tmp1);
+            tmp2.add(this.other);
+            for (GTGType x : right.cases.values()) {
+                for (Map.Entry<Role, Set<Op>> y : x.getCommittingAux(c, tmp2).entrySet()) {
+                    Set<Op> ops = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    ops.addAll(y.getValue());
+                }
+            }
+
+            Set<Op> obs = res.computeIfAbsent(this.observer, x -> new HashSet<>());
+            obs.addAll(left.cases.keySet());
+            obs.addAll(right.cases.keySet());
+            Set<Op> other = res.computeIfAbsent(this.other, x -> new HashSet<>());
+            other.addAll(right.cases.keySet());
+
+            return res;
+        } else {
+            for (Map.Entry<Role, Set<Op>> x : this.left.getCommittingAux(c, com).entrySet()) {
+                Set<Op> ops = res.computeIfAbsent(x.getKey(), y -> new HashSet<>());
+                ops.addAll(x.getValue());
+            }
+            for (Map.Entry<Role, Set<Op>> x : this.right.getCommittingAux(c, com).entrySet()) {
+                Set<Op> ops = res.computeIfAbsent(x.getKey(), y -> new HashSet<>());
+                ops.addAll(x.getValue());
+            }
+            return res;
+        }
     }
 
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Integer m = theta.map.get(this.c);
-        SAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
-                new GTSNewTimeout(this.c, m);  // TODO factory?
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> weak =
-                step(theta, tau, c, n);  // mixed active
-        return weak.flatMapRight(x ->
-                x.mid.step(x.left, a, c, n).mapRight(y ->  // !!! CHECKME weakStep?  or can MC not be "directly" nested?
-                        Triple.of(y.left, y.mid, Tree.of(
-                                toStepJudgeString("[..nu-tau..]", c, n, theta,
-                                        this, (GTSAction) a, y.left, y.mid),
-                                x.right
-                        ))
-                )
-        );
-    }
-
-    /* ... */
+    // ...
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         /*Set<Op> res = this.left.getCommittingLeft(this.observer, com);
         res.addAll(this.right.getCommittingRight(this.observer, com));*/
-        Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
-        res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
+        //Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
+        //res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
+        Map<Role, Set<Op>> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
+        this.right.getCommittingRight(this.observer, GTUtil.setOf()).forEach((k, v) -> {
+            Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
+            ops.addAll(v);
+        });
         return res;
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
         //return getCommittingTop();
         return getCommittingTop(com);
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
         //return getCommittingTop();
         return getCommittingTop(com);
     }
@@ -448,18 +348,29 @@ public class GTGMixedChoice implements GTGType {
         return Pair.of(GTUtil.setOf(), res);
     }
 
+
     /* Aux */
 
     @Override
-    public GTGMixedChoice subs(Map<RecVar, GTGType> subs) {
-        GTGType left = this.left.subs(subs);
-        GTGType right = this.right.subs(subs);
+    public GTGMixedChoice subs(RecVar v, GTGRecursion subs) {
+        GTGType left = this.left.subs(v, subs);
+        GTGType right = this.right.subs(v, subs);
         return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
     }
 
     @Override
     public GTGMixedChoice unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+
+        // !!! here doing a "weak" version, implicitly bypassing \nu -- cf. def 7 ready (and lemma 3 LR-initiation, quantified over reachable)
+
+        Set<Role> res = this.left.getReadyAux(blocked);
+        res.addAll(this.right.getReadyAux(blocked));  // Should be just this.observer
+        return res;
     }
 
     @Override
@@ -492,16 +403,19 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public String toString() {
-        return ConsoleColors.toMixedChoiceString("(" + this.left + " " + ConsoleColors.WHITE_TRIANGLE
+        return ConsoleColors.toMixedChoiceString("(" + this.left)
+                + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE  // XXX not fully working, cf. ConsoleColors reset and nested
                 + this.c + ":" + this.other + "->" + this.observer
-                + " " + this.right + ")");
+                + " " + this.right)
+                + ConsoleColors.toMixedChoiceString(")");
     }
+
 
     /* hashCode, equals, canEquals */
 
     @Override
     public int hashCode() {
-        int hash = GTGType.MIXED_CHOICE_HASH;
+        int hash = GTGType.GLOBAL_MIXED_DEF_HASH;
         hash = 31 * hash + this.c;
         hash = 31 * hash + this.left.hashCode();
         hash = 31 * hash + this.right.hashCode();
@@ -526,5 +440,233 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public boolean canEquals(Object o) {
         return o instanceof GTGMixedChoice;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    // Dup with GTGMixedActive  // TODO factor out
+    public Set<Role> getIndifferent(Set<Role> top) {
+        Set<Role> rs = getRoles();
+        Set<Role> copy = GTUtil.copyOf(rs);
+        copy.remove(this.other);
+        copy.remove(this.observer);
+        // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
+        return rs.stream().filter(x ->
+                         //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                 {
+                     Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
+                     Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
+                     Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
+                     return res.isPresent() && res.get();
+                 })
+                 .collect(Collectors.toSet());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        // !!! morally can prune if starting from initial
+        return this.left.isUniqueInstan(seen) && this.right.isUniqueInstan(seen);
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        // Can morally just return true
+        return this.left.isAwareCorollary(mf, topAll, theta) && this.right.isAwareCorollary(mf, topAll, theta);
+    }
+
+    @Override
+    public boolean isCoherent() {
+        // Morally can just return true
+        return this.left.isCoherent() && this.right.isCoherent();
+    }
+
+
+    /* ... */
+
+    @Override
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
+        if (theta.map.containsKey(this.c)) {
+            Integer m = theta.map.get(this.c);
+            //res.add(mf.SNewTimeout(this.c, m));
+            res.put(mf.SNewTimeout(this.c, m), Collections.emptySet());
+        }
+        return res;
+    }
+
+    // c, n not checked?
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+
+        if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
+        }
+        GTSNewTimeout<?> cast = (GTSNewTimeout<?>) a;
+        /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
+        tmp.put(nu.c, tmp.get(nu.c) + 1);
+        Theta theta1 = new Theta(tmp);*/
+        if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
+        }
+
+        Theta theta1 = theta.inc(this.c);
+        GTGMixedActive succ = new GTGMixedActive(cast.c, cast.n,  // FIXME use factory?
+                this.left, this.right, this.other, this.observer,
+                new LinkedHashSet<>(), new LinkedHashSet<>());
+
+        return Either.right(Triple.of(theta1, succ, Tree.of(toStepJudgeString(
+                "[Inst]", c, n, theta, this, cast, theta1, succ))));
+    }
+
+
+    /* ... */
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        //LinkedHashSet<SAction<DynamicActionKind>> tau = getActs(mf, theta, blocked, c, n);
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> tau = getActs(mf, theta, blocked, c, n);
+
+        if (tau.isEmpty()) {
+            return new LinkedHashSet<>();
+        } else if (tau.size() > 1) {
+            throw new RuntimeException("Shouldn't get in here: " + tau);
+        }
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> nu =
+                //step(theta, tau.iterator().next(), c, n);
+                step(theta, tau.keySet().iterator().next(), c, n);
+        if (nu.isLeft()) {
+            return GTUtil.setOf();
+        }
+        Triple<Theta, GTGType, Tree<String>> get = nu.getRight();  // mixed active
+
+        // FIXME addRuntimeTestMC(good, bad) -- \nu 2, 2 should not be possible global act, all roles blocked
+        LinkedHashSet<SAction<DynamicActionKind>> tmp = get.mid.getWeakActs(mf, get.left, blocked, c, n);
+
+        return tmp;
+    }
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        Integer m = theta.map.get(this.c);
+        SAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
+                new GTSNewTimeout<>(this.c, m);  // TODO factory?
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> weak =
+                step(theta, tau, c, n);  // mixed active
+        return weak.flatMapRight(x ->
+                x.mid.weakStep(x.left, a, c, n).mapRight(y ->  // XXX need to stay recursively in weakStep
+                        Triple.of(y.left, y.mid, Tree.of(
+                                toStepJudgeString("[..nu-tau..]", c, n, theta,
+                                        this, (GTSAction) a, y.left, y.mid),
+                                x.right
+                        ))
+                )
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ...deprecated */
+
+    // TODO revisit global props vs. syntactic WF approximations (cf. projection)
+    @Override
+    public boolean isSinglePointed() {
+        Set<Op> ops = this.left.getOps();
+        ops.retainAll(this.right.getOps());
+        if (!ops.isEmpty()) {
+            return false;
+        }
+        if (!(this.left instanceof GTGInteraction) || !(this.right instanceof GTGInteraction)) {
+            return false;
+        }
+        GTGInteraction left = (GTGInteraction) this.left;
+        GTGInteraction right = (GTGInteraction) this.right;
+        return left.src.equals(right.dst) && right.dst.equals(this.other)
+                && left.dst.equals(right.src) && right.src.equals(this.observer)
+                && this.left.isSinglePointed() && this.right.isSinglePointed();
+    }
+
+    @Override
+    public boolean isGood() {
+        return isCoherent();  // TODO redo as full participation
+    }
+
+    /* ... */
+
+    @Override
+    public boolean isInitial() {
+        return this.left.isInitial() && this.right.isInitial();
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        throw new RuntimeException("Deprecated?");
+        /*return this.left.isLeftCommittingAux(this.observer, com, rem)
+                && this.left.isClearTermination()
+                && this.right.isClearTermination();*/
     }
 }

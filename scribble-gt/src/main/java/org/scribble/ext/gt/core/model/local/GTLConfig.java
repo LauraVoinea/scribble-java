@@ -9,6 +9,8 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.local.*;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
+import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedCommitted;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -203,7 +205,7 @@ public class GTLConfig {
                 return false;
             }
             return sup1.cases.keySet().stream()
-                    .allMatch(x -> isSubtype(theta, sub1.cases.get(x), sup1.cases.get(x)));
+                             .allMatch(x -> isSubtype(theta, sub1.cases.get(x), sup1.cases.get(x)));
         } else if (sup instanceof GTLSelect) {
             if (!(sub instanceof GTLSelect)) {
                 return false;
@@ -214,7 +216,7 @@ public class GTLConfig {
                 return false;
             }
             return sub1.cases.keySet().stream()
-                    .allMatch(x -> isSubtype(theta, sub1.cases.get(x), sup1.cases.get(x)));
+                             .allMatch(x -> isSubtype(theta, sub1.cases.get(x), sup1.cases.get(x)));
         }
 
         //
@@ -256,7 +258,7 @@ public class GTLConfig {
             return sub_cast.c == sup_cast.c && sub_cast.side.equals(sup_cast.side)
                     && isSubtype(theta, sub_cast.type, sup_cast.type);
 
-           
+
 
 
         } else {

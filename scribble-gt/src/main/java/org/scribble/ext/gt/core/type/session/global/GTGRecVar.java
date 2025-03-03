@@ -27,24 +27,8 @@ public class GTGRecVar implements GTGType {
         this.var = var;
     }
 
-    /* ... */
-
-    @Override
-    public boolean isSinglePointed() {
-        return true;
-    }
-
-    @Override
-    public boolean isGood() {
-        return true;
-    }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return true;  // !!! bound recvars not checked
-    }
 
     @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
@@ -57,7 +41,7 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         return true;
     }
 
@@ -67,36 +51,10 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
-
-    @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }
 
-    /* ... */
-
-    @Override
-    public boolean isChoicePartip() {
-        return true;
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return true;
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return true;
-    }
 
     /* ... */
 
@@ -111,49 +69,29 @@ public class GTGRecVar implements GTGType {
         return Optional.empty();
     }
 
-    /* ... */
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
-    }
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return new LinkedHashSet<>();
-    }
 
     /* ... */
 
     @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        return GTUtil.umodMapOf();
+    }
+
+    // ...
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getActs(mf, theta, blocked, c, n);
-    }
-
-    /* ... */
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
@@ -161,16 +99,22 @@ public class GTGRecVar implements GTGType {
         return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
     }
 
+
     /* Aux */
 
     @Override
-    public GTGType subs(Map<RecVar, GTGType> subs) {
-        return subs.getOrDefault(this.var, this);  // CHECKME default this
+    public GTGType subs(RecVar v, GTGRecursion subs) {
+        return this.var.equals(v) ? subs : this;
     }
 
     @Override
     public GTGType unfoldAllOnce() {
         throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return GTUtil.setOf();
     }
 
     @Override
@@ -202,7 +146,7 @@ public class GTGRecVar implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.RECVAR_HASH;
+        int hash = GTGType.GLOBAL_RECVAR_HASH;
         hash = 31 * hash + this.var.hashCode();
         return hash;
     }
@@ -219,5 +163,130 @@ public class GTGRecVar implements GTGType {
     @Override
     public boolean canEquals(Object o) {
         return o instanceof GTGRecVar;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return true;
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return true;
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return true;
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return true;
+    }
+
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
+    }
+
+    @Override
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return new LinkedHashMap<>();
+    }
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return new LinkedHashSet<>(getActs(mf, theta, blocked, c, n).keySet());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ...deprecated */
+
+    @Override
+    public boolean isSinglePointed() {
+        return true;
+    }
+
+    @Override
+    public boolean isGood() {
+        return true;
+    }
+
+
+    @Override
+    public boolean isInitial() {
+        return true;  // !!! bound recvars not checked
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();
     }
 }

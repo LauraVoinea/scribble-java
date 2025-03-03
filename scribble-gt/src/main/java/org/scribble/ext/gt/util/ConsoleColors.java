@@ -14,6 +14,7 @@ public class ConsoleColors {
     public static final char OLPLUS = '\u2295';
     public static final char NU = '\u03BD';
     public static final String TAU = "\uD835\uDF0F";
+    public static final String EPSILON = "\u03B5";
     public static final char SUPER_PLUS = '\u207A';
     public static final char EM_DASH = '\u2014';
 

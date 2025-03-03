@@ -165,8 +165,10 @@ module tmp.Test;
 
 
 
-data <java> "..." from "..." as T;
-type <java> "java.lang.Integer" from "rt.jar" as Int;
+//data <java> "..." from "..." as T;
+data <java> "java.lang.Integer" from "rt.jar" as Int;
+data <java> "java.lang.String" from "rt.jar" as String;
+data <java> "java.lang.String" from "rt.jar" as Data;
 
 
 /*
@@ -471,6 +473,18 @@ global protocol P(role A, role B, role C) {
 
 
 
+/*
+global protocol P(role A, role C, role S){
+    mixed {
+        1() from A to C;
+        2() from C to A;  // any way to not be timeout-partic without violating others (e.g., balance)
+        3() from C to S;
+    } () or A->C () {
+        4() from C to A;
+        5() from C to S;
+    }
+}
+//*/
 
 /*
 global protocol Calc(role A, role C, role S){
@@ -494,11 +508,625 @@ global protocol Calc(role A, role C, role S){
 }
 //*/
 
-//*
+
+
+/*
+global protocol PPP(role A, role B) {
+    rec X {
+        mixed {
+            l1() from A to B; l2() from B to A;
+        } () or A->B () {
+            r1() from B to A; continue X;  // !!! infinite fresh \nu actions on RHS, cf. top-down correspondence (completeness)
+        }
+    }
+}
+//*/
+
+/*//mu X. B-->A {r1 . x } |> A-->B {l1. B-->a{l2.end}}
+global protocol PPP(role A, role B) {
+    rec X {
+        mixed {
+            l1() from A to B; l2() from B to A; continue X;
+        } () or A->B () {
+            r1() from B to A;
+        }
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* // Testing CFSM translation
+global protocol Proto1(role A, role B) {
+    rec X {
+        ping1(String) from A to B;
+        choice at B {
+            pong1(String) from B to A;
+            continue X;
+        } or {
+            pong2(String) from B to A;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        ping1(String) from A to B;
+        pong1(String) from B to A;
+        //a() from B to A;
+        //b() from A to B;
+    } () or A -> B () {
+        error1(String) from B to A;
+    }
+}
+//*/
+
+/*
+global protocol Nested(role Alice, role Bob) {
+    mixed {
+        ping1() from Alice to Bob;   // A -> B: ping1
+        mixed {
+            ping2() from Bob to Alice;
+            pong2() from Alice to Bob;
+            //a() from Alice to Bob;
+        } () or Bob -> Alice () {
+           error2() from Alice to Bob;
+           b() from Bob to Alice;  // !!! left committing for outer
+        }
+    } () or Alice -> Bob () {
+       error1() from Bob to Alice;
+    }
+}
+//*/
+
+/*
+global protocol Nested(role Alice, role Bob) {
+    mixed {
+        ping1() from Alice to Bob;
+        mixed {
+            ping2() from Alice to Bob;
+            pong2() from Bob to Alice;
+            //a() from Alice to Bob;
+        } () or Alice -> Bob () {
+           error2() from Bob to Alice;
+        }
+    } () or Alice -> Bob () {
+       error1() from Bob to Alice;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    rec X {
+        mixed {
+            ping1(String) from A to B;
+            pong1(String) from B to A;  // !!! conservative left committing
+            continue X;
+        } () or A -> B () {
+            error1(String) from B to A;
+        }
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    rec Y {
+        c() from B to A;  // !!! non blocking for B with error1
+        rec X {
+            mixed {
+                ping1(String) from A to B;
+                pong1(String) from B to A;  // !!! conservative left committing
+                continue X;
+            } () or A -> B () {
+                error1(String) from B to A;  // XXX RHS exception for A -- but cf. ping1, LHS _not_ exception for B (XXX timeout?) -- cf. A try ?error1 and timeout? (cf. asymmetric)
+                continue Y;
+            }
+        }
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Testing Java API gen
+
+/*
+global protocol Proto1(role A, role B) {
+    1(String) from A to B;
+    2(String) from B to A;
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    rec X {
+        choice at A {
+            1(String) from A to B;
+            2(String) from B to A;
+            continue X;
+        } or {
+            3(String) from A to B;
+            4(String) from B to A;
+        }
+    }
+}
+//*/
+
+/* // Scratch01
+global protocol Proto1(role A, role B) {
+    mixed {
+        1(String) from A to B;
+        2(String) from B to A;
+    } () or A -> B () {
+        right(String) from B to A;
+    }
+}
+//*/
+
+/*/ // Scratch02
+global protocol Proto1(role Alice, role Bob) {
+    mixed {
+        ping1(String) from Alice to Bob;
+        mixed {
+            ping2(String) from Bob to Alice;
+            pong2(String) from Alice to Bob;
+        } () or Bob -> Alice () {  // reverse observer
+           error2(String) from Alice to Bob;
+           b(String) from Bob to Alice;  // !!! left committing for outer
+        }
+    } () or Alice -> Bob () {
+       error1(String) from Bob to Alice;
+    }
+}
+//*/
+
+/*/ // Scratch03
+global protocol Proto1(role Alice, role Bob) {
+    mixed {
+        ping1(String) from Alice to Bob;
+        mixed {
+            ping2(String) from Alice to Bob;
+            pong2(String) from Bob to Alice;
+        } () or Alice -> Bob () {
+           error2(String) from Bob to Alice;
+        }
+    } () or Alice -> Bob () {
+       error1(String) from Bob to Alice;
+    }
+}
+//*/
+
+/* // Testing rec outside mixed
+global protocol Proto1(role Alice, role Bob ) {
+    //aa(String) from Alice to Bob;
+    rec Loop {
+        mixed {  // Testing mixed directly under rec (peek)
+            ping(String) from Alice to Bob;
+            pong(String) from Bob to Alice;  // !!! o/w not left-comm due to syntactic WF
+            continue Loop;
+        } () or Alice -> Bob () {
+            error(String) from Bob to Alice;
+            bb(String) from Alice to Bob;
+            cc(String) from Bob to Alice;
+        }
+    }
+}
+//*/
+
+/*  // cf. above, would be same CFSMs -- but static committing set undefined, ping committing first loop, then not committing
+global protocol Proto1(role Alice, role Bob ) {
+    mixed {
+        rec Loop {
+            ping(String) from Alice to Bob;  // XXX "committing" on the first iteration, but also "not committing" after that
+            pong(String) from Bob to Alice;  // !!! o/w not left-comm due to syntactic WF
+            continue Loop;
+        }
+    } () or Alice -> Bob () {
+        error(String) from Bob to Alice;
+        bb(String) from Alice to Bob;
+        cc(String) from Bob to Alice;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role Alice, role Bob ) {
+    mixed {
+        aa(String) from Alice to Bob;  // !!! hack for static committing WF
+        rec Loop {
+            ping(String) from Alice to Bob;
+            pong(String) from Bob to Alice;
+            continue Loop;
+        }
+    } () or Alice -> Bob () {
+        error(String) from Bob to Alice;
+        bb(String) from Alice to Bob;
+        cc(String) from Bob to Alice;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role Alice, role Bob ) {
+    rec Loop {
+        mixed {
+            ping(String) from Alice to Bob;
+
+            // manual unfolding -- !!! but (still) no pong, so not left committing (syntactic WF)
+            rec Loop {
+                mixed {
+                    ping(String) from Alice to Bob;
+                    continue Loop;
+                } () or Alice -> Bob () {
+                    error(String) from Bob to Alice;
+                }
+            }
+
+        } () or Alice -> Bob () {
+            error(String) from Bob to Alice;
+        }
+    }
+}
+//*/
+
+/* // Testing rec inside mixed
+global protocol Proto1(role Alice, role Bob) {
+        mixed {
+            ping(String) from Alice to Bob;  // cf. aa a bit above
+            rec Loop {
+                ping2(String) from Alice to Bob;
+                pong2(String) from Bob to Alice;
+                continue Loop;  // !!! non-terminating
+            }
+        } () or Alice -> Bob () {
+            error(String) from Bob to Alice;
+        }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        aa(String) from A to C;
+        //bb(String) from A to B;  // useless
+        yy(String) from C to A;
+        yy(String) from C to B;  // !!! static committing WF -- forces commitment before any potential recursion
+        rec X {
+            mixed {
+                1(String) from A to B;
+                2(String) from B to C;
+                2(String) from B to A;  // !!! iterations are "synchronous" -- rec-GC not needed ??? (XXX actually wrong?)
+                continue X;
+            } () or A -> B () {
+                right(String) from B to A;
+                right(String) from B to C;
+                zz(String) from C to A;
+            }
+        }
+    } () or A -> C () {
+        err(String) from C to A;
+        err(String) from C to B;
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+/* // Testing EFSM gen
+
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        2() from B to A;
+    } () or A->B () {
+        3() from B to A;
+    }
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        2() from A to B;
+        3() from B to A;
+        4() from A to B;
+    } () or A->B () {
+        5() from B to A;
+        6() from A to B;
+    }
+}
+//*/
+
+//* // Exception, Interrupt, etc. similar
+global protocol Timeout(role A, role B, role C) {
+    mixed { // "Left-hand" side (LHS)
+        a1() from A to B;
+        a2() from B to C;
+        a5() from B to A;
+        a6() from A to C;
+    } () or A -> B () { // "Right-hand" side (RHS)
+        Timeout() from B to A;
+        Timeout() from B to C;
+    }
+}
+//*/
+
+/*
+global protocol FailureHandling(role M, role W, role FD) {
+    init(Data) from M to W;
+    rec X {
+        mixed { // LHS
+            HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
+            continue X;
+        } () or W -> FD () { // RHS
+            Timeout() from FD to W; //@'failed W'  // !!!
+            Crash() from FD to M;
+        }
+    }
+}
+//*/
+
+/*
+data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
+data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
+data <java> "java.lang.String" from "rt.jar" as nowait;
+data <java> "java.lang.String" from "rt.jar" as exchange;
+data <java> "java.lang.String" from "rt.jar" as routing_key;
+data <java> "java.lang.String" from "rt.jar" as pid;
+global protocol AMQP(role Consumer, role Channel, role Server) {
+    // consumers are monitored by channels once registered,
+
+        // Consumer registers default consumer with Channel
+        register_default_consumer() from Consumer to Channel;
+
+        // Consumer sends a basic.consume message to the Channel
+        basic_consume(consumer_tag, nowait) from Consumer to Channel;
+
+        // Channel forwards the basic.consume message to the Server
+        basic_consume(consumer_tag, nowait) from Channel to Server;
+
+        // Server acknowledges the consume request by sending basic.consume_ok to the Channel
+        basic_consume_ok(consumer_tag) from Server to Channel;
+
+   // mixed{
+        // Channel forwards the basic.consume_ok message to the Consumer
+        basic_consume_ok(consumer_tag) from Channel to Consumer;
+
+        rec SelectiveMessageDelivery{
+            // Mixed block to represent selective message delivery
+            mixed {
+                // Choice at Server to deliver messages based on consumer tag
+                choice at Server {
+                    // If consumer is registered, deliver message to the Consumer
+                    basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Server to Channel;
+
+                    // Abstracted message for syntactic purposes: projection onto Consumer
+                    process_message() from Channel to Consumer;
+
+                    // Mixed block to represent selective message delivery
+                    mixed {
+                        // Deliver to registered Consumer
+                        basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from Channel to Consumer;
+
+                        // Abstracted message for syntactic purposes: left-committing
+                        processing_complete(delivery_tag) from Consumer to Channel;
+
+                        // Abstracted message for syntactic purposes: left-committing
+                        // Shouldn't introduce conflicting behaviour
+                        update_delivery_state(delivery_tag) from Channel to Server;
+
+                        continue SelectiveMessageDelivery;
+
+                    }() or Channel -> Consumer() {
+                        // In reality, the Consumer can cancel at any time
+                        // Consumer initiates cancel
+                        basic_cancel(consumer_tag, nowait) from Consumer to Channel;
+
+                        // Channel forwards the cancel request to the Server
+                        basic_cancel(consumer_tag, nowait) from Channel to Server;
+
+                        // Server confirms the cancel request
+                        basic_cancel_ok(consumer_tag) from Server to Channel;
+
+                        // Channel forwards the cancel confirmation to the Consumer
+                        basic_cancel_ok(consumer_tag) from Channel to Consumer;
+                    }
+                } or {
+                    // In reality, the Server can cancel at any time
+                    // Server initiates cancel
+                    basic_cancel1(consumer_tag, nowait) from Server to Channel;
+
+                    // Channel acknowledges the cancel to Server
+                    basic_cancel_ok1(consumer_tag) from Channel to Server;
+
+                    // Channel forwards the cancel request to the Consumer
+                    basic_cancel1(consumer_tag, nowait) from Channel to Consumer;
+
+                    // Consumer acknowledges the cancel request
+                   // basic_cancel_ok(consumer_tag) from Consumer to Channel; //dummy message
+                }
+            } () or Server -> Channel() {
+                // Consumer initiates cancel
+                // surprising that this is allowed here, i.e., in the Server -> Channel the first message is from Consume to Channel
+                basic_cancel2(consumer_tag, nowait) from Consumer to Channel;
+
+                // Channel forwards the cancel request to the Server
+                basic_cancel2(consumer_tag, nowait) from Channel to Server;
+
+                // Server confirms the cancel request
+                basic_cancel_ok2(consumer_tag) from Server to Channel;
+
+                // Channel forwards the cancel confirmation to the Consumer
+                basic_cancel_ok2(consumer_tag) from Channel to Consumer;
+            }
+        }
+//       } () or Consumer -> Channel() {
+//            // Monitoring and lifecycle management of Consumers
+//            consumer_down(Pid) from Consumer to Channel;
+//        }
+    }
+    //*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    //rec X {
+        mixed {
+            1() from A to C;
+
+            a() from A to B;
+            b() from B to A;  // !
+
+            2() from C to A;
+            3() from C to B;  // ???
+            mixed {
+                a() from A to B;
+                b() from B to A;
+                c() from B to C;
+                //3a() from C to B;  // ???
+                //continue X;
+            } () or A -> B () {
+                d() from B to A;
+                e() from B to C;
+                //3b() from C to B;  // ???
+                //continue X;
+            }
+        } () or A -> C () {
+            4() from C to A;
+
+            //5() from A to B;
+            5() from A to B;  // !
+        }
+    //}
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+global protocol Foo(role p, role q) {
+    rec t {
+        mixed {
+            choice at p {
+                a1(String) from p to q;
+                continue t;  // TODO improved syntactic awareness (rec env)
+            } or {
+                a2(String) from p to q;
+                b1(String) from q to p;
+            }
+        } () or p->q () {
+            b2(String) from q to p;
+        }
+    }
+}
+//*/
+
+
+/*
+global protocol Timeout(role A, role B, role C) {
+    mixed {
+        1(String) from A to B;
+
+        2(String) from B to C;
+        //2(String) from A to C;  // XXX CHECKME -- currently cannot project (fake merge?)
+
+        3(String) from B to A;
+        4(String) from A to C;
+    } () or A->B () {
+        Exception(String) from B to A; // or "Exception" or "Interrupt"
+        Exception(String) from B to C;
+        //5(String) from A to C;
+    }
+}
+//*/
+
+/*
+global protocol FailureHandling(role M, role W, role FD) {
+    init(String) from M to W;
+    rec X {
+        mixed {
+            HB(String) from W to FD;
+            OK(String) from FD to M;
+            result(String) from W to M;
+            next(String) from M to W;
+            continue X;
+        } () or W->FD () {
+            Timeout(String) from FD to W;  // ...redundant
+            Crash(String) from FD to M;
+        }
+    }
+}
+//*/
+
+
+
+
+
+
+
+
+
+/*
 global protocol OnlineWallet(role S, role C, role A) {
     login() from C to A;
         choice at A {
-            login_ok () from A to C;
+            login_ok () from A to C;  // testing project-theta for wiggly third-party
             auth () from A to S;
             rec  LOOP {
                 account() from S to C;
@@ -532,7 +1160,7 @@ global protocol TwoBuyer(role Alice, role Bob, role Seller){
       quote() from Seller to Alice;
       quote() from Seller to Bob;
       quoteByTwo() from Alice to Bob;
-      mixed{
+      mixed{  // testing subtyping for local mixed-committed
           choice at Bob{
               ok() from Bob to Seller;
               confirmation() from Seller to Bob;

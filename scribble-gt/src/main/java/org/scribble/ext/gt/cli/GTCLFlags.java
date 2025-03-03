@@ -18,8 +18,6 @@ package org.scribble.ext.gt.cli;
 import org.scribble.cli.CLFlag;
 import org.scribble.cli.CLFlags;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -28,7 +26,14 @@ import java.util.Map;
 public class GTCLFlags extends CLFlags {
 
     // Unique flags
+    @Deprecated
     public static final String NO_CORRESPONDENCE = "-nocorr";
+
+    public static final String GT_NO_CORRESPONDENCE_FLAG = "-gt-no-corr";
+    public static final String GT_JAVA_API_GEN_FLAG = "-gt-api-gen";
+
+    public static final String GT_ED_FSM_GEN_FLAG = "-gt-event-fsm";
+    public static final String GT_ERLANG_API_GEN_FLAG = "-gt-gen-erlang";
 
     // Non-unique flags
     // ...
@@ -46,6 +51,23 @@ public class GTCLFlags extends CLFlags {
         // Unique; barrier irrelevant
         flags.put(NO_CORRESPONDENCE, new CLFlag(NO_CORRESPONDENCE,
                 0, true, false, false, "Duplicate flag: "));
+        flags.put(GT_NO_CORRESPONDENCE_FLAG, new CLFlag(GT_NO_CORRESPONDENCE_FLAG,
+                0, true, false, false, "Duplicate flag: "));
+
+        flags.put(GT_JAVA_API_GEN_FLAG, new CLFlag(GT_JAVA_API_GEN_FLAG,
+                0, true, false, false, "Duplicate flag: "));
+
+
+        // // Non-unique, barrier
+        /*flags.put(GT_API_GEN_FLAG,
+                new CLFlag(GT_API_GEN_FLAG, 2, false, true, true,
+                        "Missing protocol/role arguments: "));*/
+        flags.put(GT_ED_FSM_GEN_FLAG,
+                new CLFlag(GT_ED_FSM_GEN_FLAG, 2, false, true, true,
+                        "Missing protocol/role arguments: "));
+        flags.put(GT_ERLANG_API_GEN_FLAG,
+                new CLFlag(GT_ERLANG_API_GEN_FLAG, 2, false, true, true,
+                        "Missing protocol/role arguments: "));
 
         return flags;
     }

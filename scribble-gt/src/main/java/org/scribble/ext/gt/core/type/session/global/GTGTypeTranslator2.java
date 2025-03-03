@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 // org.scribble.core.type.session -> org.scribble.ext.gt.core.type.session
 // i.e., from inlined
+@Deprecated
 public class GTGTypeTranslator2 {
 
     private static int counter = 1;
@@ -81,14 +82,14 @@ public class GTGTypeTranslator2 {
         cs.put(op, cont);
         Role src = g.src;
         Role dst = g.dst;
-        return this.fact.choice(src, dst, cs);
+        return this.fact.choice(src, dst, null, cs);
     }
 
     // Pre: role enabling OK (choice subj = first senders)
     protected GTGInteraction translateGChoice(GChoice g) {
         List<GSeq> bs = g.getBlocks();
         List<GTGType> cs = bs.stream().map(x -> translate(x))
-                .collect(Collectors.toUnmodifiableList());  // cs.len > 0
+                             .collect(Collectors.toUnmodifiableList());  // cs.len > 0
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
         Role dst = null;
         for (GTGType c : cs) {
@@ -104,7 +105,7 @@ public class GTGTypeTranslator2 {
             ds.putAll(cast.cases);
         }
         Role subj = g.getSubject();
-        return this.fact.choice(subj, dst, ds);
+        return this.fact.choice(subj, dst, null, ds);
     }
 
     protected GTGMixedChoice translateGMixed(org.scribble.core.type.session.global.GTGMixedChoice g) {

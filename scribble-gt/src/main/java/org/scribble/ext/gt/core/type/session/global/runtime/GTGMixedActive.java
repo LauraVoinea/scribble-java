@@ -1,4 +1,4 @@
-package org.scribble.ext.gt.core.type.session.global;
+package org.scribble.ext.gt.core.type.session.global.runtime;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.global.actions.SAction;
@@ -10,7 +10,10 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.session.local.*;
+import org.scribble.ext.gt.core.type.session.global.*;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.core.type.session.local.Side;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -33,9 +36,9 @@ public class GTGMixedActive implements GTGType {
     public final Set<Role> committedLeft;
     public final Set<Role> committedRight;
 
-    protected GTGMixedActive(int c, int n,
-                             GTGType left, GTGType right, Role other, Role observer,
-                             LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
+    public GTGMixedActive(int c, int n,
+                          GTGType left, GTGType right, Role other, Role observer,
+                          LinkedHashSet<Role> committedLeft, LinkedHashSet<Role> committedRight) {
         this.c = c;
         this.n = n;
         this.left = left;
@@ -98,30 +101,31 @@ public class GTGMixedActive implements GTGType {
     }
 
     // Dup from GTGMixedChoice  // TODO factor out
-    public Set<Role> getIndifferent(Set<Role> top) {
+    public Set<Role> getIndifferent(Set<Role> topAll) {  // cf. topPeers in project
         Set<Role> rs = getRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
         copy.remove(this.observer);
         // !!! conservative? -- CHECKME does that affect safety w.r.t. static awareness?
         return rs.stream().filter(x ->
-                        //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
-                {
-                    Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(top, x);
-                    Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(top, x);
-                    Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
-                    return res.isPresent() && res.get();
-                })
-                .collect(Collectors.toSet());
+                         //this.left.projectTop(top, x).equals(this.right.projectTop(top, x)))
+                 {
+                     Optional<Pair<? extends GTLType, Sigma>> o_l = this.left.projectTop(topAll, x);
+                     Optional<Pair<? extends GTLType, Sigma>> o_r = this.right.projectTop(topAll, x);
+                     Optional<Boolean> res = o_l.flatMap(y -> o_r.map(z -> y.left.equals(z.left)));  // !!! only w.r.t. type -- cf. regular/wiggly indiff (non equal queues)
+                     return res.isPresent() && res.get();
+                 })
+                 .collect(Collectors.toSet());
     }
 
     @Override
     public Map<Role, Set<Role>> getStrongDeps() {
-        throw new RuntimeException("Shouldn't get here: " + this);
+        //throw new RuntimeException("Shouldn't get here: " + this);
+        throw new RuntimeException("TODO: " + this);
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
 
         if (!this.committedRight.isEmpty()) {  // cf. !!! below
             return true;
@@ -129,7 +133,7 @@ public class GTGMixedActive implements GTGType {
 
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));
+        rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
 
@@ -141,7 +145,7 @@ public class GTGMixedActive implements GTGType {
 
         //System.out.println("[Warning] TODO weak-dependencies and clear-termination: " + this);  // cf. isLeftCommitting
 
-        return this.left.isSingleDecision(top, theta) && this.right.isSingleDecision(top, theta);
+        return this.left.isSingleDecision(topAll, theta) && this.right.isSingleDecision(topAll, theta);
     }
 
     @Override
@@ -177,8 +181,8 @@ public class GTGMixedActive implements GTGType {
     /* ... */
 
     @Override
-    public boolean isChoicePartip() {
-        return this.left.isChoicePartip() && this.right.isChoicePartip();  // XXX CHECKME (cf. merge third parties)
+    public boolean isRuntimeChoicePartip() {
+        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
     }
 
     @Override
@@ -193,13 +197,30 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+
+        Set<Role> ready = this.right.getReady();
+        ready.remove(this.observer);
+        ready.removeAll(getIndifferent(topAll));
+        if (!ready.isEmpty() && !this.committedRight.contains(this.observer)) {  // LR-initiation (1)
+            return false;
+        }
+        if (!this.committedRight.contains(this.observer) && !this.committedRight.isEmpty()) {  // LR-initiation (2)
+            return false;
+        }
+        if (!this.committedLeft.contains(this.observer) && !this.committedLeft.isEmpty()) {  // LR-initiation (3)
+            return false;
+        }
+
+
+        // OLD
+
         if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
-            return this.left.getRoles().equals(this.right.getRoles());  // awareness (2)
+            return this.left.getRoles().equals(this.right.getRoles());  // awareness (2) -- OLD
         }
 
         Set<Role> rs = getRoles();
-        rs.removeAll(getIndifferent(top));  // HERE HERE HERE FIXME rs needs to come from top as param (not re-calc in each recursive step)
+        rs.removeAll(getIndifferent(topAll));  // rs comes from top as param (not re-calc in each recursive step)
 
         Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
         Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());
@@ -207,7 +228,7 @@ public class GTGMixedActive implements GTGType {
 
         for (Role r : rs) {
             if (actingR.contains(r)
-                    && !this.committedRight.contains(this.observer)) {  // awareness (1)  // !!! CHECKME this.observer (p)?  or r?
+                    && !this.committedRight.contains(this.observer)) {  // awareness (1) OLD  // !!! CHECKME this.observer (p)?  or r?
                 return false;
             }
         }
@@ -256,9 +277,8 @@ public class GTGMixedActive implements GTGType {
             if (!r.equals(this.other) && !r.equals(this.observer)) {
 
                 // HERE HERE FIXME need to distinguish I/O cases (merge vs. MC)
-
-                System.out.println("0bbbbbbb: " + this.left + " ,, " + this.right);
-                System.out.println("0bbbbbbb: " + opt_l + " ,, " + opt_r);
+                //System.out.println("0bbbbbbb: " + this.left + " ,, " + this.right);
+                //System.out.println("0bbbbbbb: " + opt_l + " ,, " + opt_r);
 
                 if (!opt_l.isPresent() || !opt_r.isPresent()) {  // TODO refactor with below
                     return Optional.empty();
@@ -348,16 +368,24 @@ public class GTGMixedActive implements GTGType {
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
 
-        LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
-        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
                 this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                        ? Either.left(newStuck(c, n, theta, this, (GTSAction) a))
-                        : this.left.step(theta, a, this.c, this.n);
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.left.step(theta, a, this.c, this.n);
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
                 this.committedLeft.contains(a.subj)
-                        ? Either.left(newStuck(c, n, theta, this, (GTSAction) a))
-                        : this.right.step(theta, a, this.c, this.n);
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.right.step(theta, a, this.c, this.n);
+        return stepAux(theta, a, c, n, optl, optr);
+    }
+
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepAux(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n,
+            Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl,
+            Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr) {
+
+        LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
+        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
 
         if (optl.isRight() && optr.isRight()) {
             // [RTAct]
@@ -371,7 +399,7 @@ public class GTGMixedActive implements GTGType {
 
         } else if (optl.isRight()) {
             if (optr.isRight() || this.committedRight.contains(a.subj)) {
-                return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+                return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
             }
             Triple<Theta, GTGType, Tree<String>> get = optl.getRight();
             if (a.isReceive()) {
@@ -411,7 +439,7 @@ public class GTGMixedActive implements GTGType {
             if (a.isSend()) {
                 // [RSnd]
                 if (optl.isRight() || this.committedLeft.contains(a.subj)) {
-                    return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+                    return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
                 }
                 cr.add(a.subj);
                 GTGMixedActive succ = this.fact.activeMixedChoice(
@@ -423,7 +451,7 @@ public class GTGMixedActive implements GTGType {
             } else if (a.isReceive()) {
                 // [RRcv]
                 if (optl.isRight()) {  // Redundant due to earlier
-                    return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+                    return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
                 }
                 //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
                 cr.add(a.subj);
@@ -444,22 +472,30 @@ public class GTGMixedActive implements GTGType {
                 throw new RuntimeException("TODO: " + a);
             }
         } else {
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         }
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
             int n) {  // XXX outer still OK to reduce if inner is fully ended?
 
         Set<Role> bLeft = Stream.concat(blocked.stream(),
                 this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
+
+        /*LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
         Set<Role> bRight = Stream.concat(blocked.stream(),
                 this.committedLeft.stream()).collect(Collectors.toSet());
         LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
-        aLeft.addAll(aRight);
+        aLeft.addAll(aRight);*/
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
+        Set<Role> bRight = Stream.concat(blocked.stream(),
+                this.committedLeft.stream()).collect(Collectors.toSet());
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
+        aLeft.putAll(aRight);
+
         return aLeft;
     }
 
@@ -469,30 +505,50 @@ public class GTGMixedActive implements GTGType {
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep
             (
                     Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+
+        //return step(theta, a, c, n);  // XXX need recursive weakStep
+
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
+                this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.left.weakStep(theta, a, this.c, this.n);
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
+                this.committedLeft.contains(a.subj)
+                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
+                : this.right.weakStep(theta, a, this.c, this.n);
+        return stepAux(theta, a, c, n, optl, optr);
     }
 
     @Override
     public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
             int n) {
-        return getActs(mf, theta, blocked, c, n);
+        //return getActs(mf, theta, blocked, c, n);  // XXX must do recursive getWeak (else may get \tau)
+
+        Set<Role> bLeft = Stream.concat(blocked.stream(),
+                this.committedRight.stream()).collect(Collectors.toSet());
+        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getWeakActs(mf, theta, bLeft, this.c, this.n);
+        Set<Role> bRight = Stream.concat(blocked.stream(),
+                this.committedLeft.stream()).collect(Collectors.toSet());
+        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getWeakActs(mf, theta, bRight, this.c, this.n);
+        aLeft.addAll(aRight);
+        return aLeft;
     }
 
     /* ... */
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
         throw new RuntimeException("Unsupported operation: " + this);
     }
 
@@ -504,9 +560,9 @@ public class GTGMixedActive implements GTGType {
     /* Aux */
 
     @Override
-    public GTGMixedActive subs(Map<RecVar, GTGType> subs) {
-        GTGType left = this.left.subs(subs);
-        GTGType right = this.left.subs(subs);
+    public GTGMixedActive subs(RecVar v, GTGRecursion subs) {
+        GTGType left = this.left.subs(v, subs);
+        GTGType right = this.left.subs(v, subs);
         return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
                 GTUtil.copyOf(this.committedLeft), GTUtil.copyOf(this.committedRight));  // FIXME repeated copying
     }
@@ -514,6 +570,17 @@ public class GTGMixedActive implements GTGType {
     @Override
     public GTGMixedActive unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        Set<Role> bl = new HashSet<>(blocked);
+        bl.addAll(this.committedRight);
+        Set<Role> res = this.left.getReadyAux(bl);
+        Set<Role> br = new HashSet<>(blocked);
+        br.addAll(this.committedLeft);
+        res.addAll(this.right.getReadyAux(br));
+        return res;
     }
 
     @Override
@@ -561,7 +628,7 @@ public class GTGMixedActive implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.MIXED_CHOICE_ACTIVE_HASH;
+        int hash = GTGType.GLOBAL_MIXED_ACTIVE_HASH;
         hash = 31 * hash + this.c;
         hash = 31 * hash + this.n;
         hash = 31 * hash + this.left.hashCode();

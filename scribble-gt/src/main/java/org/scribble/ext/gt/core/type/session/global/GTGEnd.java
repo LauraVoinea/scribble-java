@@ -26,24 +26,8 @@ public class GTGEnd implements GTGType {
 
     protected GTGEnd() { }
 
-    /* ... */
-
-    @Override
-    public boolean isSinglePointed() {
-        return true;
-    }
-
-    @Override
-    public boolean isGood() {
-        return true;
-    }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return true;
-    }
 
     @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
@@ -56,7 +40,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         return true;
     }
 
@@ -66,36 +50,10 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
-
-    @Override
     public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }
 
-    /* ... */
-
-    @Override
-    public boolean isChoicePartip() {
-        return true;
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return true;
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return true;
-    }
 
     /* ... */
     
@@ -115,49 +73,29 @@ public class GTGEnd implements GTGType {
         return Optional.of(new Theta(cs));
     }
 
-    /* ... */
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return new LinkedHashSet<>();
-    }
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
-    }
 
     /* ... */
 
     @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        return GTUtil.umodMapOf();
+    }
+
+    // ...
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getActs(mf, theta, blocked, c, n);
-    }
-
-    /* ... */
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        return GTUtil.umodSetOf();
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
+        return GTUtil.umodMapOf();
     }
 
     @Override
@@ -168,13 +106,18 @@ public class GTGEnd implements GTGType {
     /* Aux */
 
     @Override
-    public GTGType subs(Map<RecVar, GTGType> subs) {
+    public GTGType subs(RecVar v, GTGRecursion subs) {
         return this;
     }
 
     @Override
     public GTGEnd unfoldAllOnce() {
         return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return GTUtil.setOf();
     }
 
     @Override
@@ -204,7 +147,7 @@ public class GTGEnd implements GTGType {
 
     @Override
     public int hashCode() {
-        int hash = GTGType.END_HASH;
+        int hash = GTGType.GLOBAL_END_HASH;
         return hash;
     }
 
@@ -219,5 +162,98 @@ public class GTGEnd implements GTGType {
     @Override
     public boolean canEquals(Object o) {
         return o instanceof GTGEnd;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return true;
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return true;
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return true;
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return true;
+    }
+
+
+    /* ... */
+
+    @Override
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        return new LinkedHashMap<>();
+    }
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
+    }
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        return step(theta, a, c, n);
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        //return getActs(mf, theta, blocked, c, n);
+        return new LinkedHashSet<>(getActs(mf, theta, blocked, c, n).keySet());
+    }
+
+
+
+
+
+
+
+
+    /* ...deprecated */
+
+    @Override
+    public boolean isSinglePointed() {
+        return true;
+    }
+
+    @Override
+    public boolean isGood() {
+        return true;
+    }
+
+    @Override
+    public boolean isInitial() {
+        return true;
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();
     }
 }

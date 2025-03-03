@@ -1,4 +1,4 @@
-package org.scribble.ext.gt.core.type.session.local;
+package org.scribble.ext.gt.core.type.session.local.runtime;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
@@ -10,6 +10,9 @@ import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
+import org.scribble.ext.gt.core.type.session.local.GTLType;
+import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
+import org.scribble.ext.gt.core.type.session.local.Side;
 import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.Quad;
@@ -30,7 +33,7 @@ public class GTLMixedCommitted implements GTLType {
 
     public final int n;
 
-    protected GTLMixedCommitted(int c, int n, GTLType type, Side side) {
+    public GTLMixedCommitted(int c, int n, GTLType type, Side side) {
         this.c = c;
         this.n = n;
         this.type = type;
@@ -105,7 +108,23 @@ public class GTLMixedCommitted implements GTLType {
     public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
             Map<Pair<Integer, Integer>, Discard>>> weakStep(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        return step(com, self, a, sigma, theta, c, n);
+        //return step(com, self, a, sigma, theta, c, n);  // XXX need recursive weakStep
+
+        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> optl =
+                this.type.weakStep(com, self, a, sigma, theta, this.c, this.n);
+        return optl.mapRight(x -> {
+            Quad<GTLType, Sigma, Theta, Tree<String>> step = x.left;
+            GTLMixedCommitted succ = this.fact.mixedCommitted(
+                    this.c, this.n, step.fst, this.side);
+            return Pair.of(
+                    Quad.of(succ, step.snd, step.thrd, Tree.of(
+                            toStepJudgeString("[..LCommitted..]", c, n, theta, this,
+                                    sigma, (GTEAction) a, step.thrd, succ, step.snd),
+                            step.frth
+                    )),
+                    x.right  // no additional discard
+            );
+        });
     }
 
     /* Aux */
@@ -136,8 +155,8 @@ public class GTLMixedCommitted implements GTLType {
     public String toString() {
         String triangle = "" + ConsoleColors.BLACK_TRIANGLE + this.c + "," + this.n;
         return this.side == Side.LEFT
-                ? "(" + this.type + " " + triangle + " " + ConsoleColors.BULLET + ")"
-                : "(" + ConsoleColors.BULLET + " " + triangle + " " + this.type + ")";
+               ? "(" + this.type + " " + triangle + " " + ConsoleColors.BULLET + ")"
+               : "(" + ConsoleColors.BULLET + " " + triangle + " " + this.type + ")";
     }
 
     /* hashCode, equals, canEquals */

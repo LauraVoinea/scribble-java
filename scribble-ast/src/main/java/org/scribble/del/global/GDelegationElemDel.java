@@ -33,56 +33,47 @@ import org.scribble.del.ScribDelBase;
 import org.scribble.util.ScribException;
 import org.scribble.visit.NameDisambiguator;
 
-public class GDelegationElemDel extends ScribDelBase
-{
-	public GDelegationElemDel()
-	{
-	
-	}
+public class GDelegationElemDel extends ScribDelBase {
+    public GDelegationElemDel() {
 
-	// Duplicated from DoDel
-	@Override
-	public void enterDisambiguation(ScribNode child,
-			NameDisambiguator disamb) throws ScribException
-	{
-		ModuleContext mc = disamb.getModuleContext();
-		GDelegPayElem de = (GDelegPayElem) child;
-		GProtoNameNode proto = de.getProtocolChild();
-		
-		System.out.println("aaa: " + proto);
-		
-		GProtoName gpn = proto.toName();
-		if (!mc.isVisibleProtocolDeclName(gpn))
-		{
-			throw new ScribException(proto.getSource(),
-					"Protocol decl not visible: " + gpn);
-		}
-	}
+    }
 
-	// Duplicated from DoDel
-	//@Override
-	public GDelegPayElem visitForNameDisambiguation(NameDisambiguator disamb,  // CHECKME: why "visitFor" pattern?
-			GDelegPayElem deleg) throws ScribException
-	{
-		ModuleContext mc = disamb.getModuleContext();
-		GProtoNameNode proto = deleg.getProtocolChild();
-		GProtoName fullname = (GProtoName) mc
-				.getVisibleProtocolDeclFullName(proto.toName());
-		RoleNode r = deleg.getRoleChild();
+    // Duplicated from DoDel
+    @Override
+    public void enterDisambiguation(ScribNode child,
+                                    NameDisambiguator disamb) throws ScribException {
+        ModuleContext mc = disamb.getModuleContext();
+        GDelegPayElem de = (GDelegPayElem) child;
+        GProtoNameNode proto = de.getProtocolChild();
+        GProtoName gpn = proto.toName();
+        if (!mc.isVisibleProtocolDeclName(gpn)) {
+            throw new ScribException(proto.getSource(),
+                    "Protocol decl not visible: " + gpn);
+        }
+    }
 
-		Role rn = r.toName();
-		ProtoDecl<Global> gpd = disamb.job.getContext()
-				.getModule(fullname.getPrefix())
-				.getGProtocolDeclChild(fullname.getSimpleName());
-		if (!gpd.getHeaderChild().getRoleDeclListChild().getRoles().contains(rn))
-		{
-			throw new ScribException(r.getSource(), "Invalid delegation role: " + deleg);
-		}
-		List<IdNode> elems = Arrays.asList(fullname.getElements()).stream()
-				.map(x -> disamb.job.config.af.IdNode(null, x)).collect(Collectors.toList());
-		GProtoNameNode pnn = (GProtoNameNode) disamb.job.config.af
-				.GProtoNameNode(proto.token, elems);
-				// Not keeping original namenode del
-		return deleg.reconstruct(pnn, r);
-	}
+    // Duplicated from DoDel
+    //@Override
+    public GDelegPayElem visitForNameDisambiguation(NameDisambiguator disamb,  // CHECKME: why "visitFor" pattern?
+                                                    GDelegPayElem deleg) throws ScribException {
+        ModuleContext mc = disamb.getModuleContext();
+        GProtoNameNode proto = deleg.getProtocolChild();
+        GProtoName fullname = (GProtoName) mc
+                .getVisibleProtocolDeclFullName(proto.toName());
+        RoleNode r = deleg.getRoleChild();
+
+        Role rn = r.toName();
+        ProtoDecl<Global> gpd = disamb.job.getContext()
+                                          .getModule(fullname.getPrefix())
+                                          .getGProtocolDeclChild(fullname.getSimpleName());
+        if (!gpd.getHeaderChild().getRoleDeclListChild().getRoles().contains(rn)) {
+            throw new ScribException(r.getSource(), "Invalid delegation role: " + deleg);
+        }
+        List<IdNode> elems = Arrays.asList(fullname.getElements()).stream()
+                                   .map(x -> disamb.job.config.af.IdNode(null, x)).collect(Collectors.toList());
+        GProtoNameNode pnn = (GProtoNameNode) disamb.job.config.af
+                .GProtoNameNode(proto.token, elems);
+        // Not keeping original namenode del
+        return deleg.reconstruct(pnn, r);
+    }
 }

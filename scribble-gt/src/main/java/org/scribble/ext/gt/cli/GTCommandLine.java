@@ -11,14 +11,16 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
+import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
+import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
+import org.scribble.ext.gt.codegen.java.GTJavaApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
+import org.scribble.ext.gt.core.model.efsm.GTEFSM;
+import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
-import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.GTLConfig;
-import org.scribble.ext.gt.core.model.local.GTLSystem;
+import org.scribble.ext.gt.core.model.local.*;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
@@ -26,8 +28,6 @@ import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.*;
-import org.scribble.gt.codegen.CodeGen;
-import org.scribble.gt.codegen.ErlangCodeGen;
 import org.scribble.job.Job;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
@@ -48,7 +48,7 @@ public class GTCommandLine extends CommandLine {
 
     public static void main(String[] args) {
         GTCommandLine cl = init(args);
-        Optional<Exception> run = gtRun(cl);
+        Optional<Exception> run = cl.gtRun();
         if (run.isPresent()) {
             throw new RuntimeException(run.get());
         }
@@ -56,7 +56,7 @@ public class GTCommandLine extends CommandLine {
 
     public static Optional<Exception> mainTest(String[] args) {
         GTCommandLine cl = init(args);
-        return gtRun(cl);
+        return cl.gtRun();
     }
 
     static GTCommandLine init(String[] args) {
@@ -72,10 +72,18 @@ public class GTCommandLine extends CommandLine {
     static Map<GProtoName, GTGType> getTranslated(GTCommandLine cl) {
         Map<GProtoName, GTGType> res = new HashMap<>();
 
-        Core core = cl.getJob().getCore();
+        Job job = cl.getJob();
+        Core core = job.getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
-        Map<ModuleName, Module> parsed = cl.main.getParsedModules();  // !!! Using main rather than job
+        /*try {
+            job.runVisitorPassOnAllModules(job.config.vf.NameDisambiguator(job));  // Includes validating names used in subprotocol calls..
+        } catch (ScribException e) {
+            e.printStackTrace();
+        }*/
+
+        //Map<ModuleName, Module> parsed = cl.main.getParsedModules();  // XXX original source, no disamb
+        Map<ModuleName, Module> parsed = job.getContext().getParsed();  // !!! post disamb
         if (debug) {
             System.out.println("\n----- GT -----\n");
             System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
@@ -106,11 +114,47 @@ public class GTCommandLine extends CommandLine {
             throws
             AntlrSourceException, ScribParserException,  // Latter in case needed by subclasses
             CommandLineException {
+
+        System.out.println("abcdef");
+
         job.runPasses();
 
         //job.getCore().runPasses();  // HERE HERE FIXME: base imed GTGMixedChoice visit/agg/gather overrides
 
     }
+
+    /* // if -gt-api-gen is an `enact` flag
+    @Override
+    protected void tryBarrierTask(Job job,
+                                  Pair<String, String[]> task) throws ScribException, CommandLineException {
+        switch (task.left) {
+            case GTCLFlags.GT_API_GEN_FLAG -> {
+                /* //outputEndpointApi(job, task.right, true, true, false);
+                GProtoName g = new GProtoName(task.right[0]);
+                Role r = new Role(task.right[1]);
+                if (this.hasFlag(GTCLFlags.GT_API_GEN_FLAG)) {
+                    System.out.println("\n[GTCommandLine] API for " + r + ":\n" + new GTApiGen().generate(g, r, this.fsms.get(r)));
+                }* /
+
+                // !!! skip -- run is happening before gtRun
+            }
+            default -> super.tryBarrierTask(job, task);
+        }
+    }*/
+
+    @Override
+    protected void tryBarrierTask(Job job, Pair<String, String[]> task) throws ScribException, CommandLineException {
+        // `run` happens before `gtRun` -- skip GT flags in `run`
+        switch (task.left) {
+            case GTCLFlags.GT_ED_FSM_GEN_FLAG:
+                break;
+            case GTCLFlags.GT_ERLANG_API_GEN_FLAG:
+                break;
+            default:
+                super.tryBarrierTask(job, task);
+        }
+    }
+
 
     // Duplicated from AssrtCommandLine
     // Based on CommandLine.newMainContext
@@ -122,9 +166,9 @@ public class GTCommandLine extends CommandLine {
             this.main = new GTMain(inline, args);
         } else {
             List<Path> impaths = hasFlag(CLFlags.IMPORT_PATH_FLAG)
-                    ? CommandLine
-                    .parseImportPaths(getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
-                    : Collections.emptyList();
+                                 ? CommandLine
+                                         .parseImportPaths(getUniqueFlagArgs(CLFlags.IMPORT_PATH_FLAG)[0])
+                                 : Collections.emptyList();
             ResourceLocator locator = new DirectoryResourceLocator(impaths);
             Path mainpath = CommandLine
                     .parseMainPath(getUniqueFlagArgs(CLFlags.MAIN_MOD_FLAG)[0]);
@@ -193,8 +237,8 @@ public class GTCommandLine extends CommandLine {
     // no messages in transit and no active timeouts.
     static Optional<Exception> checkInitialWellSet(GTGType translate) {  // "check..." vs. "is..."
         return translate.isInitialWellSet()
-                ? Optional.empty() :
-                Optional.of(new Exception("Not initial and well-set: " + translate));
+               ? Optional.empty() :
+               Optional.of(new Exception("Not initial and well-set: " + translate));
     }
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
@@ -245,12 +289,21 @@ public class GTCommandLine extends CommandLine {
         return proj.mapRight(x -> new GTCorrespondence(rs, tids, theta, translate, x));
     }
 
+    public static GTSModelFactory GMF;
+    public static GTEModelFactory LMF;
+
+    private Map<Role, GTEState> fsms = new HashMap<>();
+
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
-    protected static Optional<Exception> gtRun(GTCommandLine cl) {
-        Core core = cl.getJob().getCore();
+    protected Optional<Exception> gtRun() {
+        Core core = this.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
-        Map<GProtoName, GTGType> translated = getTranslated(cl);
+        GMF = (GTSModelFactory) core.config.mf.global;
+        LMF = (GTEModelFactory) core.config.mf.local;
+
+        Map<GProtoName, GTGType> translated = getTranslated(this);
+        Map<String, Map<String, GTEFSM>> efsms = new HashMap<>();  // proto -> role -> EFSM
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
             //Set<Role> rs = translate.getRoles();
@@ -276,24 +329,59 @@ public class GTCommandLine extends CommandLine {
             }
             GTCorrespondence s = proj.getRight();
 
-            GTLSystem poof = proj.getRight().local;
-            Map<Role, GTLConfig> configs = poof.configs;
-            String protocolName = g.getSimpleName().toString();
-            // code gen
-            CodeGen.genErl(protocolName, configs, translate.getCommittingTop(), true);
+            //Map<Role, Set<Op>> com = GTUtil.umod(translate.getCommittingTop());
+            Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
+            Map<Role, Set<Op>> com = new HashMap<>();  // deprecated
+            Map<Role, Map<Integer, Set<Op>>> comInvert = new HashMap<>();
+            comFull.entrySet().forEach(x -> {
+                int c = x.getKey();
+                Map<Role, Set<Op>> vs = x.getValue();
+                for (Map.Entry<Role, Set<Op>> y : vs.entrySet()) {
+                    Role r = y.getKey();
+                    Set<Op> ops = y.getValue();
+
+                    com.computeIfAbsent(r, z -> new HashSet<>()).addAll(ops);
+
+                    Map<Integer, Set<Op>> invert = comInvert.computeIfAbsent(r, z -> new HashMap<>());
+                    invert.computeIfAbsent(c, z -> new HashSet<>()).addAll(ops);
+                }
+            });
+
+            System.out.println("\n[GTCommandLine] projected:\n"
+                    + s.local.configs.values().stream().map(x -> x.self + "=" + x.type).collect(Collectors.joining("\n")));
+
+            for (GTLConfig x : s.local.configs.values()) {
+                GTEState init = new GTFsmConstructor().construct(com.get(x.self), x.type);
+                this.fsms.put(x.self, init);
+                System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
+
+                // !!! gtRun happens before run (i.e., tryBarrierTask running before gtRun, cf. `enact` flags`)
+                if (this.hasFlag(GTCLFlags.GT_JAVA_API_GEN_FLAG)) {
+                    System.out.println("\n[GTCommandLine] API for " + x.self + ":\n" + new GTJavaApiGen().generate(g, x.self, init));
+                }
+
+                GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
+                GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
+                //Set<Op> com_self = com.getOrDefault(x.self, Set.of());
+                Map<Integer, Set<Op>> com_self = comInvert.get(x.self);
+                GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
+                System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
+                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, null, efsm));
+                System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(null, null, efsm));
+                Map<String, GTEFSM> tmp = efsms.computeIfAbsent(g.getSimpleName().toString(), y -> new LinkedHashMap<>());  // !!! simple name
+                tmp.put(x.self.toString(), efsm);
+            }
+
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
-            Set<Op> com = GTUtil.umod(translate.getCommittingTop());
-
-
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
-                    .collect(Collectors.toMap(x -> x.toString(), x -> 0));  // FIXME don't use String
-
-            if (!cl.hasFlag(GTCLFlags.NO_CORRESPONDENCE)) {
+                                                    .collect(Collectors.toMap(AbstractName::toString, x -> 0));  // FIXME don't use String
+            if (!this.hasFlag(GTCLFlags.NO_CORRESPONDENCE) && !this.hasFlag(GTCLFlags.GT_NO_CORRESPONDENCE_FLAG)) {
                 Optional<Exception> res =
 
-                        //checkExecution(  // top-down
-                        checkExecution2(  // fidelity
+                        // HERE HERE fidelity fine, top-down recursion TODO
+                        checkExecution(  // top-down
+                                //checkExecution2(  // fidelity
                                 core, "", s, 1, MAX,
                                 unfolds, 2,
                                 translate.getTimeoutIds(),
@@ -302,6 +390,28 @@ public class GTCommandLine extends CommandLine {
                 if (res.isPresent()) {
                     return res;
                 }
+            }
+        }
+
+        /*if (this.hasFlag(GTCLFlags.GT_ED_FSM_GEN_FLAG)) {
+            System.out.println("\n[GTCommandLine] event-driven FSM for: ")
+        }*/
+        for (Pair<String, String[]> a : this.args) {
+            if (a.left.equals(GTCLFlags.GT_ED_FSM_GEN_FLAG)) {
+                String proto = a.right[0];
+                String r = a.right[1];
+                System.out.println("\n[GTCommandLine] event-driven FSM for " + proto + "@" + r + ":");
+                System.out.println(efsms.get(proto).get(r).toDot());
+            } else if (a.left.equals(GTCLFlags.GT_ERLANG_API_GEN_FLAG)) {
+                String proto = a.right[0];
+                String r = a.right[1];
+                GTEFSM m = efsms.get(proto).get(r);
+                GTGenRoleGen g1 = new GTGenRoleGen();
+                GTRoleGen g2 = new GTRoleGen();
+                System.out.println("\n[GTCommandLine] Gen role for " + proto + "@" + r + ":");
+                System.out.println(g1.generate(null, null, m));
+                System.out.println("\n[GTCommandLine] Role for " + proto + "@" + r + ":");
+                System.out.println(g2.generate(null, null, m));
             }
         }
 
@@ -340,7 +450,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj) {
         mystep = 1;
         return checkExecutionAux2(core, indent, s, step, MAX, unfolds, depth, tids, labs, com,
@@ -359,7 +469,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
     ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
@@ -421,6 +531,7 @@ public class GTCommandLine extends CommandLine {
                 .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
                 .collect(Collectors.toSet());*/
 
+        //System.out.println("aaaaaaaaa: " + mystep + " ,, " + MAX);
         if (mystep >= MAX) {
             return Optional.empty();
         }
@@ -445,7 +556,7 @@ public class GTCommandLine extends CommandLine {
                 // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
 
                 Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
-                        s.local.step(com, r, a);
+                        s.local.step(com.get(r), r, a);
 
                 //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
@@ -471,7 +582,7 @@ public class GTCommandLine extends CommandLine {
                 /*
                 GTLSystem gc = sys1.left;
                 /*/
-                GTLSystem ff = ffweak(lmf, com, t1, sys1.left, r);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
+                GTLSystem ff = ffweak(lmf, com.get(r), t1, sys1.left, r);  // TODO deriv -- for multistep reductions List<Tree<...>> ?
                 if (!ff.equals(sys1.left)) {
                     debugPrintln(debug, indent + "Catch up: ... --" + ConsoleColors.NU + "-" + ConsoleColors.RIGHT_ARROW + ConsoleColors.SUPER_PLUS + " " + ff);//....toString(indent + "ff " + ConsoleColors.NU + ": " + ff));
                 }
@@ -555,7 +666,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj) {
         mystep = 1;
         return checkExecutionAux(core, indent, s, step, MAX, unfolds, depth, tids, labs, com,
@@ -569,7 +680,7 @@ public class GTCommandLine extends CommandLine {
             int depth,  // depth is TOs -- only need unfolds? (though LTS rec squashed) -- FIXME factor out bounds (depth+seen, cf. EA)
             Set<Integer> tids,
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs,
-            Set<Op> com,
+            Map<Role, Set<Op>> com,
             boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac, boolean proj
     ) {
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
@@ -596,13 +707,31 @@ public class GTCommandLine extends CommandLine {
             return props;
         }
 
-        Set<SAction<DynamicActionKind>> as =
+        // HERE HERE infinite global \nu ?
+        /*Set<SAction<DynamicActionKind>> as =
 
                 //s.global.getActsTop(mf, s.theta).stream()
                 s.global.getWeakActsTop(mf, s.theta).stream()
 
                         .filter(x -> !((x instanceof GTSNewTimeout<?>) && ((GTSNewTimeout<?>) x).n > depth))  // only bounds mixed...
-                        .collect(Collectors.toSet());
+                        .collect(Collectors.toSet());*/
+
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> get = s.global.getActsTop(mf, s.theta);
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> filt = GTUtil.mapOf();
+        //LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> all = filt;
+        for (Map.Entry<SAction<DynamicActionKind>, Set<RecVar>> e
+                : get.entrySet()) {
+            //LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as = e.getValue();
+            //for (Map.Entry<SAction<DynamicActionKind>, Set<RecVar>> e2 : as.entrySet()) {
+            SAction<DynamicActionKind> a = e.getKey();
+            Set<RecVar> rvs = e.getValue();
+            if (rvs.stream().allMatch(x -> unfolds.get(x.toString()) < MAX_UNFOLD)) {  // FIXME toString
+                filt.put(a, rvs);
+            }
+            //}
+            //all.put(r, filt);
+        }
+        Set<SAction<DynamicActionKind>> as = filt.keySet();
 
         if (mystep >= MAX) {
             return Optional.empty();
@@ -617,8 +746,8 @@ public class GTCommandLine extends CommandLine {
                     + ConsoleColors.VDASH + " " + s.global + " " + "--" + a + "--> ...");
             Triple<Theta, GTGType, Tree<String>> g_step =
 
-                    //s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
-                    s.global.weakStepTop(s.theta, a).getRight();  // a in as so step is non-empty
+                    //s.global.weakStepTop(s.theta, a).getRight();  // a in as so step is non-empty
+                    s.global.stepTop(s.theta, a).getRight();  // a in as so step is non-empty
 
             debugPrintln(debug, g_step.right.toString(indent + "   "));
 
@@ -642,23 +771,30 @@ public class GTCommandLine extends CommandLine {
 
             GTSAction cast = (GTSAction) a;
             GTEAction a_r = cast.project(lmf);
+            Pair<GTLSystem, Tree<String>> sys1;
 
             debugPrintln(debug, indent + "Stepping local "
                     + GTLType.c_TOP + ", " + GTLType.n_INIT + " "  // cf. GTLType.weakStepTop
                     + ConsoleColors.VDASH + " " + s.local + " --" + a.subj + ":" + a_r + "--> ...");
             // !!! NB subj/obj Role.EMPTY_ROLE when a_r GTSNewTimeout
+            if (a_r instanceof GTENewTimeout) {
+                GTLSystem ff = ffweak(lmf, Collections.emptySet(), g_step.left, s.local, null);  // !!! g_step.left  // CHECKME empty com
+                sys1 = new Pair<>(ff, Tree.of("[FF] ... --> " + ff.toString()));
+            } else {
+                Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
 
-            Either<Exception, Pair<GTLSystem, Tree<String>>> l_step =
+                        ////s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
+                        //s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
+                        s.local.step(com.get(a.subj), a.subj, (EAction<DynamicActionKind>) a_r);
 
-                    //s.local.step(com, a.subj, (EAction<DynamicActionKind>) a_r);
-                    s.local.weakStep(labs, com, a.subj, (EAction<DynamicActionKind>) a_r);
+                //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
 
-            //Either.right(Pair.of(s.local, Tree.of("[WIP]")));
-
-            if (l_step.isLeft()) {
-                throw new RuntimeException("Locals stuck...", l_step.getLeft());
+                if (l_step.isLeft()) {
+                    throw new RuntimeException("Locals stuck...", l_step.getLeft());
+                }
+                sys1 = l_step.getRight();
             }
-            Pair<GTLSystem, Tree<String>> sys1 = l_step.getRight();
+
             debugPrintln(debug, sys1.right.toString(indent + "   "));
 
             //System.out.println(indent + "locals = " + sys1);
@@ -701,7 +837,7 @@ public class GTCommandLine extends CommandLine {
 
     private String[] getUniqueFlagArgs(String flag) {
         return this.args.stream()
-                .filter(x -> x.left.equals(flag)).findAny().get().right;
+                        .filter(x -> x.left.equals(flag)).findAny().get().right;
     }
 
 }

@@ -12,6 +12,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.session.global.runtime.GTGWiggly;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.Either;
@@ -31,34 +32,22 @@ public class GTGInteraction implements GTGType {
 
     public final Role src;
     public final Role dst;
+    public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
     public final Map<Op, GTGType> cases;  // Pre: "Ordered", Unmodifiable, non-empty
 
-    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, GTGType> cases) {
+    protected GTGInteraction(Role src, Role dst, LinkedHashMap<Op, Payload> pays, LinkedHashMap<Op, GTGType> cases) {
         this.src = src;
         this.dst = dst;
+        this.pays = Collections.unmodifiableMap(pays.entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> x, LinkedHashMap::new)));
         this.cases = Collections.unmodifiableMap(cases.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
-    /* ... */
-
-    @Override
-    public boolean isSinglePointed() {
-        return this.cases.values().stream().allMatch(GTGType::isSinglePointed);
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.cases.values().stream().allMatch(GTGType::isGood);
-    }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return this.cases.values().stream().allMatch(GTGType::isInitial);
-    }
 
     // TODO refactor using choice-partic, and timeout-partic/pattern
     @Override
@@ -85,7 +74,7 @@ public class GTGInteraction implements GTGType {
     public Map<Role, Set<Role>> getStrongDeps() {
         Set<Role> rs = getRoles();
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
-                .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
+                                                     .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
 
         Map<Role, Set<Role>> res = GTUtil.mapOf();
         for (Role r : rs) {
@@ -112,25 +101,13 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(top, theta));
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isSingleDecision(topAll, theta));
     }
 
     @Override
     public boolean isClearTermination() {
         return this.cases.values().stream().allMatch(GTGType::isClearTermination);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        if (!com.contains(this.src) || rem.contains(this.dst)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
     }
 
     @Override
@@ -147,35 +124,6 @@ public class GTGInteraction implements GTGType {
         return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
     }
 
-    /* ... */
-
-    @Override
-    public boolean isChoicePartip() {
-        Collection<GTGType> cs = this.cases.values();
-        if (cs.size() == 1) { return true; }
-
-        // !!! cf. def 4
-        Set<Role> fst = GTUtil.union(cs.iterator().next().getRoles(), Set.of(this.src, this.dst));
-
-        // !!!
-        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
-                && cs.stream().allMatch(GTGType::isChoicePartip);
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, top, theta));
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(GTGType::isCoherent);
-    }
 
     /* ... */
 
@@ -199,11 +147,12 @@ public class GTGInteraction implements GTGType {
                     return Optional.empty();
                 }
 
-                cases.put(e.getKey(), p.left);
+                Op op = e.getKey();
+                cases.put(op, p.left);
             }
             return r.equals(this.src)
-                    ? Optional.of(new Pair<>(lf.select(this.dst, cases), sigma))
-                    : Optional.of(new Pair<>(lf.branch(this.src, cases), sigma));
+                   ? Optional.of(new Pair<>(lf.select(this.dst, new LinkedHashMap<>(this.pays), cases), sigma))
+                   : Optional.of(new Pair<>(lf.branch(this.src, new LinkedHashMap<>(this.pays), cases), sigma));
         } else {
             Stream<Optional<Pair<? extends GTLType, Sigma>>> str =
                     this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));
@@ -222,12 +171,13 @@ public class GTGInteraction implements GTGType {
         }
         // FIXME refactor merge
         List<Optional<Theta>> distinct = this.cases.values().stream()
-                .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
+                                                   .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
         if (distinct.size() != 1) {
             return Optional.empty();
         }
         return distinct.get(0);
     }
+
 
     /* ... */
 
@@ -266,6 +216,271 @@ public class GTGInteraction implements GTGType {
         return left.flatMap(x -> right.flatMap(x::merge));
     }
 
+
+    /* ... */
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        if (com.contains(this.src)) {
+            Set<Role> tmp = new HashSet<>(com);
+            tmp.add(this.dst);
+            Map<Role, Set<Op>> res = new HashMap<>();
+            this.cases.values().stream().map(x -> x.getCommittingAux(c, tmp)).forEach(x -> {
+                for (Map.Entry<Role, Set<Op>> y : x.entrySet()) {
+                    Set<Op> bar = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    bar.addAll(y.getValue());
+                }
+            });
+            Set<Op> ops = res.computeIfAbsent(this.dst, x -> new HashSet<>());
+            ops.addAll(this.cases.keySet());
+            return res;
+        } else {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            this.cases.values().stream().map(x -> x.getCommittingAux(c, com)).forEach(x -> {
+                for (Map.Entry<Role, Set<Op>> y : x.entrySet()) {
+                    Set<Op> bar = res.computeIfAbsent(y.getKey(), z -> new HashSet<>());
+                    bar.addAll(y.getValue());
+                }
+            });
+            return res;
+        }
+    }
+
+    // ...
+   
+    @Override
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
+        Map<Role, Set<Op>> res = GTUtil.mapOf();
+        this.cases.values().forEach(x -> res.putAll(x.getCommittingTop(com)));
+        return res;
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
+        Map<Role, Set<Op>> res = GTUtil.mapOf();
+        Set<Role> com1 = GTUtil.copyOf(com);
+        if ((this.dst.equals(obs) && !com.contains(obs))  // src doesn't need to be com, cf. below case
+                || (com.contains(this.src) && !com.contains(this.dst))) {
+            Set<Op> ops = res.computeIfAbsent(this.dst, x -> new HashSet<>());
+            ops.addAll(this.cases.keySet());
+            com1.add(this.dst);
+        }
+        this.cases.values().forEach(x ->
+                x.getCommittingLeft(obs, com1).forEach((k, v) -> {
+                    Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
+                    ops.addAll(v);
+                }));
+        return res;
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
+        Map<Role, Set<Op>> res = GTUtil.mapOf();
+        Set<Role> com1 = GTUtil.copyOf(com);
+        if (!com.contains(this.src) && this.src.equals(obs)) {
+            Set<Op> ops1 = res.computeIfAbsent(obs, x -> new HashSet<>());
+            ops1.addAll(this.cases.keySet());
+            com1.add(obs);
+            Set<Op> ops2 = res.computeIfAbsent(this.dst, x -> new HashSet<>());  // dst != obs because obs = src
+            ops2.addAll(this.cases.keySet());
+            com1.add(this.dst);
+        } else if (com.contains(this.src) && !com.contains(this.dst)) {
+            Set<Op> v = res.computeIfAbsent(this.dst, x -> new HashSet<>());
+            v.addAll(this.cases.keySet());
+            com1.add(this.dst);
+        }
+        //this.cases.values().stream().forEach(x -> res.putAll(x.getCommittingRight(obs, com1)));
+        this.cases.values().forEach(x ->
+                x.getCommittingRight(obs, com1).forEach((k, v) -> {
+                    Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
+                    ops.addAll(v);
+                }));
+        return res;
+    }
+
+    @Override
+    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
+        /*Map<Op, Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>>> collect =  // ??
+                this.cases.entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().getLabels()
+                ));*/
+        Set<Op> imm = GTUtil.setOf();
+        Map<Integer, Pair<Set<Op>, Set<Op>>> nested = GTUtil.mapOf();
+        for (Map.Entry<Op, GTGType> x : this.cases.entrySet()) {
+            Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> tmp = x.getValue().getLabels();
+            imm.add(x.getKey());
+            imm.addAll(tmp.left);
+            if (nested.keySet().stream().anyMatch(y -> tmp.right.keySet().contains(y))) {
+                throw new RuntimeException("Shouldn't get here: " + this + " ,, " + tmp);
+            }
+            nested.putAll(tmp.right);
+        }
+        return Pair.of(imm, nested);
+    }
+
+    /* Aux */
+
+    @Override
+    public GTGInteraction subs(RecVar v, GTGRecursion subs) {
+        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
+                                                     .collect(Collectors.toMap(
+                                                             Map.Entry::getKey,
+                                                             x -> x.getValue().subs(v, subs),
+                                                             (x, y) -> null,
+                                                             LinkedHashMap::new
+                                                     ));
+        return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), cases);
+    }
+
+    @Override
+    public GTGInteraction unfoldAllOnce() {
+        return this;
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        Set<Role> b = new HashSet<>(blocked);
+        b.add(this.dst);
+        Set<Role> nested = this.cases.values().stream()
+                                     .flatMap(x -> x.getReadyAux(b).stream()).collect(Collectors.toSet());
+        if (!blocked.contains(this.src)) {
+            nested.add(this.src);
+        }
+        return nested;
+    }
+
+    @Override
+    public Set<Role> getRoles() {
+        return Stream.concat(Stream.of(this.src, this.dst),
+                             this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
+                     .collect(Collectors.toSet());
+    }
+
+    public Role getSender() {
+        return this.src;
+    }
+
+    public Role getReceiver() {
+        return this.dst;
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getTimeoutIds().stream())
+                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Op> getOps() {
+        Set<Op> ops = new HashSet<>(this.cases.keySet());
+        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
+        return ops;
+    }
+
+    @Override
+    public Set<RecVar> getRecDecls() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getRecDecls().stream()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public String toString() {
+        return this.src + "->" + this.dst
+                + "{" + this.cases.entrySet().stream()
+                                  .map(e -> msgToString(e.getKey()) + "." + e.getValue())
+                                  .collect(Collectors.joining(", ")) + "}";
+    }
+
+    protected String msgToString(Op op) {
+        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
+        return msgToString(op, this.pays.get(op));
+    }
+
+    public static String msgToString(Op op, Payload pay) {
+        return op.toString() + pay;
+    }
+
+    /* hashCode, equals, canEquals */
+
+    @Override
+    public int hashCode() {
+        int hash = GTGType.GLOBAL_CHOICE_HASH;
+        hash = 31 * hash + this.src.hashCode();
+        hash = 31 * hash + this.dst.hashCode();
+        hash = 31 * hash + this.pays.hashCode();
+        hash = 31 * hash + this.cases.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof GTGInteraction)) { return false; }
+        GTGInteraction them = (GTGInteraction) obj;
+        return them.canEquals(this)
+                && this.src.equals(them.src)
+                && this.dst.equals(them.dst)
+                && this.pays.equals(them.pays)
+                && this.cases.equals(them.cases);
+    }
+
+    @Override
+    public boolean canEquals(Object o) {
+        return o instanceof GTGInteraction;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        Collection<GTGType> cs = this.cases.values();
+        if (cs.size() == 1) { return true; }
+
+        // !!! cf. def 4
+        Set<Role> fst = GTUtil.union(cs.iterator().next().getRoles(), Set.of(this.src, this.dst));
+
+        // !!!
+        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
+                && cs.stream().allMatch(GTGType::isRuntimeChoicePartip);
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, topAll, theta));
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return this.cases.values().stream().allMatch(GTGType::isCoherent);
+    }
+
+
     /* ... */
 
     @Override
@@ -278,12 +493,12 @@ public class GTGInteraction implements GTGType {
                         && cast.c == c && cast.n == n) {
                     //return Optional.of(this.cases.get(cast.mid));
                     LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    GTGWiggly succ = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, tmp);
+                    GTGWiggly succ = this.fact.wiggly(this.src, this.dst, (Op) cast.mid, new LinkedHashMap<>(this.pays), tmp);
                     return Either.right(new Triple<>(theta, succ, Tree.of(
                             toStepJudgeString("[Snd]", c, n, theta, this, cast, theta, succ))));
                 }
             }
-            return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
         } else if (!this.dst.equals(a.subj)) {  // [Cont1]
             /*return done
                 ? Optional.of(this.fact.choice(this.src, this.dst, cs))
@@ -291,13 +506,13 @@ public class GTGInteraction implements GTGType {
             Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> nested =
                     stepNested(this.cases, theta, a, c, n);
             return nested.mapRight(x -> {
-                GTGInteraction succ = this.fact.choice(this.src, this.dst, x.mid);
+                GTGInteraction succ = this.fact.choice(this.src, this.dst, new LinkedHashMap<>(this.pays), x.mid);
                 return Triple.of(x.left, succ, Tree.of(
                         toStepJudgeString("[Cont1]", c, n, theta, this, (GTSAction) a, x.left, succ),
                         x.right));
             });
         }
-        return Either.left(newStuck(c, n, theta, this, (GTSAction) a));
+        return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
     }
 
     protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, List<Tree<String>>>> stepNested(
@@ -344,14 +559,59 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         //Stream.concat(blocked.stream(), Stream.of(this.src, this.dst)).collect(Collectors.toSet());
         HashSet<Role> tmp = new HashSet<>(blocked);
         tmp.add(this.src);
         tmp.add(this.dst);
         ////this.cases.values().stream().flatMap(x -> x.getActs(tmp).stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-        //LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        ////LinkedHashSet<SAction> collect = new LinkedHashSet<>();
+        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
+
+        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // nested
+        for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+            if (!blocked.contains(this.src)) {
+                SSend<DynamicActionKind> a = mf.GTSSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
+                //res.add(a);
+                res.put(a, Collections.emptySet());
+            }
+            //collect.addAll(e.getValue().getActs(mf, theta, tmp));
+            coll.put(e.getKey(), new LinkedHashSet<>(e.getValue().getActs(mf, theta, tmp, c, n).keySet()));
+        }
+
+        // !!!
+        Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
+        for (SAction<DynamicActionKind> a : vs.iterator().next()) {
+            if (vs.stream().allMatch(x -> x.contains(a))) {
+                //res.add(a);
+                res.put(a, Collections.emptySet());
+            }
+        }
+
+        return res;
+    }
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+
+        return step(theta, a, c, n);  // XXX FIXME need recursive weakStep
+
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        //return getActs(mf, theta, blocked, c, n);  // XXX must do recursive weakActs
+
+        HashSet<Role> tmp = new HashSet<>(blocked);
+        tmp.add(this.src);
+        tmp.add(this.dst);
         LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
 
         Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();
@@ -360,8 +620,7 @@ public class GTGInteraction implements GTGType {
                 SSend<DynamicActionKind> a = mf.GTSSend(this.src, this.dst, e.getKey(), Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
                 res.add(a);
             }
-            //collect.addAll(e.getValue().getActs(mf, theta, tmp));
-            coll.put(e.getKey(), e.getValue().getActs(mf, theta, tmp, c, n));
+            coll.put(e.getKey(), e.getValue().getWeakActs(mf, theta, tmp, c, n));
         }
 
         // !!!
@@ -375,168 +634,44 @@ public class GTGInteraction implements GTGType {
         return res;
     }
 
-    /* ... */
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ...deprecated */
 
     @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
+    public boolean isSinglePointed() {
+        return this.cases.values().stream().allMatch(GTGType::isSinglePointed);
     }
 
     @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return getActs(mf, theta, blocked, c, n);
-    }
-
-    /* ... */
-
-    @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
-        Set<Op> res = GTUtil.setOf();
-        this.cases.values()
-                .forEach(x -> res.addAll(x.getCommittingTop(com)));
-        return res;
+    public boolean isGood() {
+        return this.cases.values().stream().allMatch(GTGType::isGood);
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
-        Set<Op> res = GTUtil.setOf();
-        Set<Role> com1 = GTUtil.copyOf(com);
-        if ((this.dst.equals(obs) && !com.contains(obs))  // src doesn't need to be com, cf. below case
-                || (com.contains(this.src) && !com.contains(this.dst))) {
-            res.addAll(this.cases.keySet());
-            com1.add(this.dst);
+    public boolean isInitial() {
+        return this.cases.values().stream().allMatch(GTGType::isInitial);
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        if (!com.contains(this.src) || rem.contains(this.dst)) {
+            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
         }
-        this.cases.values().stream()
-                .forEach(x -> res.addAll(x.getCommittingLeft(obs, com1)));
-        return res;
-    }
-
-    @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
-        Set<Op> res = GTUtil.setOf();
-        Set<Role> com1 = GTUtil.copyOf(com);
-        if (!com.contains(this.src) && this.src.equals(obs)) {
-            res.addAll(this.cases.keySet());
-            com1.add(obs);
-            com1.add(this.dst);
-        } else if (com.contains(this.src) && !com.contains(this.dst)) {
-            res.addAll(this.cases.keySet());
-            com1.add(this.dst);
-        }
-        this.cases.values().stream()
-                .forEach(x -> res.addAll(x.getCommittingRight(obs, com1)));
-        return res;
-    }
-
-    @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        Map<Op, Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>>> collect =
-                this.cases.entrySet().stream().collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().getLabels()
-                ));
-        Set<Op> imm = GTUtil.setOf();
-        Map<Integer, Pair<Set<Op>, Set<Op>>> nested = GTUtil.mapOf();
-        for (Map.Entry<Op, GTGType> x : this.cases.entrySet()) {
-            Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> tmp = x.getValue().getLabels();
-            imm.add(x.getKey());
-            imm.addAll(tmp.left);
-            if (nested.keySet().stream().anyMatch(y -> tmp.right.keySet().contains(y))) {
-                throw new RuntimeException("Shouldn't get here: " + this + " ,, " + tmp);
-            }
-            nested.putAll(tmp.right);
-        }
-        return Pair.of(imm, nested);
-    }
-
-    /* Aux */
-
-    @Override
-    public GTGInteraction subs(Map<RecVar, GTGType> subs) {
-        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().subs(subs),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return new GTGInteraction(this.src, this.dst, cases);
-    }
-
-    @Override
-    public GTGInteraction unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return Stream.concat(Stream.of(this.src, this.dst),
-                        this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
-                .collect(Collectors.toSet());
-    }
-
-    public Role getSender() {
-        return this.src;
-    }
-
-    public Role getReceiver() {
-        return this.dst;
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                .flatMap(x -> x.getTimeoutIds().stream())
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        Set<Op> ops = new HashSet<>(this.cases.keySet());
-        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
-        return ops;
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() {
-        return this.cases.values().stream()
-                .flatMap(x -> x.getRecDecls().stream()).collect(Collectors.toSet());
-    }
-
-    @Override
-    public String toString() {
-        return this.src + "->" + this.dst
-                + "{" + this.cases.entrySet().stream()
-                .map(e -> e.getKey() + "." + e.getValue())
-                .collect(Collectors.joining(", ")) + "}";
-    }
-
-    /* hashCode, equals, canEquals */
-
-    @Override
-    public int hashCode() {
-        int hash = GTGType.CHOICE_HASH;
-        hash = 31 * hash + this.src.hashCode();
-        hash = 31 * hash + this.dst.hashCode();
-        hash = 31 * hash + this.cases.hashCode();
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null || !(obj instanceof GTGInteraction)) { return false; }
-        GTGInteraction them = (GTGInteraction) obj;
-        return them.canEquals(this)
-                && this.src.equals(them.src)
-                && this.dst.equals(them.dst)
-                && this.cases.equals(them.cases);
-    }
-
-    @Override
-    public boolean canEquals(Object o) {
-        return o instanceof GTGInteraction;
+        Set<Role> c_copy = GTUtil.copyOf(com);
+        Set<Role> r_copy = GTUtil.copyOf(rem);
+        c_copy.add(this.dst);
+        r_copy.remove(this.dst);
+        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
     }
 }

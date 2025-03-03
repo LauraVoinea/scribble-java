@@ -15,6 +15,7 @@ import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GTGRecursion implements GTGType {
 
@@ -28,24 +29,8 @@ public class GTGRecursion implements GTGType {
         this.body = body;
     }
 
-    /* ... */
-
-    @Override
-    public boolean isSinglePointed() {
-        return this.body.isSinglePointed();
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.body.isGood();
-    }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return this.body.isInitial();
-    }
 
     @Override
     public boolean isClearTermination() {
@@ -63,13 +48,8 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isSingleDecision(Set<Role> top, Theta theta) {
-        return this.body.isSingleDecision(top, theta);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommitting(com, rem);
+    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
+        return this.body.isSingleDecision(topAll, theta);
     }
 
     @Override
@@ -77,27 +57,6 @@ public class GTGRecursion implements GTGType {
         return this.body.isLeftCommittingAux(obs, com, rem);
     }
 
-    /* ... */
-
-    @Override
-    public boolean isChoicePartip() {
-        return this.body.isChoicePartip();
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return this.body.isUniqueInstan(seen);
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> top, Theta theta) {
-        return this.body.isAwareCorollary(mf, top, theta);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.body.isCoherent();
-    }
 
     /* ... */
 
@@ -106,8 +65,8 @@ public class GTGRecursion implements GTGType {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         return this.body.project(topPeers, r, c, n).map(x ->
                 x.left.equals(this.var)
-                        ? Pair.of(lf.end(), new Sigma(topPeers))
-                        : Pair.of(lf.recursion(this.var, x.left), x.right)
+                ? Pair.of(lf.end(), new Sigma(topPeers))
+                : Pair.of(lf.recursion(this.var, x.left), x.right)
         );
     }
 
@@ -116,61 +75,28 @@ public class GTGRecursion implements GTGType {
         return Optional.of(new Theta(cs));
     }
 
-    /* ... */
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                unfoldAllOnce().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
-        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
-                toStepJudgeString(
-                        "[Rec_" + this.var + "]",  // HACK for bounding execution
-                        c, n, theta, this, (GTSAction) a, x.left, x.mid),
-                x.right)));
-    }
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>>
-    getActs(GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return this.body.getActs(mf, theta, blocked, c, n);
-    }
 
     /* ... */
 
     @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                unfoldAllOnce().weakStep(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
-        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
-                toStepJudgeString(
-                        "[Rec_" + this.var + "]",  // HACK for bounding execution
-                        c, n, theta, this, (GTSAction) a, x.left, x.mid),
-                x.right)));
+    public Map<Role, Set<Op>> getCommittingAux(int c, Set<Role> com) {
+        return this.body.getCommittingAux(c, com);
     }
 
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        //return getActs(mf, theta, blocked, c, n);
-        return unfoldAllOnce().getWeakActs(mf, theta, blocked, c, n);
-    }
-
-    /* ... */
+    // ...
 
     @Override
-    public Set<Op> getCommittingTop(Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         return this.body.getCommittingTop();
     }
 
     @Override
-    public Set<Op> getCommittingLeft(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
         return this.body.getCommittingLeft(obs, com);
     }
 
     @Override
-    public Set<Op> getCommittingRight(Role obs, Set<Role> com) {
+    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
         return this.body.getCommittingRight(obs, com);
     }
 
@@ -179,19 +105,25 @@ public class GTGRecursion implements GTGType {
         return this.body.getLabels();
     }
 
+
     /* Aux */
 
     @Override
-    public GTGRecursion subs(Map<RecVar, GTGType> subs) {
-        if (subs.containsKey(this.var)) {
+    public GTGRecursion subs(RecVar v, GTGRecursion subs) {
+        if (this.var.equals(v)) {
             return this;
         }
-        return new GTGRecursion(this.var, this.body.subs(subs));
+        return new GTGRecursion(this.var, this.body.subs(v, subs));
     }
 
     @Override
     public GTGType unfoldAllOnce() {
-        return this.body.subs(GTUtil.mapOf(this.var, this)).unfoldAllOnce();
+        return this.body.subs(this.var, this).unfoldAllOnce();
+    }
+
+    @Override
+    public Set<Role> getReadyAux(Set<Role> blocked) {
+        return this.body.getReadyAux(blocked);
     }
 
     @Override
@@ -220,11 +152,12 @@ public class GTGRecursion implements GTGType {
         return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }
 
+
     /* hashCode, equals, canEquals */
 
     @Override
     public int hashCode() {
-        int hash = GTGType.REC_HASH;
+        int hash = GTGType.GLOBAL_REC_HASH;
         hash = 31 * hash + this.var.hashCode();
         hash = 31 * hash + this.body.hashCode();
         return hash;
@@ -243,5 +176,147 @@ public class GTGRecursion implements GTGType {
     @Override
     public boolean canEquals(Object o) {
         return o instanceof GTGRecursion;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    @Override
+    public boolean isRuntimeChoicePartip() {
+        return this.body.isRuntimeChoicePartip();
+    }
+
+    @Override
+    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
+        return this.body.isUniqueInstan(seen);
+    }
+
+    @Override
+    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
+        return this.body.isAwareCorollary(mf, topAll, theta);
+    }
+
+    @Override
+    public boolean isCoherent() {
+        return this.body.isCoherent();
+    }
+
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
+                unfoldAllOnce().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
+                toStepJudgeString(
+                        "[Rec_" + this.var + "]",  // HACK for bounding execution
+                        c, n, theta, this, (GTSAction) a, x.left, x.mid),
+                x.right)));
+    }
+
+    @Override
+    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
+    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> as = this.body.getActs(mf, theta, blocked, c, n);
+        return as.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                x -> GTUtil.union(x.getValue(), Set.of(this.var)),
+                (x, y) -> x,  // CHECKME
+                LinkedHashMap::new
+        ));
+    }
+
+    /* ... */
+
+    @Override
+    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
+            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
+        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
+                unfoldAllOnce().weakStep(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+        return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
+                toStepJudgeString(
+                        "[Rec_" + this.var + "]",  // HACK for bounding execution
+                        c, n, theta, this, (GTSAction) a, x.left, x.mid),
+                x.right)));
+    }
+
+    @Override
+    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
+            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
+        ////return getActs(mf, theta, blocked, c, n);
+        //return unfoldAllOnce().getWeakActs(mf, theta, blocked, c, n);
+
+        LinkedHashSet<SAction<DynamicActionKind>> was = this.body.getWeakActs(mf, theta, blocked, c, n);
+        //System.out.println("bbbbbbbb: " + this + " ,,, " + was);
+
+        return was;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ...deprecated */
+
+    @Override
+    public boolean isSinglePointed() {
+        return this.body.isSinglePointed();
+    }
+
+    @Override
+    public boolean isGood() {
+        return this.body.isGood();
+    }
+
+    @Override
+    public boolean isInitial() {
+        return this.body.isInitial();
+    }
+
+    @Override
+    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
+        return this.body.isLeftCommitting(com, rem);
     }
 }
