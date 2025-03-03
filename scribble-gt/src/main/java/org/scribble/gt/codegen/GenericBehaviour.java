@@ -102,7 +102,8 @@ public class GenericBehaviour {
                 }
             }
         }
-        erlCode.insert(exportIndex, funs.substring(0, funs.length() - 2));
+        if (funs.length() > 0)
+            erlCode.insert(exportIndex, funs.substring(0, funs.length() - 2));
         return funs.length() > 0 ? funs.length() - 2 : 0;
     }
 

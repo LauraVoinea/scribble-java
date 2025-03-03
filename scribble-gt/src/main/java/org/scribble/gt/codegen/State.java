@@ -104,10 +104,6 @@ public class State implements Comparable<State> {
         this.gcEvents = gcEvents;
     }
 
-    public void addGcEvent(Event gcEvent) {
-        this.gcEvents.add(gcEvent);
-    }
-
     /**
      * Returns a string representation of the state.
      *

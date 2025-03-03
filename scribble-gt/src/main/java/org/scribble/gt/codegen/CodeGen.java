@@ -71,7 +71,7 @@ public class CodeGen {
             headerErlCode.append(lowercaseFirstLetter(role.toString())).append("_pid :: pid() | undefined, ");
         }
         // Initialize mc_counter fields only if necessary
-        if (!recMap.isEmpty())
+//        if (!recMap.isEmpty())
             for (int i = 1; i <= theta.map.size(); i++) {
                 headerErlCode.append("mc_counter_").append(i).append(" = 0 :: integer(), ");
             }

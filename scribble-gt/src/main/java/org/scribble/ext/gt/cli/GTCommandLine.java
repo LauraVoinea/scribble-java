@@ -280,7 +280,7 @@ public class GTCommandLine extends CommandLine {
             Map<Role, GTLConfig> configs = poof.configs;
             String protocolName = g.getSimpleName().toString();
             // code gen
-            CodeGen.genErl(protocolName, configs, translate.getCommittingTop(), false);
+            CodeGen.genErl(protocolName, configs, translate.getCommittingTop(), true);
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Set<Op> com = GTUtil.umod(translate.getCommittingTop());
