@@ -1,31 +1,36 @@
 module OnlineWallet;
 
+// Roles:
+//   S: Server – Handles account information and payment processing.
+//   C: Client – Initiates login and initiates payment or quit.
+//   A: Authenticator – Verifies login and directs protocol branching.
+
 global protocol OnlineWallet(role S, role C, role A) {
     login() from C to A;
         choice at A {
-            login_ok () from A to C;
-            auth () from A to S;
+            login_success () from A to C;
+            login_accepted () from A to S;
             rec  LOOP {
                 account() from S to C;
                 mixed{
                     choice  at C {
                         pay() from C to S;
-                        ack() from S to C;
-                        empty() from S to A;
+                        confirmation() from S to C;
+                        keep_alive() from S to A;
                         continue  LOOP;
                     } or {
                         quit() from C to S;
-                        bye() from S to C;
-                        next() from S to A;
+                        quit_ack() from S to C;
+                        end_session() from S to A;
                     }
                 } () or C->S() {
                          timeout() from S to C;
-                         nextT() from S to A;
+                         end_session() from S to A;
                          }
             }
         } or {
-            login_fail() from A to C;
-            //auth_fail() from A to S;
+            login_failed() from A to C;
+            auth_fail() from A to S;
         }
 }
 

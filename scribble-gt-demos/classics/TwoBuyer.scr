@@ -3,24 +3,24 @@ module TwoBuyer;
 
 global protocol TwoBuyer(role Alice, role Bob, role Seller){
   mixed{
-      title() from Alice to Seller;
-      quote() from Seller to Alice;
-      quote() from Seller to Bob;
-      quoteByTwo() from Alice to Bob;
+      request_title() from Alice to Seller;
+      price_quote() from Seller to Alice;
+      price_quote() from Seller to Bob;
+      contribution() from Alice to Bob;
       mixed{
           choice at Bob{
-              ok() from Bob to Seller;
-              confirmation() from Seller to Bob;
+              accept_quote() from Bob to Seller;
+              purchase_confirmed() from Seller to Bob;
           } or {
-                cancel() from Bob to Seller;
-                ack() from Seller to Bob;
+                reject_quote() from Bob to Seller;
+                cancel_confirmation() from Seller to Bob;
           }
           } () or Bob -> Seller(){
-              timeout() from Seller to Bob;
+              response_timeout() from Seller to Bob;
           }
   }() or Alice -> Seller() {
-      notAvailable() from Seller to Alice;
-      notAvailable() from Seller to Bob;
+      not_available() from Seller to Alice;
+      not_available() from Seller to Bob;
   }
 
 }

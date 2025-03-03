@@ -7,11 +7,11 @@ global protocol Calc(role Alice, role Carol, role Server){
     mixed{
          choice at Carol {
                sum() from Carol to Server;
-               result() from Server to Carol;
+               result_sum() from Server to Carol;
                sum_result() from Carol to Alice;
            } or {
                diff() from Carol to Server;
-               result() from Server to Carol;
+               result_diff() from Server to Carol;
                diff_result() from Carol to Alice;
            }
        } () or Carol -> Server() {
