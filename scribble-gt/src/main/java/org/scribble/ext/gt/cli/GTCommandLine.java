@@ -331,7 +331,7 @@ public class GTCommandLine extends CommandLine {
 
             //Map<Role, Set<Op>> com = GTUtil.umod(translate.getCommittingTop());
             Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
-            Map<Role, Set<Op>> com = new HashMap<>();
+            Map<Role, Set<Op>> com = new HashMap<>();  // deprecated
             Map<Role, Map<Integer, Set<Op>>> comInvert = new HashMap<>();
             comFull.entrySet().forEach(x -> {
                 int c = x.getKey();

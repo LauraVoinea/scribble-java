@@ -19,7 +19,9 @@ public class GTEFSM {
     public final GTVState init;
     public final Set<GTVEvent> E;
     public final Set<GTVAction> A;
-    public final Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta;
+    public final Map<
+            Pair<GTVState, GTVEvent>,
+            Set<Pair<GTVAction, GTVState>>> delta;
 
     public GTEFSM(Set<GTVState> S, GTVState init, Set<GTVEvent> E, Set<GTVAction> A,
                   Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta) {
