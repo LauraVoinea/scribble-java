@@ -883,7 +883,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-//* // Exception, Interrupt, etc. similar
+/* // Exception, Interrupt, etc. similar
 global protocol Timeout(role A, role B, role C) {
     mixed { // "Left-hand" side (LHS)
         a1() from A to B;
@@ -896,6 +896,41 @@ global protocol Timeout(role A, role B, role C) {
     }
 }
 //*/
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        choice at A {  // !!! multi choice in mixed
+            a1() from A to B;
+            a2() from B to A;
+        } or {
+            a3() from A to B;
+            a4() from B to A;
+        }
+    } () or A->B () {
+        b() from B to A;
+    }
+}
+//*/
+
+//*//$\mu \mathtt{t} . ( p \rightarrow q : { a_1 .\mathtt{t}, a_2. q \rightarrow p : b_1 } \rhd^c q \rightarrow p : b_2)$
+global protocol Proto1(role A, role B) {
+    rec X {
+        mixed {
+            choice at A {
+                a1() from A to B;
+                continue X;  // testing left committing
+            } or {
+                a2() from A to B;
+                b1() from B to A;
+            }
+        } () or A -> B () {
+            b2() from B to A;
+        }
+    }
+}
+//*/
+
 
 /*
 global protocol FailureHandling(role M, role W, role FD) {
