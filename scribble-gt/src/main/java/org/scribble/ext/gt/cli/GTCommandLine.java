@@ -11,12 +11,9 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
-import org.scribble.ext.gt.codegen.erlang.FileWriter;
+import org.scribble.ext.gt.codegen.erlang.*;
 
-import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
-import org.scribble.ext.gt.codegen.erlang.GTGenericBehaviour;
 //import org.scribble.ext.gt.codegen.erlang.GTCallbackModule;
-import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
 import org.scribble.ext.gt.codegen.java.GTJavaApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
@@ -377,11 +374,11 @@ public class GTCommandLine extends CommandLine {
                 System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
 
                 System.err.println(x.self + " ----> " + x.theta  + " <> <> " + x.sigma.map.keySet());
-//                try {
-//                    FileWriter.writeErlFile("ProtocolName", x.self.toString(), new GTCallbackModule().generate(null, x.self, efsm));
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
+                try {
+                    new GTCallbackModule().generate(g.getSimpleName(), x, efsm);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
                 //TODO: print gen_role to file
                 try {
