@@ -1,17 +1,24 @@
 package org.scribble.ext.gt.codegen.erlang;
 
-//import java.util.ArrayList;
-//import java.util.Collections;
-//import java.util.List;
-//import java.util.Optional;
-//import java.util.stream.Collectors;
 import java.io.IOException;
 import java.util.*;
 
 public class ErlFun implements ErlTerm {
     private String name;
+    private String arity;
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getArity() {
+        return this.arity;
+    }
+
+
+
     /** Internal representation of a function clause: arguments, guard, and body. */
-    private static class FunClause {
+    static class FunClause {
         List<ErlTerm> args;
         ErlGuard guard;
         ErlTerm body;
@@ -30,10 +37,16 @@ public class ErlFun implements ErlTerm {
     /** Add a function clause with given argument patterns, guard (optional), and body. */
     public void addClause(List<ErlTerm> args, ErlGuard guard, ErlTerm body) {
         clauses.add(new FunClause(new ArrayList<>(args), guard, body));
+        arity = String.valueOf(args.size());
     }
     /** Convenience: add a clause without a guard. */
     public void addClause(List<ErlTerm> args, ErlTerm body) {
         clauses.add(new FunClause(new ArrayList<>(args), null, body));
+        arity = String.valueOf(args.size());
+    }
+
+    public Iterable<? extends FunClause> getClauses() {
+        return this.clauses;
     }
 
     @Override

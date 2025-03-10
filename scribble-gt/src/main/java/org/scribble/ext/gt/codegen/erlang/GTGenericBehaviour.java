@@ -35,29 +35,69 @@ public class GTGenericBehaviour {
         writer.writeLine("-behaviour(gen_statem).");
         writer.writeLine("");
 
-        // Export functions: init/1, callback_mode/0, code_change/4, terminate/3, and state functions
-        StringBuilder exports = new StringBuilder();
-        exports.append("[init/1, callback_mode/0, code_change/4, terminate/3");
-        //TODO: exclude terminal state
-        for (GTVState state : efsm.S) {
-            if (!GTGenUtil.getStateKind(efsm, state).equals(GTGenUtil.StateKind.END)) {
-                String stateName = GTGenUtil.stateToFuncName(state);
-                exports.append(", ").append(stateName).append("/3");
+        Set<String> exportNames = new LinkedHashSet<>();
+        exportNames.add("init/1");
+        exportNames.add("callback_mode/0");
+        exportNames.add("code_change/4");
+        exportNames.add("terminate/3");
+        exportNames.add("start_link/2");
+
+        // Prepare a list to store all generated state functions
+        List<ErlFun> stateFunctions = new ArrayList<>();
+
+        // Generate state functions for each state in the EFSM.
+        for (GTVState s : efsm.S) {
+            switch (GTGenUtil.getStateKind(efsm, s)) {
+                case END:
+                    break;
+                case BRANCH: {
+                    List<ErlFun> branchFuns = generateBranchAux(efsm, s);
+                    stateFunctions.addAll(branchFuns);
+                    break;
+                }
+                case SELECT: {
+                    List<ErlFun> selectFuns = generateSelect(efsm, s);
+                    stateFunctions.addAll(selectFuns);
+                    break;
+                }
+                case INTERNAL_MIXED: {
+                    List<ErlFun> mixedFuns = generateInternalMixed(efsm, s);
+                    stateFunctions.addAll(mixedFuns);
+                    break;
+                }
+                case EXTERNAL_MIXED_OI: {
+                    List<ErlFun> extOIFuns = generateExternalMixedOI(efsm, s);
+                    stateFunctions.addAll(extOIFuns);
+                    break;
+                }
+                case EXTERNAL_MIXED_II: {
+                    List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s);
+                    stateFunctions.addAll(extIIFuns);
+                    break;
+                }
+                case EXTERNAL_MIXED_NOT_ENTRY: {
+                    List<ErlFun> extNotEntryFuns = generateExternalMixedNotEntry(efsm, s);
+                    stateFunctions.addAll(extNotEntryFuns);
+                    break;
+                }
             }
         }
-        exports.append("]");
-        writer.writeLine("-export(" + exports.toString() + ").");
+
+        for (ErlFun f : stateFunctions) {
+            exportNames.add(f.getName() + "/" + f.getArity());
+        }
+
+        // Write export lists.
+        String exportsLine = "-export([" + String.join(", ", exportNames) + "]).";
+        writer.writeLine(exportsLine);
         writer.writeLine("");
 
-        //TODO: actual counter name
-        // Define state data record (with counter and user_state fields)
-//        writer.writeLine("-record(state_data, {counter = 0, user_state}).");
         writer.writeLine(generateStateDataRecord(efsm, r.sigma.map.keySet()));
         writer.writeLine("");
 
-        // Generate init/1 function
-        ErlFun initFun = createInitFunction(callbackModuleName, efsm.init);
-        initFun.write(writer);
+        // Generate start_link/2 function
+        ErlFun startLinkFun = generateStartLinkFun(moduleName);
+        startLinkFun.write(writer);
         writer.writeLine("");
 
         // Generate callback_mode/0 function
@@ -65,50 +105,30 @@ public class GTGenericBehaviour {
         cbModeFun.write(writer);
         writer.writeLine("");
 
-        // Generate state functions for each state in the EFSM.
-        for (GTVState s : efsm.S) {
-            writer.writeLine("%% State " + GTGenUtil.stateToFuncName(s) + " (" + GTGenUtil.getStateKind(efsm, s) + ")");
-            switch (GTGenUtil.getStateKind(efsm, s)) {
-                case END:
-                    break;
-                case BRANCH:
-                    for (ErlFun f : generateBranchAux(efsm, s)) {
-                        f.write(writer);
-                        writer.writeLine("");
-                    }
-                    break;
-                case SELECT:
-                    for (ErlFun f : generateSelect(efsm, s)) {
-                        f.write(writer);
-                        writer.writeLine("");
-                    }
-                    break;
-                case INTERNAL_MIXED:
-                    for (ErlFun f : generateInternalMixed(efsm, s)) {
-                        f.write(writer);
-                        writer.writeLine("");
-                    }
-                    break;
-                case EXTERNAL_MIXED_OI:
-                    for (ErlFun f : generateExternalMixedOI(efsm, s)) {
-                        f.write(writer);
-                        writer.writeLine("");
-                    }
-                    break;
-                case EXTERNAL_MIXED_II:
-                    for (ErlFun f : generateExternalMixedII(efsm, s)) {
-                        f.write(writer);
-                        writer.writeLine("");
-                    }
-                    break;
-                case EXTERNAL_MIXED_NOT_ENTRY:
-                    for (ErlFun f : generateExternalMixedNotEntry(efsm, s)) {
-                        f.write(writer);
-                        writer.writeLine("");
-                    }
-                    break;
+        // Generate init/1 function
+        ErlFun initFun = createInitFunction(callbackModuleName, efsm.init);
+        initFun.write(writer);
+        writer.writeLine("");
+
+        // Group state function clauses by name.
+        Map<String, List<ErlFun>> groupedStateFunctions = stateFunctions.stream()
+                .collect(Collectors.groupingBy(ErlFun::getName));
+
+        // Write state functions
+        for (Map.Entry<String, List<ErlFun>> entry : groupedStateFunctions.entrySet()) {
+            String funcName = entry.getKey();
+            // Aggregate all clauses for this function.
+            ErlFun aggregated = new ErlFun(funcName);
+            for (ErlFun clauseFun : entry.getValue()) {
+                for (ErlFun.FunClause fc : clauseFun.getClauses()) {
+                    aggregated.addClause(fc.args, fc.guard, fc.body);
+                }
             }
+            writer.writeLine("%% State function: " + funcName);
+            aggregated.write(writer);
+            writer.writeLine("");
         }
+
 
         // Generate code_change/4 function for hot code upgrades
         ErlFun codeChangeFun = createCodeChangeFunction();
@@ -123,9 +143,39 @@ public class GTGenericBehaviour {
         writer.close();
     }
 
+
+    private ErlFun generateStartLinkFun(String moduleName) {
+        String funcName = "start_link";
+        List<ErlTerm> headParams = Arrays.asList(new ErlVar("CallbackModule"), new ErlVar("Args"));
+        ErlCall ensureCall = new ErlCall("code", "ensure_loaded", Arrays.asList(new ErlVar("CallbackModule")));
+        ErlCase caseExpr = new ErlCase(ensureCall);
+
+        // Clause 1:
+        // Pattern: {module, CallbackModule}
+        ErlTuple pattern1 = new ErlTuple(Arrays.asList(new ErlAtom("module"), new ErlVar("CallbackModule")));
+        // Body: gen_statem:start_link({local, CallbackModule}, gen_alice, {CallbackModule, Args}, [])
+        ErlTuple arg1 = new ErlTuple(Arrays.asList(new ErlAtom("local"), new ErlVar("CallbackModule")));
+        ErlAtom arg2 = new ErlAtom(moduleName);
+        ErlTuple arg3 = new ErlTuple(Arrays.asList(new ErlVar("CallbackModule"), new ErlVar("Args")));
+        ErlList arg4 = new ErlList(Collections.emptyList());
+        ErlCall startLinkCall = new ErlCall(new ErlAtom("gen_statem"), "start_link",
+                Arrays.asList(arg1, arg2, arg3, arg4));
+        caseExpr.addClause(pattern1, startLinkCall);
+
+
+        ErlTuple pattern2 = new ErlTuple(Arrays.asList(new ErlAtom("error"), new ErlVar("Reason")));
+        ErlTuple errorResult = new ErlTuple(Arrays.asList(new ErlAtom("error"), new ErlVar("Reason")));
+        caseExpr.addClause(pattern2, errorResult);
+
+        ErlFun startLinkFun = new ErlFun(funcName);
+        startLinkFun.addClause(headParams, caseExpr);
+
+        return startLinkFun;
+    }
+
+
     private String generateStateDataRecord(GTEFSM efsm, Set<Role> roles) {
         // Generate counter fields for every state in the EFSM.
-        // (Assumes that each state gets a counter field named "mc_counter_<state.id>")
         Set<String> counterFields = efsm.S.stream()
                 .filter(s -> s.c > 0)
                 .map(s -> "mc_counter_" + s.c + " = 0")
@@ -145,28 +195,36 @@ public class GTGenericBehaviour {
 
     /** Build the init/1 function, which initializes the gen_statem. */
     private ErlFun createInitFunction(String callbackModuleName, GTVState initState) {
-        ErlVar argVar = new ErlVar("Arg");
-        // Call the callback module's init(Arg) to get initial user state.
-        ErlVar userStateVar = new ErlVar("UserState");
-        ErlCall callbackInitCall = new ErlCall(callbackModuleName, "init", Arrays.asList(argVar));
-        ErlMatch assignUserState = new ErlMatch(userStateVar, callbackInitCall);
-        // Create initial StateData = #state{counter=0, user_state=UserState}.
-        ErlVar stateDataVar = new ErlVar("StateData");
-        ErlRecordUpdate initStateRecord = new ErlRecordUpdate(null, "state_data");
-        initStateRecord.addField("counter", new ErlAtom("0"));
-        initStateRecord.addField("user_state", userStateVar);
-        ErlMatch assignStateData = new ErlMatch(stateDataVar, initStateRecord);
-        // Return {ok, s<initState.id>, StateData}.
-        String stateName = GTGenUtil.stateToFuncName(initState);
-        ErlTuple okTuple = new ErlTuple(Arrays.asList(new ErlAtom("ok"), new ErlAtom(stateName), stateDataVar));
-        // Compose the function body sequence.
-        ErlSeq initBody = new ErlSeq();
-        initBody.addExpression(assignUserState);
-        initBody.addExpression(assignStateData);
-        initBody.addExpression(okTuple);
-        // Define init/1 clause.
+        // The clause head should match a tuple: {CallbackModule, _Args}
+        ErlTuple head = new ErlTuple(Arrays.asList(
+                new ErlVar("CallbackModule"),
+                new ErlVar("_Args")
+        ));
+        List<ErlTerm> headArgs = Arrays.asList(head);
+
+        ErlSeq bodySeq = new ErlSeq();
+        ErlCall formatCall = new ErlCall("io", "format", Arrays.asList(
+                new ErlString(callbackModuleName + ": Initializing with callback module ~p~n"),
+                new ErlList(Arrays.asList(new ErlVar("CallbackModule")))
+        ));
+        bodySeq.addExpression(formatCall);
+
+        // put(callback_module, CallbackModule)
+        ErlCall putCall = new ErlCall("put", Arrays.asList(
+                new ErlAtom("callback_module"),
+                new ErlVar("CallbackModule")
+        ));
+        bodySeq.addExpression(putCall);
+
+        //CallbackModule:init([])
+        ErlCall initCall = new ErlCall(new ErlVar("CallbackModule"), "init", Arrays.asList(
+                new ErlList(Collections.emptyList())
+        ));
+        bodySeq.addExpression(initCall);
+
+        // Create the init function and add the single clause.
         ErlFun initFun = new ErlFun("init");
-        initFun.addClause(Arrays.asList(argVar), null, initBody);
+        initFun.addClause(headArgs, bodySeq);
         return initFun;
     }
 
@@ -175,87 +233,6 @@ public class GTGenericBehaviour {
         ErlFun cbModeFun = new ErlFun("callback_mode");
         cbModeFun.addClause(Collections.emptyList(), null, new ErlAtom("state_functions"));
         return cbModeFun;
-    }
-
-    /** Build a state function for a given state. */
-    private ErlFun createStateFunction(GTVState state, String callbackModuleName, GTEFSM efsm) {
-        String stateName = "s" + state.id;
-        ErlFun stateFun = new ErlFun(stateName);
-
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
-                GTGenUtil.filterEdgesByState(efsm, state);
-
-        // For each outgoing transition of the state, build two clauses (fresh and stale)
-        filt.entrySet().stream().forEach(entry -> {
-            GTVEvent event = entry.getKey().right;
-            String eventName = GTGenUtil.eventToParam(event);
-            entry.getValue().stream().forEach(pair -> {
-                // Build head pattern: [ "info", {EventName, C, Msg}, StateData ]
-                ErlTerm head1 = new ErlAtom("info");
-                ErlVar cVar = new ErlVar("C");
-                ErlVar msgVar = new ErlVar("Msg");
-                ErlTuple eventPattern = new ErlTuple(Arrays.asList(new ErlAtom(eventName), cVar, msgVar));
-                ErlVar stateDataVar = new ErlVar("StateData");
-                List<ErlTerm> headArgs = Arrays.asList(head1, eventPattern, stateDataVar);
-
-                // Guard: C >= StateData#state.counter
-                ErlRecordAccess currentCount = new ErlRecordAccess(stateDataVar, "state", "counter");
-                ErlCall compareGuard = new ErlCall(new ErlOp(">="), Arrays.asList(cVar, currentCount));
-                ErlGuard freshGuard = new ErlGuard(compareGuard);
-
-                // Fresh event body:
-                // 1. NewUserState = CallbackModule:handle_EventName(Msg, StateData#state.user_state)
-                ErlVar newUserStateVar = new ErlVar("NewUserState");
-                ErlRecordAccess userStateAccess = new ErlRecordAccess(stateDataVar, "state", "user_state");
-                ErlCall callbackCall = new ErlCall(callbackModuleName, "handle_" + eventName,
-                        Arrays.asList(msgVar, userStateAccess));
-                ErlMatch assignNewUserState = new ErlMatch(newUserStateVar, callbackCall);
-
-                // 2. NewCounter = C + 1
-                ErlVar newCounterVar = new ErlVar("NewCounter");
-                ErlCall incrementCounter = new ErlCall("+", Arrays.asList(cVar, new ErlAtom("1")));
-                ErlMatch assignNewCounter = new ErlMatch(newCounterVar, incrementCounter);
-
-                // 3. NewStateData = StateData#state{counter = NewCounter, user_state = NewUserState}
-                ErlVar newStateDataVar = new ErlVar("NewStateData");
-                ErlRecordUpdate updatedStateRec = new ErlRecordUpdate(stateDataVar, "state");
-                updatedStateRec.addField("counter", newCounterVar);
-                updatedStateRec.addField("user_state", newUserStateVar);
-                ErlMatch assignNewStateData = new ErlMatch(newStateDataVar, updatedStateRec);
-
-                // 4. Build result tuple based on target state:
-                //    - If targetState is null or "stop": {stop, normal, NewStateData}
-                //    - Else if targetState equals stateName: {keep_state, NewStateData}
-                //    - Otherwise: {next_state, targetState, NewStateData}
-                ErlTerm resultTuple;
-                String target = pair.right.toString();
-                if (target == null || target.equals("stop")) {
-                    resultTuple = new ErlTuple(Arrays.asList(new ErlAtom("stop"), new ErlAtom("normal"), newStateDataVar));
-                } else if (target.equals(stateName)) {
-                    resultTuple = new ErlTuple(Arrays.asList(new ErlAtom("keep_state"), newStateDataVar));
-                } else {
-                    resultTuple = new ErlTuple(Arrays.asList(new ErlAtom("next_state"), new ErlAtom(target), newStateDataVar));
-                }
-
-                // Build the sequence of actions for a fresh event.
-                ErlSeq freshBody = new ErlSeq();
-                freshBody.addExpression(assignNewUserState);
-                freshBody.addExpression(assignNewCounter);
-                freshBody.addExpression(assignNewStateData);
-                freshBody.addExpression(resultTuple);
-
-                // Add the fresh clause with guard.
-                stateFun.addClause(headArgs, freshGuard, freshBody);
-
-                // Build stale clause: same head, no guard, body returns {keep_state, StateData}
-                ErlSeq staleBody = new ErlSeq();
-                staleBody.addExpression(new ErlTuple(Arrays.asList(new ErlAtom("keep_state"), stateDataVar)));
-                stateFun.addClause(headArgs, null, staleBody);
-            });
-        });
-
-        // (Optional catch-all clause can be added here if desired)
-        return stateFun;
     }
 
     /** Build code_change/4 function for handling code upgrades (no state change). */
@@ -493,22 +470,38 @@ public class GTGenericBehaviour {
             String paramA = GTGenUtil.eventToParam(key.right);
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
             return actions.stream().map(p -> {
+                Map<String, ErlTerm> fields = new LinkedHashMap<>();
+                //TODO: add PIDs?
+                fields.put("mc_counter_" + s.c, new ErlVar("MC"));
+                ErlRecordPattern dataPattern = new ErlRecordPattern("state_data", fields);
+
                 List<ErlTerm> params = Arrays.asList(
                         new ErlVar("EventType"),
                         new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                        new ErlVar("Data")
+                        new ErlMatch(dataPattern, new ErlVar("Data"))
                 );
                 ErlSeq bodySeq = new ErlSeq();
-                bodySeq.addExpression(new ErlMatch(new ErlVar("NewData"),
-                        new ErlAtom("Data#state_data{mc_counter_" + s.c + " = MC + 1}")));
+
+                // Data#state_data{mc_counter_<s.c> = MC + 1}
+                ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
+                recordUpdate.addField("mc_counter_" + s.c,
+                        new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
+                );
+                // NewData = Data#state_data{mc_counter_<s.c> = MC + 1}
+                bodySeq.addExpression(new ErlMatch(new ErlVar("NewData"), recordUpdate));
+
+                // Retrieve the callback module from the process dictionary (using erlang:get/1)
                 bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                         new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+
+                // callback call: CallbackModule:funcName(EventType, {paramA}, NewData)
                 bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                         Arrays.asList(
                                 new ErlVar("EventType"),
                                 new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
                                 new ErlVar("NewData")
                         )));
+
                 ErlFun clause = new ErlFun(funcName);
                 clause.addClause(params, bodySeq);
                 return clause;
@@ -541,7 +534,7 @@ public class GTGenericBehaviour {
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                     Arrays.asList(
                             new ErlVar("EventType"),
-                            new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                            new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), new ErlAtom(paramA))),
                             new ErlVar("Data")
                     )));
             ErlFun clause = new ErlFun(funcName);
@@ -598,8 +591,8 @@ public class GTGenericBehaviour {
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                     Arrays.asList(
                             new ErlVar("EventType"),
-                            new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                            new ErlVar("NewData")
+                            new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), new ErlAtom(paramA))),
+                            new ErlVar("Data")
                     )));
             ErlFun clause = new ErlFun(funcName);
             clause.addClause(params, guard, bodySeq);
