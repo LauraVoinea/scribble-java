@@ -26,7 +26,7 @@ public class GTGenRoleGen {
                 case BRANCH -> membs.addAll(generateBranchAux(m, s));
                 case SELECT -> membs.addAll(generateSelect(m, s));
                 case INTERNAL_MIXED -> membs.addAll(generateInternalMixed(m, s));
-                case EXTERNAL_MIXED_OI -> membs.addAll(generateExternalMixedOI(m, s));
+                case EXTERNAL_MIXED_OI -> membs.addAll(generateInternalMixed(m, s));
                 case EXTERNAL_MIXED_II -> membs.addAll(generateExternalMixedII(m, s));
                 case EXTERNAL_MIXED_NOT_ENTRY -> membs.addAll(generateExternalMixedNotEntry(m, s));
             }

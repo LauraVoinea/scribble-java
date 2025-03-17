@@ -35,14 +35,14 @@
             <artifactId>scribble-test</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.scribble</groupId>
-            <artifactId>scribble-test</artifactId>
-            <!-- FIXME: version? -->
-            <version>0.4.4-SNAPSHOT</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.scribble</groupId>-->
+<!--            <artifactId>scribble-test</artifactId>-->
+<!--            &lt;!&ndash; FIXME: version? &ndash;&gt;-->
+<!--            <version>${project.version}</version>-->
+<!--            <type>test-jar</type>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>junit</groupId>

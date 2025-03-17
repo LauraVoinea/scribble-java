@@ -368,12 +368,22 @@ public class GTCommandLine extends CommandLine {
                 //Set<Op> com_self = com.getOrDefault(x.self, Set.of());
                 Map<Integer, Set<Op>> com_self = comInvert.get(x.self);
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
+//                GTEFSM test = GTGenUtil.renameStateIds(efsm);
+//                System.err.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + test.toDot());
                 //TODO: print efsm/digraph to file
                 System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
+                try {
+                    new DotWriter().writeDotFile(efsm, "./test/" + g.getSimpleName(), x.self.toString());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 //TODO: print role to file
                 System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
 
-                System.err.println(x.self + " ----> " + x.theta  + " <> <> " + x.sigma.map.keySet());
+//                System.err.println(x.self + " ----> " + x.theta  + " <> <> " + x.sigma.map.keySet());
+//                System.err.println("Commiting Full: " + comFull);
+//                System.err.println("Commiting Self: " + com_self);
+//                System.err.println("Commiting plain: " + com);
                 try {
                     new GTCallbackModule().generate(g.getSimpleName(), x, efsm);
                 } catch (IOException e) {
