@@ -2,15 +2,20 @@ package org.scribble.ext.gt.core.model.efsm.event;
 
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
 
 public class GTVSendStar implements GTVAction {
 
     public final Role role;
     public final Op op;
+    public final Payload pay;
 
-    public GTVSendStar(Role role, Op op) {
+
+    public GTVSendStar(Role role, Op op, Payload payload) {
         this.role = role;
         this.op = op;
+        this.pay = payload;
+
     }
 
     @Override

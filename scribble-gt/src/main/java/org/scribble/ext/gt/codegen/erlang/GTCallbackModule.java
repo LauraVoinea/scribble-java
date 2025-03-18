@@ -286,10 +286,18 @@ public class GTCallbackModule {
                 // Build the clause head:
                 // 1. First argument: the mode, as a constant atom "cast".
                 ErlTerm arg1 = new ErlAtom("cast");
+
+                List<ErlTerm> payloadVars = e.pay.elems.stream().map(elem -> new ErlAtom(elem.toString())).
+                        collect(Collectors.toList());
+                List<ErlTerm> tupleElements = new ArrayList<>();
+                tupleElements.add(new ErlAtom(paramA));
+                tupleElements.addAll(payloadVars);
+
+                ErlTuple payloadTuple = new ErlTuple(tupleElements);
                 // 2. Second argument: a tuple {<Role>Pid, <paramA>}.
                 ErlTerm arg2 = new ErlTuple(List.of(
                         new ErlVar(e.role.toString() + "Pid"),
-                        new ErlAtom(paramA)
+                       payloadTuple
                 ));
                 // 3. Third argument: a match forcing Data to match a record pattern.
                 Map<String, ErlTerm> fields = new LinkedHashMap<>();
@@ -323,8 +331,10 @@ public class GTCallbackModule {
             GTEFSM m, GTVState s,
             Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> edges, Role self) {
         List<ErlFun> res = new LinkedList<>();
-        //TODO: only generate make_choice_s if multiple options
-        res.add(genMakeChoice_s(s));
+        //only generate make_choice_s if multiple edges
+        if(edges.size() > 1) {
+            res.add(genMakeChoice_s(s));
+        }
         res.addAll(edges.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
             return actions.stream().map(y -> {
@@ -415,7 +425,6 @@ public class GTCallbackModule {
 
 
         // Clause 1: Pattern "1" -> next state expression.
-        //TODO: genSendFun(paramA)
         tauCase.addClause(new ErlAtom("1"),
                 new ErlTuple(Arrays.asList(new ErlAtom("keep_state"), new ErlVar("Data"))));
         // Clause 2: Pattern "2" -> send call then next state.
@@ -449,11 +458,19 @@ public class GTCallbackModule {
             Pair<GTVAction, GTVState> succ = vs.iterator().next();
             String a1 = GTGenUtil.eventToParam(e);
 
-            // Build head: [ cast, {<Role>Pid, a1}, Data ]
+            List<ErlTerm> payloadVars = e.pay.elems.stream().map(elem -> new ErlAtom(elem.toString())).
+                    collect(Collectors.toList());
+            List<ErlTerm> tupleElements = new ArrayList<>();
+            tupleElements.add(new ErlAtom(a1));
+            tupleElements.addAll(payloadVars);
+
+            ErlTuple payloadTuple = new ErlTuple(tupleElements);
+
+            // Build head: [ cast, {<Role>Pid, {a1, payload}, Data ]
             ErlTerm headCast = new ErlAtom("cast");
             ErlTuple headExtTuple = new ErlTuple(List.of(
                     new ErlVar(e.role.toString() + "Pid"),
-                    new ErlAtom(a1)
+                    payloadTuple
             ));
 
             Map<String, ErlTerm> lhsFields = new LinkedHashMap<>();
