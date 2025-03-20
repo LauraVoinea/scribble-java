@@ -3,6 +3,7 @@ package org.scribble.ext.gt.codegen.erlang;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
+import org.scribble.gt.codegen.Event;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -88,5 +89,4 @@ public class GTGenUtil {
         return filt.entrySet().stream().filter(x -> x.getValue().stream().anyMatch(y -> p.test(y.left)))
                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
     }
-
 }

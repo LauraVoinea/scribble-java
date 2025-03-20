@@ -26,13 +26,13 @@ public class GTCallbackModule {
         Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
         Files.createDirectories(outputDirectory);
         String moduleName = role.toString().toLowerCase();
-        String callbackModuleName = role.toString().toLowerCase();
+        String behaviourName = "gen_" + role.toString().toLowerCase();
 
         Path filePath = outputDirectory.resolve(moduleName + ERL_EXTENSION);
         FileWriter writer = new FileWriter(filePath);
         // Module declaration and behaviour
         writer.writeLine("-module(" + moduleName + ").");
-        writer.writeLine("-behaviour(gen_statem).");
+        writer.writeLine("-behaviour(" + behaviourName + ").");
         writer.writeLine("");
 
         Set<String> exportNames = new LinkedHashSet<>();
@@ -106,7 +106,7 @@ public class GTCallbackModule {
         writer.writeLine("");
 
         // Generate init/1 function
-        ErlFun initFun = createInitFunction(role, efsm, efsm.init, r.sigma.map.keySet());
+        ErlFun initFun = genInitFunction(role, efsm, efsm.init, r.sigma.map.keySet());
         initFun.write(writer);
         writer.writeLine("");
 
@@ -149,7 +149,7 @@ public class GTCallbackModule {
 
         ErlFun fun = new ErlFun(funName);
         fun.addClause(headArgs, startLinkCall);
-
+        fun.setSpec("start_link() -> {ok, pid()} | {error, term()}");
         return fun;
     }
 
@@ -173,7 +173,7 @@ public class GTCallbackModule {
 
 
     /** Build the init/1 function, which initializes gen_role. */
-    private ErlFun createInitFunction(Role self, GTEFSM efsm, GTVState initState, Set<Role> roles) {
+    private ErlFun genInitFunction(Role self, GTEFSM efsm, GTVState initState, Set<Role> roles) {
         // Function head: init([]) ->
         List<ErlTerm> headArgs = List.of(new ErlList(Collections.emptyList()));
 
@@ -261,6 +261,7 @@ public class GTCallbackModule {
     private ErlFun createCallbackModeFunction() {
         ErlFun cbModeFun = new ErlFun("callback_mode");
         cbModeFun.addClause(Collections.emptyList(), null, new ErlAtom("state_functions"));
+        cbModeFun.setSpec("callback_mode() -> state_functions");
         return cbModeFun;
     }
 
@@ -744,3 +745,4 @@ public class GTCallbackModule {
 
 
 }
+

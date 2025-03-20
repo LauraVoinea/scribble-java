@@ -6,6 +6,7 @@ import java.util.*;
 public class ErlFun implements ErlTerm {
     private String name;
     private String arity;
+    private String spec;
 
     public String getName() {
         return this.name;
@@ -15,7 +16,13 @@ public class ErlFun implements ErlTerm {
         return this.arity;
     }
 
+    public void setSpec(String spec) {
+        this.spec = spec;
+    }
 
+    public String getSpec() {
+        return spec;
+    }
 
     /** Internal representation of a function clause: arguments, guard, and body. */
     static class FunClause {
@@ -51,6 +58,11 @@ public class ErlFun implements ErlTerm {
 
     @Override
     public void write(FileWriter w) throws IOException {
+        // Write the type spec
+        if (spec != null && !spec.isEmpty()) {
+            w.writeLine("-spec " + spec + ".");
+        }
+
         for (int i = 0; i < clauses.size(); ++i) {
             FunClause cl = clauses.get(i);
             // Write function head
@@ -82,8 +94,6 @@ public class ErlFun implements ErlTerm {
                     // not last expression in body -> add comma and newline
                     w.write(",");
                     w.writeLine("");
-                } else {
-                    // last expression in body: do not newline yet (handle after dedent)
                 }
             }
             w.dedent();
@@ -100,7 +110,6 @@ public class ErlFun implements ErlTerm {
 
     @Override
     public String toString() {
-        // Quick representation: not fully pretty, but for debugging
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < clauses.size(); ++i) {
             FunClause cl = clauses.get(i);
