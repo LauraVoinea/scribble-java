@@ -1,0 +1,9 @@
+digraph G {
+compound = true;
+"19" [ label="19[] ▷1:" ];
+"20" [ label="20[] 1:" ];
+"17" [ label="17[] 0:" ];
+"19" -> "17" [ label="B?Timeout()/ε*" ];
+"19" -> "20" [ label="B?a2()/ε" ];
+"20" -> "17" [ label="A?a6()/ε" ];
+}

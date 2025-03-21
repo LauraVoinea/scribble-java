@@ -101,7 +101,7 @@ public class GTLMixedChoice implements GTLType {
             E.addAll(m_right.E);
             A.addAll(m_right.A);
 
-            GTVSendStar a = new GTVSendStar(right.dst, op_right);
+            GTVSendStar a = new GTVSendStar(right.dst, op_right, right.pays.get(op_right));
             //Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
             //tmp.add(new Pair<>(a, m_right.init));
             // !!! left.cases.size() == 1

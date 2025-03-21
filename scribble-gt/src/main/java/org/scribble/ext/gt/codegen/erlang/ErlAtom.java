@@ -29,4 +29,8 @@ public class ErlAtom implements ErlTerm {
         String escaped = value.replace("'", "\\'");
         return "'" + escaped + "'";
     }
+
+    public String getValue() {
+        return value;
+    }
 }

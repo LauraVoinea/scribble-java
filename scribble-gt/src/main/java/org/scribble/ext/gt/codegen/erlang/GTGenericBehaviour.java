@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 public class GTGenericBehaviour {
     private static final String OUTPUT_DIR = "./test";
     private static final String ERL_EXTENSION = ".erl";
+    private static final String HRL_EXTENSION = ".hrl";
 
     /** Generate and write the Erlang code for the generic behaviour module to a file. */
     public void generateCode(GProtoName protocolName, GTLConfig r, GTEFSM efsm) throws IOException {
@@ -32,6 +33,13 @@ public class GTGenericBehaviour {
 
         Path filePath = outputDirectory.resolve(moduleName + ERL_EXTENSION);
         FileWriter writer = new FileWriter(filePath);
+
+        // Write record file
+        Path recordPath = outputDirectory.resolve(callbackModuleName + HRL_EXTENSION);
+        FileWriter recordWriter = new FileWriter(recordPath);
+        recordWriter.write(generateStateDataRecord(efsm, r.sigma.map.keySet()));
+        recordWriter.close();
+
         // Module declaration and behaviour
         writer.writeLine("-module(" + moduleName + ").");
         writer.writeLine("-behaviour(gen_statem).");
@@ -45,7 +53,7 @@ public class GTGenericBehaviour {
         exportNames.add("start_link/2");
 
         // Prepare a list to store all generated state functions
-        List<ErlFun> stateFunctions = new ArrayList<>();
+        List<ErlFun> functions = new ArrayList<>();
 
         // Generate state functions for each state in the EFSM.
         for (GTVState s : efsm.S) {
@@ -54,38 +62,38 @@ public class GTGenericBehaviour {
                     break;
                 case BRANCH: {
                     List<ErlFun> branchFuns = generateBranchAux(efsm, s);
-                    stateFunctions.addAll(branchFuns);
+                    functions.addAll(branchFuns);
                     break;
                 }
                 case SELECT: {
                     List<ErlFun> selectFuns = generateSelect(efsm, s);
-                    stateFunctions.addAll(selectFuns);
+                    functions.addAll(selectFuns);
                     break;
                 }
                 case INTERNAL_MIXED: {
                     List<ErlFun> mixedFuns = generateInternalMixed(efsm, s);
-                    stateFunctions.addAll(mixedFuns);
+                    functions.addAll(mixedFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_OI: {
                     List<ErlFun> extOIFuns = generateExternalMixedOI(efsm, s);
-                    stateFunctions.addAll(extOIFuns);
+                    functions.addAll(extOIFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_II: {
                     List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s);
-                    stateFunctions.addAll(extIIFuns);
+                    functions.addAll(extIIFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_NOT_ENTRY: {
                     List<ErlFun> extNotEntryFuns = generateExternalMixedNotEntry(efsm, s);
-                    stateFunctions.addAll(extNotEntryFuns);
+                    functions.addAll(extNotEntryFuns);
                     break;
                 }
             }
         }
 
-        for (ErlFun f : stateFunctions) {
+        for (ErlFun f : functions) {
             exportNames.add(f.getName() + "/" + f.getArity());
         }
 
@@ -94,7 +102,19 @@ public class GTGenericBehaviour {
         writer.writeLine(exportsLine);
         writer.writeLine("");
 
-        writer.writeLine(generateStateDataRecord(efsm, r.sigma.map.keySet()));
+        writer.writeLine("-include(\"" + callbackModuleName + ".hrl\").");
+
+        // Write state_data type
+        writer.writeLine(GTErlGenUtil.genStateDataType(efsm, r.sigma.map.keySet()));
+        writer.writeLine("");
+
+        List<ErlFun> aggregatedFuns = GTErlGenUtil.aggregateTypeSpecs(functions);
+
+        //filer for functions for state functions starting with s
+        List<ErlFun> stateFunctions = aggregatedFuns.stream()
+                .filter(f -> f.getName().matches("s\\d.*"))
+                .collect(Collectors.toList());
+        writer.writeLine(generateCallbackTypes(stateFunctions));
         writer.writeLine("");
 
         // Generate start_link/2 function
@@ -108,30 +128,12 @@ public class GTGenericBehaviour {
         writer.writeLine("");
 
         // Generate init/1 function
-        ErlFun initFun = genInitFunction(callbackModuleName, efsm.init);
+        ErlFun initFun = genInitFunction(callbackModuleName, efsm.init, efsm);
         initFun.write(writer);
         writer.writeLine("");
 
-//        // Group state function clauses by name.
-//        Map<String, List<ErlFun>> groupedStateFunctions = stateFunctions.stream()
-//                .collect(Collectors.groupingBy(ErlFun::getName));
+        GTErlGenUtil.writeStateFunctions(writer, aggregatedFuns);
 
-//        // Write state functions
-//        for (Map.Entry<String, List<ErlFun>> entry : groupedStateFunctions.entrySet()) {
-//            String funcName = entry.getKey();
-//            // Aggregate all clauses for this function.
-//            ErlFun aggregated = new ErlFun(funcName);
-//            for (ErlFun clauseFun : entry.getValue()) {
-//                for (ErlFun.FunClause fc : clauseFun.getClauses()) {
-//                    aggregated.addClause(fc.args, fc.guard, fc.body);
-//                }
-//            }
-//            writer.writeLine("%% State function: " + funcName);
-//            aggregated.write(writer);
-//            writer.writeLine("");
-//        }
-
-        GTErlGenUtil.writeStateFunctions( writer, stateFunctions);
 
         // Generate code_change/4 function for hot code upgrades
         ErlFun codeChangeFun = genCodeChangeFunction();
@@ -144,6 +146,62 @@ public class GTGenericBehaviour {
         writer.writeLine("");
 
         writer.close();
+    }
+
+
+    /**
+     * Generates the common state data record string.
+     *
+     * @param efsm  The EFSM model.
+     * @param roles The set of roles.
+     * @return The record definition string.
+     */
+    protected String generateStateDataRecord(GTEFSM efsm, Set<Role> roles) {
+        // Generate counter fields for every state in the EFSM.
+        Set<String> counterFields = efsm.S.stream()
+                .filter(s -> s.c > 0)
+                .map(s -> "mc_counter_" + s.c + " = 0 :: integer()")
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        // Create pid fields for each role.
+        Set<String> rolePidFields = roles.stream()
+                .map(role -> role.toString().toLowerCase() + "_pid :: pid() | undefined")
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        List<String> allFields = new ArrayList<>();
+        allFields.addAll(counterFields);
+        allFields.addAll(rolePidFields);
+        return "-record(state_data, {" + String.join(", ", allFields) + "}).";
+    }
+
+    /**
+     * Generates the callback type definitions for all state functions in the given EFSM.
+     * The callback type for each state function is derived from its spec string.
+     *
+     * @param stateFunctions List of state functions.
+     * @return A string containing the Erlang callback type definitions.
+     */
+    public String generateCallbackTypes(List<ErlFun> stateFunctions) {
+
+        // Use a LinkedHashSet to remove duplicates while preserving order.
+        Set<String> callbackTypes = stateFunctions.stream()
+                .map(ErlFun::getSpec)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        // Build the callback type definitions in Erlang syntax.
+        StringBuilder sb = new StringBuilder();
+        for (String spec : callbackTypes) {
+            // Each spec should look like:
+            //   myFunction(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, state_data()}
+            // We prepend "-callback " and append a trailing period.
+            sb.append("-callback ").append(spec.trim());
+            if (!spec.trim().endsWith(".")) {
+                sb.append(".");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
 
@@ -178,27 +236,8 @@ public class GTGenericBehaviour {
     }
 
 
-    private String generateStateDataRecord(GTEFSM efsm, Set<Role> roles) {
-        // Generate counter fields for every state in the EFSM.
-        Set<String> counterFields = efsm.S.stream()
-                .filter(s -> s.c > 0)
-                .map(s -> "mc_counter_" + s.c + " = 0")
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        // Create pid fields for each role.
-        Set<String> rolePidFields = roles.stream()
-                .map(role -> role.toString().toLowerCase() + "_pid")
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        List<String> allFields = new ArrayList<>();
-        allFields.addAll(counterFields);
-        allFields.addAll(rolePidFields);
-        return "-record(state_data, {" + String.join(", ", allFields) + "}).";
-    }
-
-
     /** Build the init/1 function, which initializes the gen_statem. */
-    private ErlFun genInitFunction(String callbackModuleName, GTVState initState) {
+    private ErlFun genInitFunction(String callbackModuleName, GTVState initState, GTEFSM efsm) {
         // The clause head should match a tuple: {CallbackModule, _Args}
         ErlTuple head = new ErlTuple(Arrays.asList(
                 new ErlVar("CallbackModule"),
@@ -230,7 +269,8 @@ public class GTGenericBehaviour {
         ErlFun initFun = new ErlFun("init");
         initFun.addClause(headArgs, bodySeq);
         //TODO: fix return type
-        initFun.setSpec("init({CallbackModule :: module(), Args :: list()}) -> gen_statem:return()");
+        initFun.setSpec("init({CallbackModule :: module(), Args :: list()}) -> " +
+                GTErlGenUtil.getNextStateReturnType(efsm, initState));
         return initFun;
     }
 
@@ -331,12 +371,67 @@ public class GTGenericBehaviour {
     protected List<ErlFun> generateSelect(GTEFSM m, GTVState s) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);
-        return generateSelectAux(s, filt);
+        return generateSelectAux(s, filt, m);
     }
 
     // Takes both ! and !*
+//    protected List<ErlFun> generateSelectAux(
+//            GTVState s, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt, GTEFSM m) {
+//        return filt.entrySet().stream().flatMap(entry -> {
+//            Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
+//            GTVAction a;
+//            if (actions.size() == 1)
+//                a = actions.iterator().next().left;
+//            else {
+//                List<Pair<GTVAction, GTVState>> tmp = actions.stream().filter(y -> y.left instanceof GTVSendStar).collect(Collectors.toList());
+//                if (tmp.size() != 1) {
+//                    throw new RuntimeException("Shouldn't get in here: " + s);
+//                }
+//                a = tmp.iterator().next().left;
+//                }
+//
+//            String paramA;
+//
+//            ErlFun sendFunc;
+//            if (a instanceof GTVSendStar cast) {
+//                paramA = GTGenUtil.sendToParam(cast);
+//                sendFunc = genSendFun(s, paramA, a);
+//            } else if (a instanceof GTVSend cast) {
+//                paramA = GTGenUtil.sendToParam(cast);
+//                sendFunc = genSendFun(s, paramA, a);
+//            } else {
+//                throw new RuntimeException("Unexpected action type in generateSelectAux.");
+//            }
+//
+//            String stateFuncName = GTGenUtil.stateToFuncName(s);
+//            List<ErlTerm> stateParams = Arrays.asList(
+//                    new ErlVar("EventType"),
+//                    new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+//                    new ErlVar("Data")
+//            );
+//            ErlSeq stateBody = new ErlSeq();
+//            stateBody.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
+//                    new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+//            stateBody.addExpression(new ErlCall(new ErlVar("CallbackModule"), stateFuncName, Arrays.asList(
+//                    new ErlVar("EventType"),
+//                    new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+//                    new ErlVar("Data")
+//            )));
+//            ErlFun stateFunc = new ErlFun(stateFuncName);
+//            stateFunc.addClause(stateParams, stateBody);
+////            String spec = stateFuncName + "(" +
+////                    "EventType :: term(), " +
+////                    "{atom()}, " +
+////                    "state_data()) -> " +
+////                    GTErlGenUtil.getNextStateReturnType(m, a);
+////            stateFuncName.setSpec(spec);
+//
+//            return Stream.of(sendFunc, stateFunc);
+//        }).collect(Collectors.toList());
+//    }
     protected List<ErlFun> generateSelectAux(
-            GTVState s, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt) {
+            GTVState s, Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt, GTEFSM m) {
+
         return filt.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
             GTVAction a;
@@ -348,7 +443,7 @@ public class GTGenericBehaviour {
                     throw new RuntimeException("Shouldn't get in here: " + s);
                 }
                 a = tmp.iterator().next().left;
-                }
+            }
 
             String paramA;
 
@@ -362,25 +457,31 @@ public class GTGenericBehaviour {
             } else {
                 throw new RuntimeException("Unexpected action type in generateSelectAux.");
             }
-
-            String stateFuncName = GTGenUtil.stateToFuncName(s);
-            List<ErlTerm> stateParams = Arrays.asList(
-                    new ErlVar("EventType"),
-                    new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                    new ErlVar("Data")
-            );
-            ErlSeq stateBody = new ErlSeq();
-            stateBody.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                    new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
-            stateBody.addExpression(new ErlCall(new ErlVar("CallbackModule"), stateFuncName, Arrays.asList(
-                    new ErlVar("EventType"),
-                    new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                    new ErlVar("Data")
-            )));
-            ErlFun stateFunc = new ErlFun(stateFuncName);
-            stateFunc.addClause(stateParams, stateBody);
-
+            return actions.stream().flatMap(y -> {
+                String stateFuncName = GTGenUtil.stateToFuncName(s);
+                List<ErlTerm> stateParams = Arrays.asList(
+                        new ErlVar("EventType"),
+                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                        new ErlVar("Data")
+                );
+                ErlSeq stateBody = new ErlSeq();
+                stateBody.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
+                        new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                stateBody.addExpression(new ErlCall(new ErlVar("CallbackModule"), stateFuncName, Arrays.asList(
+                        new ErlVar("EventType"),
+                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                        new ErlVar("Data")
+                )));
+                ErlFun stateFunc = new ErlFun(stateFuncName);
+                stateFunc.addClause(stateParams, stateBody);
+            String spec = stateFuncName + "(" +
+                    "EventType :: term(), " +
+                    "{atom()}, " +
+                    "state_data()) -> " +
+                    GTErlGenUtil.getNextStateReturnType(m, y.right);
+            stateFunc.setSpec(spec);
             return Stream.of(sendFunc, stateFunc);
+            });
         }).collect(Collectors.toList());
     }
 
@@ -699,7 +800,7 @@ public class GTGenericBehaviour {
         res.addAll(generateBranchAux(s, lhs, m));
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhsTau =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
-        res.addAll(generateSelectAux(s, lhsTau));
+        res.addAll(generateSelectAux(s, lhsTau, m));
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
         String funcName = GTGenUtil.stateToFuncName(s);

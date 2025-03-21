@@ -33,4 +33,8 @@ public class ErlTuple implements ErlTerm {
         sb.append("}");
         return sb.toString();
     }
+
+    public List<ErlTerm> getElements() {
+        return elements;
+    }
 }
