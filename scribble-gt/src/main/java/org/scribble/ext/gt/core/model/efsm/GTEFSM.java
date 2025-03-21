@@ -25,6 +25,7 @@ public class GTEFSM {
 
     public GTEFSM(Set<GTVState> S, GTVState init, Set<GTVEvent> E, Set<GTVAction> A,
                   Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta) {
+        GTVState.resetIdCounter();
         this.S = Collections.unmodifiableSet(new LinkedHashSet<>(S));
         this.init = init;
         this.E = Collections.unmodifiableSet(new LinkedHashSet<>(E));

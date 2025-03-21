@@ -24,7 +24,8 @@ public class GTGenericBehaviour {
     private static final String HRL_EXTENSION = ".hrl";
 
     /** Generate and write the Erlang code for the generic behaviour module to a file. */
-    public void generateCode(GProtoName protocolName, GTLConfig r, GTEFSM efsm) throws IOException {
+    // GTLConfig rather that role for sigma.map.keySet()
+    public void generateCode(String protocolName, GTLConfig r, GTEFSM efsm) throws IOException {
         Role role = r.self;
         Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
         Files.createDirectories(outputDirectory);

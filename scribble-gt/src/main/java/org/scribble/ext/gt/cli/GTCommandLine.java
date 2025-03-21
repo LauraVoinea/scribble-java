@@ -305,7 +305,7 @@ public class GTCommandLine extends CommandLine {
         LMF = (GTEModelFactory) core.config.mf.local;
 
         Map<GProtoName, GTGType> translated = getTranslated(this);
-        Map<String, Map<String, GTEFSM>> efsms = new HashMap<>();  // proto -> role -> EFSM
+        Map<String, Map<GTLConfig, GTEFSM>> efsms = new HashMap<>();  // proto -> role -> EFSM
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
             //Set<Role> rs = translate.getRoles();
@@ -368,8 +368,6 @@ public class GTCommandLine extends CommandLine {
                 //Set<Op> com_self = com.getOrDefault(x.self, Set.of());
                 Map<Integer, Set<Op>> com_self = comInvert.get(x.self);
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
-//                GTEFSM test = GTGenUtil.renameStateIds(efsm);
-//                System.err.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + test.toDot());
                 //TODO: print efsm/digraph to file
                 System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
                 try {
@@ -378,32 +376,28 @@ public class GTCommandLine extends CommandLine {
                     throw new RuntimeException(e);
                 }
                 //TODO: print role to file
-                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
+//                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
 
-//                System.err.println(x.self + " ----> " + x.theta  + " <> <> " + x.sigma.map.keySet());
+                System.err.println(x.self + " ----> " + x.theta  + " <> <> " + x.sigma.map.keySet());
 //                System.err.println("Commiting Full: " + comFull);
 //                System.err.println("Commiting Self: " + com_self);
 //                System.err.println("Commiting plain: " + com);
                 try {
-                    new GTCallbackModule().generate(g.getSimpleName(), x, efsm);
+                    new GTCallbackModule().generate(g.getSimpleName().toString(), x, efsm);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
                 //TODO: print gen_role to file
                 try {
-                    System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(null, x.self, efsm));
-                    new GTGenericBehaviour().generateCode(g.getSimpleName(), x, efsm);
+//                    System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(null, x.self, efsm));
+                    new GTGenericBehaviour().generateCode(g.getSimpleName().toString(), x, efsm);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-//                try {
-//                    FileWriter.writeErlFile("ProtocolName", "gen_" + x.self, new GTGenericBehaviour().generate(null, x.self, efsm));
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-                Map<String, GTEFSM> tmp = efsms.computeIfAbsent(g.getSimpleName().toString(), y -> new LinkedHashMap<>());  // !!! simple name
-                tmp.put(x.self.toString(), efsm);
+
+                Map<GTLConfig, GTEFSM> tmp = efsms.computeIfAbsent(g.getSimpleName().toString(), y -> new LinkedHashMap<>());  // !!! simple name
+                tmp.put(x, efsm);
             }
 
             // Check correspondence
@@ -440,13 +434,17 @@ public class GTCommandLine extends CommandLine {
                 String proto = a.right[0];
                 String r = a.right[1];
                 GTEFSM m = efsms.get(proto).get(r);
-                //TODO: fix this
-//                GTGenericBehaviour g1 = new GTGenericBehaviour();
-//                GTCallbackModule g2 = new GTCallbackModule();
-//                System.out.println("\n[GTCommandLine] Gen role for " + proto + "@" + r + ":");
-//                System.out.println(g1.generate(null, null, m));
-//                System.out.println("\n[GTCommandLine] Role for " + proto + "@" + r + ":");
-//                System.out.println(g2.generate(null, null, m));
+                GTLConfig role = efsms.get(proto).entrySet().stream()
+                        .filter(entry -> entry.getKey().toString().equals(r))
+                        .map(Map.Entry::getKey)
+                        .findFirst().orElseThrow(() -> new RuntimeException("No role found for: " + r));
+                //TODO: check this
+                try {
+                    new GTGenericBehaviour().generateCode(proto, role, m);
+                    new GTCallbackModule().generate(proto, role, m);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 

@@ -74,4 +74,9 @@ public class GTVState {
         return this.id == cast.id && this.isEntry == cast.isEntry
                 && this.c == cast.c && this.recvars.equals(cast.recvars);
     }
+
+    public static void resetIdCounter() {
+        count = 1;
+    }
+
 }

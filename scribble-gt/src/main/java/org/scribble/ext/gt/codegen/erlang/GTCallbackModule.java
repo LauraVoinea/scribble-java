@@ -21,7 +21,8 @@ public class GTCallbackModule {
     private static final String OUTPUT_DIR = "./test";
     private static final String ERL_EXTENSION = ".erl";
 
-    public void generate(GProtoName protocolName, GTLConfig r, GTEFSM efsm) throws IOException {
+    // GTLConfig rather that role for sigma.map.keySet()
+    public void generate(String protocolName, GTLConfig r, GTEFSM efsm) throws IOException {
         Role role = r.self;
         Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
         Files.createDirectories(outputDirectory);
