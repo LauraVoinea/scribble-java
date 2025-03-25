@@ -1,0 +1,15 @@
+module Interrupt;
+
+global protocol Interrupt(role P, role Q) {
+    mixed {  // LHS
+        choice at P {
+            rec X {
+                More() from P to Q;
+                continue X;
+            }
+        } or {
+            Stop() from P to Q;
+        }
+    } () or P -> Q ()  {  // RHS
+        Interrupt() from Q to P;  //@'interrupt'
+}   }
