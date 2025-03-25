@@ -1,6 +1,5 @@
 package org.scribble.ext.gt.codegen.erlang;
 
-import org.scribble.core.type.name.GProtoName;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
@@ -353,7 +352,7 @@ public class GTCallbackModule {
                 ErlCall sendCall = new ErlCall(
                         new ErlAtom("gen_") + self.toString().toLowerCase(),
                         "send_" + paramA,
-                        List.of(new ErlVar(a.role.toString() + "Pid"), new ErlAtom(paramA))
+                        List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data"))
                 );
                 bodySeq.addExpression(sendCall);
                 // Second expression: the next state expression.
@@ -428,7 +427,8 @@ public class GTCallbackModule {
                 List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
         ErlSeq rhsBodySeq = new ErlSeq();
         rhsBodySeq.addExpression(rhsSendCall);
-        rhsBodySeq.addExpression(genNextState(m, sendStar.right));
+        ErlTerm rhsNextState = genNextState(m, sendStar.right);
+        rhsBodySeq.addExpression(rhsNextState);
         rhsCase.addClause(new ErlAtom("2"), rhsBodySeq);
         String rhsSpec = funName + "(" +
                 "internal, " +
@@ -492,11 +492,16 @@ public class GTCallbackModule {
             // Clause 1: Pattern "1" -> next state expression.
             extCase.addClause(new ErlAtom("1"), genNextState(m, succ.right));
             // Clause 2: Pattern "2" -> send call then next state.
-            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), "send_" + a1,
-                    List.of(new ErlVar(e.role.toString() + "Pid"), new ErlVar("Data")));
+//            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()),
+//                    "send_" + e.pay,
+//                    List.of(new ErlVar(e.role.toString() + "Pid"), new ErlVar("Data")));
+            //RHS choice
+            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), "send_" + paramA,
+                    List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
             ErlSeq extBodySeq = new ErlSeq();
             extBodySeq.addExpression(extSendCall);
-            extBodySeq.addExpression(genNextState(m, succ.right));
+            //TODO: RHS continuation
+            extBodySeq.addExpression(rhsNextState);
             extCase.addClause(new ErlAtom("2"), extBodySeq);
 
             ErlFun extClause = new ErlFun(funName);

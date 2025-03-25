@@ -17,7 +17,7 @@ global protocol TravelAgency(role Client, role Agency, role Supplier)
                 cancel_booking() from Client to Supplier;
             } or {
                 resubmit_request() from Client to Agency;
-                repeat_confirmation() from Agency to Client; //addition for left commiting
+                repeat_confirmation() from Agency to Client;//addition for left commiting
                 resubmitting() from Client to Supplier;
                 continue Loop;
             }

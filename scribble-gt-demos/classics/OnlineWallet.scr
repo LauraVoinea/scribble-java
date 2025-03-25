@@ -16,16 +16,16 @@ global protocol OnlineWallet(role S, role C, role A) {
                     choice  at C {
                         pay() from C to S;
                         confirmation() from S to C;
-                        keep_alive() from S to A;
+                        keep_alive() from C to A;
                         continue  LOOP;
                     } or {
                         quit() from C to S;
                         quit_ack() from S to C;
-                        end_session() from S to A;
+                        end_session() from C to A;
                     }
                 } () or C->S() {
                          timeout() from S to C;
-                         end_session() from S to A;
+                         timeout() from S to A;
                          }
             }
         } or {

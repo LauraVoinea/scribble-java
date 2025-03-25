@@ -37,4 +37,8 @@ public class ErlTuple implements ErlTerm {
     public List<ErlTerm> getElements() {
         return elements;
     }
+
+    public void addElement(ErlVar elem) {
+        this.elements.add(elem);
+    }
 }

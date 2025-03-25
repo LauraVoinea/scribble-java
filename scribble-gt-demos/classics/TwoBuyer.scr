@@ -11,12 +11,15 @@ global protocol TwoBuyer(role Alice, role Bob, role Seller){
           choice at Bob{
               accept_quote() from Bob to Seller;
               purchase_confirmed() from Seller to Bob;
+              purchase_notification() from Bob to Alice;
           } or {
                 reject_quote() from Bob to Seller;
                 cancel_confirmation() from Seller to Bob;
+                cancel_notification() from Bob to Alice;
           }
           } () or Bob -> Seller(){
               response_timeout() from Seller to Bob;
+              response_timeout() from Seller to Alice;
           }
   }() or Alice -> Seller() {
       not_available() from Seller to Alice;

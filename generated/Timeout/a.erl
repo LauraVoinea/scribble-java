@@ -1,7 +1,7 @@
 -module(a).
 -behaviour(gen_a).
 
--export([init/1, callback_mode/0, start_link/0, s1/3, s2/3, s3/3]).
+-export([init/1, callback_mode/0, start_link/0, s4/3, s5/3, s6/3]).
 
 -include("a.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), b_pid :: pid() | undefined, c_pid :: pid() | undefined}.
@@ -14,7 +14,7 @@ start_link() ->
 callback_mode() ->
     state_functions.
 
--spec init(list()) -> {ok, s1, state_data(), [{next_event, internal, {a1}}]}.
+-spec init(list()) -> {ok, s4, state_data(), [{next_event, internal, {a1}}]}.
 init([]) ->
     BPid = case whereis(b) of
         undefined ->
@@ -36,23 +36,23 @@ init([]) ->
     CPid ! {a_pid, self()},
     Data = #state_data{mc_counter_1 = 0, b_pid = BPid, c_pid = CPid},
     io:format("a initialized ~n", []),
-    {ok, s1, Data, [{next_event, internal, {a1}}]}.
+    {ok, s4, Data, [{next_event, internal, {a1}}]}.
 
--spec s3(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
-s3(internal, {a6}, #state_data{c_pid = CPid} = Data) ->
+-spec s4(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
+s4(internal, {a1}, #state_data{b_pid = BPid} = Data) ->
+    gen_a:send_a1(BPid, a1),
+    {next_state, s5, Data};
+s4(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
+    {stop, normal, Data}.
+
+-spec s5(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()} | {next_state, s6, state_data(), [{next_event, internal, {a6}}]}.
+s5(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
+    {stop, normal, Data};
+s5(cast, {BPid, {a5}}, #state_data{b_pid = BPid} = Data) ->
+    {next_state, s6, Data, [{next_event, internal, {a6}}]}.
+
+-spec s6(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
+s6(internal, {a6}, #state_data{c_pid = CPid} = Data) ->
     gen_a:send_a6(CPid, a6),
     {stop, normal, Data}.
-
--spec s1(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s2, state_data()} | {stop, normal, state_data()}.
-s1(internal, {a1}, #state_data{b_pid = BPid} = Data) ->
-    gen_a:send_a1(BPid, a1),
-    {next_state, s2, Data};
-s1(cast, {BPid, {'Timeout'}}, #state_data{b_pid = BPid} = Data) ->
-    {stop, normal, Data}.
-
--spec s2(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()} | {next_state, s3, state_data(), [{next_event, internal, {a6}}]}.
-s2(cast, {BPid, {'Timeout'}}, #state_data{b_pid = BPid} = Data) ->
-    {stop, normal, Data};
-s2(cast, {BPid, {a5}}, #state_data{b_pid = BPid} = Data) ->
-    {next_state, s3, Data, [{next_event, internal, {a6}}]}.
 

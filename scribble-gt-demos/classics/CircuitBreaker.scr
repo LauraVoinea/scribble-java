@@ -35,36 +35,6 @@ global protocol CircuitBreaker(role API, role Controller, role Storage, role Use
  }
  */
 
- /* global protocol API(role API, role Controller, role Storage, role User){
-     start_storage() from Controller to Storage;
-     start_controller() from Controller to API;
-     hard_ping() from Storage to Controller;
-
-     rec Loop {
-         request() from User to API;
-         get_mode() from API to Controller;
-         choice at Controller{ //Processing branch
-             service_operational() from Controller to API;
-             storage_request() from API to Storage;
-             storage_reponse() from Storage to API;
-             api_response() from API to User;
-             continue Loop;
-         } or { // Failure handling branch
-             error_notice() from Controller to API;
-             cancel_ack() from API to Storage; // extra message
-             storage_restart() from Controller to Storage;
-             error_response() from API to User;
-             continue Loop;
-         } or { //Termination branch
-             shutdown_api() from Controller to API;
-             prepare_shutdown() from API to Storage; // extra message
-             shutdown_storage() from Controller to Storage;
-             shutdown_user() from API to User;
-         }
-     }
- }
-*/
-
  global protocol API(role API, role Controller, role Storage, role User){
      start_storage() from Controller to Storage;
      start_controller() from Controller to API;
@@ -95,9 +65,9 @@ global protocol CircuitBreaker(role API, role Controller, role Storage, role Use
                  shutdown_storage() from Controller to Storage;
                  shutdown_user() from API to User;
              }
-         } () or Controller -> API(){ //() or Bob -> Seller()
+         } () or Controller -> API(){
             timeout() from API to Controller;
-            timeout_notice() from API to Storage;
+            timeout_notice() from Controller to Storage;
             timeout_notice() from API to User;
             continue Loop;
          }
