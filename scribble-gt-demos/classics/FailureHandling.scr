@@ -1,0 +1,19 @@
+module FailureHandling;
+data <java> "java.lang.String" from "rt.jar" as Data;
+
+
+global protocol FailureHandling(role M, role W, role FD) {
+  init(Data) from M to W;
+  rec X {
+      mixed {
+        HB() from W to FD;
+        OK() from FD to M;
+        result(Data) from W to M;
+        more(Data) from M to W;
+        continue X;
+      }() or W -> FD(){  // RHS
+        Timeout() from FD to W;  //@'failed W'  (*\label{ln:failed}*)
+        Crash()    from FD to M;
+      }
+  }
+ }
