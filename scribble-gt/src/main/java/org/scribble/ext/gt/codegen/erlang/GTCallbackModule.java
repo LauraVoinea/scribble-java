@@ -348,10 +348,17 @@ public class GTCallbackModule {
 
                 // Build the clause body as a sequence.
                 ErlSeq bodySeq = new ErlSeq();
+                ErlCall logSnd = new ErlCall("io", "format", List.of(
+                        new ErlString("B: s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
+                        new ErlList(Collections.emptyList())
+                ));
+                bodySeq.addExpression(logSnd);
                 // First expression: gen_role:send_<paramA>(<Role>Pid, paramA)
+                String sendName = "send_" + "s" + s.id + "_" + paramA;
                 ErlCall sendCall = new ErlCall(
                         new ErlAtom("gen_") + self.toString().toLowerCase(),
-                        "send_" + paramA,
+//                        "send_" + paramA,
+                       sendName,
                         List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data"))
                 );
                 bodySeq.addExpression(sendCall);
@@ -422,10 +429,17 @@ public class GTCallbackModule {
         // Clause 1: Pattern "1" -> next state expression.
         rhsCase.addClause(new ErlAtom("1"),
                 new ErlTuple(Arrays.asList(new ErlAtom("keep_state"), new ErlVar("Data"))));
+        String sendName = "send_" + "s" + s.id + "_" + paramA;
+
+        ErlCall formatCall = new ErlCall("io", "format", List.of(
+                new ErlString("B: s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
+                new ErlList(Collections.emptyList())
+        ));
         // Clause 2: Pattern "2" -> send call then next state.
-        ErlCall rhsSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), "send_" + paramA,
+        ErlCall rhsSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), sendName,
                 List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
         ErlSeq rhsBodySeq = new ErlSeq();
+        rhsBodySeq.addExpression(formatCall);
         rhsBodySeq.addExpression(rhsSendCall);
         ErlTerm rhsNextState = genNextState(m, sendStar.right);
         rhsBodySeq.addExpression(rhsNextState);
@@ -485,6 +499,11 @@ public class GTCallbackModule {
             // Generate the function for make_choice on external events.
             ErlFun sendFunc = genMakeChoice_a(e.op);
 
+            ErlCall logRcv = new ErlCall("io", "format", List.of(
+                    new ErlString("B: s" + s.id + " Received " + headExtTuple + " from " + a.role + " ~n"),
+                    new ErlList(Collections.emptyList())
+            ));
+
             // Build body as a case expression.
             // Call: make_choice_<a1>(Data)
             ErlCall extMakeChoiceCall = new ErlCall("make_choice_" + a1, List.of(new ErlVar("Data")));
@@ -492,13 +511,12 @@ public class GTCallbackModule {
             // Clause 1: Pattern "1" -> next state expression.
             extCase.addClause(new ErlAtom("1"), genNextState(m, succ.right));
             // Clause 2: Pattern "2" -> send call then next state.
-//            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()),
-//                    "send_" + e.pay,
-//                    List.of(new ErlVar(e.role.toString() + "Pid"), new ErlVar("Data")));
-            //RHS choice
-            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), "send_" + paramA,
+            //RHS choice; send RHS label
+
+            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), sendName,
                     List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
             ErlSeq extBodySeq = new ErlSeq();
+            extBodySeq.addExpression(formatCall);
             extBodySeq.addExpression(extSendCall);
             //TODO: RHS continuation
             extBodySeq.addExpression(rhsNextState);

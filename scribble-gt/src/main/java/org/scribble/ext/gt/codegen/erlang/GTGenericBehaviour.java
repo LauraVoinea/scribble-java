@@ -110,11 +110,12 @@ public class GTGenericBehaviour {
         writer.writeLine("");
 
         List<ErlFun> aggregatedFuns = GTErlGenUtil.aggregateTypeSpecs(functions);
-
+        ErlFun initFun = genInitFunction(callbackModuleName, efsm.init, efsm);
         //filer for functions for state functions starting with s
         List<ErlFun> stateFunctions = aggregatedFuns.stream()
                 .filter(f -> f.getName().matches("s\\d.*"))
                 .collect(Collectors.toList());
+        stateFunctions.add(initFun);
         writer.writeLine(generateCallbackTypes(stateFunctions));
         writer.writeLine("");
 
@@ -129,7 +130,6 @@ public class GTGenericBehaviour {
         writer.writeLine("");
 
         // Generate init/1 function
-        ErlFun initFun = genInitFunction(callbackModuleName, efsm.init, efsm);
         initFun.write(writer);
         writer.writeLine("");
 
@@ -195,7 +195,10 @@ public class GTGenericBehaviour {
         for (String spec : callbackTypes) {
             // Each spec should look like:
             //   myFunction(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, state_data()}
-            // We prepend "-callback " and append a trailing period.
+            // prepend "-callback " and append a trailing period.
+            if (spec.startsWith("init")) {
+                spec = spec.replace("{CallbackModule :: module(), Args :: list()}", "Args :: list()");
+            }
             sb.append("-callback ").append(spec.trim());
             if (!spec.trim().endsWith(".")) {
                 sb.append(".");
@@ -361,7 +364,7 @@ public class GTGenericBehaviour {
                 clauseFun.addClause(headArgs, guard, bodySeq);
                 //TODO: specific specs for params?
                 String spec = funcName + "(" +
-                        "EventType :: term(), " +
+                        "term(), " +
                         "{pid(), {atom(), term()}}, " +
                         "state_data()) -> " +
                         GTErlGenUtil.getNextStateReturnType(m, pair.right);
@@ -446,7 +449,7 @@ public class GTGenericBehaviour {
             p = ((GTVSend) action).pay;
         }
 
-        String sendName = "send_" + paramA;
+        String sendName = "send_" + "s" + s.id + "_" + paramA;
 
         // Build function head: [ <Role>Pid, Data ]
         ErlVar role = new ErlVar(r.toString() + "Pid");
@@ -514,8 +517,6 @@ public class GTGenericBehaviour {
         List<Stream<ErlFun>> rhsClauses = rhs.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
 
-//            System.err.println("=:==:==actions for state =:==> s" + s.id + " " +  actions);
-//            System.err.println("=:==:==filter for state =:==> s" + s.id + " " +  filt);
             return actions.stream().filter(p -> p.left instanceof GTVSendStar).map(p -> {
                 GTVSendStar a = (GTVSendStar) p.left;
                 String paramA = GTGenUtil.sendToParam(a);

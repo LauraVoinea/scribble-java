@@ -355,7 +355,7 @@ public class GTCommandLine extends CommandLine {
             for (GTLConfig x : s.local.configs.values()) {
                 GTEState init = new GTFsmConstructor().construct(com.get(x.self), x.type);
                 this.fsms.put(x.self, init);
-                System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
+//                System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
                 //TODO: print fsm/digraph to file
 
                 // !!! gtRun happens before run (i.e., tryBarrierTask running before gtRun, cf. `enact` flags`)
@@ -366,10 +366,10 @@ public class GTCommandLine extends CommandLine {
                 GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
                 GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
                 //Set<Op> com_self = com.getOrDefault(x.self, Set.of());
-                Map<Integer, Set<Op>> com_self = comInvert.get(x.self);
+                Map<Integer, Set<Op>> com_self = comInvert.getOrDefault(x.self, new LinkedHashMap<>());
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
                 //TODO: print efsm/digraph to file
-                System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
+//                System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
                 try {
                     new DotWriter().writeDotFile(efsm, "./test/" + g.getSimpleName(), x.self.toString());
                 } catch (IOException e) {
@@ -378,10 +378,18 @@ public class GTCommandLine extends CommandLine {
                 //TODO: print role to file
 //                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
 
-                System.err.println(x.self + " ----> " + x.theta  + " <> <> " + x.sigma.map.keySet());
+                System.err.println(x.self + " --Theta--> " + x.theta  + " <> Sigma <> " + x.sigma.map.keySet());
+//                System.err.println(x.self + efsm.toDot());
 //                System.err.println("Commiting Full: " + comFull);
 //                System.err.println("Commiting Self: " + com_self);
 //                System.err.println("Commiting plain: " + com);
+//                System.err.println("translate.getLabels: " + translate.getLabels().left + " <> <> " + translate.getLabels().right);
+//                System.err.println("translate.getLabels: " + translate.getLabels().left.isEmpty() + " <> <> " + translate.getLabels().right.isEmpty());
+//                System.err.println("translate.getLabels Left: " + translate.getLabels().left);
+//                System.err.println("translate.getLabels Right: " + translate.getLabels().right);
+//                System.err.println("translate.getLabels Value Left: " + translate.getLabels().right.values().iterator().next().left);
+//                System.err.println("translate.getLabels Value Right: " + translate.getLabels().right.values().iterator().next().right);
+//                System.err.println("translate.getLabels Value Right: " + translate.getLabels().right.values().iterator().next().right.iterator().next());
                 try {
                     new GTCallbackModule().generate(g.getSimpleName().toString(), x, efsm);
                 } catch (IOException e) {
@@ -391,15 +399,20 @@ public class GTCommandLine extends CommandLine {
                 //TODO: print gen_role to file
                 try {
 //                    System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(null, x.self, efsm));
-                    new GTGenericBehaviour().generateCode(g.getSimpleName().toString(), x, efsm);
+                    //translate.getLabels().right -- labels from mixed choice
+                    new GTGenericBehaviour().generateCode(g.getSimpleName().toString(), x, efsm, translate.getLabels().right, com_self);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
                 Map<GTLConfig, GTEFSM> tmp = efsms.computeIfAbsent(g.getSimpleName().toString(), y -> new LinkedHashMap<>());  // !!! simple name
                 tmp.put(x, efsm);
+                GTVState.resetIdCounter();
             }
 
+
+
+//            GTVState.resetIdCounter();
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Map<String, Integer> unfolds = translate.getRecDecls().stream()
@@ -438,13 +451,13 @@ public class GTCommandLine extends CommandLine {
                         .filter(entry -> entry.getKey().toString().equals(r))
                         .map(Map.Entry::getKey)
                         .findFirst().orElseThrow(() -> new RuntimeException("No role found for: " + r));
-                //TODO: check this
-                try {
-                    new GTGenericBehaviour().generateCode(proto, role, m);
-                    new GTCallbackModule().generate(proto, role, m);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                //TODO: fix this
+//                try {
+//                    new GTGenericBehaviour().generateCode(proto, role, m, translate.getLabels(), com_self);
+//                    new GTCallbackModule().generate(proto, role, m, translate.getLabels(), com_self);
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
             }
         }
 

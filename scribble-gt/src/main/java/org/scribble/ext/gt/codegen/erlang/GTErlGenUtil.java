@@ -197,9 +197,9 @@ public class GTErlGenUtil {
                     GTVTau tau = (GTVTau) entry.getKey().right;
                     String a = GTGenUtil.eventToParam(tau);
                     if (succ.equals(m.init))
-                        return "{ok, " + sName + ", state_data(), [{next_event, internal, {" + a + "}}]}";
+                        return "{ok, " + sName + ", state_data(), [{next_event, internal, {" + new ErlAtom(a) + "}}]}";
                     // Return a tuple with an extra list element.
-                    return "{next_state, " + sName + ", state_data(), [{next_event, internal, {" + a + "}}]}";
+                    return "{next_state, " + sName + ", state_data(), [{next_event, internal, {" + new ErlAtom(a) + "}}]}";
                 } else {
                     if (succ.equals(m.init))
                         return "{ok, " + sName + ", state_data()} | {next_state, " + sName + ", state_data(), [term()]}";
