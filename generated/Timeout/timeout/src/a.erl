@@ -46,17 +46,17 @@ s4(internal, {a1}, #state_data{b_pid = BPid} = Data) ->
            end,
     NewData = Data#state_data{c_pid = CPid},
     io:format("A: s4 sending a1 ~n", []),
-    gen_a:send_a1(BPid, Data),
+    gen_a:send_s4_a1(BPid, Data),
     {next_state, s5, NewData};
-s4(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
-    io:format("A: s4 received tmout ~n", []),
+s4(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
+    io:format("A: s4 received To ~n", []),
     {stop, normal, Data}.
 
 -spec s5(cast, {undefined | pid(), {atom()}}, state_data()) ->
     {stop, normal, state_data()} |
     {next_state, s6, state_data(), [{next_event, internal, {a6}}]}.
-s5(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
-    io:format("A: s5 received tmout ~n", []),
+s5(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
+    io:format("A: s5 received To ~n", []),
     {stop, normal, Data};
 s5(cast, {BPid, {a5}}, #state_data{b_pid = BPid} = Data) ->
     io:format("A: s5 received a5 ~n", []),
@@ -65,6 +65,6 @@ s5(cast, {BPid, {a5}}, #state_data{b_pid = BPid} = Data) ->
 -spec s6(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
 s6(internal, {a6}, #state_data{c_pid = CPid} = Data) ->
     io:format("A: s6 sending a6 ~n", []),
-    gen_a:send_a6(CPid, Data),
+    gen_a:send_s6_a6(CPid, Data),
     {stop, normal, Data}.
 

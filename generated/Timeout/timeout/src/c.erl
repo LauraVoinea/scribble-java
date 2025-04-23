@@ -42,8 +42,8 @@ init([]) ->
 s4(cast, {BPid, {a2}}, #state_data{b_pid = BPid} = Data) ->
     io:format("C: Received a2 ~n", []),
     {next_state, s5, Data};
-s4(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
-    io:format("C: Received tmout ~n", []),
+s4(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
+    io:format("C: Received To ~n", []),
     {stop, normal, Data}.
 
 -spec s5(cast, {pid(), {atom()}}, state_data()) -> {stop, normal, state_data()}.

@@ -17,7 +17,7 @@ callback_mode() ->
 init([]) ->
     APid = case whereis(a) of
         undefined ->
-            io:format("a is not available yet. Will retry...~n", []),
+            io:format("B: a is not available yet. Will retry...~n", []),
             timer:sleep(1000),
             whereis(a);
         Pid ->
@@ -26,7 +26,7 @@ init([]) ->
 %%    APid ! {b_pid, self()},
     CPid = case whereis(c) of
         undefined ->
-            io:format("c is not available yet. Will retry...~n", []),
+            io:format("B: c is not available yet. Will retry...~n", []),
             timer:sleep(1000),
             whereis(c);
         Pid1 ->
@@ -34,7 +34,7 @@ init([]) ->
     end,
 %%    CPid ! {b_pid, self()},
     Data = #state_data{mc_counter_1 = 0, a_pid = APid, c_pid = CPid},
-    io:format("b initialized ~n", []),
+    io:format("B: b initialized ~n", []),
     {ok, s5, Data, [{next_event, internal, {'To'}}]}.
 
 -spec s3(internal, {'To'}, state_data()) -> {stop, normal, state_data()}.
