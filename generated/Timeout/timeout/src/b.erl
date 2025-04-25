@@ -96,4 +96,3 @@ make_choice_To(_Data) ->
 -spec make_choice_a1(state_data()) -> integer().
 make_choice_a1(_Data) ->
     rand:uniform(2).
-

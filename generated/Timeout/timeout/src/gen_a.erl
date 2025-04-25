@@ -39,11 +39,11 @@ s4(EventType, {a1}, #state_data{mc_counter_1 = MC} = Data) ->
 s4(EventType, {BPid, {'To'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s4(EventType, {BPid, {'To'}}, Data);
-s4(_EventType, {_Pid, {Msg}, _Counter}, Data) when Msg =:= a6
-		orelse Msg =:= a5 
-		orelse Msg =:= a2 
-		orelse Msg =:= a1 
-		orelse Msg =:= 'To' ->
+s4(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {a6}
+		orelse Msg =:= {a5}
+		orelse Msg =:= {a2}
+		orelse Msg =:= {a1}
+		orelse Msg =:= {'To'} ->
     {keep_state, Data}.
 
 -spec send_s6_a6(CPid :: pid(), Data :: state_data()) -> ok.
@@ -58,12 +58,12 @@ s5(EventType, {BPid, {'To'}, Counter}, #state_data{mc_counter_1 = MC} = Data) wh
 s5(EventType, {BPid, {a5}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {BPid, {a5}}, Data);
-s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= a6 
-		orelse Msg =:= a5 
-		orelse Msg =:= a2 
-		orelse Msg =:= a1 
-		orelse Msg =:= 'To' ->
-    {keep_state, Data}.
+s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {a6}
+  orelse Msg =:= {a5}
+  orelse Msg =:= {a2}
+  orelse Msg =:= {a1}
+  orelse Msg =:= {'To'} ->
+  {keep_state, Data}.
 
 -spec s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 s6(EventType, {a6}, Data) ->
