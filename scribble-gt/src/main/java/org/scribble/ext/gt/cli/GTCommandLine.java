@@ -371,14 +371,14 @@ public class GTCommandLine extends CommandLine {
                 //TODO: print efsm/digraph to file
 //                System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
                 try {
-                    new DotWriter().writeDotFile(efsm, "./test/" + g.getSimpleName(), x.self.toString());
+                    new DotWriter().writeDotFile(efsm, "./generated/" + g.getSimpleName(), x.self.toString());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
                 //TODO: print role to file
 //                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
 
-                System.err.println(x.self + " --Theta--> " + x.theta  + " <> Sigma <> " + x.sigma.map.keySet());
+//                System.err.println(x.self + " --Theta--> " + x.theta  + " <> Sigma <> " + x.sigma.map.keySet());
 //                System.err.println(x.self + efsm.toDot());
 //                System.err.println("Commiting Full: " + comFull);
 //                System.err.println("Commiting Self: " + com_self);

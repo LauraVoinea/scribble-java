@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GTCallbackModule {
-    private static final String OUTPUT_DIR = "./test";
+    private static final String OUTPUT_DIR = "./generated";
     private static final String ERL_EXTENSION = ".erl";
 
     // GTLConfig rather that role for sigma.map.keySet()

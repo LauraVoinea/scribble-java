@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GTGenericBehaviour {
-    private static final String OUTPUT_DIR = "./test";
+    private static final String OUTPUT_DIR = "./generated";
     private static final String ERL_EXTENSION = ".erl";
     private static final String HRL_EXTENSION = ".hrl";
 
