@@ -2,7 +2,7 @@ digraph G {
 compound = true;
 "4" [ label="s4 ▷ MC=1" ];
 "5" [ label="s5  MC=1" ];
-"2" [ label="s2",shape=doublecircle ];
+"2" [ label="s2  MC=0" ];
 "4" -> "2" [ label="B?To()/ε*" ];
 "4" -> "5" [ label="B?a2()/ε" ];
 "5" -> "2" [ label="A?a6()/ε" ];

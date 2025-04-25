@@ -3,7 +3,7 @@ compound = true;
 "5" [ label="s5 ▷ MC=1" ];
 "6" [ label="s6  MC=1" ];
 "7" [ label="s7  MC=1" ];
-"2" [ label="s2", shape=doublecircle];
+"2" [ label="s2  MC=0" ];
 "3" [ label="s3  MC=1" ];
 "5" -> "3" [ label="𝜏_To/A!*To" ];
 "5" -> "6" [ label="A?a1()/ε" ];
