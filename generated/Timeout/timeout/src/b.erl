@@ -5,6 +5,10 @@
 
 -include("b.hrl").
 
+%% Contains callback functions implementing custom logic
+%% Defines application-specific behaviour (timeouts, conditions)
+%% User-customisable; provides logic using the gen_role framework
+
 -spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
     gen_b:start_link(?MODULE, []).

@@ -5,10 +5,18 @@
 
 -include("b.hrl").
 
+%%Defines the EFSM structure
+%%Handles protocol mechanics (messages, states, mixed-choice logic)
+%%Typically not edited by users
+
+-callback init(Args :: list()) -> {ok, s5, state_data(), [{next_event, internal, {'To'}}]}.
 -callback s3(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()} | term(), state_data()) ->
-    {next_state, s3, state_data(), [{next_event, internal, {'To'}}]} | {next_state, s6, state_data(), [{next_event, internal, {a2}}]} | {keep_state, state_data()}.
--callback s6(EventType :: term(), {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {a5}}]}.
+    {next_state, s3, state_data(), [{next_event, internal, {'To'}}]} |
+    {next_state, s6, state_data(), [{next_event, internal, {a2}}]} |
+    {keep_state, state_data()}.
+-callback s6(EventType :: term(), {atom()}, state_data()) ->
+    {next_state, s7, state_data(), [{next_event, internal, {a5}}]}.
 -callback s7(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 
 
@@ -17,7 +25,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_b, {CallbackModule, Args}, []);
+            gen_statem:start_link({local, CallbackModule}, gen_b, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "b_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -30,7 +38,6 @@ callback_mode() ->
 init({CallbackModule, _Args}) ->
     io:format("B: Initializing with callback module ~p~n", [CallbackModule]),
     put(callback_module, CallbackModule),
-    %% Delegate to the callback module's init/1 to set the initial state.
     CallbackModule:init([]).
 
 -spec s3(EventType :: term(), {'To'}, state_data()) -> {stop, normal, state_data()}.
@@ -45,17 +52,14 @@ s3(EventType, {'To'}, Data) ->
 s5(EventType, {'To'},  #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
-    io:format("B: s5 TO MC NewData ~p ~p~n", [MC, NewData]),
+%%    io:format("B: s5 TO MC NewData ~p ~p~n", [MC, NewData]),
     CallbackModule:s5(EventType, {'To'}, NewData);
 s5(EventType, {APid, {a1}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
-%%    NewData = Data#state_data{mc_counter_1 = MC + 1},
-    io:format("B: s5 APid ~p, Counter ~p, MC ~p~n", [APid, Counter, MC]),
+%%    io:format("B: s5 APid ~p, Counter ~p, MC ~p~n", [APid, Counter, MC]),
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {APid, {a1}}, Data);
 s5(_EventType, {_Pid, {Msg}, _Counter}, Data) when Msg =:= a6
-		orelse Msg =:= a5
 		orelse Msg =:= 'To'
-		orelse Msg =:= a2
 		orelse Msg =:= a1 ->
     {keep_state, Data}.
 

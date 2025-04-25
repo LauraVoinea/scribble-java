@@ -15,7 +15,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_c, {CallbackModule, Args}, []);
+            gen_statem:start_link({local, CallbackModule}, gen_c, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "c_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -31,11 +31,11 @@ init({CallbackModule, _Args}) ->
     CallbackModule:init([]).
 
 -spec s4(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
-s4(EventType, {BPid, {a2}, Counter}, #state_data{mc_counter_1 = MC} = Data) -> %when Counter =:= MC + 1 ->
+s4(EventType, {BPid, {a2}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s4(EventType, {BPid, {a2}}, NewData);
-s4(EventType, {BPid, {'To'}, Counter}, #state_data{mc_counter_1 = MC} = Data)  ->
+s4(EventType, {BPid, {'To'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s4(EventType, {BPid, {'To'}}, NewData);

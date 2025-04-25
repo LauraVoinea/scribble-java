@@ -41,7 +41,7 @@ init([]) ->
 -spec s4(cast, {pid(), {atom(), term()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
 s4(cast, {BPid, {a2}}, #state_data{b_pid = BPid} = Data) ->
     {next_state, s5, Data};
-s4(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
+s4(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
     {stop, normal, Data}.
 
 -spec s5(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.

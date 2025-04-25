@@ -40,19 +40,21 @@ init([]) ->
 
 -spec s4(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
 s4(internal, {a1}, #state_data{b_pid = BPid} = Data) ->
-    gen_a:send_a1(BPid, a1),
+    io:format("B: s4 Sending a1 to B ~n", []),
+    gen_a:send_s4_a1(BPid, Data),
     {next_state, s5, Data};
-s4(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
+s4(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
     {stop, normal, Data}.
 
 -spec s5(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()} | {next_state, s6, state_data(), [{next_event, internal, {a6}}]}.
-s5(cast, {BPid, {tmout}}, #state_data{b_pid = BPid} = Data) ->
+s5(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
     {stop, normal, Data};
 s5(cast, {BPid, {a5}}, #state_data{b_pid = BPid} = Data) ->
     {next_state, s6, Data, [{next_event, internal, {a6}}]}.
 
 -spec s6(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
 s6(internal, {a6}, #state_data{c_pid = CPid} = Data) ->
-    gen_a:send_a6(CPid, a6),
+    io:format("B: s6 Sending a6 to C ~n", []),
+    gen_a:send_s6_a6(CPid, Data),
     {stop, normal, Data}.
 

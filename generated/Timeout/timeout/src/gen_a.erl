@@ -6,17 +6,17 @@
 -include("a.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), b_pid :: pid() | undefined, c_pid :: pid() | undefined}.
 
+-callback init(Args :: list()) -> {ok, s4, state_data(), [{next_event, internal, {a1}}]}.
 -callback s4(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
 -callback s5(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {next_state, s6, state_data(), [{next_event, internal, {a6}}]} | {keep_state, state_data()}.
 -callback s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback init(Args :: list()) -> {ok, s4, state_data(), [{next_event, internal, {a1}}]}.
 
 -spec start_link(CallbackModule :: module(), Args :: list()) ->
     {ok, pid()} | {error, term()}.
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, []);
+            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
