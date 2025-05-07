@@ -48,7 +48,7 @@ public class GTCommandLine extends CommandLine {
 
     public static void main(String[] args) {
         GTCommandLine cl = init(args);
-        Optional<Exception> run = cl.gtRun();
+        Optional<Exception> run = cl.gtMain();
         if (run.isPresent()) {
             throw new RuntimeException(run.get());
         }
@@ -56,7 +56,7 @@ public class GTCommandLine extends CommandLine {
 
     public static Optional<Exception> mainTest(String[] args) {
         GTCommandLine cl = init(args);
-        return cl.gtRun();
+        return cl.gtMain();
     }
 
     static GTCommandLine init(String[] args) {
@@ -295,7 +295,7 @@ public class GTCommandLine extends CommandLine {
     private Map<Role, GTEState> fsms = new HashMap<>();
 
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
-    protected Optional<Exception> gtRun() {
+    protected Optional<Exception> gtMain() {
         Core core = this.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
