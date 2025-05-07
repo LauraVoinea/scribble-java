@@ -883,20 +883,6 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-/* // Exception, Interrupt, etc. similar
-global protocol Timeout(role A, role B, role C) {
-    mixed { // "Left-hand" side (LHS)
-        a1() from A to B;
-        a2() from B to C;
-        a5() from B to A;
-        a6() from A to C;
-    } () or A -> B () { // "Right-hand" side (RHS)
-        Timeout() from B to A;
-        Timeout() from B to C;
-    }
-}
-//*/
-
 /*
 global protocol Proto1(role A, role B) {
     mixed {
@@ -913,7 +899,7 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
-//*//$\mu \mathtt{t} . ( p \rightarrow q : { a_1 .\mathtt{t}, a_2. q \rightarrow p : b_1 } \rhd^c q \rightarrow p : b_2)$
+/*//$\mu \mathtt{t} . ( p \rightarrow q : { a_1 .\mathtt{t}, a_2. q \rightarrow p : b_1 } \rhd^c q \rightarrow p : b_2)$
 global protocol Proto1(role A, role B) {
     rec X {
         mixed {
@@ -931,6 +917,23 @@ global protocol Proto1(role A, role B) {
 }
 //*/
 
+
+
+
+
+//* // Exception, Interrupt, etc. similar
+global protocol Timeout(role A, role B, role C) {
+    mixed { // "Left-hand" side (LHS)
+        a1() from A to B;
+        a2() from B to C;
+        a5() from B to A;
+        a6() from A to C;
+    } () or A -> B () { // "Right-hand" side (RHS)
+        Timeout() from B to A;
+        Timeout() from B to C;
+    }
+}
+//*/
 
 /*
 global protocol FailureHandling(role M, role W, role FD) {
