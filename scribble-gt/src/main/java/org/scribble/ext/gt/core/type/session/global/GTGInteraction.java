@@ -76,6 +76,7 @@ public class GTGInteraction implements GTGType {
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
                                                      .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
 
+        // FIXME just fold across sets by intersecting
         Map<Role, Set<Role>> res = GTUtil.mapOf();
         for (Role r : rs) {
             Iterator<Map<Role, Set<Role>>> it = nested.iterator();
@@ -89,7 +90,7 @@ public class GTGInteraction implements GTGType {
                 }
                 tmp.retainAll(next.get(r));
             }
-            if (r.equals(this.dst)) {
+            if (r.equals(this.dst)) {  // FIXME shouldn't be inside for loop
                 tmp.add(this.src);
             } else if (tmp.contains(this.dst)) {
                 tmp.add(this.src);
@@ -111,17 +112,15 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        //System.out.println("3333: " + this + " ,, " + com + " ,, " + rem);
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
         if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
+            return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, com, rem));
         }
         Set<Role> c_copy = GTUtil.copyOf(com);
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
-        //System.out.println("3333: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
+        return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, c_copy, r_copy));
     }
 
 
@@ -247,7 +246,7 @@ public class GTGInteraction implements GTGType {
     }
 
     // ...
-   
+
     @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         Map<Role, Set<Op>> res = GTUtil.mapOf();
@@ -334,8 +333,15 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public GTGInteraction unfoldAllOnce() {
-        return this;
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        LinkedHashMap<Op, GTGType> nested = this.cases.entrySet().stream().collect(
+                Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldAllOnceAux(recvars),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), nested);
     }
 
     @Override
@@ -478,6 +484,14 @@ public class GTGInteraction implements GTGType {
     @Override
     public boolean isCoherent() {
         return this.cases.values().stream().allMatch(GTGType::isCoherent);
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTGInteraction unfoldAllImmediateRecs() {
+        return this;
     }
 
 

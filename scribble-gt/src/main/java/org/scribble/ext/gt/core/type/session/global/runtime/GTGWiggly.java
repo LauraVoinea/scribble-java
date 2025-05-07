@@ -139,16 +139,16 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
         if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
+            return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, com, rem));
         }
         Set<Role> c_copy = GTUtil.copyOf(com);
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
         //System.out.println("2222: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
+        return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, c_copy, r_copy));
     }
 
     /* ... */
@@ -482,7 +482,12 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public GTGWiggly unfoldAllOnce() {
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public GTGWiggly unfoldAllImmediateRecs() {
         return this;
     }
 

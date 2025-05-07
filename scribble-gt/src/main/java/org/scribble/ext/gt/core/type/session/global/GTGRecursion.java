@@ -33,11 +33,6 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
-    public boolean isClearTermination() {
-        return this.body.isClearTermination();
-    }
-
-    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return this.body.isInitialWellSet(cs);
     }
@@ -53,8 +48,13 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommittingAux(obs, com, rem);
+    public boolean isClearTermination() {
+        return this.body.isClearTermination();
+    }
+
+    @Override
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.body.isClearTerminationAux(obs, com, rem);
     }
 
 
@@ -117,8 +117,14 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public GTGType unfoldAllOnce() {
-        return this.body.subs(this.var, this).unfoldAllOnce();
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        if (recvars.contains(this.var)) {
+            return this;
+        } else {
+            Set<RecVar> tmp = new HashSet<>(recvars);
+            tmp.add(this.var);
+            return this.body.subs(this.var, this).unfoldAllOnceAux(tmp);
+        }
     }
 
     @Override
@@ -226,10 +232,18 @@ public class GTGRecursion implements GTGType {
     /* ... */
 
     @Override
+    public GTGType unfoldAllImmediateRecs() {
+        return this.body.subs(this.var, this).unfoldAllImmediateRecs();
+    }
+
+
+    /* ... */
+
+    @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                unfoldAllOnce().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+                this.unfoldAllImmediateRecs().step(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
         return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
                 toStepJudgeString(
                         "[Rec_" + this.var + "]",  // HACK for bounding execution
@@ -256,7 +270,7 @@ public class GTGRecursion implements GTGType {
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                unfoldAllOnce().weakStep(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
+                this.unfoldAllImmediateRecs().weakStep(theta, a, c, n);  // !!! cf. [Rec], unfold-subs after step
         return step.mapRight(x -> Triple.of(x.left, x.mid, Tree.of(
                 toStepJudgeString(
                         "[Rec_" + this.var + "]",  // HACK for bounding execution

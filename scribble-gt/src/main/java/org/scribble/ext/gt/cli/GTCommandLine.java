@@ -312,6 +312,8 @@ public class GTCommandLine extends CommandLine {
                         + g + ": " + translate);
             }
 
+            System.out.println("aaaaaaa: " + translate.unfoldAllOnce());
+
             /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
                 System.err.println("Not single pointed: " + translate);
             } else*/

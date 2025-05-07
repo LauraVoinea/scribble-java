@@ -143,7 +143,7 @@ public class GTLBranch implements GTLType {
     }
 
     @Override
-    public GTLBranch unfoldAllOnce() {
+    public GTLBranch unfoldAllImmediateRecs() {
         return this;
     }
 

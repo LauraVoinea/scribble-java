@@ -918,8 +918,8 @@ global protocol Proto1(role A, role B) {
     rec X {
         mixed {
             choice at A {
-                a1() from A to B;
-                continue X;  // testing left committing
+                a1() from A to B;  // !!! difficult to be balanced for MP examples?
+                continue X;  // testing recursive left committing -- won't commit this MC branch iteration until enter some future one (one b1 could commit multiple a1's)
             } or {
                 a2() from A to B;
                 b1() from B to A;

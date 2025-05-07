@@ -222,7 +222,7 @@ public class GTLMixedChoice implements GTLType {
     }
 
     @Override
-    public GTLMixedChoice unfoldAllOnce() {
+    public GTLMixedChoice unfoldAllImmediateRecs() {
         return this;
     }
 

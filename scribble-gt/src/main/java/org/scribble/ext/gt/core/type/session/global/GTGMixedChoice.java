@@ -100,15 +100,15 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public boolean isClearTermination() {
         //return isLeftCommitting(GTUtil.setOf(), getRoles());  // n.b., roles(this) -- "outer" roles not involved at all don't matter
-        return this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), getRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+        return this.left.isClearTerminationAux(this.observer, GTUtil.setOf(), getRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
                 && this.left.isClearTermination()
                 && this.right.isClearTermination();
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommittingAux(obs, com, rem)
-                && this.right.isLeftCommittingAux(obs, com, rem);
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.left.isClearTerminationAux(obs, com, rem)
+                && this.right.isClearTerminationAux(obs, com, rem);
     }
 
 
@@ -359,8 +359,9 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public GTGMixedChoice unfoldAllOnce() {
-        return this;
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
+                this.right.unfoldAllOnce(), this.other, this.observer);
     }
 
     @Override
@@ -522,6 +523,14 @@ public class GTGMixedChoice implements GTGType {
     public boolean isCoherent() {
         // Morally can just return true
         return this.left.isCoherent() && this.right.isCoherent();
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTGMixedChoice unfoldAllImmediateRecs() {
+        return this;
     }
 
 

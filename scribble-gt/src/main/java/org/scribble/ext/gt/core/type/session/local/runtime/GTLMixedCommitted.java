@@ -146,7 +146,7 @@ public class GTLMixedCommitted implements GTLType {
     }
 
     @Override
-    public GTLMixedCommitted unfoldAllOnce() {
+    public GTLMixedCommitted unfoldAllImmediateRecs() {
         return this;
     }
 

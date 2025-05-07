@@ -49,7 +49,7 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public GTLEnd unfoldAllOnce() {
+    public GTLEnd unfoldAllImmediateRecs() {
         return this;
     }
 

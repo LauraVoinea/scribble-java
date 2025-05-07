@@ -7,15 +7,12 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
-import org.scribble.ext.gt.core.model.efsm.event.GTVAction;
-import org.scribble.ext.gt.core.model.efsm.event.GTVEvent;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Discard;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
@@ -93,8 +90,8 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public GTLType unfoldAllOnce() {
-        return this.body.subs(this.var, this).unfoldAllOnce();
+    public GTLType unfoldAllImmediateRecs() {
+        return this.body.subs(this.var, this).unfoldAllImmediateRecs();
     }
 
     @Override
@@ -137,7 +134,7 @@ public class GTLRecursion implements GTLType {
             GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         //return unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
         LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as =
-                unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
+                this.unfoldAllImmediateRecs().getActs(mf, self, blocked, sigma, theta, c, n);
         return as.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 x -> GTUtil.union(x.getValue(), Set.of(this.var)),
@@ -151,7 +148,7 @@ public class GTLRecursion implements GTLType {
             Map<Pair<Integer, Integer>, Discard>>> step(
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> step =
-                unfoldAllOnce().step(com, self, a, sigma, theta, c, n);
+                this.unfoldAllImmediateRecs().step(com, self, a, sigma, theta, c, n);
         return step.mapRight(x -> Pair.of(
                 Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
                         toStepJudgeString("[Rec]", c, n, theta, this, sigma,
@@ -166,7 +163,7 @@ public class GTLRecursion implements GTLType {
     public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
             GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
         //return getActs(mf, self, blocked, sigma, theta, c, n);
-        return unfoldAllOnce().getWeakActs(mf, com, self, blocked, sigma, theta, c, n);
+        return this.unfoldAllImmediateRecs().getWeakActs(mf, com, self, blocked, sigma, theta, c, n);
     }
 
     @Override
@@ -175,7 +172,7 @@ public class GTLRecursion implements GTLType {
             Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
         //return step(com, self, a, sigma, theta, c, n);
         Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> step =
-                unfoldAllOnce().weakStep(com, self, a, sigma, theta, c, n);
+                this.unfoldAllImmediateRecs().weakStep(com, self, a, sigma, theta, c, n);
         return step.mapRight(x -> Pair.of(
                 Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
                         toStepJudgeString("[Rec_" + this.var + "]", c, n, theta, this, sigma,

@@ -50,7 +50,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }
 
@@ -103,6 +103,7 @@ public class GTGEnd implements GTGType {
         return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
     }
 
+
     /* Aux */
 
     @Override
@@ -111,7 +112,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public GTGEnd unfoldAllOnce() {
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
         return this;
     }
 
@@ -196,6 +197,14 @@ public class GTGEnd implements GTGType {
     @Override
     public boolean isCoherent() {
         return true;
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTGEnd unfoldAllImmediateRecs() {
+        return this;
     }
 
 

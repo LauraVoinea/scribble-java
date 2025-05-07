@@ -162,7 +162,7 @@ public class GTGMixedActive implements GTGType {
                 + " \n " + this.left.isClearTermination()
                 + " \n " + this.right.isClearTermination());*/
 
-        return this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), rs)  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+        return this.left.isClearTerminationAux(this.observer, GTUtil.setOf(), rs)  // n.b., roles(this) -- "outer" roles not involved at all don't matter
                 && this.left.isClearTermination()
                 && this.right.isClearTermination();
     }
@@ -173,9 +173,9 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommittingAux(obs, com, rem)
-                && this.right.isLeftCommittingAux(obs, com, rem);
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.left.isClearTerminationAux(obs, com, rem)
+                && this.right.isClearTerminationAux(obs, com, rem);
     }
 
     /* ... */
@@ -568,8 +568,8 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public GTGMixedActive unfoldAllOnce() {
-        return this;
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override
@@ -661,5 +661,20 @@ public class GTGMixedActive implements GTGType {
     @Override
     public boolean canEquals(Object o) {
         return o instanceof GTGMixedActive;
+    }
+
+
+
+
+
+
+
+
+
+    /* ... */
+
+    @Override
+    public GTGMixedActive unfoldAllImmediateRecs() {
+        return this;
     }
 }

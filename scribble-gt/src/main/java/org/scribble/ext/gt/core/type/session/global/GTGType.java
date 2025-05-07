@@ -46,7 +46,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     /* ... preserved -- check */
 
-    // boolean isBalanced();  // TODO
+    // boolean isBalanced();  // TODO -- cf. async rec MC example (not left terminating because not balanced)
 
     // CHECKME: Theta not used for "static" version?
     // ...doesn't check "initial"
@@ -54,10 +54,11 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     // ..."top-level" left-committing check -- cf. find all mixed-choice within G
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    boolean isClearTermination();
+    boolean isClearTermination();  // does "nested traversal" (i.e., visit all MCs)
 
+    // does deps checking for each MC LHS
     // ...left-committing check under the context of a specific mixed-choice instance
-    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
+    boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem);
 
 
     /* ... */
@@ -113,11 +114,13 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     @Override
     GTGType subs(RecVar v, GTGRecursion subs);
 
-    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
-    @Override
-    GTGType unfoldAllOnce();
-
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
+
+    default GTGType unfoldAllOnce() {
+        return unfoldAllOnceAux(Set.of());
+    }
+
+    GTGType unfoldAllOnceAux(Set<RecVar> recvars);
 
     // cf. get(Weak)Acts, "bypass" Theta, c, n
     default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }
@@ -176,6 +179,13 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
+
+
+    /* ... */
+
+    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
+    @Override
+    GTGType unfoldAllImmediateRecs();
 
 
     /* ... -- top-down, no global weak */

@@ -51,8 +51,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();  // XXX async rec MC example
+
+        //HERE // get "mandatory terminating deps" (non recvar paths)
+        // do unfoldall + prune recvar cases => check strong deps on remaining branches
     }
 
 
@@ -108,8 +111,8 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public GTGType unfoldAllOnce() {
-        throw new RuntimeException("Shouldn't get here: " + this);
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: ");
     }
 
     @Override
@@ -214,6 +217,14 @@ public class GTGRecVar implements GTGType {
     @Override
     public boolean isCoherent() {
         return true;
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTGType unfoldAllImmediateRecs() {
+        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
 

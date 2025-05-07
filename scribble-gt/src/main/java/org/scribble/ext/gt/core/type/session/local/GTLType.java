@@ -55,7 +55,7 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     GTLType subs(RecVar rv, GTLType t);
 
     @Override
-    GTLType unfoldAllOnce();
+    GTLType unfoldAllImmediateRecs();
 
     // Substitution inlined into this op -- probably better to separate unf/subs
     //GTLType unfoldContext(Map<RecVar, GTLType> env);
