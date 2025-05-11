@@ -60,7 +60,7 @@ public class GTCommandLine2 extends CommandLine {
                 System.out.println("\n[GTCommandLine] Translated " + g + ": " + translate);
             }
 
-            Optional<Exception> check = checkStaticProperties(translate);
+            Optional<Exception> check = checkStaticProperties(debug, translate);
             if (check.isPresent()) { return check; }
 
             Either<Exception, GTCorrespondence> proj = checkProjection(translate);
@@ -158,7 +158,7 @@ public class GTCommandLine2 extends CommandLine {
 
     /* Well formedness */
 
-    static Optional<Exception> checkStaticProperties(GTGType translate) {
+    static Optional<Exception> checkStaticProperties(boolean debug, GTGType translate) {
         // OLD
         // initial awareness
         Optional<Exception> res;
@@ -172,7 +172,14 @@ public class GTCommandLine2 extends CommandLine {
             throw new RuntimeException(res.get());
         }
 
-        return translate.checkWellFormed();
+        GTGType unfolded = translate.unfoldAllOnce();
+        if (debug) {
+            System.out.println("\n[GTCommandLine] Unfolded all once: " + unfolded);
+        }
+
+        System.out.println("\naaaaa committing: " + translate.getCommittingNew());
+
+        return unfolded.checkWellFormed();
     }
 
     // OLD

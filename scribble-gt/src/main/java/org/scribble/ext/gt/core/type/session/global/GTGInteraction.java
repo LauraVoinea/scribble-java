@@ -80,6 +80,31 @@ public class GTGInteraction implements GTGType {
         return Optional.empty();
     }
 
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        Map<Role, Set<Op>> res = new HashMap<>();
+        Set<Role> tmp = com;
+        if (!com.contains(this.dst) && com.contains(this.src)) {
+            tmp = new HashSet<>(com);
+            tmp.add(this.dst);
+            res.put(this.dst, this.cases.keySet());
+        }
+        for (GTGType x : this.cases.values()) {
+            x.getCommittingAuxNew(c, tmp).forEach((k, v) ->
+                    res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v));
+        }
+        return res;
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getTimeoutIds().stream())
+                         .collect(Collectors.toSet());
+    }
+
+
+
 
 
     // OLD
@@ -394,13 +419,6 @@ public class GTGInteraction implements GTGType {
 
     public Role getReceiver() {
         return this.dst;
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getTimeoutIds().stream())
-                         .collect(Collectors.toSet());
     }
 
     @Override

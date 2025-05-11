@@ -71,6 +71,18 @@ public class GTGWiggly implements GTGType {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getTimeoutIds().stream())
+                         .collect(Collectors.toSet());
+    }
+
 
     // OLD
 
@@ -519,13 +531,6 @@ public class GTGWiggly implements GTGType {
         return Stream.concat(Stream.of(this.dst),
                              this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
                      .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getTimeoutIds().stream())
-                         .collect(Collectors.toSet());
     }
 
     @Override

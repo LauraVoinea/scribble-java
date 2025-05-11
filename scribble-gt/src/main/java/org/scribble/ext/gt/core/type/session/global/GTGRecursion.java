@@ -48,9 +48,20 @@ public class GTGRecursion implements GTGType {
         return Collections.emptySet();
     }
 
+    // !!! assumes unfolded all once
     @Override
     public Optional<Exception> checkWellFormed() {
-        return this.body.checkWellFormed();
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        return this.body.getCommittingAuxNew(c, com);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.body.getTimeoutIds();
     }
 
 
@@ -156,11 +167,6 @@ public class GTGRecursion implements GTGType {
     @Override
     public Set<Role> getRoles() {
         return this.body.getRoles();
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.body.getTimeoutIds();
     }
 
 

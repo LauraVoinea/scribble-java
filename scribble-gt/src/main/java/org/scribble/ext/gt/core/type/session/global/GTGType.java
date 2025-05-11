@@ -42,7 +42,20 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Optional<Exception> checkWellFormed();
 
+    default Map<Role, Set<Op>> getCommittingNew() {
+        Map<Role, Set<Op>> res = new HashMap<>();
+        getTimeoutIds().forEach(x -> getCommittingNew(x)
+                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v)));
+        return res;
+    }
 
+    default Map<Role, Set<Op>> getCommittingNew(int c) {
+        return getCommittingAuxNew(c, Collections.emptySet());
+    }
+
+    Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com);
+
+    Set<Integer> getTimeoutIds();  // c's
 
 
 
@@ -142,8 +155,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     Set<Role> getReadyAux(Set<Role> blocked);
 
     Set<Role> getRoles();
-
-    Set<Integer> getTimeoutIds();  // c's
 
     Set<Op> getOps();
 

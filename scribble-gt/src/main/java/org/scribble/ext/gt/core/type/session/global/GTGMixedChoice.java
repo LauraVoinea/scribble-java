@@ -69,6 +69,50 @@ public class GTGMixedChoice implements GTGType {
         }
     }
 
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        if (c == this.c) {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            Set<Op> obs = new HashSet<>();
+            obs.addAll(((GTGInteraction) this.left).cases.keySet());
+            obs.addAll(((GTGInteraction) this.right).cases.keySet());
+            res.put(this.observer, obs);
+            Set<Op> oth = new HashSet<>();
+            oth.addAll(((GTGInteraction) this.right).cases.keySet());
+            res.put(this.other, oth);
+
+            Set<Role> l = new HashSet<>(com);
+            l.add(this.observer);
+            Map<Role, Set<Op>> ll = this.left.getCommittingAuxNew(c, l);
+            ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            Set<Role> r = new HashSet<>(com);
+            r.add(this.observer);
+            r.add(this.other);
+            Map<Role, Set<Op>> rr = this.right.getCommittingAuxNew(c, r);
+            rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            return res;
+        } else {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            Map<Role, Set<Op>> ll = this.left.getCommittingAuxNew(c, com);
+            ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            Map<Role, Set<Op>> rr = this.right.getCommittingAuxNew(c, com);
+            rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            return res;
+        }
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        Set<Integer> res = new HashSet<>();
+        res.add(this.c);
+        res.addAll(this.left.getTimeoutIds());
+        res.addAll(this.right.getTimeoutIds());
+        return res;
+    }
+
+
+
+
 
 
     // OLD
@@ -408,15 +452,6 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public Set<Integer> getTimeoutIds() {
-        Set<Integer> res = new HashSet<>();
-        res.add(this.c);
-        res.addAll(this.left.getTimeoutIds());
-        res.addAll(this.right.getTimeoutIds());
-        return res;
-    }
-
-    @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.left.getOps());
         ops.addAll(this.right.getOps());
@@ -434,7 +469,7 @@ public class GTGMixedChoice implements GTGType {
     public String toString() {
         return ConsoleColors.toMixedChoiceString("(" + this.left)
                 + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE  // XXX not fully working, cf. ConsoleColors reset and nested
-                + this.c + ":" + this.other + "->" + this.observer
+                + this.c + ":" + this.other + "," + this.observer
                 + " " + this.right)
                 + ConsoleColors.toMixedChoiceString(")");
     }

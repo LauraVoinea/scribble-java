@@ -44,6 +44,17 @@ public class GTGRecVar implements GTGType {
         throw new RuntimeException("Shouldn't get here");
     }
 
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
+
 
 
 
@@ -142,11 +153,6 @@ public class GTGRecVar implements GTGType {
     @Override
     public Set<Role> getRoles() {
         return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return Collections.emptySet();
     }
 
     @Override

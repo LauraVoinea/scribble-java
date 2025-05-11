@@ -67,6 +67,20 @@ public class GTGMixedActive implements GTGType {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        Set<Integer> res = new HashSet<>();
+        // !!! not adding this.c -- currently detect only inactive mixed
+        res.addAll(this.left.getTimeoutIds());
+        res.addAll(this.right.getTimeoutIds());
+        return res;
+    }
+
 
     // OLD
 
@@ -608,15 +622,6 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public Set<Integer> getTimeoutIds() {
-        Set<Integer> res = new HashSet<>();
-        // !!! not adding this.c -- currently detect only inactive mixed
-        res.addAll(this.left.getTimeoutIds());
-        res.addAll(this.right.getTimeoutIds());
-        return res;
-    }
-
-    @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.left.getOps());
         ops.addAll(this.right.getOps());
@@ -634,7 +639,7 @@ public class GTGMixedActive implements GTGType {
     public String toString() {
         return "(" + this.left + " " + this.committedLeft + " " + ConsoleColors.BLACK_TRIANGLE
                 + this.c + "," + this.n
-                + ":" + this.other + "->" + this.observer
+                + ":" + this.other + "," + this.observer
                 + " " + this.committedRight + " " + this.right + ")";
     }
 
