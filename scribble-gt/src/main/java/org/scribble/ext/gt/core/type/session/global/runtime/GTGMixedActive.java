@@ -51,6 +51,25 @@ public class GTGMixedActive implements GTGType {
                 new LinkedHashSet<>(committedRight));
     }
 
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        throw new RuntimeException("TODO");
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+
+    // OLD
+
     /* ... */
 
     // Does Sigma.circ -- cf. GTGInteraction
@@ -565,11 +584,6 @@ public class GTGMixedActive implements GTGType {
         GTGType right = this.left.subs(v, subs);
         return new GTGMixedActive(this.c, this.n, left, right, this.other, this.observer,
                 GTUtil.copyOf(this.committedLeft), GTUtil.copyOf(this.committedRight));  // FIXME repeated copying
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
-        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override

@@ -31,6 +31,26 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     int c_TOP = 0;
 
 
+
+    default GTGType unfoldAllOnce() {
+        return unfoldAllOnceAux(Set.of());
+    }
+
+    GTGType unfoldAllOnceAux(Set<RecVar> recvars);
+
+    Set<Op> getChoiceLabelsUpTo(int c);
+
+    Optional<Exception> checkWellFormed();
+
+
+
+
+
+
+
+
+    // OLD ?
+
     /* ... static only */
 
     // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
@@ -115,12 +135,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     GTGType subs(RecVar v, GTGRecursion subs);
 
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
-
-    default GTGType unfoldAllOnce() {
-        return unfoldAllOnceAux(Set.of());
-    }
-
-    GTGType unfoldAllOnceAux(Set<RecVar> recvars);
 
     // cf. get(Weak)Acts, "bypass" Theta, c, n
     default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }

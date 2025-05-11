@@ -40,10 +40,9 @@ import java.util.stream.Collectors;
 
 public class GTCommandLine2 extends CommandLine {
 
+    // CHECKME probably will be used by AST classes?
     public static GTSModelFactory GMF;
     public static GTEModelFactory LMF;
-
-    //private Map<Role, GTEState> fsms = new HashMap<>();
 
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
     protected Optional<Exception> gtMain() {
@@ -53,6 +52,7 @@ public class GTCommandLine2 extends CommandLine {
         GTCommandLine2.LMF = (GTEModelFactory) core.config.mf.local;
 
         Map<GProtoName, GTGType> translated = getTranslated(this);
+
         Map<GProtoName, Map<Role, GTEFSM>> efsms = new HashMap<>();
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
@@ -74,7 +74,7 @@ public class GTCommandLine2 extends CommandLine {
             }
 
             // Integer is mixed-choice ID `c`
-            GProtoName simple = g.getSimpleName();
+            GProtoName simple = g.getSimpleName();  // TODO replace by fully qualified
             Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
             Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
 
@@ -159,6 +159,7 @@ public class GTCommandLine2 extends CommandLine {
     /* Well formedness */
 
     static Optional<Exception> checkStaticProperties(GTGType translate) {
+        // OLD
         // initial awareness
         Optional<Exception> res;
         res = checkInitialWellSet(translate);
@@ -166,8 +167,15 @@ public class GTCommandLine2 extends CommandLine {
         res = checkSingleDecision(translate);
         if (res.isPresent()) { return res; }
         res = checkClearTermination(translate);
-        return res;
+        //return res;
+        if (res.isPresent()) {
+            throw new RuntimeException(res.get());
+        }
+
+        return translate.checkWellFormed();
     }
+
+    // OLD
 
     // TODO make checkStaticProperties -- cf. GTCorrespondence.checkRuntimeProperties
     // no messages in transit and no active timeouts.
@@ -352,7 +360,4 @@ public class GTCommandLine2 extends CommandLine {
         return this.args.stream()
                         .filter(x -> x.left.equals(flag)).findAny().get().right;
     }
-
-
-
 }

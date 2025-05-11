@@ -921,7 +921,26 @@ global protocol Proto1(role A, role B) {
 
 
 
-//* // Exception, Interrupt, etc. similar
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        2() from B to A;
+    } () or A -> B () {
+        //1() from B to A;  // testing WF
+        //2() from B to A;    // testing WF
+        3() from B to A;
+    }
+}
+
+
+
+
+
+
+
+
+
+/* // Exception, Interrupt, etc. similar
 global protocol Timeout(role A, role B, role C) {
     mixed { // "Left-hand" side (LHS)
         a1() from A to B;

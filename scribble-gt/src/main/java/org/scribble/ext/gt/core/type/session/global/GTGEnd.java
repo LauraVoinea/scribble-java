@@ -27,6 +27,29 @@ public class GTGEnd implements GTGType {
     protected GTGEnd() { }
 
 
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        return this;
+    }
+
+    // !!! assumes unfolded all once
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        return Optional.empty();
+    }
+
+
+
+
+
+    // OLD
+
     /* ... */
 
     @Override
@@ -108,11 +131,6 @@ public class GTGEnd implements GTGType {
 
     @Override
     public GTGType subs(RecVar v, GTGRecursion subs) {
-        return this;
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
         return this;
     }
 

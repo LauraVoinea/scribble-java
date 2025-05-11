@@ -38,6 +38,40 @@ public class GTGMixedChoice implements GTGType {
         this.right = right;
     }
 
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
+                this.right.unfoldAllOnce(), this.other, this.observer);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        if (this.c == c) {
+            return Collections.emptySet();
+        } else {
+            Set<Op> res = new HashSet<>();
+            res.addAll(this.left.getChoiceLabelsUpTo(c));
+            res.addAll(this.right.getChoiceLabelsUpTo(c));
+            return res;
+        }
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        Set<Op> lleft = this.left.getChoiceLabelsUpTo(this.c);
+        Set<Op> lright = this.right.getChoiceLabelsUpTo(this.c);
+        lleft.retainAll(lright);
+        if (!lleft.isEmpty()) {
+            return Optional.of(new Exception("Not well formed: labels not disjoint up to "
+                    + this.c + ": " + this));
+        } else {
+            return this.left.checkWellFormed().or(this.right::checkWellFormed);
+        }
+    }
+
+
+
+    // OLD
 
     /* ... */
 
@@ -356,12 +390,6 @@ public class GTGMixedChoice implements GTGType {
         GTGType left = this.left.subs(v, subs);
         GTGType right = this.right.subs(v, subs);
         return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
-        return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
-                this.right.unfoldAllOnce(), this.other, this.observer);
     }
 
     @Override

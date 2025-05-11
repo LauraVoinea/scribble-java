@@ -53,6 +53,27 @@ public class GTGWiggly implements GTGType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+
+
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        throw new RuntimeException("TODO");
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+
+    // OLD
+
     /* ... */
 
     @Override
@@ -479,11 +500,6 @@ public class GTGWiggly implements GTGType {
                                                              LinkedHashMap::new
                                                      ));
         return new GTGWiggly(this.src, this.dst, this.op, new LinkedHashMap<>(this.pays), cases);
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
-        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override

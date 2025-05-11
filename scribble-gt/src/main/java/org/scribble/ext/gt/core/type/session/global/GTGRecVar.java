@@ -28,6 +28,30 @@ public class GTGRecVar implements GTGType {
     }
 
 
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: ");
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        throw new RuntimeException("Shouldn't get here");
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        throw new RuntimeException("Shouldn't get here");
+    }
+
+
+
+
+
+
+
+    // OLD
+
     /* ... */
 
     @Override
@@ -108,11 +132,6 @@ public class GTGRecVar implements GTGType {
     @Override
     public GTGType subs(RecVar v, GTGRecursion subs) {
         return this.var.equals(v) ? subs : this;
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
-        throw new RuntimeException("Shouldn't get here: ");
     }
 
     @Override

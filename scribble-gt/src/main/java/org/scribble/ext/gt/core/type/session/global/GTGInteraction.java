@@ -47,6 +47,43 @@ public class GTGInteraction implements GTGType {
     }
 
 
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        LinkedHashMap<Op, GTGType> nested = this.cases.entrySet().stream().collect(
+                Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldAllOnceAux(recvars),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), nested);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        Set<Op> nested = this.cases.values().stream().flatMap(x ->
+                x.getChoiceLabelsUpTo(c).stream()).collect(Collectors.toSet());
+        Set<Op> res = new HashSet<>();
+        res.addAll(this.cases.keySet());
+        res.addAll(nested);
+        return res;
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        for (GTGType x : this.cases.values()) {
+            Optional<Exception> y = x.checkWellFormed();
+            if (y.isPresent()) {
+                return y;
+            }
+        }
+        return Optional.empty();
+    }
+
+
+
+    // OLD
+
     /* ... */
 
     // TODO refactor using choice-partic, and timeout-partic/pattern
@@ -330,18 +367,6 @@ public class GTGInteraction implements GTGType {
                                                              LinkedHashMap::new
                                                      ));
         return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), cases);
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
-        LinkedHashMap<Op, GTGType> nested = this.cases.entrySet().stream().collect(
-                Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().unfoldAllOnceAux(recvars),
-                        (x, y) -> null,
-                        LinkedHashMap::new
-                ));
-        return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), nested);
     }
 
     @Override

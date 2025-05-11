@@ -30,6 +30,38 @@ public class GTGRecursion implements GTGType {
     }
 
 
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        if (recvars.contains(this.var)) {
+            return this;
+        } else {
+            Set<RecVar> tmp = new HashSet<>(recvars);
+            tmp.add(this.var);
+            return this.body.subs(this.var, this).unfoldAllOnceAux(tmp);
+        }
+    }
+
+    // !!! assumes unfolded all once
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        return this.body.checkWellFormed();
+    }
+
+
+
+
+
+
+
+
+    // OLD ?
+
     /* ... */
 
     @Override
@@ -114,17 +146,6 @@ public class GTGRecursion implements GTGType {
             return this;
         }
         return new GTGRecursion(this.var, this.body.subs(v, subs));
-    }
-
-    @Override
-    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
-        if (recvars.contains(this.var)) {
-            return this;
-        } else {
-            Set<RecVar> tmp = new HashSet<>(recvars);
-            tmp.add(this.var);
-            return this.body.subs(this.var, this).unfoldAllOnceAux(tmp);
-        }
     }
 
     @Override
