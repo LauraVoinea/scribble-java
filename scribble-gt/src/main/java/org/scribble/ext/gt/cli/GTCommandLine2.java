@@ -124,7 +124,7 @@ public class GTCommandLine2 extends CommandLine {
         for (GTLConfig x : local.configs.values()) {
             GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
             GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
-            Map<Integer, Set<Op>> com_self = comInvert.get(x.self);
+            Map<Integer, Set<Op>> com_self = comInvert.getOrDefault(x.self, Collections.emptyMap());
             GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
             efsms.put(x.self, efsm);
         }
@@ -178,6 +178,7 @@ public class GTCommandLine2 extends CommandLine {
         }
 
         System.out.println("\naaaaa committing: " + translate.getCommittingNew());
+        System.out.println("\nbbbbb strict deps: " + translate.getStrictSyntacticDeps());
 
         return unfolded.checkWellFormed();
     }

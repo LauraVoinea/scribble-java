@@ -54,6 +54,14 @@ public class GTGEnd implements GTGType {
         return Collections.emptySet();
     }
 
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return Collections.emptyMap();
+    }
+
+
+
+
 
 
 

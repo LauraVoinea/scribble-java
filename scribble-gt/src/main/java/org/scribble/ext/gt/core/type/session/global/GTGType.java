@@ -57,6 +57,8 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Set<Integer> getTimeoutIds();  // c's
 
+    // K depends on V's
+    Map<Role, Set<Role>> getStrictSyntacticDeps();
 
 
 

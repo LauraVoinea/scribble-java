@@ -64,7 +64,10 @@ public class GTGRecursion implements GTGType {
         return this.body.getTimeoutIds();
     }
 
-
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return this.body.getStrictSyntacticDeps();
+    }
 
 
 

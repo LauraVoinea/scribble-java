@@ -920,7 +920,7 @@ global protocol Proto1(role A, role B) {
 
 
 
-
+/*
 global protocol Proto1(role A, role B) {
     rec X {
         mixed {
@@ -936,7 +936,43 @@ global protocol Proto1(role A, role B) {
         }
     }
 }
+//*/
 
+/*
+global protocol Proto1(role A, role B) {
+    rec X {
+        mixed {
+            1() from A to B;
+            //2() from B to A;  // XXX if commented, not left committing
+            continue X;
+        } () or A -> B () {
+            3() from B to A;
+        }
+    }
+}
+//*/
+
+//*
+global protocol Proto1(role A, role B, role C) {
+    1() from A to B;  // Testing deps
+    2() from A to C;
+    3() from C to B;
+    4() from B to A;
+}
+//*/
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        2() from B to A;
+        3() from B to C;  // Testing deps
+    } () or A->B () {
+        4() from B to A;
+        5() from B to C;
+    }
+}
+//*/
 
 
 

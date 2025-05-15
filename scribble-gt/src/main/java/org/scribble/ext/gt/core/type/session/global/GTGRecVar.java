@@ -54,6 +54,10 @@ public class GTGRecVar implements GTGType {
         return Collections.emptySet();
     }
 
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return Collections.emptyMap();
+    }
 
 
 

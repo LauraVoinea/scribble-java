@@ -110,6 +110,13 @@ public class GTGMixedChoice implements GTGType {
         return res;
     }
 
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        Map<Role, Set<Role>> l = this.left.getStrictSyntacticDeps();
+        Map<Role, Set<Role>> r = this.right.getStrictSyntacticDeps();
+        return GTGInteraction.mergeStrictDeps(l, r);
+    }
+
 
 
 

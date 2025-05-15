@@ -83,6 +83,11 @@ public class GTGWiggly implements GTGType {
                          .collect(Collectors.toSet());
     }
 
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
 
     // OLD
 
@@ -278,7 +283,7 @@ public class GTGWiggly implements GTGType {
                                                       .collect(Collectors.toList());
             if (!ts.isEmpty()) {
                 Optional<? extends GTLType> fst = ts.get(0);
-                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::merge);
+                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::mergeStrictDeps);
                 if (merge.isEmpty()) {
                     return Optional.empty();
                 }

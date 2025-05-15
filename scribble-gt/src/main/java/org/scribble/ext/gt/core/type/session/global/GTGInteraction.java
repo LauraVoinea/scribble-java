@@ -103,6 +103,31 @@ public class GTGInteraction implements GTGType {
                          .collect(Collectors.toSet());
     }
 
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        Map<Role, Set<Role>> nested = new HashMap<>(
+                this.cases.values().stream()
+                          .map(GTGType::getStrictSyntacticDeps)
+                          .reduce(GTGInteraction::mergeStrictDeps).get());  // Pre: non-empty cases
+        nested.put(this.src, Collections.emptySet());
+        Set<Role> curr = new HashSet<>(nested.getOrDefault(this.dst, Collections.emptySet()));
+        curr.add(this.src);
+        nested.put(this.dst, curr);
+        return nested;
+    }
+
+    protected static Map<Role, Set<Role>> mergeStrictDeps(Map<Role, Set<Role>> x, Map<Role, Set<Role>> y) {
+        Set<Role> ks = new HashSet<>(x.keySet());
+        ks.addAll(y.keySet());
+        return ks.stream().collect(Collectors.toMap(
+                k -> k,
+                k -> {
+                    Set<Role> vs = x.getOrDefault(k, Collections.emptySet());
+                    vs.retainAll(y.getOrDefault(k, Collections.emptySet()));
+                    return vs;
+                }));
+    }
+
 
 
 
@@ -249,7 +274,7 @@ public class GTGInteraction implements GTGType {
         /*if (left.isEmpty() || right.isEmpty()) {
             return Optional.empty();
         }*/
-        Optional<? extends GTLType> merge = merge(left.map(x -> x.left), right.map(x -> x.left));
+        Optional<? extends GTLType> merge = mergeStrictDeps(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = mergeSigma(left.map(x -> x.right), right.map(x -> x.right));
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
@@ -262,7 +287,7 @@ public class GTGInteraction implements GTGType {
     }
 
     // !!! TODO refactor with GTLType.merge
-    public static Optional<? extends GTLType> merge(
+    public static Optional<? extends GTLType> mergeStrictDeps(
             Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
         /*if (left.isEmpty() || right.isEmpty()) {
             return Optional.empty();

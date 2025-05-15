@@ -81,6 +81,11 @@ public class GTGMixedActive implements GTGType {
         return res;
     }
 
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
 
     // OLD
 
@@ -90,7 +95,7 @@ public class GTGMixedActive implements GTGType {
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
             Optional<Pair<? extends GTLType, Sigma>> right) {
-        Optional<? extends GTLType> merge = GTGInteraction.merge(left.map(x -> x.left), right.map(x -> x.left));
+        Optional<? extends GTLType> merge = GTGInteraction.mergeStrictDeps(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = left.flatMap(x -> right.map(y -> x.right.circ(y.right)));
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
