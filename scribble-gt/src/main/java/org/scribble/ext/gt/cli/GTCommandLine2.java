@@ -7,25 +7,17 @@ import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.actions.EAction;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.*;
 import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
 import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
-import org.scribble.ext.gt.codegen.java.GTJavaApiGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.*;
-import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
-import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.main.GTMain;
 import org.scribble.ext.gt.util.*;
 import org.scribble.job.Job;
@@ -35,7 +27,6 @@ import org.scribble.util.*;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GTCommandLine2 extends CommandLine {
@@ -159,7 +150,7 @@ public class GTCommandLine2 extends CommandLine {
     /* Well formedness */
 
     static Optional<Exception> checkStaticProperties(boolean debug, GTGType translate) {
-        // OLD
+        /*// OLD
         // initial awareness
         Optional<Exception> res;
         res = checkInitialWellSet(translate);
@@ -170,7 +161,7 @@ public class GTCommandLine2 extends CommandLine {
         //return res;
         if (res.isPresent()) {
             throw new RuntimeException(res.get());
-        }
+        }*/
 
         GTGType unfolded = translate.unfoldAllOnce();
         if (debug) {
@@ -179,6 +170,12 @@ public class GTCommandLine2 extends CommandLine {
 
         System.out.println("\naaaaa committing: " + translate.getCommittingNew());
         System.out.println("\nbbbbb strict deps: " + translate.getStrictSyntacticDeps());
+        System.out.println("\nccccc aware: " + translate.isSyntacticAware());
+
+        // well-formed
+        // initial
+        // aware  !! white triangle
+        // balanced
 
         return unfolded.checkWellFormed();
     }
@@ -195,7 +192,7 @@ public class GTCommandLine2 extends CommandLine {
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
     static Optional<Exception> checkSingleDecision(GTGType translate) {
-        Set<Role> rs = translate.getRoles();
+        Set<Role> rs = translate.getLiveRoles();
         if (!translate.isSingleDecision(rs, new Theta(translate.getTimeoutIds()))) {
             return Optional.of(new Exception("Not single-decision: " + translate));
             //} else if (!translate.isLeftCommitting()) {
@@ -217,7 +214,7 @@ public class GTCommandLine2 extends CommandLine {
     //static GTCorrespondence checkProjection(GTGType translate) {
     static Either<Exception, GTCorrespondence> checkProjection(GTGType translate) {
         // Check projection -- TODO Either
-        Set<Role> rs = translate.getRoles();
+        Set<Role> rs = translate.getLiveRoles();
         Set<Integer> tids = translate.getTimeoutIds();
         Theta theta = new Theta(tids);
         Either<Exception, GTLSystem> proj = GTCorrespondence.projectTopLevel(rs, translate, tids);

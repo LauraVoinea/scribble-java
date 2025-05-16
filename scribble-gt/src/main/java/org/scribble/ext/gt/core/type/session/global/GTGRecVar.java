@@ -28,6 +28,15 @@ public class GTGRecVar implements GTGType {
     }
 
 
+    @Override
+    public boolean isInitial() {
+        return true;
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.setOf();
+    }
 
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
@@ -56,7 +65,21 @@ public class GTGRecVar implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrictSyntacticDeps() {
-        return Collections.emptyMap();
+        return getSyntacticDeps();
+    }
+
+    protected Map<Role, Set<Role>> getSyntacticDeps() {
+        return Collections.emptyMap();  // !!! syntactic
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    @Override
+    public boolean isSyntacticAware() {
+        return true;
     }
 
 
@@ -151,11 +174,6 @@ public class GTGRecVar implements GTGType {
 
     @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
-        return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Role> getRoles() {
         return GTUtil.setOf();
     }
 
@@ -319,11 +337,6 @@ public class GTGRecVar implements GTGType {
         return true;
     }
 
-
-    @Override
-    public boolean isInitial() {
-        return true;  // !!! bound recvars not checked
-    }
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {

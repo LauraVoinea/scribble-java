@@ -55,6 +55,17 @@ public class GTGWiggly implements GTGType {
 
 
 
+    @Override
+    public boolean isInitial() {
+        return false;
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return Stream.concat(Stream.of(this.dst),
+                             this.cases.values().stream().flatMap(x -> x.getLiveRoles().stream()))
+                     .collect(Collectors.toSet());
+    }
 
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
@@ -88,6 +99,16 @@ public class GTGWiggly implements GTGType {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isSyntacticAware() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
 
     // OLD
 
@@ -113,18 +134,13 @@ public class GTGWiggly implements GTGType {
     /* ... */
 
     @Override
-    public boolean isInitial() {
-        return false;
-    }
-
-    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return false;
     }
 
     @Override
     public Map<Role, Set<Role>> getStrongDeps() {
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
                                                      .map(GTGType::getStrongDeps).collect(Collectors.toSet());
 
@@ -283,7 +299,7 @@ public class GTGWiggly implements GTGType {
                                                       .collect(Collectors.toList());
             if (!ts.isEmpty()) {
                 Optional<? extends GTLType> fst = ts.get(0);
-                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::mergeStrictDeps);
+                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::mergeSyntacticDeps);
                 if (merge.isEmpty()) {
                     return Optional.empty();
                 }
@@ -529,13 +545,6 @@ public class GTGWiggly implements GTGType {
         Set<Role> b = new HashSet<>(blocked);
         b.add(this.dst);
         return this.cases.get(this.op).getReadyAux(b);
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return Stream.concat(Stream.of(this.dst),
-                             this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
-                     .collect(Collectors.toSet());
     }
 
     @Override

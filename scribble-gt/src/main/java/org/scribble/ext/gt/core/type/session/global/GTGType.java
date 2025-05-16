@@ -31,6 +31,10 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     int c_TOP = 0;
 
 
+    boolean isInitial();
+
+    // Same as getRoles (purely static syntactic) for initial
+    Set<Role> getLiveRoles();
 
     default GTGType unfoldAllOnce() {
         return unfoldAllOnceAux(Set.of());
@@ -60,6 +64,10 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     // K depends on V's
     Map<Role, Set<Role>> getStrictSyntacticDeps();
 
+    Map<Role, Set<Role>> getEventualSyntacticDeps();
+
+    // Only uses strict deps
+    boolean isSyntacticAware();
 
 
 
@@ -155,8 +163,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }
 
     Set<Role> getReadyAux(Set<Role> blocked);
-
-    Set<Role> getRoles();
 
     Set<Op> getOps();
 
@@ -315,11 +321,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     // theorem 1: well-set + choice-participation => progress
 
     // "awareness properties" -- run-time invariant (lemma 2)
-
-    /* ... */
-
-    @Deprecated
-    boolean isInitial();
 
 
     /* ... */

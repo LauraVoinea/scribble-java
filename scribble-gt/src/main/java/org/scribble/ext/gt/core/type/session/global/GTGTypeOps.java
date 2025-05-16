@@ -87,7 +87,7 @@ public interface GTGTypeOps extends GTSessType {
 
     /* ... */
 
-    Set<Role> getRoles();
+    Set<Role> getLiveRoles();
 
     // cf. get(Weak)Acts, "bypass" Theta, c, n
     Set<Role> getReady();

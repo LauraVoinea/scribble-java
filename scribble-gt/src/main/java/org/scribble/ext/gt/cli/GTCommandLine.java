@@ -243,7 +243,7 @@ public class GTCommandLine extends CommandLine {
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
     static Optional<Exception> checkSingleDecision(GTGType translate) {
-        Set<Role> rs = translate.getRoles();
+        Set<Role> rs = translate.getLiveRoles();
         if (!translate.isSingleDecision(rs, new Theta(translate.getTimeoutIds()))) {
             return Optional.of(new Exception("Not single-decision: " + translate));
             //} else if (!translate.isLeftCommitting()) {
@@ -282,7 +282,7 @@ public class GTCommandLine extends CommandLine {
     //static GTCorrespondence checkProjection(GTGType translate) {
     static Either<Exception, GTCorrespondence> checkProjection(GTGType translate) {
         // Check projection -- TODO Either
-        Set<Role> rs = translate.getRoles();
+        Set<Role> rs = translate.getLiveRoles();
         Set<Integer> tids = translate.getTimeoutIds();
         Theta theta = new Theta(tids);
         Either<Exception, GTLSystem> proj = GTCorrespondence.projectTopLevel(rs, translate, tids);

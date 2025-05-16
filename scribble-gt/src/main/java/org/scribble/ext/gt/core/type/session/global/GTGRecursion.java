@@ -30,6 +30,15 @@ public class GTGRecursion implements GTGType {
     }
 
 
+    @Override
+    public boolean isInitial() {
+        return this.body.isInitial();
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return this.body.getLiveRoles();
+    }
 
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
@@ -66,7 +75,21 @@ public class GTGRecursion implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    protected Map<Role, Set<Role>> getSyntacticDeps() {
         return this.body.getStrictSyntacticDeps();
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    @Override
+    public boolean isSyntacticAware() {
+        return this.body.isSyntacticAware();
     }
 
 
@@ -166,12 +189,6 @@ public class GTGRecursion implements GTGType {
     public Set<Role> getReadyAux(Set<Role> blocked) {
         return this.body.getReadyAux(blocked);
     }
-
-    @Override
-    public Set<Role> getRoles() {
-        return this.body.getRoles();
-    }
-
 
     @Override
     public Set<Op> getOps() {
@@ -352,11 +369,6 @@ public class GTGRecursion implements GTGType {
     @Override
     public boolean isGood() {
         return this.body.isGood();
-    }
-
-    @Override
-    public boolean isInitial() {
-        return this.body.isInitial();
     }
 
     @Override

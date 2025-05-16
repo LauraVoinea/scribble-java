@@ -39,6 +39,16 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
+    public boolean isInitial() {
+        return this.left.isInitial() && this.right.isInitial();
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.union(this.left.getLiveRoles(), this.right.getLiveRoles());
+    }
+
+    @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
         return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
                 this.right.unfoldAllOnce(), this.other, this.observer);
@@ -112,11 +122,36 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrictSyntacticDeps() {
-        Map<Role, Set<Role>> l = this.left.getStrictSyntacticDeps();
-        Map<Role, Set<Role>> r = this.right.getStrictSyntacticDeps();
-        return GTGInteraction.mergeStrictDeps(l, r);
+        return getSyntacticDeps();
     }
 
+    protected Map<Role, Set<Role>> getSyntacticDeps() {
+        Map<Role, Set<Role>> l = this.left.getStrictSyntacticDeps();
+        Map<Role, Set<Role>> r = this.right.getStrictSyntacticDeps();
+        return GTGInteraction.mergeSyntacticDeps(l, r);
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    @Override
+    public boolean isSyntacticAware() {
+        Set<Role> rs = new HashSet<>(getLiveRoles());
+        rs.remove(this.observer);
+        Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
+        Map<Role, Set<Role>> rsdeps = this.right.getStrictSyntacticDeps();
+        System.out.println("11111: " + ledeps + " ,, " + rsdeps);
+        // !!! strict deps both sides
+        if (rs.stream().anyMatch(x ->
+                !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer)
+                        || !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))) {
+            return false;
+        } else {
+            return this.left.isSyntacticAware() && this.right.isSyntacticAware();
+        }
+    }
 
 
 
@@ -139,7 +174,7 @@ public class GTGMixedChoice implements GTGType {
         GTGInteraction left = (GTGInteraction) this.left;
         GTGInteraction right = (GTGInteraction) this.right;
         return left.isInitialWellSet(copy) && right.isInitialWellSet(copy)
-                && left.getRoles().equals(right.getRoles())  // timeout participation
+                && left.getLiveRoles().equals(right.getLiveRoles())  // timeout participation
                 && this.other.equals(left.getSender()) && this.other.equals(right.getReceiver())
                 && this.observer.equals(left.getReceiver()) && this.observer.equals(right.getSender());
     }
@@ -148,7 +183,7 @@ public class GTGMixedChoice implements GTGType {
     public Map<Role, Set<Role>> getStrongDeps() {
         Map<Role, Set<Role>> left = this.left.getStrongDeps();
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         rs.remove(this.other);
         rs.remove(this.observer);
         Map<Role, Set<Role>> res = GTUtil.mapOf();
@@ -167,7 +202,7 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
@@ -185,7 +220,7 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public boolean isClearTermination() {
         //return isLeftCommitting(GTUtil.setOf(), getRoles());  // n.b., roles(this) -- "outer" roles not involved at all don't matter
-        return this.left.isClearTerminationAux(this.observer, GTUtil.setOf(), getRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+        return this.left.isClearTerminationAux(this.observer, GTUtil.setOf(), this.getLiveRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
                 && this.left.isClearTermination()
                 && this.right.isClearTermination();
     }
@@ -454,11 +489,6 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public Set<Role> getRoles() {
-        return GTUtil.union(this.left.getRoles(), this.right.getRoles());
-    }
-
-    @Override
     public Set<Op> getOps() {
         Set<Op> ops = new HashSet<>(this.left.getOps());
         ops.addAll(this.right.getOps());
@@ -533,7 +563,7 @@ public class GTGMixedChoice implements GTGType {
 
     // Dup with GTGMixedActive  // TODO factor out
     public Set<Role> getIndifferent(Set<Role> top) {
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
         copy.remove(this.observer);
@@ -735,11 +765,6 @@ public class GTGMixedChoice implements GTGType {
     }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return this.left.isInitial() && this.right.isInitial();
-    }
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {

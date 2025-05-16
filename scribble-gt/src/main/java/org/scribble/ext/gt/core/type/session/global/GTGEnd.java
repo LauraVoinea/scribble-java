@@ -27,6 +27,15 @@ public class GTGEnd implements GTGType {
     protected GTGEnd() { }
 
 
+    @Override
+    public boolean isInitial() {
+        return true;
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.setOf();
+    }
 
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
@@ -56,9 +65,22 @@ public class GTGEnd implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    protected Map<Role, Set<Role>> getSyntacticDeps() {
         return Collections.emptyMap();
     }
 
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    @Override
+    public boolean isSyntacticAware() {
+        return true;
+    }
 
 
 
@@ -154,11 +176,6 @@ public class GTGEnd implements GTGType {
 
     @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
-        return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Role> getRoles() {
         return GTUtil.setOf();
     }
 
@@ -284,11 +301,6 @@ public class GTGEnd implements GTGType {
 
     @Override
     public boolean isGood() {
-        return true;
-    }
-
-    @Override
-    public boolean isInitial() {
         return true;
     }
 

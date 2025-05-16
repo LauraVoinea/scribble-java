@@ -51,6 +51,18 @@ public class GTGMixedActive implements GTGType {
                 new LinkedHashSet<>(committedRight));
     }
 
+    @Override
+    public boolean isInitial() {
+        return false;
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.union(
+                // !!! key design point: roles somewhat "semantic" w.r.t. committed -- cf. all properties predicated on roles(G), e.g., aware
+                GTUtil.minus(this.left.getLiveRoles(), this.committedRight),
+                GTUtil.minus(this.right.getLiveRoles(), this.committedLeft));
+    }
 
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
@@ -86,6 +98,16 @@ public class GTGMixedActive implements GTGType {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isSyntacticAware() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
 
     // OLD
 
@@ -95,7 +117,7 @@ public class GTGMixedActive implements GTGType {
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
             Optional<Pair<? extends GTLType, Sigma>> right) {
-        Optional<? extends GTLType> merge = GTGInteraction.mergeStrictDeps(left.map(x -> x.left), right.map(x -> x.left));
+        Optional<? extends GTLType> merge = GTGInteraction.mergeSyntacticDeps(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = left.flatMap(x -> right.map(y -> x.right.circ(y.right)));
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
@@ -129,18 +151,13 @@ public class GTGMixedActive implements GTGType {
     /* ... */
 
     @Override
-    public boolean isInitial() {
-        return false;
-    }
-
-    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return false;
     }
 
     // Dup from GTGMixedChoice  // TODO factor out
     public Set<Role> getIndifferent(Set<Role> topAll) {  // cf. topPeers in project
-        Set<Role> rs = getRoles();
+        Set<Role> rs = getLiveRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
         copy.remove(this.observer);
@@ -170,7 +187,7 @@ public class GTGMixedActive implements GTGType {
         }
 
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
-        Set<Role> rs = getRoles();
+        Set<Role> rs = getLiveRoles();
         rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
@@ -193,7 +210,7 @@ public class GTGMixedActive implements GTGType {
         }
 
         //Set<Role> rs = getRoles();
-        Set<Role> rs = this.left.getRoles();  // !!! otherwise (e.g.) roles_left \setminus committedRight
+        Set<Role> rs = this.left.getLiveRoles();  // !!! otherwise (e.g.) roles_left \setminus committedRight
         rs.add(this.observer);  // cf. (A~>B:l1{l1.B->A{l2.end}} [] ▶1,1:A->B [B] B~>A:r1{r1.end}) -- B r-committed so not in getRoles... if obs not in rem, then doesn't get left-committed by aux
 
         /*System.out.println("111111: " + this + " ,, " + rs + " \n " + this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), rs)  // n.b., roles(this) -- "outer" roles not involved at all don't matter
@@ -254,10 +271,10 @@ public class GTGMixedActive implements GTGType {
         // OLD
 
         if (this.committedLeft.isEmpty() && this.committedRight.isEmpty()) {
-            return this.left.getRoles().equals(this.right.getRoles());  // awareness (2) -- OLD
+            return this.left.getLiveRoles().equals(this.right.getLiveRoles());  // awareness (2) -- OLD
         }
 
-        Set<Role> rs = getRoles();
+        Set<Role> rs = getLiveRoles();
         rs.removeAll(getIndifferent(topAll));  // rs comes from top as param (not re-calc in each recursive step)
 
         Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
@@ -614,16 +631,6 @@ public class GTGMixedActive implements GTGType {
         br.addAll(this.committedLeft);
         res.addAll(this.right.getReadyAux(br));
         return res;
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-
-        // !!! key design point: not including committed sets in of themselves -- cf. all properties predicated on roles(G), e.g., aware
-
-        return GTUtil.union(
-                GTUtil.minus(this.left.getRoles(), this.committedRight),
-                GTUtil.minus(this.right.getRoles(), this.committedLeft));
     }
 
     @Override
