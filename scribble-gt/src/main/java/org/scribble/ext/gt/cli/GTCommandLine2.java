@@ -163,21 +163,34 @@ public class GTCommandLine2 extends CommandLine {
             throw new RuntimeException(res.get());
         }*/
 
+        // initial
+        // well-formed
+        // aware  !! white triangle
+        // balanced
+
         GTGType unfolded = translate.unfoldAllOnce();
         if (debug) {
             System.out.println("\n[GTCommandLine] Unfolded all once: " + unfolded);
         }
+        Optional<Exception> wf = unfolded.checkWellFormed();
+        if (wf.isPresent()) { return wf; }
 
-        System.out.println("\naaaaa committing: " + translate.getCommittingNew());
-        System.out.println("\nbbbbb strict deps: " + translate.getStrictSyntacticDeps());
-        System.out.println("\nccccc aware: " + translate.isSyntacticAware());
+        if (debug) {
+            System.out.println("\naaaaa initial: " + translate.isInitial());
+            System.out.println("\nbbbbb committing: " + translate.getCommittingNew());
+            System.out.println("\nccccc strict deps: " + translate.getStrictSyntacticDeps());
+            System.out.println("\nddddd aware: " + translate.isSyntacticAware());
+            System.out.println("\neeeee balanced: " + translate.isBalanced());
+        }
+        if (!translate.isSyntacticAware()) {
+            return Optional.of(new Exception("Not aware: " + translate));
+        }
 
-        // well-formed
-        // initial
-        // aware  !! white triangle
-        // balanced
+        if (!translate.isBalanced()) {
+            return Optional.of(new Exception("Not balanced: " + translate));
+        }
 
-        return unfolded.checkWellFormed();
+        return Optional.empty();
     }
 
     // OLD

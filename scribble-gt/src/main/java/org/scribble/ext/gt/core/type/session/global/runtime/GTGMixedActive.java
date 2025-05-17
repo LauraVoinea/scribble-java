@@ -108,6 +108,11 @@ public class GTGMixedActive implements GTGType {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
+    @Override
+    public boolean isBalanced() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
 
     // OLD
 

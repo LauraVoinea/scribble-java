@@ -153,6 +153,10 @@ public class GTGMixedChoice implements GTGType {
         }
     }
 
+    @Override
+    public boolean isBalanced() {
+        return this.left.getLiveRoles().equals(this.right.getLiveRoles());
+    }
 
 
 

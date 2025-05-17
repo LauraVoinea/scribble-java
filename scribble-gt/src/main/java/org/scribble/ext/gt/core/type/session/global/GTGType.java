@@ -69,6 +69,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     // Only uses strict deps
     boolean isSyntacticAware();
 
+    boolean isBalanced();
 
 
 

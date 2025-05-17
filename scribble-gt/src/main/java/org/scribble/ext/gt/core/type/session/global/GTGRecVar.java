@@ -82,6 +82,10 @@ public class GTGRecVar implements GTGType {
         return true;
     }
 
+    @Override
+    public boolean isBalanced() {
+        return true;
+    }
 
 
 

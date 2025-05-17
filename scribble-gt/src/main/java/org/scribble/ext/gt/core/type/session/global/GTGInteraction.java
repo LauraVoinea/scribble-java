@@ -157,6 +157,12 @@ public class GTGInteraction implements GTGType {
         return this.cases.values().stream().allMatch(GTGType::isSyntacticAware);
     }
 
+    @Override
+    public boolean isBalanced() {
+        return this.cases.values().stream().map(GTGType::getLiveRoles)
+                         .collect(Collectors.toSet()).size() == 1;
+    }
+
 
 
 

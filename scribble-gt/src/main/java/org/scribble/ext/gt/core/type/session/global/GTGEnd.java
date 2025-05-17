@@ -82,6 +82,10 @@ public class GTGEnd implements GTGType {
         return true;
     }
 
+    @Override
+    public boolean isBalanced() {
+        return true;
+    }
 
 
 

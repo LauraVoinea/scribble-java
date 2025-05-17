@@ -92,6 +92,10 @@ public class GTGRecursion implements GTGType {
         return this.body.isSyntacticAware();
     }
 
+    @Override
+    public boolean isBalanced() {
+        return this.body.isBalanced();
+    }
 
 
 
