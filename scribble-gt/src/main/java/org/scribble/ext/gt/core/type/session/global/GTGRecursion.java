@@ -31,8 +31,8 @@ public class GTGRecursion implements GTGType {
 
 
     @Override
-    public boolean isInitial() {
-        return this.body.isInitial();
+    public boolean isInitialAndpq() {
+        return this.body.isInitialAndpq();
     }
 
     @Override
@@ -75,20 +75,16 @@ public class GTGRecursion implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrictSyntacticDeps() {
-        return getSyntacticDeps();
-    }
-
-    protected Map<Role, Set<Role>> getSyntacticDeps() {
         return this.body.getStrictSyntacticDeps();
     }
 
     @Override
     public Map<Role, Set<Role>> getEventualSyntacticDeps() {
-        return getSyntacticDeps();
+        return this.body.getEventualSyntacticDeps();
     }
 
     @Override
-    public boolean isSyntacticAware() {
+    public Optional<Exception> isSyntacticAware() {
         return this.body.isSyntacticAware();
     }
 

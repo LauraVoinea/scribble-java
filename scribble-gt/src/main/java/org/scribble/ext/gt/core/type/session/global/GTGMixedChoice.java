@@ -39,8 +39,19 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isInitial() {
-        return this.left.isInitial() && this.right.isInitial();
+    public boolean isInitialAndpq() {
+        if (!(this.left instanceof GTGInteraction && this.right instanceof GTGInteraction)) {
+            //throw new RuntimeException("Left/right should be interactions, not: " + this);
+            return false;
+        }
+        GTGInteraction ll = (GTGInteraction) this.left;
+        GTGInteraction rr = (GTGInteraction) this.right;
+        if (!ll.src.equals(this.other) || !ll.dst.equals(this.observer)) {
+            return false;
+        } else if (!rr.src.equals(this.observer) || !rr.dst.equals(this.other)) {
+            return false;
+        }
+        return ll.isInitialAndpq() && rr.isInitialAndpq();
     }
 
     @Override
@@ -122,10 +133,6 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getStrictSyntacticDeps() {
-        return getSyntacticDeps();
-    }
-
-    protected Map<Role, Set<Role>> getSyntacticDeps() {
         Map<Role, Set<Role>> l = this.left.getStrictSyntacticDeps();
         Map<Role, Set<Role>> r = this.right.getStrictSyntacticDeps();
         return GTGInteraction.mergeSyntacticDeps(l, r);
@@ -133,24 +140,33 @@ public class GTGMixedChoice implements GTGType {
 
     @Override
     public Map<Role, Set<Role>> getEventualSyntacticDeps() {
-        return getSyntacticDeps();
+        Map<Role, Set<Role>> l = this.left.getEventualSyntacticDeps();
+        Map<Role, Set<Role>> r = this.right.getEventualSyntacticDeps();
+        return GTGInteraction.mergeSyntacticDeps(l, r);
     }
 
     @Override
-    public boolean isSyntacticAware() {
-        Set<Role> rs = new HashSet<>(getLiveRoles());
-        rs.remove(this.observer);
-        Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
-        Map<Role, Set<Role>> rsdeps = this.right.getStrictSyntacticDeps();
-        System.out.println("11111: " + ledeps + " ,, " + rsdeps);
-        // !!! strict deps both sides
-        if (rs.stream().anyMatch(x ->
-                !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer)
-                        || !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))) {
-            return false;
-        } else {
-            return this.left.isSyntacticAware() && this.right.isSyntacticAware();
+    public Optional<Exception> isSyntacticAware() {
+        Optional<Exception> nested = this.left.isSyntacticAware().or(this.right::isSyntacticAware);
+        if (nested.isPresent()) {
+            return nested;
         }
+
+        Set<Role> rs = new HashSet<>(getLiveRoles());
+        rs.remove(this.observer);  // !!!
+
+        Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
+        Optional<Role> ll = rs.stream()
+                              .filter(x -> !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer))
+                              .findAny();
+        if (ll.isPresent()) {
+            return ll.map(x -> new Exception("Not left committing for " + ll.get() + " in: " + this));
+        }
+        Map<Role, Set<Role>> rsdeps = this.right.getStrictSyntacticDeps();
+        Optional<Role> rr = rs.stream()
+                              .filter(x -> !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))
+                              .findAny();
+        return rr.map(x -> new Exception("Not right committing for " + rr.get() + " in " + this.c + ": " + this));
     }
 
     @Override

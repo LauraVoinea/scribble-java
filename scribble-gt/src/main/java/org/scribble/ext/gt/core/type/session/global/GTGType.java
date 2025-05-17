@@ -31,7 +31,8 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     int c_TOP = 0;
 
 
-    boolean isInitial();
+    // TODO Optional<Exception>
+    boolean isInitialAndpq();
 
     // Same as getRoles (purely static syntactic) for initial
     Set<Role> getLiveRoles();
@@ -67,8 +68,9 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     Map<Role, Set<Role>> getEventualSyntacticDeps();
 
     // Only uses strict deps
-    boolean isSyntacticAware();
+    Optional<Exception> isSyntacticAware();
 
+    // TODO Optional<Exception>
     boolean isBalanced();
 
 

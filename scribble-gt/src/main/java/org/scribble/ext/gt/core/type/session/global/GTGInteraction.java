@@ -47,8 +47,8 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isInitial() {
-        return this.cases.values().stream().allMatch(GTGType::isInitial);
+    public boolean isInitialAndpq() {
+        return this.cases.values().stream().allMatch(GTGType::isInitialAndpq);
     }
 
     @Override
@@ -120,11 +120,24 @@ public class GTGInteraction implements GTGType {
                 this.cases.values().stream()
                           .map(GTGType::getStrictSyntacticDeps)
                           .reduce(GTGInteraction::mergeSyntacticDeps).get());  // Pre: non-empty cases
-        nested.put(this.src, Collections.emptySet());
-        Set<Role> curr = new HashSet<>(nested.getOrDefault(this.dst, Collections.emptySet()));
+
+        Map<Role, Set<Role>> copy = new HashMap<>(nested);
+        copy.put(this.src, Collections.emptySet());
+
+        for (Map.Entry<Role, Set<Role>> x : nested.entrySet()) {
+            Role k = x.getKey();
+            Set<Role> vs = x.getValue();
+            if (!k.equals(this.src) && vs.contains(this.dst)) {
+                Set<Role> tmp = new HashSet<>(vs);
+                tmp.add(this.src);
+                copy.put(k, tmp);
+            }
+        }
+
+        Set<Role> curr = new HashSet<>(copy.getOrDefault(this.dst, Collections.emptySet()));
         curr.add(this.src);
-        nested.put(this.dst, curr);
-        return nested;
+        copy.put(this.dst, curr);
+        return copy;
     }
 
     @Override
@@ -133,14 +146,30 @@ public class GTGInteraction implements GTGType {
                 this.cases.values().stream()
                           .map(GTGType::getEventualSyntacticDeps)  // !!! eventual
                           .reduce(GTGInteraction::mergeSyntacticDeps).get());  // Pre: non-empty cases
-        //nested.put(this.src, Collections.emptySet());  // !!! eventual
-        Set<Role> curr = new HashSet<>(nested.getOrDefault(this.dst, Collections.emptySet()));
+
+        Map<Role, Set<Role>> copy = new HashMap<>(nested);
+        //copy.put(this.src, Collections.emptySet());  // !!! eventual
+
+        for (Map.Entry<Role, Set<Role>> x : nested.entrySet()) {
+            Role k = x.getKey();
+            Set<Role> vs = x.getValue();
+            if (vs.contains(this.dst)) {  // !!! eventual
+                Set<Role> tmp = new HashSet<>(vs);
+                tmp.add(this.src);
+                copy.put(k, tmp);
+            }
+        }
+
+        Set<Role> tmp = copy.getOrDefault(this.dst, Collections.emptySet());
+        Set<Role> curr = new HashSet<>(tmp);
         curr.add(this.src);
-        nested.put(this.dst, curr);
-        return nested;
+        copy.put(this.dst, curr);
+
+        return copy;
     }
 
-    protected static Map<Role, Set<Role>> mergeSyntacticDeps(Map<Role, Set<Role>> x, Map<Role, Set<Role>> y) {
+    protected static Map<Role, Set<Role>> mergeSyntacticDeps(
+            Map<Role, Set<Role>> x, Map<Role, Set<Role>> y) {
         Set<Role> ks = new HashSet<>(x.keySet());
         ks.addAll(y.keySet());
         return ks.stream().collect(Collectors.toMap(
@@ -153,8 +182,12 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isSyntacticAware() {
-        return this.cases.values().stream().allMatch(GTGType::isSyntacticAware);
+    public Optional<Exception> isSyntacticAware() {
+        return this.cases.values().stream()
+                         .map(GTGType::isSyntacticAware)
+                         .filter(Optional::isPresent)
+                         .findFirst()
+                         .orElseGet(Optional::empty);
     }
 
     @Override

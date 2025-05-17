@@ -919,6 +919,7 @@ global protocol Proto1(role A, role B) {
 
 
 
+/*
 global protocol Proto1(role A, role B) {
     mixed {
         1() from A to B;
@@ -927,6 +928,7 @@ global protocol Proto1(role A, role B) {
         3() from B to A;
     }
 }
+//*/
 
 /*
 global protocol Proto1(role A, role B) {
@@ -989,6 +991,9 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
+
+
+
 /* // Exception, Interrupt, etc. similar
 global protocol Timeout(role A, role B, role C) {
     mixed { // "Left-hand" side (LHS)
@@ -1011,7 +1016,7 @@ global protocol FailureHandling(role M, role W, role FD) {
             HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
             continue X;
         } () or W -> FD () { // RHS
-            Timeout() from FD to W; //@'failed W'  // !!!
+            Timeout() from FD to W; //@'failed W'  // TODO handle keyword with failure-prone role, subclass of mixed
             Crash() from FD to M;
         }
     }
@@ -1099,7 +1104,9 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                 }
             } () or Server -> Channel() {
                 // Consumer initiates cancel
-                // surprising that this is allowed here, i.e., in the Server -> Channel the first message is from Consume to Channel
+
+                // !!! XXX surprising that this is allowed here, i.e., in the Server -> Channel the first message is from Consume to Channel
+
                 basic_cancel2(consumer_tag, nowait) from Consumer to Channel;
 
                 // Channel forwards the cancel request to the Server

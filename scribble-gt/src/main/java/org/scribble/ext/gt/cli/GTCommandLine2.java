@@ -168,6 +168,18 @@ public class GTCommandLine2 extends CommandLine {
         // aware  !! white triangle
         // balanced
 
+        if (debug) {
+            System.out.println("\naaaaa initial and p->q: " + translate.isInitialAndpq());
+            System.out.println("bbbbb committing: " + translate.getCommittingNew());
+            System.out.println("ccccc strict deps: " + translate.getStrictSyntacticDeps());
+            System.out.println("ddddd aware: " + translate.isSyntacticAware());
+            System.out.println("eeeee balanced: " + translate.isBalanced());
+        }
+
+        if (!translate.isInitialAndpq()) {
+            return Optional.of(new Exception("Not initial with correct other/observer prefixes: " + translate));
+        }
+
         GTGType unfolded = translate.unfoldAllOnce();
         if (debug) {
             System.out.println("\n[GTCommandLine] Unfolded all once: " + unfolded);
@@ -175,15 +187,10 @@ public class GTCommandLine2 extends CommandLine {
         Optional<Exception> wf = unfolded.checkWellFormed();
         if (wf.isPresent()) { return wf; }
 
-        if (debug) {
-            System.out.println("\naaaaa initial: " + translate.isInitial());
-            System.out.println("\nbbbbb committing: " + translate.getCommittingNew());
-            System.out.println("\nccccc strict deps: " + translate.getStrictSyntacticDeps());
-            System.out.println("\nddddd aware: " + translate.isSyntacticAware());
-            System.out.println("\neeeee balanced: " + translate.isBalanced());
-        }
-        if (!translate.isSyntacticAware()) {
-            return Optional.of(new Exception("Not aware: " + translate));
+        Optional<Exception> aware = translate.isSyntacticAware();
+        if (aware.isPresent()) {
+            //return Optional.of(new Exception("Not aware: " + translate));
+            return aware;
         }
 
         if (!translate.isBalanced()) {
@@ -192,6 +199,9 @@ public class GTCommandLine2 extends CommandLine {
 
         return Optional.empty();
     }
+
+
+
 
     // OLD
 

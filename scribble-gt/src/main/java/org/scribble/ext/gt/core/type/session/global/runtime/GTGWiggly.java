@@ -56,7 +56,7 @@ public class GTGWiggly implements GTGType {
 
 
     @Override
-    public boolean isInitial() {
+    public boolean isInitialAndpq() {
         return false;
     }
 
@@ -105,7 +105,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isSyntacticAware() {
+    public Optional<Exception> isSyntacticAware() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
@@ -113,7 +113,7 @@ public class GTGWiggly implements GTGType {
     public boolean isBalanced() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
-   
+
 
     // OLD
 

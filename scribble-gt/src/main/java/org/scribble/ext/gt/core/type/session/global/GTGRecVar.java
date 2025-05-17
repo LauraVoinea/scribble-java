@@ -29,7 +29,7 @@ public class GTGRecVar implements GTGType {
 
 
     @Override
-    public boolean isInitial() {
+    public boolean isInitialAndpq() {
         return true;
     }
 
@@ -78,8 +78,8 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isSyntacticAware() {
-        return true;
+    public Optional<Exception> isSyntacticAware() {
+        return Optional.empty();
     }
 
     @Override

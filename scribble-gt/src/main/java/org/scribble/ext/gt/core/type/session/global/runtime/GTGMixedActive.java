@@ -52,7 +52,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isInitial() {
+    public boolean isInitialAndpq() {
         return false;
     }
 
@@ -104,7 +104,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isSyntacticAware() {
+    public Optional<Exception> isSyntacticAware() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 
