@@ -36,11 +36,13 @@ public class ConsoleColors {
     }
 
     public static final String toRecString(String m) {
-        return ConsoleColors.YELLOW + m + ConsoleColors.RESET;
+        //return ConsoleColors.YELLOW + m + ConsoleColors.RESET;
+        return m;
     }
 
     public static final String toMixedChoiceString(String m) {
-        return ConsoleColors.YELLOW + m + ConsoleColors.RESET;
+        //return ConsoleColors.YELLOW + m + ConsoleColors.RESET;
+        return m;
     }
 
     // Reset
@@ -55,6 +57,12 @@ public class ConsoleColors {
     public static final String PURPLE = "\033[0;35m";  // PURPLE
     public static final String CYAN = "\033[0;36m";    // CYAN
     public static final String WHITE = "\033[0;37m";   // WHITE
+
+    public static final String[] MC_COLOURS = new String[]{BLACK, GREEN, YELLOW, BLUE, PURPLE, CYAN};
+
+    public static String getMCColour(int c) {
+        return MC_COLOURS[c % MC_COLOURS.length];
+    }
 
     // Bold
     public static final String BLACK_BOLD = "\033[1;30m";  // BLACK

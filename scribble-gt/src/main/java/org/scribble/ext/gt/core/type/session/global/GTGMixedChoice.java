@@ -146,6 +146,11 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
+    public boolean isDiverging() {
+        return this.left.isDiverging() && this.right.isDiverging();
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         Optional<Exception> nested = this.left.isSyntacticAware().or(this.right::isSyntacticAware);
         if (nested.isPresent()) {
@@ -156,23 +161,42 @@ public class GTGMixedChoice implements GTGType {
         rs.remove(this.observer);  // !!!
 
         Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
-        Optional<Role> ll = rs.stream()
-                              .filter(x -> !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer))
-                              .findAny();
-        if (ll.isPresent()) {
-            return ll.map(x -> new Exception("Not left committing for " + ll.get() + " in: " + this));
+        if (!this.left.isDiverging()) {
+            Optional<Role> ll = rs.stream()
+                                  .filter(x -> !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer))
+                                  .findAny();
+            if (ll.isPresent()) {
+                return ll.map(x -> new Exception("Not left committing for " + ll.get() + " in:\n" + this.format()));
+            }
         }
+
         Map<Role, Set<Role>> rsdeps = this.right.getStrictSyntacticDeps();
         Optional<Role> rr = rs.stream()
                               .filter(x -> !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))
                               .findAny();
-        return rr.map(x -> new Exception("Not right committing for " + rr.get() + " in " + this.c + ": " + this));
+        return rr.map(x -> new Exception("Not right committing for " + rr.get() + " in " + this.c + ":\n" + this.format()));
     }
 
     @Override
     public boolean isBalanced() {
         return this.left.getLiveRoles().equals(this.right.getLiveRoles());
     }
+
+    @Override
+    public String format(String pref) {
+        String res = pref + "(" +
+                "\n" + this.left.format(pref + "    ") +
+                "\n" + pref + ConsoleColors.WHITE_TRIANGLE + this.c + ":" + this.other + "," + this.observer +
+                "\n" + this.right.format(pref + "    ") +
+                "\n" + pref + ")";
+        return ConsoleColors.getMCColour(this.c) + res + ConsoleColors.RESET;
+    }
+
+
+
+
+
+
 
 
 

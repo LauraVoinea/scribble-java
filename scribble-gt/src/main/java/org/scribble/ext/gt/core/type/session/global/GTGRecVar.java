@@ -78,6 +78,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
+    public boolean isDiverging() {
+        return true;
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         return Optional.empty();
     }
@@ -87,6 +92,10 @@ public class GTGRecVar implements GTGType {
         return true;
     }
 
+    @Override
+    public String format(String pref) {
+        return pref + this.var;
+    }
 
 
 

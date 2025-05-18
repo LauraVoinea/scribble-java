@@ -1023,7 +1023,7 @@ global protocol FailureHandling(role M, role W, role FD) {
 }
 //*/
 
-/*
+//*
 data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
 data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
 data <java> "java.lang.String" from "rt.jar" as nowait;

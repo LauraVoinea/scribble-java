@@ -104,6 +104,11 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
+    public boolean isDiverging() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
@@ -112,6 +117,15 @@ public class GTGMixedActive implements GTGType {
     public boolean isBalanced() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
+
+    @Override
+    public String format(String pref) {
+        return "TODO";
+    }
+
+
+
+
 
 
     // OLD

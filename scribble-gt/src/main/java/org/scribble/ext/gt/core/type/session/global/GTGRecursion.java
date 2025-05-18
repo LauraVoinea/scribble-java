@@ -84,6 +84,11 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public boolean isDiverging() {
+        return this.body.isDiverging();
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         return this.body.isSyntacticAware();
     }
@@ -93,6 +98,11 @@ public class GTGRecursion implements GTGType {
         return this.body.isBalanced();
     }
 
+    @Override
+    public String format(String pref) {
+        return pref + "mu " + this.var + "." +
+                "\n" + this.body.format(pref + "    ");
+    }
 
 
 

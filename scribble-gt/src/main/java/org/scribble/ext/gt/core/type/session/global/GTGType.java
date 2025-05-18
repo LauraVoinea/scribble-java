@@ -67,11 +67,23 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Map<Role, Set<Role>> getEventualSyntacticDeps();
 
+    //HERE  // and left committing filter out diverging choice-cases and diverging MC-left
+
+    boolean isDiverging();
+
     // Only uses strict deps
     Optional<Exception> isSyntacticAware();
 
     // TODO Optional<Exception>
     boolean isBalanced();
+
+    default String format() {
+        return format("");
+    }
+
+    String format(String pref);
+
+
 
 
 

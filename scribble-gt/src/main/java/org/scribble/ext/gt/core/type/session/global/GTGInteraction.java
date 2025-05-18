@@ -182,6 +182,11 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
+    public boolean isDiverging() {
+        return this.cases.values().stream().allMatch(GTGType::isDiverging);
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         return this.cases.values().stream()
                          .map(GTGType::isSyntacticAware)
@@ -194,6 +199,25 @@ public class GTGInteraction implements GTGType {
     public boolean isBalanced() {
         return this.cases.values().stream().map(GTGType::getLiveRoles)
                          .collect(Collectors.toSet()).size() == 1;
+    }
+
+    @Override
+    public String format(String pref) {
+        String res = pref + this.src + " -> " + this.dst;
+        if (this.cases.size() == 1) {
+            Map.Entry<Op, GTGType> x = this.cases.entrySet().iterator().next();
+            Op op = x.getKey();
+            Payload pay = this.pays.get(op);
+            return res + msgToString(op, pay) + "." +
+                    "\n" + x.getValue().format(pref);
+        } else {
+            return res + "{" +
+                    this.cases.entrySet().stream()
+                              .map(e -> "\n" + pref + "    " + msgToString(e.getKey()) + "." +
+                                      "\n" + e.getValue().format(pref + "    "))
+                              .collect(Collectors.joining(", ")) +
+                    "\n" + pref + "}";
+        }
     }
 
 
