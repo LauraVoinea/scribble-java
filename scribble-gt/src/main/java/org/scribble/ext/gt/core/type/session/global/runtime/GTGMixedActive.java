@@ -52,8 +52,8 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isInitialAndpq() {
-        return false;
+    public Optional<Exception> isInitialAndpq() {
+        return Optional.of(new Exception("Active MC is not initial:\n" + this.format()));
     }
 
     @Override
@@ -114,7 +114,7 @@ public class GTGMixedActive implements GTGType {
     }
 
     @Override
-    public boolean isBalanced() {
+    public Optional<Exception> isBalanced() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 

@@ -47,8 +47,12 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isInitialAndpq() {
-        return this.cases.values().stream().allMatch(GTGType::isInitialAndpq);
+    public Optional<Exception> isInitialAndpq() {
+        return this.cases.values().stream()
+                         .map(GTGType::isInitialAndpq)
+                         .filter(Optional::isPresent)
+                         .findAny()
+                         .orElse(Optional.empty());
     }
 
     @Override
@@ -196,9 +200,17 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isBalanced() {
-        return this.cases.values().stream().map(GTGType::getLiveRoles)
-                         .collect(Collectors.toSet()).size() == 1;
+    public Optional<Exception> isBalanced() {
+        Set<Role> pq = Set.of(this.src, this.dst);
+        Set<Set<Role>> rs =
+                this.cases.values().stream()
+                          .map(GTGType::getLiveRoles)
+                          .map(x -> x.stream().filter(y -> !pq.contains(y)).collect(Collectors.toSet()))
+                          .collect(Collectors.toSet());
+        return rs.size() == 1
+               ? Optional.empty()
+               : Optional.of(new Exception("Choice cases not balanced " + rs +
+                       " in:\n" + this.format()));
     }
 
     @Override

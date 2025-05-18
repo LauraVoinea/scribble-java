@@ -31,8 +31,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     int c_TOP = 0;
 
 
-    // TODO Optional<Exception>
-    boolean isInitialAndpq();
+    Optional<Exception> isInitialAndpq();
 
     // Same as getRoles (purely static syntactic) for initial
     Set<Role> getLiveRoles();
@@ -75,7 +74,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     Optional<Exception> isSyntacticAware();
 
     // TODO Optional<Exception>
-    boolean isBalanced();
+    Optional<Exception> isBalanced();
 
     default String format() {
         return format("");

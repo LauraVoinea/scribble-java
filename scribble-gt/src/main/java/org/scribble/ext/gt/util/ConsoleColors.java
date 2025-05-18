@@ -58,7 +58,7 @@ public class ConsoleColors {
     public static final String CYAN = "\033[0;36m";    // CYAN
     public static final String WHITE = "\033[0;37m";   // WHITE
 
-    public static final String[] MC_COLOURS = new String[]{BLACK, GREEN, YELLOW, BLUE, PURPLE, CYAN};
+    public static final String[] MC_COLOURS = new String[]{CYAN, BLACK, GREEN, YELLOW, BLUE, PURPLE};
 
     public static String getMCColour(int c) {
         return MC_COLOURS[c % MC_COLOURS.length];

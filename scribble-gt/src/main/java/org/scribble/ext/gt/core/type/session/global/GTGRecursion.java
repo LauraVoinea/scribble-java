@@ -31,7 +31,7 @@ public class GTGRecursion implements GTGType {
 
 
     @Override
-    public boolean isInitialAndpq() {
+    public Optional<Exception> isInitialAndpq() {
         return this.body.isInitialAndpq();
     }
 
@@ -94,7 +94,7 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
-    public boolean isBalanced() {
+    public Optional<Exception> isBalanced() {
         return this.body.isBalanced();
     }
 

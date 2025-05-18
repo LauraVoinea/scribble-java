@@ -28,8 +28,8 @@ public class GTGEnd implements GTGType {
 
 
     @Override
-    public boolean isInitialAndpq() {
-        return true;
+    public Optional<Exception> isInitialAndpq() {
+        return Optional.empty();
     }
 
     @Override
@@ -88,8 +88,8 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isBalanced() {
-        return true;
+    public Optional<Exception> isBalanced() {
+        return Optional.empty();
     }
 
     @Override

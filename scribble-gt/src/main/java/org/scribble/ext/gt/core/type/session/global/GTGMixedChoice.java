@@ -39,19 +39,22 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isInitialAndpq() {
-        if (!(this.left instanceof GTGInteraction && this.right instanceof GTGInteraction)) {
-            //throw new RuntimeException("Left/right should be interactions, not: " + this);
-            return false;
+    public Optional<Exception> isInitialAndpq() {
+        if (!(this.left instanceof GTGInteraction ll && this.right instanceof GTGInteraction rr)) {
+            return Optional.of(new Exception("Left/right should be interactions, not: " + this));
         }
-        GTGInteraction ll = (GTGInteraction) this.left;
-        GTGInteraction rr = (GTGInteraction) this.right;
+
         if (!ll.src.equals(this.other) || !ll.dst.equals(this.observer)) {
-            return false;
-        } else if (!rr.src.equals(this.observer) || !rr.dst.equals(this.other)) {
-            return false;
+            return Optional.of(new Exception("Left of (" + this.c + ") expected " +
+                    this.other + "->" + this.observer + ", not:\n" + this.left.format()));
         }
-        return ll.isInitialAndpq() && rr.isInitialAndpq();
+
+        if (!rr.src.equals(this.observer) || !rr.dst.equals(this.other)) {
+            return Optional.of(new Exception("Right of (" + this.c + ") expected " +
+                    this.observer + "->" + this.other + ", not:\n" + this.right.format()));
+        }
+
+        return ll.isInitialAndpq().or(rr::isInitialAndpq);
     }
 
     @Override
@@ -178,8 +181,12 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public boolean isBalanced() {
-        return this.left.getLiveRoles().equals(this.right.getLiveRoles());
+    public Optional<Exception> isBalanced() {
+        Set<Role> ll = this.left.getLiveRoles();
+        Set<Role> rr = this.right.getLiveRoles();
+        return ll.equals(rr)
+               ? Optional.empty()
+               : Optional.of(new Exception("Not balanced left=" + ll + ", right=" + rr + " in:\n" + this.format()));
     }
 
     @Override

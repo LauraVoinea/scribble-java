@@ -176,13 +176,14 @@ public class GTCommandLine2 extends CommandLine {
             System.out.println("eeeee balanced: " + translate.isBalanced());
         }
 
-        if (!translate.isInitialAndpq()) {
-            return Optional.of(new Exception("Not initial with correct other/observer prefixes:\n" + translate.format()));
+        Optional<Exception> initial = translate.isInitialAndpq();
+        if (initial.isPresent()) {
+            return initial;
         }
 
         GTGType unfolded = translate.unfoldAllOnce();
         if (debug) {
-            System.out.println("\n[GTCommandLine] Unfolded all once: " + unfolded.format());
+            System.out.println("\n[GTCommandLine] Unfolded all once:\n" + unfolded.format());
         }
         Optional<Exception> wf = unfolded.checkWellFormed();
         if (wf.isPresent()) { return wf; }
@@ -193,8 +194,9 @@ public class GTCommandLine2 extends CommandLine {
             return aware;
         }
 
-        if (!translate.isBalanced()) {
-            return Optional.of(new Exception("Not balanced: " + translate.format()));
+        Optional<Exception> balanced = translate.isBalanced();
+        if (balanced.isPresent()) {
+            return balanced;
         }
 
         return Optional.empty();
