@@ -40,6 +40,10 @@ public interface GTGType extends GTSessType, GTGTypeOps {
         return unfoldAllOnceAux(Set.of());
     }
 
+    // TODO refactor subs is singleton
+    @Override
+    GTGType subs(RecVar v, GTGRecursion subs);
+
     GTGType unfoldAllOnceAux(Set<RecVar> recvars);
 
     Set<Op> getChoiceLabelsUpTo(int c);
@@ -166,10 +170,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
 
     /* ... */
-
-    // TODO refactor subs is singleton
-    @Override
-    GTGType subs(RecVar v, GTGRecursion subs);
 
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
 

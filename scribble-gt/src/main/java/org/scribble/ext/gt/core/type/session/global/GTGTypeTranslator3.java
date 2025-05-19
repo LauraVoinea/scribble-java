@@ -113,7 +113,7 @@ public class GTGTypeTranslator3 {
             if (dst == null) {
                 dst = cast.dst;
             } else if (!dst.equals(cast.dst)) {
-                throw new RuntimeException("Non-directed choice: " + g);
+                throw new RuntimeException("Non-directed choice:\n" + g);
             }
             pays.putAll(cast.pays);
             ds.putAll(cast.cases);

@@ -220,7 +220,7 @@ public class GTGInteraction implements GTGType {
             Map.Entry<Op, GTGType> x = this.cases.entrySet().iterator().next();
             Op op = x.getKey();
             Payload pay = this.pays.get(op);
-            return res + msgToString(op, pay) + "." +
+            return res + " " + msgToString(op, pay) + "." +
                     "\n" + x.getValue().format(pref);
         } else {
             return res + "{" +

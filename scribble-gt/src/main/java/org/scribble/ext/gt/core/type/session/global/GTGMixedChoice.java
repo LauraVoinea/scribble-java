@@ -65,7 +65,7 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
         return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
-                this.right.unfoldAllOnce(), this.other, this.observer);
+                this.right.unfoldAllOnceAux(recvars), this.other, this.observer);
     }
 
     @Override
@@ -86,8 +86,9 @@ public class GTGMixedChoice implements GTGType {
         Set<Op> lright = this.right.getChoiceLabelsUpTo(this.c);
         lleft.retainAll(lright);
         if (!lleft.isEmpty()) {
-            return Optional.of(new Exception("Not well formed: labels not disjoint up to "
-                    + this.c + ": " + this));
+            return Optional.of(new Exception("Not well formed: labels left=" +
+                    lleft + ", right=" + lright + " not disjoint up to ("
+                    + this.c + ") in:\n" + this.format()));
         } else {
             return this.left.checkWellFormed().or(this.right::checkWellFormed);
         }

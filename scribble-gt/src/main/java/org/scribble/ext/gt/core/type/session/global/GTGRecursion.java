@@ -41,6 +41,14 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public GTGRecursion subs(RecVar v, GTGRecursion subs) {
+        if (this.var.equals(v)) {
+            return this;
+        }
+        return new GTGRecursion(this.var, this.body.subs(v, subs));
+    }
+
+    @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
         if (recvars.contains(this.var)) {
             return this;
@@ -186,14 +194,6 @@ public class GTGRecursion implements GTGType {
 
 
     /* Aux */
-
-    @Override
-    public GTGRecursion subs(RecVar v, GTGRecursion subs) {
-        if (this.var.equals(v)) {
-            return this;
-        }
-        return new GTGRecursion(this.var, this.body.subs(v, subs));
-    }
 
     @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
