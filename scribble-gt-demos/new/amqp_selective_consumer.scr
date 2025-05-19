@@ -80,12 +80,9 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                    // basic_cancel_ok(consumer_tag) from Consumer to Channel; //dummy message
                 }
             } () or Server -> Channel() {
-                // Consumer initiates cancel
-                // surprising that this is allowed here, i.e., in the Server -> Channel the first message is from Consume to Channel
-                basic_cancel(consumer_tag, nowait) from Consumer to Channel;
-
-                // Channel forwards the cancel request to the Server
+                // Channel initiates cancel
                 basic_cancel(consumer_tag, nowait) from Channel to Server;
+                basic_cancel(consumer_tag, nowait) from Channel to Consumer;
 
                 // Server confirms the cancel request
                 basic_cancel_ok(consumer_tag) from Server to Channel;
