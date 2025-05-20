@@ -147,15 +147,16 @@ public class GTGInteraction implements GTGType {
     // !!! syntactic deps relies on RHS awareness -- RHS can happen any time (i.e., before an LHS committing action), but single-decision ensures all aware
     @Override
     public Map<Role, Set<Role>> getEventualSyntacticDeps() {
-        Map<Role, Set<Role>> nested = new HashMap<>(
+        boolean allDiv = this.cases.values().stream().allMatch(GTGType::isDiverging);
+        Map<Role, Set<Role>> nested =
                 this.cases.values().stream()
 
                           // !!! OK because _eventual_ can be freely past or future (cf. strict)
                           // !!! TODO could also relax MC left/right if diverging ?
-                          .filter(x -> !x.isDiverging())
+                          .filter(x -> allDiv || !x.isDiverging())
 
                           .map(GTGType::getEventualSyntacticDeps)  // !!! eventual
-                          .reduce(GTGInteraction::mergeSyntacticDeps).get());  // Pre: non-empty cases
+                          .reduce(GTGInteraction::mergeSyntacticDeps).get();  // Pre: non-empty
 
         Map<Role, Set<Role>> copy = new HashMap<>(nested);
         //copy.put(this.src, Collections.emptySet());  // !!! eventual

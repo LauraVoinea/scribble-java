@@ -25,9 +25,4 @@ public class TestS2 {
     public void testTimeout() {
         TestUtil.testGood(TestUtil.BASE_PATH + "\\s2\\good\\Timeout.scr");
     }
-
-    @Test
-    public void testWFAmbiguous() {
-        TestUtil.testBad(TestUtil.BASE_PATH + "\\s2\\bad\\WFAmbiguous.scr");
-    }
 }

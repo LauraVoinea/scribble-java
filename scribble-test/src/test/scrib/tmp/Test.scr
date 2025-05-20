@@ -1216,11 +1216,23 @@ global protocol Ex3_7b(role p, role q) {
 }
 //*/
 
-/* Ex. 3.7 ;.606 -- ✓ q � r : 𝑐. 𝜇t.(q � p : 𝑎. t) ⊲ r � p : 𝑏. r � p : 𝑏. end
+/* Ex. 3.7 l.606 -- ✓ q � r : 𝑐. 𝜇t.(q � p : 𝑎. t) ⊲ r � p : 𝑏. r � p : 𝑏. end
 global protocol Ex3_7c(role p, role q, role r) {
+//    mixed {
+//        c() from q to r;
+//        rec t {  // !!! XXX EFSM (state kind) for p: mu t.q&{a().t} ▷1 r&{b().end}
+//            a() from q to p;
+//            continue t;
+//        }
+//    } () or q->r () {
+//        b() from r to q;
+//        b() from r to p;
+//    }
+
     mixed {
         c() from q to r;
-        rec t {  // !!! XXX EFSM (state kind) for p: mu t.q&{a().t} ▷1 r&{b().end}
+        a() from q to p;  // !!! equiv
+        rec t {
             a() from q to p;
             continue t;
         }
@@ -2158,7 +2170,7 @@ aux global protocol Proto1Aux(role C, role D)
 global protocol Proto1(role A, role B)
 {
 	1() from A to B;
-	do Proto1Aux(B, A);	
+	do Proto1Aux(B, A);
 }
 
 aux global protocol Proto1Aux(role A, role B)
@@ -2180,7 +2192,7 @@ global protocol Proto1(role A, role B, role C)
 	or
 	{
 		2() from A to B;
-	}	
+	}
 	4() from A to C;
 }
 
@@ -2235,8 +2247,8 @@ aux global protocol Proto1Aux(role A, role B, role C)
 
 aux global protocol Proto1Aux1(role A, role B, role C)
 {
-	2() from A to B; 
-	2() from B to C; 
+	2() from A to B;
+	2() from B to C;
 }
 //*/
 
@@ -2329,7 +2341,7 @@ global protocol Proto1(role A, role B, role C)
 	choice at A
 	{
 		1() from A to B;
-	}	
+	}
 	or
 	{
 		1() from A to C;  // Same message OK
@@ -2347,7 +2359,7 @@ explicit global protocol Proto1(role A, role B, role C)
 		connect A to B;
 		1() from A to B;
 		disconnect A and B;
-	}	
+	}
 	or
 	{
 		connect A to C;
@@ -2364,10 +2376,10 @@ explicit global protocol Proto1(role A, role B, role C)
 {
 	connect A to B;  // TODO: junit tests for explicit
 	rec X
-	{	
+	{
 		choice at A
 		{
-			1() from A to B;	
+			1() from A to B;
 			continue X;
 		}
 		or
@@ -2384,7 +2396,7 @@ explicit global protocol Proto1(role A, role B, role C)
 /*
 global protocol Proto1(role A, role B)
 {
-	rec X 
+	rec X
 	{
 		choice at A
 		{
@@ -2427,7 +2439,7 @@ global protocol Proto1(role A, role B, role C)
 {
 	choice at A
 	{
-		rec X 
+		rec X
 		{
 			1() from A to B;
 		}
@@ -2593,7 +2605,7 @@ explicit global protocol Foo(role A, role B, role C)
 		2() from A to B;
 		connect A to C;
 		3() from A to C;
-	}		
+	}
 }
 //*/
 
@@ -2619,7 +2631,7 @@ global protocol Foo(role A, role B, role C)
 
 aux global protocol Bar(role D, role E)
 {
-	2() from D to E;	
+	2() from D to E;
 }
 //*/
 
@@ -2717,8 +2729,8 @@ global protocol Proto1(role A, role B)
 /*
 global protocol Proto1(role A, role B)
 {
-	rec X 
-	{	
+	rec X
+	{
 		1() from A to B;
 		choice at A
 		{
@@ -2792,18 +2804,18 @@ global protocol Proto1(role A, role B)
 		0() from A to B;
 		choice at A
 		{
-			1() from A to B;	
+			1() from A to B;
 			//do Proto1(A, B);
 			continue X;
-			//3() from A to B;	
+			//3() from A to B;
 		}
 		or
 		{
-			2() from A to B;	
+			2() from A to B;
 		}
-		//4() from A to B;	
+		//4() from A to B;
 	}
-	5() from A to B;	
+	5() from A to B;
 }
 //*/
 
@@ -2822,7 +2834,7 @@ global protocol Proto1(role A, role B, role C)
 		//2() from A to B;
 		2() from A to C;
 		//2() from B to C;
-	}	
+	}
 }
 //*/
 
@@ -2872,7 +2884,7 @@ global protocol Proto1(role A, role B)
 	}
 	or
 	{
-		2() from A to B;	
+		2() from A to B;
 	}
 }
 //*/
@@ -2883,7 +2895,7 @@ global protocol Proto1(role A, role B)
 	1() from A to B;
 	choice at A
 	{
-		do Proto1(A, B);	
+		do Proto1(A, B);
 	}
 	or
 	{
@@ -2921,7 +2933,7 @@ global protocol Proto1(role A, role B)
 {
 	Foo() from A to B;
 	/*choice at A
-	{	
+	{
 		1() from A to B;
 	}
 	or
@@ -2948,9 +2960,9 @@ aux global protocol Loop(role P, role R, role C)
 {
 	choice at P
 	{
-		Above(int) from P to R;   
+		Above(int) from P to R;
 		Res(int) from R to P;
-		Above(int) from P to R;   
+		Above(int) from P to R;
 		Res(int) from R to P;
 		choice at P
 		{
@@ -2983,7 +2995,7 @@ aux global protocol Loop(role P, role R, role C)
 	}
 	or
 	{
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;
 	}
 }
@@ -3000,9 +3012,9 @@ aux global protocol Loop2(role P, role R, role C)
 {
 	choice at P
 	{
-		Above(v1:int) from P to R;   
+		Above(v1:int) from P to R;
 		Res(b1:int) from R to P;
-		Above(v2:int) from P to R;   
+		Above(v2:int) from P to R;
 		Res(b2:int) from R to P;
 		choice at P
 		{
@@ -3034,7 +3046,7 @@ aux global protocol Loop2(role P, role R, role C)
 	}
 	or
 	{
-		Close() from P to R;   
+		Close() from P to R;
 		Close() from P to C;
 	}
 }
@@ -3143,7 +3155,7 @@ explicit global protocol Proto1(role A, role B)
 	choice at A
 	{
 		1() connect A to B;
-	} 
+	}
 	or
 	{
 		2() connect A to B;
@@ -3427,10 +3439,10 @@ global protocol Proto1(role A, role B, role C)
 		{
 			2() from A to B;
 		}
-		3() from A to C;   
+		3() from A to C;
 				// TESTING: from some global perspectives, this could be seen as a mixed-role choice for C between B and A
 				// Any way to create an unsound mixed-role choice using sequencing?  And taking the mixed-role choice view
-				// What fixes this may be that Scribble actually projects this as sequencing, not choice? 
+				// What fixes this may be that Scribble actually projects this as sequencing, not choice?
 				// -- N.B. comes out as unfinished error, not deadlock (A is in output state)
 				// -- In this way, bounded channels actually helpful for detecting stuck messages? -- or would just come out as role-progress violation, in the worse case?
 				// -- As opposed to "inlining the continuation" (or projecting a tau?)
@@ -3452,7 +3464,7 @@ global protocol Proto1(role A, role B, role C)
 			2() from B to C;
 			continue X;
 		}
-//		or  // Testing 
+//		or  // Testing
 //		{
 //			3() from B to C;
 //		}
@@ -3650,7 +3662,7 @@ explicit global protocol Proto1(role A, role B)
 //	disconnect A and B;
 //	2() connect A to B;
 //	disconnect A and B;
-	
+
 //	1() connect A to B;  // OK: this is what theabove should be intuitively
 //	disconnect A and B;
 //	2() connect A to C;
@@ -3685,7 +3697,7 @@ explicit global protocol Proto1(role A, role B, role C)
 		{
 			1() connect A to B;
 		}
-	} 
+	}
 	or
 	{
 		2() connect A to C;
@@ -3761,7 +3773,7 @@ global protocol Proto1(role A, role B, role C)
 		1() from A to B;
 		1() from A to C;
 	}
-	or  // Not OK: projection treats C?A:1 as single-case choice 
+	or  // Not OK: projection treats C?A:1 as single-case choice
 	{
 		2() from A to B;
 	}
@@ -4290,7 +4302,7 @@ global protocol Proto1(role A, role B, role C)
 	}
 	or
 	{
-		4() 
+		4()
 		from A to B;
 		5() from B to C;  // "Standard merge" (ICALP13) -- 2/5 cases merged for input choice at C  // but is it actually mergable in ICALP13/WADFEST? because only defined on branch, not select as needed for C here -- it's fine, only merging the top level branches (distinct labels)
 		6() from C to A;
@@ -6368,7 +6380,7 @@ global protocol Proto1(role A, role B, role C)
 			choice at A
 			{
 				1() from A to C;
-				continue X;  // ** CHECKME: badly formed (for B) -- empty block bvelow is pruned leaving only the continue case, which leads to deadlock in global model, is this OK as WF algorithm? (any way to be unsound?)  or should explicitly detect inconsistent choice block projections? 
+				continue X;  // ** CHECKME: badly formed (for B) -- empty block bvelow is pruned leaving only the continue case, which leads to deadlock in global model, is this OK as WF algorithm? (any way to be unsound?)  or should explicitly detect inconsistent choice block projections?
 			}
 			or
 			{
