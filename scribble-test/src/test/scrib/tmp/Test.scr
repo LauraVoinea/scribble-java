@@ -1027,7 +1027,7 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-/* // Sec. 1 l.62 (𝐴 → 𝐵 :𝑎1 . 𝐵 → 𝐶 :𝑎2 . ...) + (𝐵 → 𝐴 :𝑎3 . 𝐵 → 𝐶 :𝑎4 . ...)
+//* // Sec. 1 l.62 (𝐴 → 𝐵 :𝑎1 . 𝐵 → 𝐶 :𝑎2 . ...) + (𝐵 → 𝐴 :𝑎3 . 𝐵 → 𝐶 :𝑎4 . ...)
 global protocol Proto1(role A, role B, role C) {
     mixed {
         a1() from A to B;

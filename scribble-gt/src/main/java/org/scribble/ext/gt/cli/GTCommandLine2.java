@@ -48,7 +48,7 @@ public class GTCommandLine2 extends CommandLine {
         for (GProtoName g : translated.keySet()) {
             GTGType translate = translated.get(g);
             if (debug) {
-                System.out.println("\n[GTCommandLine] Translated " + g + ": " + translate);
+                System.out.println("\n[GTCommandLine2] Translated " + g + ": " + translate);
             }
 
             Optional<Exception> check = checkStaticProperties(debug, translate);
@@ -58,7 +58,7 @@ public class GTCommandLine2 extends CommandLine {
             if (proj.isLeft()) { return Optional.of(proj.getLeft()); }
             GTCorrespondence s = proj.getRight();
             if (debug) {
-                System.out.println("\n[GTCommandLine] projected:\n"
+                System.out.println("\n[GTCommandLine2] projected:\n"
                         + s.local.configs.values().stream()
                                          .map(x -> x.self + "=" + x.type)
                                          .collect(Collectors.joining("\n")));
@@ -95,9 +95,8 @@ public class GTCommandLine2 extends CommandLine {
 
     static Map<Role, Map<Integer, Set<Op>>> getComInvert(Map<Integer, Map<Role, Set<Op>>> comFull) {
         Map<Role, Map<Integer, Set<Op>>> comInvert = new HashMap<>();
-        comFull.entrySet().forEach(x -> {
-            int c = x.getKey();
-            Map<Role, Set<Op>> vs = x.getValue();
+        comFull.forEach((k, vs) -> {
+            int c = k;
             for (Map.Entry<Role, Set<Op>> y : vs.entrySet()) {
                 Role r = y.getKey();
                 Set<Op> ops = y.getValue();
@@ -125,7 +124,7 @@ public class GTCommandLine2 extends CommandLine {
     static void outEFSM(Map<GProtoName, Map<Role, GTEFSM>> efsms, Pair<String, String[]> a) {
         GProtoName simple = new GProtoName(a.right[0]);
         Role r = new Role(a.right[1]);
-        System.out.println("\n[GTCommandLine] event-driven FSM for " + simple + "@" + r + ":");
+        System.out.println("\n[GTCommandLine2] event-driven FSM for " + simple + "@" + r + ":");
         System.out.println(efsms.get(simple).get(r).toDot());
     }
 
@@ -135,9 +134,9 @@ public class GTCommandLine2 extends CommandLine {
         GTEFSM m = efsms.get(simple).get(r);
         GTGenRoleGen g1 = new GTGenRoleGen();
         GTRoleGen g2 = new GTRoleGen();
-        System.out.println("\n[GTCommandLine] Gen role for " + simple + "@" + r + ":");
+        System.out.println("\n[GTCommandLine2] Gen role for " + simple + "@" + r + ":");
         System.out.println(g1.generate(simple, r, m));
-        System.out.println("\n[GTCommandLine] Role for " + simple + "@" + r + ":");
+        System.out.println("\n[GTCommandLine2] Role for " + simple + "@" + r + ":");
         System.out.println(g2.generate(simple, r, m));
     }
 
@@ -168,13 +167,13 @@ public class GTCommandLine2 extends CommandLine {
         // aware  !! white triangle
         // balanced
 
-        if (debug) {
+        /*if (debug) {
             System.out.println("\naaaaa initial and p->q: " + translate.isInitialAndpq());
             System.out.println("bbbbb committing: " + translate.getCommittingNew());
             System.out.println("ccccc strict deps: " + translate.getStrictSyntacticDeps());
             System.out.println("ddddd aware: " + translate.isSyntacticAware());
             System.out.println("eeeee balanced: " + translate.isBalanced());
-        }
+        }*/
 
         Optional<Exception> initial = translate.isInitialAndpq();
         if (initial.isPresent()) {
@@ -183,7 +182,7 @@ public class GTCommandLine2 extends CommandLine {
 
         GTGType unfolded = translate.unfoldAllOnce();
         if (debug) {
-            System.out.println("\n[GTCommandLine] Unfolded all once:\n" + unfolded.format());
+            System.out.println("\n[GTCommandLine2] Unfolded all once:\n" + unfolded.format());
         }
         Optional<Exception> wf = unfolded.checkWellFormed();
         if (wf.isPresent()) { return wf; }
@@ -312,7 +311,7 @@ public class GTCommandLine2 extends CommandLine {
         Map<ModuleName, Module> parsed = job.getContext().getParsed();  // !!! post disamb
         if (debug) {
             System.out.println("\n----- GT -----\n");
-            System.out.println("[GTCommandLine] Parsed modules: " + parsed.keySet());
+            System.out.println("[GTCommandLine2] Parsed modules: " + parsed.keySet());
         }
 
         for (ModuleName n : parsed.keySet()) {
@@ -320,10 +319,10 @@ public class GTCommandLine2 extends CommandLine {
             for (GProtoDecl g : m.getGProtoDeclChildren()) {
                 GTGType translate = new GTGTypeTranslator3().translate(
                         g.getDefChild().getBlockChild().getInteractSeqChild());
-                if (debug) {
-                    System.out.println("\n[GTCommandLine] Translated "
+                /*if (debug) {
+                    System.out.println("\n[GTCommandLine2] Translated "
                             + g.getHeaderChild().getDeclName() + ": " + translate);
-                }
+                }*/
                 res.put(g.getFullMemberName(parsed.get(n)), translate);
             }
         }
