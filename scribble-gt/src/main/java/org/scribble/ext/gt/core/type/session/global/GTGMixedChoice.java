@@ -18,6 +18,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GTGMixedChoice implements GTGType {
 
@@ -155,6 +156,14 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getFreeRecVars() {
+        return Stream.concat(
+                this.left.getFreeRecVars().stream(),
+                this.right.getFreeRecVars().stream()
+        ).collect(Collectors.toSet());
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         Optional<Exception> nested = this.left.isSyntacticAware().or(this.right::isSyntacticAware);
         if (nested.isPresent()) {
@@ -163,22 +172,29 @@ public class GTGMixedChoice implements GTGType {
 
         Set<Role> rs = new HashSet<>(getLiveRoles());
         rs.remove(this.observer);  // !!!
+        return isSyntacticClearTermination(rs).or(() -> isSyntacticSingleDecision(rs));
+    }
 
-        Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
-        if (!this.left.isDiverging()) {
-            Optional<Role> ll = rs.stream()
-                                  .filter(x -> !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer))
-                                  .findAny();
-            if (ll.isPresent()) {
-                return ll.map(x -> new Exception("Not left committing for " + ll.get() + " in:\n" + this.format()));
-            }
+    // !!! "clear termination" name, cf. RHS diverging
+    protected Optional<Exception> isSyntacticClearTermination(Set<Role> rs) {
+        if (this.left.isDiverging() &&
+                (this.left.getFreeRecVars().isEmpty() || this.right.getFreeRecVars().isEmpty())) {
+            return Optional.empty();
         }
+        Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
+        return rs.stream()
+                 .filter(x -> !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer))
+                 .findAny()
+                 .map(x -> new Exception("Not left committing for " + x + " in:\n" + this.format()));
+    }
 
+    protected Optional<Exception> isSyntacticSingleDecision(Set<Role> rs) {
         Map<Role, Set<Role>> rsdeps = this.right.getStrictSyntacticDeps();
-        Optional<Role> rr = rs.stream()
-                              .filter(x -> !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))
-                              .findAny();
-        return rr.map(x -> new Exception("Not right committing for " + rr.get() + " in " + this.c + ":\n" + this.format()));
+        return rs.stream()
+                 .filter(x -> !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))
+                 .findAny()
+                 .map(x -> new Exception("Not right committing for " + x +
+                         " in " + this.c + ":\n" + this.format()));
     }
 
     @Override

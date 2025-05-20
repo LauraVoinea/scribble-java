@@ -74,6 +74,8 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     boolean isDiverging();
 
+    Set<RecVar> getFreeRecVars();
+
     // Only uses strict deps
     Optional<Exception> isSyntacticAware();
 

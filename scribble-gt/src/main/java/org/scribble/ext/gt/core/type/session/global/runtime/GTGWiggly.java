@@ -110,6 +110,11 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getFreeRecVars() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }

@@ -18,6 +18,7 @@ import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // !!! No "fid"
 public class GTGEnd implements GTGType {
@@ -80,6 +81,11 @@ public class GTGEnd implements GTGType {
     @Override
     public boolean isDiverging() {
         return false;
+    }
+
+    @Override
+    public Set<RecVar> getFreeRecVars() {
+        return Collections.emptySet();
     }
 
     @Override

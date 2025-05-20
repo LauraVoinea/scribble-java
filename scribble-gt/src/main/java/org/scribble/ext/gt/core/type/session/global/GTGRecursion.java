@@ -97,6 +97,13 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getFreeRecVars() {
+        Set<RecVar> res = new HashSet<>(this.body.getFreeRecVars());
+        res.remove(this.var);
+        return res;
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         return this.body.isSyntacticAware();
     }

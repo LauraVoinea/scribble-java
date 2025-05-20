@@ -191,6 +191,13 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getFreeRecVars() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getFreeRecVars().stream())
+                         .collect(Collectors.toSet());
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         return this.cases.values().stream()
                          .map(GTGType::isSyntacticAware)

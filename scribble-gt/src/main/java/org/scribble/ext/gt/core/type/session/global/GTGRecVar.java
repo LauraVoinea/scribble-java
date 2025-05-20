@@ -83,6 +83,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
+    public Set<RecVar> getFreeRecVars() {
+        return Set.of(this.var);
+    }
+
+    @Override
     public Optional<Exception> isSyntacticAware() {
         return Optional.empty();
     }
