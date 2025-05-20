@@ -1,0 +1,36 @@
+module AMQP;
+
+
+//* // Fig. 8
+data <java> "java.lang.String" from "rt.jar" as register_default_consumer;
+data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
+data <java> "java.lang.String" from "rt.jar" as nowait;
+data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
+data <java> "java.lang.String" from "rt.jar" as exchange;
+data <java> "java.lang.String" from "rt.jar" as routing_key;
+// roles: C = Consumer, H = Channel, S = Server
+global protocol AMQP(role C, role H, role S) {
+    register_default_consumer() from C to H;
+    basic_consume(consumer_tag, nowait) from C to H;
+    basic_consume(consumer_tag, nowait) from H to S;
+    basic_consume_ok(consumer_tag) from S to H;
+    basic_consume_ok(consumer_tag) from H to C;
+    rec SelectiveMessageDelivery {
+        mixed {
+            basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from S to H;
+            // Continued on right column...
+            process_message() from H to C;
+            basic_deliver(consumer_tag, delivery_tag, exchange, routing_key) from H to C;
+            processing_complete(delivery_tag) from C to H;
+            update_delivery_state(delivery_tag) from H to S;
+            continue SelectiveMessageDelivery;
+        } () or H->C () {  // XXX mixed pq qp broken
+            basic_cancel(consumer_tag, nowait) from C to H;
+            basic_cancel(consumer_tag, nowait) from H to S;
+            basic_cancel_ok(consumer_tag) from S to H;
+            basic_cancel_ok(consumer_tag) from H to C;
+        }
+    }
+}
+//*/
+

@@ -1216,7 +1216,7 @@ global protocol Ex3_7b(role p, role q) {
 }
 //*/
 
-//* Ex. 3.7 l.606 -- ✓ q � r : 𝑐. 𝜇t.(q � p : 𝑎. t) ⊲ r � p : 𝑏. r � p : 𝑏. end
+/* Ex. 3.7 l.606 -- ✓ q � r : 𝑐. 𝜇t.(q � p : 𝑎. t) ⊲ r � p : 𝑏. r � p : 𝑏. end
 global protocol Ex3_7c(role p, role q, role r) {
 //    mixed {
 //        c() from q to r;
@@ -1279,6 +1279,7 @@ global protocol balance(role p, role q, role r) {
 // TODO Table 1 -- https://github.com/LauraVoinea/scribble-java/tree/gt-artifact/scribble-gt-demos/classics
 
 /* // Fig. 7
+//data <java> "java.lang.String" from "rt.jar" as Data;
 global protocol FailureHandling(role M, role W, role FD) {
     init(Data) from M to W;
     rec X {
