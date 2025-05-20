@@ -1,0 +1,17 @@
+module WFAmbiguous;
+
+
+//* // Sec. 3.1 (4) l.437 -- p � q : 𝑎. q � r : 𝑐. G1 ⊲ q � p : 𝑏. q � r : 𝑐. 2
+global protocol WF(role p, role q, role r) {
+    mixed {
+        a() from p to q;
+        c() from q to r;
+        // 1() from r to q;
+        // 2() from q to p;
+    } () or p->q () {
+        b() from q to p;
+        c() from q to r;  // !!! cf. indifferent
+        // 3() from p to r;  // n.b. reverse dir and different peer
+    }
+}
+//*/

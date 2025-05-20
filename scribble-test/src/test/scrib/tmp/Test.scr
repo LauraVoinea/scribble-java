@@ -1020,6 +1020,20 @@ global protocol Proto1(role A, role B, role C) {
 }
 //*/
 
+/*
+global protocol Proto1(role p, role q) {
+    rec t {
+        mixed {
+            1() from p to q;
+            2() from q to p;
+            continue t;
+        } () or p->q () {
+            3() from q to p;  // Testing unfolding (MC) -- !!! unfolded white triangle c ?
+            continue t;
+        }
+    }
+}
+//*/
 
 
 
@@ -1027,7 +1041,24 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-//* // Sec. 1 l.62 (𝐴 → 𝐵 :𝑎1 . 𝐵 → 𝐶 :𝑎2 . ...) + (𝐵 → 𝐴 :𝑎3 . 𝐵 → 𝐶 :𝑎4 . ...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* OLD */
+
+/* // Sec. 1 l.62 (𝐴 → 𝐵 :𝑎1 . 𝐵 → 𝐶 :𝑎2 . ...) + (𝐵 → 𝐴 :𝑎3 . 𝐵 → 𝐶 :𝑎4 . ...)
 global protocol Proto1(role A, role B, role C) {
     mixed {
         a1() from A to B;
@@ -1089,21 +1120,6 @@ global protocol WF(role p, role q, role r) {
         b() from q to p;
         c() from q to r;  // !!! cf. indifferent
         // 3() from p to r;  // n.b. reverse dir and different peer
-    }
-}
-//*/
-
-/*
-global protocol Proto1(role p, role q) {
-    rec t {
-        mixed {
-            1() from p to q;
-            2() from q to p;
-            continue t;
-        } () or p->q () {
-            3() from q to p;  // Testing unfolding (MC) -- !!! unfolded white triangle c ?
-            continue t;
-        }
     }
 }
 //*/
@@ -1248,7 +1264,7 @@ global protocol balance(role p, role q, role r) {
 
 // TODO local examples (metatheory)
 
-// TODO Table 1
+// TODO Table 1 -- https://github.com/LauraVoinea/scribble-java/tree/gt-artifact/scribble-gt-demos/classics
 
 /* // Fig. 7
 global protocol FailureHandling(role M, role W, role FD) {
@@ -1473,7 +1489,11 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
-/*  // OLD
+
+
+
+
+/*  // OLD OLD
 data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
 data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
 data <java> "java.lang.String" from "rt.jar" as nowait;
