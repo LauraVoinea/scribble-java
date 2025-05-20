@@ -208,7 +208,7 @@ public class GTLMixedChoice implements GTLType {
             }
         }
         // !!! cf. unfolding examples, e.g., (5), (6)
-        throw new RuntimeException("Not supported by the implementation: " + this);
+        throw new RuntimeException("EFSM construction not supported by the implementation: " + this);
     }
 
 

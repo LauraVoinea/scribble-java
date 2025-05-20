@@ -107,7 +107,7 @@ public class GTGTypeTranslator3 {
         Role dst = null;
         for (GTGType c : cs) {
             if (!(c instanceof GTGInteraction)) {  // !!! (all) end not currently allowed
-                throw new RuntimeException("TODO: cs");
+                throw new RuntimeException("TODO: " + cs);
             }
             GTGInteraction cast = (GTGInteraction) c;
             if (dst == null) {
