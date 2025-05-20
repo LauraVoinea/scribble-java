@@ -9,6 +9,7 @@ import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.session.local.GTLRecVar;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.*;
@@ -158,7 +159,7 @@ public class GTGRecursion implements GTGType {
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
         GTLTypeFactory lf = GTLTypeFactory.FACTORY;
         return this.body.project(topPeers, r, c, n).map(x ->
-                x.left.equals(this.var)
+                x.left instanceof GTLRecVar cast && cast.var.equals(this.var)
                 ? Pair.of(lf.end(), new Sigma(topPeers))
                 : Pair.of(lf.recursion(this.var, x.left), x.right)
         );
