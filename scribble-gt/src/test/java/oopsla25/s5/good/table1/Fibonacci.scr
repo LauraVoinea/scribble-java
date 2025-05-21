@@ -1,0 +1,21 @@
+// https://github.com/LauraVoinea/scribble-java/blob/gt-artifact/scribble-gt-demos/classics/Fibonacci.scr
+
+module Fibonacci;
+
+
+global protocol Fibonacci(role a, role b){
+	rec fib	{
+	    mixed{
+            choice at a {
+                fibonacci() from a to b;
+                fibonacci() from b to a;
+                continue fib;
+            } or {
+                stop() from a to b;
+                ack() from b to a; // otherwise Not left-committing (clear-termination)
+            }
+		} () or a->b() {
+		    error() from b to a;
+		}
+	}
+}

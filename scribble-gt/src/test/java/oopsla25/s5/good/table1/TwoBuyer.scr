@@ -1,0 +1,31 @@
+// https://github.com/LauraVoinea/scribble-java/blob/gt-artifact/scribble-gt-demos/classics/TwoBuyer.scr
+
+module TwoBuyer;
+
+
+global protocol TwoBuyer(role Alice, role Bob, role Seller){
+  mixed{
+      request_title() from Alice to Seller;
+      price_quote() from Seller to Alice;
+      price_quote() from Seller to Bob;
+      contribution() from Alice to Bob;
+      mixed{
+          choice at Bob{
+              accept_quote() from Bob to Seller;
+              purchase_confirmed() from Seller to Bob;
+              purchase_notification() from Bob to Alice;
+          } or {
+                reject_quote() from Bob to Seller;
+                cancel_confirmation() from Seller to Bob;
+                cancel_notification() from Bob to Alice;
+          }
+          } () or Bob -> Seller(){
+              response_timeout() from Seller to Bob;
+              response_timeout() from Seller to Alice;
+          }
+  }() or Alice -> Seller() {
+      not_available() from Seller to Alice;
+      not_available() from Seller to Bob;
+  }
+
+}
