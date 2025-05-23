@@ -50,7 +50,7 @@ public class GTCommandLine extends CommandLine {
 
     public static void main(String[] args) {
         GTCommandLine cl = init(args);
-        Optional<Exception> run = cl.gtRun();
+        Optional<Exception> run = cl.gtMain();
         if (run.isPresent()) {
             throw new RuntimeException(run.get());
         }
@@ -58,7 +58,7 @@ public class GTCommandLine extends CommandLine {
 
     public static Optional<Exception> mainTest(String[] args) {
         GTCommandLine cl = init(args);
-        return cl.gtRun();
+        return cl.gtMain();
     }
 
     static GTCommandLine init(String[] args) {
@@ -245,7 +245,7 @@ public class GTCommandLine extends CommandLine {
 
     // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
     static Optional<Exception> checkSingleDecision(GTGType translate) {
-        Set<Role> rs = translate.getRoles();
+        Set<Role> rs = translate.getLiveRoles();
         if (!translate.isSingleDecision(rs, new Theta(translate.getTimeoutIds()))) {
             return Optional.of(new Exception("Not single-decision: " + translate));
             //} else if (!translate.isLeftCommitting()) {
@@ -284,7 +284,7 @@ public class GTCommandLine extends CommandLine {
     //static GTCorrespondence checkProjection(GTGType translate) {
     static Either<Exception, GTCorrespondence> checkProjection(GTGType translate) {
         // Check projection -- TODO Either
-        Set<Role> rs = translate.getRoles();
+        Set<Role> rs = translate.getLiveRoles();
         Set<Integer> tids = translate.getTimeoutIds();
         Theta theta = new Theta(tids);
         Either<Exception, GTLSystem> proj = GTCorrespondence.projectTopLevel(rs, translate, tids);
@@ -297,7 +297,7 @@ public class GTCommandLine extends CommandLine {
     private Map<Role, GTEState> fsms = new HashMap<>();
 
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
-    protected Optional<Exception> gtRun() {
+    protected Optional<Exception> gtMain() {
         Core core = this.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
 
@@ -313,6 +313,8 @@ public class GTCommandLine extends CommandLine {
                 System.out.println("\n[GTCommandLine] Translated "
                         + g + ": " + translate);
             }
+
+            System.out.println("aaaaaaa: " + translate.unfoldAllOnce());
 
             /*if (!translate.isSinglePointed()) {  // FIXME latest global WF
                 System.err.println("Not single pointed: " + translate);
@@ -351,12 +353,11 @@ public class GTCommandLine extends CommandLine {
 
             System.out.println("\n[GTCommandLine] projected:\n"
                     + s.local.configs.values().stream().map(x -> x.self + "=" + x.type).collect(Collectors.joining("\n")));
-            //TODO: print to file
+
             for (GTLConfig x : s.local.configs.values()) {
                 GTEState init = new GTFsmConstructor().construct(com.get(x.self), x.type);
                 this.fsms.put(x.self, init);
-//                System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
-                //TODO: print fsm/digraph to file
+                System.out.println("\n[GTCommandLine] FSM for " + x.self + ":\n" + init.toDot());
 
                 // !!! gtRun happens before run (i.e., tryBarrierTask running before gtRun, cf. `enact` flags`)
                 if (this.hasFlag(GTCLFlags.GT_JAVA_API_GEN_FLAG)) {
@@ -366,7 +367,7 @@ public class GTCommandLine extends CommandLine {
                 GTVState s_init = new GTVState(GTVState.TOP_SCOPE);
                 GTVState end = new GTVState(GTVState.TOP_SCOPE);  // !!! scope => use -1 to GC all messages (cf. separate ends per c)
                 //Set<Op> com_self = com.getOrDefault(x.self, Set.of());
-                Map<Integer, Set<Op>> com_self = comInvert.getOrDefault(x.self, new LinkedHashMap<>());
+                Map<Integer, Set<Op>> com_self = comInvert.getOrDefault(x.self, Collections.emptyMap());
                 GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
                 //TODO: print efsm/digraph to file
 //                System.out.println("\n[debug] EFSM: " + x.self + ": " + x.type + "\n" + efsm.toDot());
@@ -376,20 +377,6 @@ public class GTCommandLine extends CommandLine {
                     throw new RuntimeException(e);
                 }
                 //TODO: print role to file
-//                System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(null, x.self, efsm));
-
-//                System.err.println(x.self + " --Theta--> " + x.theta  + " <> Sigma <> " + x.sigma.map.keySet());
-//                System.err.println(x.self + efsm.toDot());
-//                System.err.println("Commiting Full: " + comFull);
-//                System.err.println("Commiting Self: " + com_self);
-//                System.err.println("Commiting plain: " + com);
-//                System.err.println("translate.getLabels: " + translate.getLabels().left + " <> <> " + translate.getLabels().right);
-//                System.err.println("translate.getLabels: " + translate.getLabels().left.isEmpty() + " <> <> " + translate.getLabels().right.isEmpty());
-//                System.err.println("translate.getLabels Left: " + translate.getLabels().left);
-//                System.err.println("translate.getLabels Right: " + translate.getLabels().right);
-//                System.err.println("translate.getLabels Value Left: " + translate.getLabels().right.values().iterator().next().left);
-//                System.err.println("translate.getLabels Value Right: " + translate.getLabels().right.values().iterator().next().right);
-//                System.err.println("translate.getLabels Value Right: " + translate.getLabels().right.values().iterator().next().right.iterator().next());
                 try {
                     new GTCallbackModule().generate(g.getSimpleName().toString(), x, efsm);
                 } catch (IOException e) {
@@ -410,9 +397,6 @@ public class GTCommandLine extends CommandLine {
                 GTVState.resetIdCounter();
             }
 
-
-
-//            GTVState.resetIdCounter();
             // Check correspondence
             Map<Integer, Pair<Set<Op>, Set<Op>>> labs = GTUtil.umod(translate.getLabels().right);
             Map<String, Integer> unfolds = translate.getRecDecls().stream()

@@ -207,7 +207,8 @@ public class GTLMixedChoice implements GTLType {
                 return MixedKind.EXTERNAL_II;
             }
         }
-        throw new RuntimeException("Shouldn't get here: " + this);
+        // !!! cf. unfolding examples, e.g., (5), (6)
+        throw new RuntimeException("EFSM construction not supported by the implementation: " + this);
     }
 
 
@@ -222,7 +223,7 @@ public class GTLMixedChoice implements GTLType {
     }
 
     @Override
-    public GTLMixedChoice unfoldAllOnce() {
+    public GTLMixedChoice unfoldAllImmediateRecs() {
         return this;
     }
 

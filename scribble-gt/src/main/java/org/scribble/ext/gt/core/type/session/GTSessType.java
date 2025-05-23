@@ -4,7 +4,7 @@ package org.scribble.ext.gt.core.type.session;
 public interface GTSessType {
 
     // Assumes contractive
-    GTSessType unfoldAllOnce();
+    GTSessType unfoldAllImmediateRecs();
 
     boolean canEquals(Object o);
 

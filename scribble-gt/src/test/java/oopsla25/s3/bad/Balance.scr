@@ -1,0 +1,15 @@
+module Balance;
+
+
+//* // Sec. 3.4 (8) l.625 -- p � q : {𝑎. q � r : {𝑐.end}, 𝑏. q � p : {𝑐.end}}
+global protocol balance(role p, role q, role r) {
+    choice at p {
+        a() from p to q;
+        c() from q to r;  // Testing balance ... though actual safety comes from projection/merge
+    } or {
+        b() from p to q;
+        c() from q to p;
+    }
+}
+//*/
+

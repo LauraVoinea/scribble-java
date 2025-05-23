@@ -31,6 +31,69 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     int c_TOP = 0;
 
 
+    Optional<Exception> isInitialAndpq();
+
+    // Same as getRoles (purely static syntactic) for initial
+    Set<Role> getLiveRoles();
+
+    default GTGType unfoldAllOnce() {
+        return unfoldAllOnceAux(Set.of());
+    }
+
+    // TODO refactor subs is singleton
+    @Override
+    GTGType subs(RecVar v, GTGRecursion subs);
+
+    GTGType unfoldAllOnceAux(Set<RecVar> recvars);
+
+    Set<Op> getChoiceLabelsUpTo(int c);
+
+    Optional<Exception> checkWellFormed();
+
+    default Map<Role, Set<Op>> getCommittingNew() {
+        Map<Role, Set<Op>> res = new HashMap<>();
+        getTimeoutIds().forEach(x -> getCommittingNew(x)
+                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v)));
+        return res;
+    }
+
+    default Map<Role, Set<Op>> getCommittingNew(int c) {
+        return getCommittingAuxNew(c, Collections.emptySet());
+    }
+
+    Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com);
+
+    Set<Integer> getTimeoutIds();  // c's
+
+    // K depends on V's
+    Map<Role, Set<Role>> getStrictSyntacticDeps();
+
+    Map<Role, Set<Role>> getEventualSyntacticDeps();
+
+    //HERE  // and left committing filter out diverging choice-cases and diverging MC-left
+
+    boolean isDiverging();
+
+    Set<RecVar> getFreeRecVars();
+
+    // Only uses strict deps
+    Optional<Exception> isSyntacticAware();
+
+    // TODO Optional<Exception>
+    Optional<Exception> isBalanced();
+
+    default String format() {
+        return format("");
+    }
+
+    String format(String pref);
+
+
+
+
+
+    // OLD ?
+
     /* ... static only */
 
     // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
@@ -46,7 +109,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     /* ... preserved -- check */
 
-    // boolean isBalanced();  // TODO
+    // boolean isBalanced();  // TODO -- cf. async rec MC example (not left terminating because not balanced)
 
     // CHECKME: Theta not used for "static" version?
     // ...doesn't check "initial"
@@ -54,10 +117,11 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     // ..."top-level" left-committing check -- cf. find all mixed-choice within G
     // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    boolean isClearTermination();
+    boolean isClearTermination();  // does "nested traversal" (i.e., visit all MCs)
 
+    // does deps checking for each MC LHS
     // ...left-committing check under the context of a specific mixed-choice instance
-    boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem);
+    boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem);
 
 
     /* ... */
@@ -109,24 +173,12 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     /* ... */
 
-    // TODO refactor subs is singleton
-    @Override
-    GTGType subs(RecVar v, GTGRecursion subs);
-
-    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
-    @Override
-    GTGType unfoldAllOnce();
-
     //GTGType unfoldContext(Map<RecVar, GTGType> c);
 
     // cf. get(Weak)Acts, "bypass" Theta, c, n
     default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }
 
     Set<Role> getReadyAux(Set<Role> blocked);
-
-    Set<Role> getRoles();
-
-    Set<Integer> getTimeoutIds();  // c's
 
     Set<Op> getOps();
 
@@ -176,6 +228,13 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
+
+
+    /* ... */
+
+    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
+    @Override
+    GTGType unfoldAllImmediateRecs();
 
 
     /* ... -- top-down, no global weak */
@@ -278,11 +337,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     // theorem 1: well-set + choice-participation => progress
 
     // "awareness properties" -- run-time invariant (lemma 2)
-
-    /* ... */
-
-    @Deprecated
-    boolean isInitial();
 
 
     /* ... */

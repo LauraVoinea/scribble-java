@@ -1,0 +1,16 @@
+module ClearTermination2;
+
+
+//* // Ex. 3.7 l.597 -- ✓ q � p : 𝑐. 𝜇t.(q � p : 𝑎. t) ⊲ p � q : 𝑏. end
+global protocol Ex3_7b(role p, role q) {
+    mixed {
+        c() from q to p;
+        rec t {
+            a() from q to p;
+            continue t;
+        }
+    } () or q->p () {
+        b() from p to q;
+    }
+}
+//*/

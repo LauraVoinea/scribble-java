@@ -53,6 +53,90 @@ public class GTGWiggly implements GTGType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+
+
+    @Override
+    public Optional<Exception> isInitialAndpq() {
+        return Optional.of(new Exception("Wiggly is not initial:\n" + this.format()));
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return Stream.concat(Stream.of(this.dst),
+                             this.cases.values().stream().flatMap(x -> x.getLiveRoles().stream()))
+                     .collect(Collectors.toSet());
+    }
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        throw new RuntimeException("TODO");
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getTimeoutIds().stream())
+                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public boolean isDiverging() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Set<RecVar> getFreeRecVars() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Optional<Exception> isSyntacticAware() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public Optional<Exception> isBalanced() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
+    public String format(String pref) {
+        return "TODO";
+    }
+
+
+
+
+
+
+
+    // OLD
+
     /* ... */
 
     @Override
@@ -75,18 +159,13 @@ public class GTGWiggly implements GTGType {
     /* ... */
 
     @Override
-    public boolean isInitial() {
-        return false;
-    }
-
-    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return false;
     }
 
     @Override
     public Map<Role, Set<Role>> getStrongDeps() {
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
                                                      .map(GTGType::getStrongDeps).collect(Collectors.toSet());
 
@@ -139,16 +218,16 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
         if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
+            return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, com, rem));
         }
         Set<Role> c_copy = GTUtil.copyOf(com);
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
         //System.out.println("2222: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
+        return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, c_copy, r_copy));
     }
 
     /* ... */
@@ -245,7 +324,7 @@ public class GTGWiggly implements GTGType {
                                                       .collect(Collectors.toList());
             if (!ts.isEmpty()) {
                 Optional<? extends GTLType> fst = ts.get(0);
-                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::merge);
+                Optional<? extends GTLType> merge = ts.stream().skip(1).reduce(fst, GTGInteraction::mergeSyntacticDeps);
                 if (merge.isEmpty()) {
                     return Optional.empty();
                 }
@@ -482,7 +561,7 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
-    public GTGWiggly unfoldAllOnce() {
+    public GTGWiggly unfoldAllImmediateRecs() {
         return this;
     }
 
@@ -491,20 +570,6 @@ public class GTGWiggly implements GTGType {
         Set<Role> b = new HashSet<>(blocked);
         b.add(this.dst);
         return this.cases.get(this.op).getReadyAux(b);
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return Stream.concat(Stream.of(this.dst),
-                             this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
-                     .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getTimeoutIds().stream())
-                         .collect(Collectors.toSet());
     }
 
     @Override

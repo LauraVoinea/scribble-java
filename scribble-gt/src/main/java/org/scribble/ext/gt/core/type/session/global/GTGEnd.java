@@ -18,6 +18,7 @@ import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // !!! No "fid"
 public class GTGEnd implements GTGType {
@@ -26,6 +27,87 @@ public class GTGEnd implements GTGType {
 
     protected GTGEnd() { }
 
+
+    @Override
+    public Optional<Exception> isInitialAndpq() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.setOf();
+    }
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        return this;
+    }
+
+    // !!! assumes unfolded all once
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    protected Map<Role, Set<Role>> getSyntacticDeps() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    @Override
+    public boolean isDiverging() {
+        return false;
+    }
+
+    @Override
+    public Set<RecVar> getFreeRecVars() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Optional<Exception> isSyntacticAware() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Exception> isBalanced() {
+        return Optional.empty();
+    }
+
+    @Override
+    public String format(String pref) {
+        return pref + "end";
+    }
+
+
+
+
+
+    // OLD
 
     /* ... */
 
@@ -50,7 +132,7 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
         return rem.isEmpty();
     }
 
@@ -103,6 +185,7 @@ public class GTGEnd implements GTGType {
         return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
     }
 
+
     /* Aux */
 
     @Override
@@ -111,23 +194,8 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
-    public GTGEnd unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
         return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -202,6 +270,14 @@ public class GTGEnd implements GTGType {
     /* ... */
 
     @Override
+    public GTGEnd unfoldAllImmediateRecs() {
+        return this;
+    }
+
+
+    /* ... */
+
+    @Override
     public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
             GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
         return new LinkedHashMap<>();
@@ -244,11 +320,6 @@ public class GTGEnd implements GTGType {
 
     @Override
     public boolean isGood() {
-        return true;
-    }
-
-    @Override
-    public boolean isInitial() {
         return true;
     }
 

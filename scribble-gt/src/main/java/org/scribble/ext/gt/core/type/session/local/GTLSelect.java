@@ -104,7 +104,7 @@ public class GTLSelect implements GTLType {
     }
 
     @Override
-    public GTLSelect unfoldAllOnce() {
+    public GTLSelect unfoldAllImmediateRecs() {
         return this;
     }
 

@@ -241,7 +241,7 @@ public class GTLMixedActive implements GTLType {
     }
 
     @Override
-    public GTLMixedActive unfoldAllOnce() {
+    public GTLMixedActive unfoldAllImmediateRecs() {
         return this;
     }
 

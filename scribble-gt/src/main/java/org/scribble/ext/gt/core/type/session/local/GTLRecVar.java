@@ -67,7 +67,7 @@ public class GTLRecVar implements GTLType {
     }
 
     @Override
-    public GTLRecVar unfoldAllOnce() {
+    public GTLRecVar unfoldAllImmediateRecs() {
         throw new RuntimeException("Shouldn't get here: " + this);
     }
 

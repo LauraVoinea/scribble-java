@@ -1,0 +1,14 @@
+module TwoPartyChoiceNonDirected;
+
+
+//* // cf. Sec. 2 l.114 -- p � q : {𝑎1.G1,𝑎2.G2}
+global protocol TwoPartyChoice(role p, role q) {
+    choice at p {
+        a1() from p to q;
+        b1() from q to p;  // Extra, cf. MC below
+    } or {
+        a2() from q to p;  // Testing directed choice, cf. p to q
+        b2() from q to p;
+    }
+}
+//*/

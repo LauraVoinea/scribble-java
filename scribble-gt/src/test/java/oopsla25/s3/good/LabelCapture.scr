@@ -1,0 +1,31 @@
+module LabelCapture;
+
+
+//* // Sec. 3.1 (5) l.444 -- 𝜇t. p � r : 𝑎.(p � q : 𝑏. t ⊲ q � p : 𝑐. t)
+global protocol LabelCapture(role p, role q, role r) {
+    rec t {
+        a() from p to r;
+        mixed {
+            b() from p to q;
+            continue t;  // !!! XXX not left-committing for p -- also, XXX EFSM for r: t |> t
+        } () or p->q () {
+            c() from q to p;
+            continue t;
+        }
+    }
+
+//    // !!! Not equiv -- as per intention of label capture example
+//    a() from p to r;
+//    rec t {
+//        mixed {
+//            b() from p to q;
+//            a() from p to r;
+//            continue t;
+//        } () or p->q () {
+//            c() from q to p;
+//            a() from p to r;
+//            continue t;
+//        }
+//    }
+}
+//*/

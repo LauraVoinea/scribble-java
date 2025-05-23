@@ -18,6 +18,7 @@ import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GTGMixedChoice implements GTGType {
 
@@ -38,6 +39,193 @@ public class GTGMixedChoice implements GTGType {
         this.right = right;
     }
 
+    @Override
+    public Optional<Exception> isInitialAndpq() {
+        if (!(this.left instanceof GTGInteraction ll && this.right instanceof GTGInteraction rr)) {
+            return Optional.of(new Exception("Left/right should be interactions, not: " + this));
+        }
+
+        if (!ll.src.equals(this.other) || !ll.dst.equals(this.observer)) {
+            return Optional.of(new Exception("Left of (" + this.c + ") expected " +
+                    this.other + "->" + this.observer + ", not:\n" + this.left.format()));
+        }
+
+        if (!rr.src.equals(this.observer) || !rr.dst.equals(this.other)) {
+            return Optional.of(new Exception("Right of (" + this.c + ") expected " +
+                    this.observer + "->" + this.other + ", not:\n" + this.right.format()));
+        }
+
+        return ll.isInitialAndpq().or(rr::isInitialAndpq);
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.union(this.left.getLiveRoles(), this.right.getLiveRoles());
+    }
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
+                this.right.unfoldAllOnceAux(recvars), this.other, this.observer);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        if (this.c == c) {
+            return Collections.emptySet();
+        } else {
+            Set<Op> res = new HashSet<>();
+            res.addAll(this.left.getChoiceLabelsUpTo(c));
+            res.addAll(this.right.getChoiceLabelsUpTo(c));
+            return res;
+        }
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        Set<Op> lleft = this.left.getChoiceLabelsUpTo(this.c);
+        Set<Op> lright = this.right.getChoiceLabelsUpTo(this.c);
+        lleft.retainAll(lright);
+        if (!lleft.isEmpty()) {
+            return Optional.of(new Exception("Not well formed: labels left=" +
+                    lleft + ", right=" + lright + " not disjoint up to ("
+                    + this.c + ") in:\n" + this.format()));
+        } else {
+            return this.left.checkWellFormed().or(this.right::checkWellFormed);
+        }
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        if (c == this.c) {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            Set<Op> obs = new HashSet<>();
+            obs.addAll(((GTGInteraction) this.left).cases.keySet());
+            obs.addAll(((GTGInteraction) this.right).cases.keySet());
+            res.put(this.observer, obs);
+            Set<Op> oth = new HashSet<>();
+            oth.addAll(((GTGInteraction) this.right).cases.keySet());
+            res.put(this.other, oth);
+
+            Set<Role> l = new HashSet<>(com);
+            l.add(this.observer);
+            Map<Role, Set<Op>> ll = this.left.getCommittingAuxNew(c, l);
+            ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            Set<Role> r = new HashSet<>(com);
+            r.add(this.observer);
+            r.add(this.other);
+            Map<Role, Set<Op>> rr = this.right.getCommittingAuxNew(c, r);
+            rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            return res;
+        } else {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            Map<Role, Set<Op>> ll = this.left.getCommittingAuxNew(c, com);
+            ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            Map<Role, Set<Op>> rr = this.right.getCommittingAuxNew(c, com);
+            rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            return res;
+        }
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        Set<Integer> res = new HashSet<>();
+        res.add(this.c);
+        res.addAll(this.left.getTimeoutIds());
+        res.addAll(this.right.getTimeoutIds());
+        return res;
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        Map<Role, Set<Role>> l = this.left.getStrictSyntacticDeps();
+        Map<Role, Set<Role>> r = this.right.getStrictSyntacticDeps();
+        return GTGInteraction.mergeSyntacticDeps(l, r);
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        Map<Role, Set<Role>> l = this.left.getEventualSyntacticDeps();
+        Map<Role, Set<Role>> r = this.right.getEventualSyntacticDeps();
+        return GTGInteraction.mergeSyntacticDeps(l, r);
+    }
+
+    @Override
+    public boolean isDiverging() {
+        return this.left.isDiverging() && this.right.isDiverging();
+    }
+
+    @Override
+    public Set<RecVar> getFreeRecVars() {
+        return Stream.concat(
+                this.left.getFreeRecVars().stream(),
+                this.right.getFreeRecVars().stream()
+        ).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Optional<Exception> isSyntacticAware() {
+        Optional<Exception> nested = this.left.isSyntacticAware().or(this.right::isSyntacticAware);
+        if (nested.isPresent()) {
+            return nested;
+        }
+
+        Set<Role> rs = new HashSet<>(getLiveRoles());
+        rs.remove(this.observer);  // !!!
+        return isSyntacticClearTermination(rs).or(() -> isSyntacticSingleDecision(rs));
+    }
+
+    // !!! "clear termination" name, cf. RHS diverging
+    protected Optional<Exception> isSyntacticClearTermination(Set<Role> rs) {
+        if (this.left.isDiverging() &&
+                (this.left.getFreeRecVars().isEmpty() || this.right.getFreeRecVars().isEmpty())) {
+            return Optional.empty();
+        }
+        Map<Role, Set<Role>> ledeps = this.left.getEventualSyntacticDeps();
+        return rs.stream()
+                 .filter(x -> !ledeps.containsKey(x) || !ledeps.get(x).contains(this.observer))
+                 .findAny()
+                 .map(x -> new Exception("Not left committing for " + x + " in:\n" + this.format()));
+    }
+
+    protected Optional<Exception> isSyntacticSingleDecision(Set<Role> rs) {
+        Map<Role, Set<Role>> rsdeps = this.right.getStrictSyntacticDeps();
+        return rs.stream()
+                 .filter(x -> !rsdeps.containsKey(x) || !rsdeps.get(x).contains(this.observer))
+                 .findAny()
+                 .map(x -> new Exception("Not right committing for " + x +
+                         " in " + this.c + ":\n" + this.format()));
+    }
+
+    @Override
+    public Optional<Exception> isBalanced() {
+        Set<Role> ll = this.left.getLiveRoles();
+        Set<Role> rr = this.right.getLiveRoles();
+        return ll.equals(rr)
+               ? Optional.empty()
+               : Optional.of(new Exception("Not balanced left=" + ll + ", right=" + rr + " in:\n" + this.format()));
+    }
+
+    @Override
+    public String format(String pref) {
+        String res = pref + "(" +
+                "\n" + this.left.format(pref + "    ") +
+                "\n" + pref + ConsoleColors.WHITE_TRIANGLE + this.c + ":" + this.other + "," + this.observer +
+                "\n" + this.right.format(pref + "    ") +
+                "\n" + pref + ")";
+        return ConsoleColors.getMCColour(this.c) + res + ConsoleColors.RESET;
+    }
+
+
+
+
+
+
+
+
+
+
+    // OLD
 
     /* ... */
 
@@ -54,7 +242,7 @@ public class GTGMixedChoice implements GTGType {
         GTGInteraction left = (GTGInteraction) this.left;
         GTGInteraction right = (GTGInteraction) this.right;
         return left.isInitialWellSet(copy) && right.isInitialWellSet(copy)
-                && left.getRoles().equals(right.getRoles())  // timeout participation
+                && left.getLiveRoles().equals(right.getLiveRoles())  // timeout participation
                 && this.other.equals(left.getSender()) && this.other.equals(right.getReceiver())
                 && this.observer.equals(left.getReceiver()) && this.observer.equals(right.getSender());
     }
@@ -63,7 +251,7 @@ public class GTGMixedChoice implements GTGType {
     public Map<Role, Set<Role>> getStrongDeps() {
         Map<Role, Set<Role>> left = this.left.getStrongDeps();
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         rs.remove(this.other);
         rs.remove(this.observer);
         Map<Role, Set<Role>> res = GTUtil.mapOf();
@@ -82,7 +270,7 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
         Map<Role, Set<Role>> right = this.right.getStrongDeps();
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         rs.removeAll(getIndifferent(topAll));
         rs.remove(this.observer);  // !!! CHECKME
         for (Role r : rs) {
@@ -100,15 +288,15 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public boolean isClearTermination() {
         //return isLeftCommitting(GTUtil.setOf(), getRoles());  // n.b., roles(this) -- "outer" roles not involved at all don't matter
-        return this.left.isLeftCommittingAux(this.observer, GTUtil.setOf(), getRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
+        return this.left.isClearTerminationAux(this.observer, GTUtil.setOf(), this.getLiveRoles())  // n.b., roles(this) -- "outer" roles not involved at all don't matter
                 && this.left.isClearTermination()
                 && this.right.isClearTermination();
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.left.isLeftCommittingAux(obs, com, rem)
-                && this.right.isLeftCommittingAux(obs, com, rem);
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return this.left.isClearTerminationAux(obs, com, rem)
+                && this.right.isClearTerminationAux(obs, com, rem);
     }
 
 
@@ -359,31 +547,12 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
-    public GTGMixedChoice unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
 
         // !!! here doing a "weak" version, implicitly bypassing \nu -- cf. def 7 ready (and lemma 3 LR-initiation, quantified over reachable)
 
         Set<Role> res = this.left.getReadyAux(blocked);
         res.addAll(this.right.getReadyAux(blocked));  // Should be just this.observer
-        return res;
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return GTUtil.union(this.left.getRoles(), this.right.getRoles());
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        Set<Integer> res = new HashSet<>();
-        res.add(this.c);
-        res.addAll(this.left.getTimeoutIds());
-        res.addAll(this.right.getTimeoutIds());
         return res;
     }
 
@@ -405,7 +574,7 @@ public class GTGMixedChoice implements GTGType {
     public String toString() {
         return ConsoleColors.toMixedChoiceString("(" + this.left)
                 + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE  // XXX not fully working, cf. ConsoleColors reset and nested
-                + this.c + ":" + this.other + "->" + this.observer
+                + this.c + ":" + this.other + "," + this.observer
                 + " " + this.right)
                 + ConsoleColors.toMixedChoiceString(")");
     }
@@ -462,7 +631,7 @@ public class GTGMixedChoice implements GTGType {
 
     // Dup with GTGMixedActive  // TODO factor out
     public Set<Role> getIndifferent(Set<Role> top) {
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         Set<Role> copy = GTUtil.copyOf(rs);
         copy.remove(this.other);
         copy.remove(this.observer);
@@ -522,6 +691,14 @@ public class GTGMixedChoice implements GTGType {
     public boolean isCoherent() {
         // Morally can just return true
         return this.left.isCoherent() && this.right.isCoherent();
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTGMixedChoice unfoldAllImmediateRecs() {
+        return this;
     }
 
 
@@ -656,11 +833,6 @@ public class GTGMixedChoice implements GTGType {
     }
 
     /* ... */
-
-    @Override
-    public boolean isInitial() {
-        return this.left.isInitial() && this.right.isInitial();
-    }
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {

@@ -87,7 +87,7 @@ public interface GTGTypeOps extends GTSessType {
 
     /* ... */
 
-    Set<Role> getRoles();
+    Set<Role> getLiveRoles();
 
     // cf. get(Weak)Acts, "bypass" Theta, c, n
     Set<Role> getReady();
@@ -97,7 +97,7 @@ public interface GTGTypeOps extends GTSessType {
 
     // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
     @Override
-    GTGType unfoldAllOnce();  // unfold all rec prefixes -- non rec is idemp
+    GTGType unfoldAllImmediateRecs();  // unfold all rec prefixes -- non rec is idemp
 
 
     /* ... */

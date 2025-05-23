@@ -169,9 +169,9 @@ public class GTLConfig {
             }
             GTLType next;
             if (tmp.isEmpty()) {
-                next = cast.unfoldAllOnce();
+                next = cast.unfoldAllImmediateRecs();
             } else {
-                next = tmp.get(tmp.size() - 1).unfoldAllOnce();
+                next = tmp.get(tmp.size() - 1).unfoldAllImmediateRecs();
             }
             tmp.add(next);
             return isSubtype(theta, sub, next);
@@ -187,9 +187,9 @@ public class GTLConfig {
             }
             GTLType next;
             if (tmp.isEmpty()) {
-                next = cast.unfoldAllOnce();
+                next = cast.unfoldAllImmediateRecs();
             } else {
-                next = tmp.get(tmp.size() - 1).unfoldAllOnce();
+                next = tmp.get(tmp.size() - 1).unfoldAllImmediateRecs();
             }
             tmp.add(next);
             return isSubtype(theta, next, sup);

@@ -28,6 +28,86 @@ public class GTGRecVar implements GTGType {
     }
 
 
+    @Override
+    public Optional<Exception> isInitialAndpq() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return GTUtil.setOf();
+    }
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        throw new RuntimeException("Shouldn't get here: ");
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        throw new RuntimeException("Shouldn't get here");
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        throw new RuntimeException("Shouldn't get here");
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    protected Map<Role, Set<Role>> getSyntacticDeps() {
+        return Collections.emptyMap();  // !!! syntactic
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        return getSyntacticDeps();
+    }
+
+    @Override
+    public boolean isDiverging() {
+        return true;
+    }
+
+    @Override
+    public Set<RecVar> getFreeRecVars() {
+        return Set.of(this.var);
+    }
+
+    @Override
+    public Optional<Exception> isSyntacticAware() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Exception> isBalanced() {
+        return Optional.empty();
+    }
+
+    @Override
+    public String format(String pref) {
+        return pref + this.var;
+    }
+
+
+
+
+
+    // OLD
+
     /* ... */
 
     @Override
@@ -51,8 +131,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
+        return rem.isEmpty();  // XXX async rec MC example
+
+        //HERE // get "mandatory terminating deps" (non recvar paths)
+        // do unfoldall + prune recvar cases => check strong deps on remaining branches
     }
 
 
@@ -108,23 +191,8 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
-    public GTGType unfoldAllOnce() {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }
-
-    @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
         return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Role> getRoles() {
-        return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -220,6 +288,14 @@ public class GTGRecVar implements GTGType {
     /* ... */
 
     @Override
+    public GTGType unfoldAllImmediateRecs() {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+
+    /* ... */
+
+    @Override
     public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
             Theta theta, SAction<DynamicActionKind> a, int c, int n) {
         return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
@@ -279,11 +355,6 @@ public class GTGRecVar implements GTGType {
         return true;
     }
 
-
-    @Override
-    public boolean isInitial() {
-        return true;  // !!! bound recvars not checked
-    }
 
     @Override
     public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {

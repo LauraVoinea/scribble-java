@@ -45,7 +45,6 @@ public class GTEFSM {
             x.recvars.forEach(y -> recvars.put(y, x));
             return !(x instanceof GTVRecVar);
         }).collect(Collectors.toCollection(LinkedHashSet::new));
-
         delta = this.delta.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 x -> x.getValue().stream().map(y ->

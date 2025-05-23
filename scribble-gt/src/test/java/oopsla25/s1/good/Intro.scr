@@ -1,0 +1,70 @@
+module Intro;
+
+
+//* // Sec. 1 l.62 (𝐴 → 𝐵 :𝑎1 . 𝐵 → 𝐶 :𝑎2 . ...) + (𝐵 → 𝐴 :𝑎3 . 𝐵 → 𝐶 :𝑎4 . ...)
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        a1() from A to B;
+        a2() from B to C;
+        a5() from B to A;  // !!! left committing
+    } () or A -> B () {
+        a3() from B to A;
+        a4() from B to C;
+    }
+}
+//*/
+
+
+// TODO local examples (metatheory)
+
+
+// TODO Table 1 -- https://github.com/LauraVoinea/scribble-java/tree/gt-artifact/scribble-gt-demos/classics
+
+
+/*
+global protocol Proto1(role A, role B, role C) {
+    //rec X {
+        mixed {
+            1() from A to C;
+
+            a() from A to B;
+            b() from B to A;  // !
+
+            2() from C to A;
+            3() from C to B;  // ???
+            mixed {
+                a() from A to B;
+                b() from B to A;
+                c() from B to C;
+                //3a() from C to B;  // ???
+                //continue X;
+            } () or A -> B () {
+                d() from B to A;
+                e() from B to C;
+                //3b() from C to B;  // ???
+                //continue X;
+            }
+        } () or A -> C () {
+            4() from C to A;
+
+            //5() from A to B;
+            5() from A to B;  // !
+        }
+    //}
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

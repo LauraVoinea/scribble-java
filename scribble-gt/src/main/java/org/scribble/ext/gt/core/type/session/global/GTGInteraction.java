@@ -46,6 +46,211 @@ public class GTGInteraction implements GTGType {
                         (x, y) -> x, LinkedHashMap::new)));
     }
 
+    @Override
+    public Optional<Exception> isInitialAndpq() {
+        return this.cases.values().stream()
+                         .map(GTGType::isInitialAndpq)
+                         .filter(Optional::isPresent)
+                         .findAny()
+                         .orElse(Optional.empty());
+    }
+
+    @Override
+    public Set<Role> getLiveRoles() {
+        return Stream.concat(Stream.of(this.src, this.dst),
+                             this.cases.values().stream().flatMap(x -> x.getLiveRoles().stream()))
+                     .collect(Collectors.toSet());
+    }
+
+    @Override
+    public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
+        LinkedHashMap<Op, GTGType> nested = this.cases.entrySet().stream().collect(
+                Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> x.getValue().unfoldAllOnceAux(recvars),
+                        (x, y) -> null,
+                        LinkedHashMap::new
+                ));
+        return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), nested);
+    }
+
+    @Override
+    public Set<Op> getChoiceLabelsUpTo(int c) {
+        Set<Op> nested = this.cases.values().stream().flatMap(x ->
+                x.getChoiceLabelsUpTo(c).stream()).collect(Collectors.toSet());
+        Set<Op> res = new HashSet<>();
+        res.addAll(this.cases.keySet());
+        res.addAll(nested);
+        return res;
+    }
+
+    @Override
+    public Optional<Exception> checkWellFormed() {
+        for (GTGType x : this.cases.values()) {
+            Optional<Exception> y = x.checkWellFormed();
+            if (y.isPresent()) {
+                return y;
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
+        Map<Role, Set<Op>> res = new HashMap<>();
+        Set<Role> tmp = com;
+        if (!com.contains(this.dst) && com.contains(this.src)) {
+            tmp = new HashSet<>(com);
+            tmp.add(this.dst);
+            res.put(this.dst, this.cases.keySet());
+        }
+        for (GTGType x : this.cases.values()) {
+            x.getCommittingAuxNew(c, tmp).forEach((k, v) ->
+                    res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v));
+        }
+        return res;
+    }
+
+    @Override
+    public Set<Integer> getTimeoutIds() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getTimeoutIds().stream())
+                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Map<Role, Set<Role>> getStrictSyntacticDeps() {
+        Map<Role, Set<Role>> nested = new HashMap<>(
+                this.cases.values().stream()
+                          .map(GTGType::getStrictSyntacticDeps)
+                          .reduce(GTGInteraction::mergeSyntacticDeps).get());  // Pre: non-empty cases
+
+        Map<Role, Set<Role>> copy = new HashMap<>(nested);
+        copy.put(this.src, Collections.emptySet());
+
+        for (Map.Entry<Role, Set<Role>> x : nested.entrySet()) {
+            Role k = x.getKey();
+            Set<Role> vs = x.getValue();
+            if (!k.equals(this.src) && vs.contains(this.dst)) {
+                Set<Role> tmp = new HashSet<>(vs);
+                tmp.add(this.src);
+                copy.put(k, tmp);
+            }
+        }
+
+        Set<Role> curr = new HashSet<>(copy.getOrDefault(this.dst, Collections.emptySet()));
+        curr.add(this.src);
+        copy.put(this.dst, curr);
+        return copy;
+    }
+
+    // !!! syntactic deps relies on RHS awareness -- RHS can happen any time (i.e., before an LHS committing action), but single-decision ensures all aware
+    @Override
+    public Map<Role, Set<Role>> getEventualSyntacticDeps() {
+        boolean allDiv = this.cases.values().stream().allMatch(GTGType::isDiverging);
+        Map<Role, Set<Role>> nested =
+                this.cases.values().stream()
+
+                          // !!! OK because _eventual_ can be freely past or future (cf. strict)
+                          // !!! TODO could also relax MC left/right if diverging ?
+                          .filter(x -> allDiv || !x.isDiverging())
+
+                          .map(GTGType::getEventualSyntacticDeps)  // !!! eventual
+                          .reduce(GTGInteraction::mergeSyntacticDeps).get();  // Pre: non-empty
+
+        Map<Role, Set<Role>> copy = new HashMap<>(nested);
+        //copy.put(this.src, Collections.emptySet());  // !!! eventual
+
+        for (Map.Entry<Role, Set<Role>> x : nested.entrySet()) {
+            Role k = x.getKey();
+            Set<Role> vs = x.getValue();
+            if (vs.contains(this.dst)) {  // !!! eventual
+                Set<Role> tmp = new HashSet<>(vs);
+                tmp.add(this.src);
+                copy.put(k, tmp);
+            }
+        }
+
+        Set<Role> tmp = copy.getOrDefault(this.dst, Collections.emptySet());
+        Set<Role> curr = new HashSet<>(tmp);
+        curr.add(this.src);
+        copy.put(this.dst, curr);
+
+        return copy;
+    }
+
+    protected static Map<Role, Set<Role>> mergeSyntacticDeps(
+            Map<Role, Set<Role>> x, Map<Role, Set<Role>> y) {
+        Set<Role> ks = new HashSet<>(x.keySet());
+        ks.addAll(y.keySet());
+        return ks.stream().collect(Collectors.toMap(
+                k -> k,
+                k -> {
+                    Set<Role> vs = x.getOrDefault(k, Collections.emptySet());
+                    vs.retainAll(y.getOrDefault(k, Collections.emptySet()));
+                    return vs;
+                }));
+    }
+
+    @Override
+    public boolean isDiverging() {
+        return this.cases.values().stream().allMatch(GTGType::isDiverging);
+    }
+
+    @Override
+    public Set<RecVar> getFreeRecVars() {
+        return this.cases.values().stream()
+                         .flatMap(x -> x.getFreeRecVars().stream())
+                         .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Optional<Exception> isSyntacticAware() {
+        return this.cases.values().stream()
+                         .map(GTGType::isSyntacticAware)
+                         .filter(Optional::isPresent)
+                         .findFirst()
+                         .orElseGet(Optional::empty);
+    }
+
+    @Override
+    public Optional<Exception> isBalanced() {
+        Set<Role> pq = Set.of(this.src, this.dst);
+        Set<Set<Role>> rs =
+                this.cases.values().stream()
+                          .map(GTGType::getLiveRoles)
+                          .map(x -> x.stream().filter(y -> !pq.contains(y)).collect(Collectors.toSet()))
+                          .collect(Collectors.toSet());
+        return rs.size() == 1
+               ? Optional.empty()
+               : Optional.of(new Exception("Choice cases not balanced " + rs +
+                       " in:\n" + this.format()));
+    }
+
+    @Override
+    public String format(String pref) {
+        String res = pref + this.src + " -> " + this.dst;
+        if (this.cases.size() == 1) {
+            Map.Entry<Op, GTGType> x = this.cases.entrySet().iterator().next();
+            Op op = x.getKey();
+            Payload pay = this.pays.get(op);
+            return res + " " + msgToString(op, pay) + "." +
+                    "\n" + x.getValue().format(pref);
+        } else {
+            return res + "{" +
+                    this.cases.entrySet().stream()
+                              .map(e -> "\n" + pref + "    " + msgToString(e.getKey()) + "." +
+                                      "\n" + e.getValue().format(pref + "    "))
+                              .collect(Collectors.joining(", ")) +
+                    "\n" + pref + "}";
+        }
+    }
+
+
+
+
+
+    // OLD
 
     /* ... */
 
@@ -61,21 +266,22 @@ public class GTGInteraction implements GTGType {
         }
 
         // !!! cf. def 4
-        Set<Role> rs = GTUtil.union(fst.getRoles(), Set.of(this.src, this.dst));
+        Set<Role> rs = GTUtil.union(fst.getLiveRoles(), Set.of(this.src, this.dst));
         return this.cases.values().stream().skip(1).allMatch(x ->
 
                 // !!!
-                GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(rs)  // "static" choice participation (cf. wiggly)
+                GTUtil.union(x.getLiveRoles(), Set.of(this.src, this.dst)).equals(rs)  // "static" choice participation (cf. wiggly)
 
                         && x.isInitialWellSet(cs));
     }
 
     @Override
     public Map<Role, Set<Role>> getStrongDeps() {
-        Set<Role> rs = getRoles();
+        Set<Role> rs = this.getLiveRoles();
         Set<Map<Role, Set<Role>>> nested = this.cases.values().stream()
                                                      .map(x -> x.getStrongDeps()).collect(Collectors.toSet());
 
+        // FIXME just fold across sets by intersecting
         Map<Role, Set<Role>> res = GTUtil.mapOf();
         for (Role r : rs) {
             Iterator<Map<Role, Set<Role>>> it = nested.iterator();
@@ -89,7 +295,7 @@ public class GTGInteraction implements GTGType {
                 }
                 tmp.retainAll(next.get(r));
             }
-            if (r.equals(this.dst)) {
+            if (r.equals(this.dst)) {  // FIXME shouldn't be inside for loop
                 tmp.add(this.src);
             } else if (tmp.contains(this.dst)) {
                 tmp.add(this.src);
@@ -111,17 +317,15 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public boolean isLeftCommittingAux(Role obs, Set<Role> com, Set<Role> rem) {
-        //System.out.println("3333: " + this + " ,, " + com + " ,, " + rem);
+    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
         if (!rem.contains(this.dst) || !(obs.equals(this.dst) || com.contains(this.src))) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, com, rem));
+            return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, com, rem));
         }
         Set<Role> c_copy = GTUtil.copyOf(com);
         Set<Role> r_copy = GTUtil.copyOf(rem);
         c_copy.add(this.dst);
         r_copy.remove(this.dst);
-        //System.out.println("3333: " + this + " ,, " + c_copy + "\n " + this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy)));
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommittingAux(obs, c_copy, r_copy));
+        return this.cases.values().stream().allMatch(x -> x.isClearTerminationAux(obs, c_copy, r_copy));
     }
 
 
@@ -188,7 +392,7 @@ public class GTGInteraction implements GTGType {
         /*if (left.isEmpty() || right.isEmpty()) {
             return Optional.empty();
         }*/
-        Optional<? extends GTLType> merge = merge(left.map(x -> x.left), right.map(x -> x.left));
+        Optional<? extends GTLType> merge = mergeSyntacticDeps(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = mergeSigma(left.map(x -> x.right), right.map(x -> x.right));
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
@@ -201,7 +405,7 @@ public class GTGInteraction implements GTGType {
     }
 
     // !!! TODO refactor with GTLType.merge
-    public static Optional<? extends GTLType> merge(
+    public static Optional<? extends GTLType> mergeSyntacticDeps(
             Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
         /*if (left.isEmpty() || right.isEmpty()) {
             return Optional.empty();
@@ -247,7 +451,7 @@ public class GTGInteraction implements GTGType {
     }
 
     // ...
-   
+
     @Override
     public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
         Map<Role, Set<Op>> res = GTUtil.mapOf();
@@ -334,11 +538,6 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
-    public GTGInteraction unfoldAllOnce() {
-        return this;
-    }
-
-    @Override
     public Set<Role> getReadyAux(Set<Role> blocked) {
         Set<Role> b = new HashSet<>(blocked);
         b.add(this.dst);
@@ -350,26 +549,12 @@ public class GTGInteraction implements GTGType {
         return nested;
     }
 
-    @Override
-    public Set<Role> getRoles() {
-        return Stream.concat(Stream.of(this.src, this.dst),
-                             this.cases.values().stream().flatMap(x -> x.getRoles().stream()))
-                     .collect(Collectors.toSet());
-    }
-
     public Role getSender() {
         return this.src;
     }
 
     public Role getReceiver() {
         return this.dst;
-    }
-
-    @Override
-    public Set<Integer> getTimeoutIds() {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getTimeoutIds().stream())
-                         .collect(Collectors.toSet());
     }
 
     @Override
@@ -458,10 +643,10 @@ public class GTGInteraction implements GTGType {
         if (cs.size() == 1) { return true; }
 
         // !!! cf. def 4
-        Set<Role> fst = GTUtil.union(cs.iterator().next().getRoles(), Set.of(this.src, this.dst));
+        Set<Role> fst = GTUtil.union(cs.iterator().next().getLiveRoles(), Set.of(this.src, this.dst));
 
         // !!!
-        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getRoles(), Set.of(this.src, this.dst)).equals(fst))
+        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getLiveRoles(), Set.of(this.src, this.dst)).equals(fst))
                 && cs.stream().allMatch(GTGType::isRuntimeChoicePartip);
     }
 
@@ -478,6 +663,14 @@ public class GTGInteraction implements GTGType {
     @Override
     public boolean isCoherent() {
         return this.cases.values().stream().allMatch(GTGType::isCoherent);
+    }
+
+
+    /* ... */
+
+    @Override
+    public GTGInteraction unfoldAllImmediateRecs() {
+        return this;
     }
 
 
@@ -656,11 +849,6 @@ public class GTGInteraction implements GTGType {
     @Override
     public boolean isGood() {
         return this.cases.values().stream().allMatch(GTGType::isGood);
-    }
-
-    @Override
-    public boolean isInitial() {
-        return this.cases.values().stream().allMatch(GTGType::isInitial);
     }
 
     @Override

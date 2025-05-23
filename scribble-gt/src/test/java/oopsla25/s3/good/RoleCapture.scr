@@ -1,0 +1,30 @@
+module RoleCapture;
+
+
+//* Sec. 3.2 (6) l.493 --  𝜇t. p � 𝑟 : 𝑎.(p � q : 𝑏. t ⊲ G2)
+global protocol RoleCapture(role p, role q, role r) {
+//    rec t {
+//        a() from p to r;
+//        mixed {
+//            b() from q to p;
+//            continue t;  // !!! XXX EFSM for r: t |> ...
+//        } () or q->p () {
+//            1() from p to q;
+//            2() from p to r;
+//        }
+//    }
+
+    // equiv
+    a() from p to r;
+    rec t {
+        mixed {
+            b() from q to p;
+            a() from p to r;
+            continue t;
+        } () or q->p () {
+            1() from p to q;
+            2() from p to r;
+        }
+    }
+}
+//*/
