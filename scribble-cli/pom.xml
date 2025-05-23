@@ -19,10 +19,10 @@
 			<groupId>org.scribble</groupId>
 			<artifactId>scribble-ast</artifactId>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.scribble</groupId>
 			<artifactId>scribble-codegen</artifactId>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.scribble</groupId>
 			<artifactId>scribble-main</artifactId>

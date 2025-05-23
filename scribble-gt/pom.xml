@@ -59,6 +59,11 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.32</version> <!-- Ensure this version is consistent if specified in parent's dependencyManagement -->
+        </dependency>
     </dependencies>
 
 

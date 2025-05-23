@@ -1,0 +1,40 @@
+# Git specific
+.git
+.gitignore
+.gitattributes
+
+# Maven target directories 
+target/
+*/target/
+
+# IDE and editor specific files
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+nbproject/
+*.code-workspace
+.vscode/
+
+# Local build/run outputs and logs
+generated/
+logs/
+*.log
+*.log.*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*~
+*.swp
+*.swo
+
+# Distribution archives 
+*.zip
+*.tar.gz
+*.tgz

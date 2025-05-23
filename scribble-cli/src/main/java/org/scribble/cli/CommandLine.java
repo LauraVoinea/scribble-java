@@ -18,8 +18,8 @@ package org.scribble.cli;
 import org.scribble.ast.Module;
 import org.scribble.ast.ProtoDecl;
 import org.scribble.ast.global.GProtoDecl;
-import org.scribble.codegen.java.JEndpointApiGenerator;
-import org.scribble.codegen.java.callbackapi.CBEndpointApiGenerator3;
+// import org.scribble.codegen.java.JEndpointApiGenerator;
+// import org.scribble.codegen.java.callbackapi.CBEndpointApiGenerator3;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.job.CoreContext;
 import org.scribble.core.model.endpoint.EGraph;
@@ -196,16 +196,16 @@ public class CommandLine {
                                   Pair<String, String[]> task) throws ScribException, CommandLineException {
         switch (task.left) {
             case CLFlags.SESSION_API_GEN_FLAG:
-                outputEndpointApi(job, task.right, true, false, false);
+                // outputEndpointApi(job, task.right, true, false, false);
                 break;
             case CLFlags.STATECHAN_API_GEN_FLAG:
-                outputEndpointApi(job, task.right, false, true, false);
+                // outputEndpointApi(job, task.right, false, true, false);
                 break;
             case CLFlags.API_GEN_FLAG:
-                outputEndpointApi(job, task.right, true, true, false);
+                // outputEndpointApi(job, task.right, true, true, false);
                 break;
             case CLFlags.EVENTDRIVEN_API_GEN_FLAG:
-                outputEndpointApi(job, task.right, false, true, true);  // FIXME: currently need to gen sess API separately?
+                // outputEndpointApi(job, task.right, false, true, true);  // FIXME: currently need to gen sess API separately?
                 break;
             default:
                 throw new RuntimeException("Shouldn't get here: " + task.left);
@@ -348,32 +348,32 @@ public class CommandLine {
         }
     }
 
-    private void outputEndpointApi(Job job, String[] args, boolean sess,
-                                   boolean schan, boolean cb) throws ScribException, CommandLineException {
-        JobContext jobc = job.getContext();
-        JEndpointApiGenerator jgen = new JEndpointApiGenerator(job);  // FIXME: refactor (generalise -- use new API)
-        {
-            GProtoName fullname = checkGlobalProtocolArg(jobc, args[0]);
-            if (sess) {
-                Map<String, String> out = jgen.generateSessionApi(fullname);
-                outputClasses(out);
-            }
-            if (schan)  // CHECKME: does not implicitly generate sess API?
-            {
-                Role self = checkRoleArg(jobc, fullname, args[1]);
-                if (cb) {
-                    CBEndpointApiGenerator3 cbgen = new CBEndpointApiGenerator3(job,
-                            fullname, self, hasFlag(CLFlags.STATECHAN_SUBTYPES_FLAG));
-                    Map<String, String> out = cbgen.build();
-                    outputClasses(out);
-                } else {
-                    Map<String, String> out = jgen.generateStateChannelApi(fullname,
-                            self, hasFlag(CLFlags.STATECHAN_SUBTYPES_FLAG));
-                    outputClasses(out);
-                }
-            }
-        }
-    }
+    // private void outputEndpointApi(Job job, String[] args, boolean sess,
+    //                                boolean schan, boolean cb) throws ScribException, CommandLineException {
+    //     JobContext jobc = job.getContext();
+    //     JEndpointApiGenerator jgen = new JEndpointApiGenerator(job);  // FIXME: refactor (generalise -- use new API)
+    //     {
+    //         GProtoName fullname = checkGlobalProtocolArg(jobc, args[0]);
+    //         if (sess) {
+    //             Map<String, String> out = jgen.generateSessionApi(fullname);
+    //             outputClasses(out);
+    //         }
+    //         if (schan)  // CHECKME: does not implicitly generate sess API?
+    //         {
+    //             Role self = checkRoleArg(jobc, fullname, args[1]);
+    //             if (cb) {
+    //                 // CBEndpointApiGenerator3 cbgen = new CBEndpointApiGenerator3(job,
+    //                 //         fullname, self, hasFlag(CLFlags.STATECHAN_SUBTYPES_FLAG));
+    //                 Map<String, String> out = cbgen.build();
+    //                 outputClasses(out);
+    //             } else {
+    //                 Map<String, String> out = jgen.generateStateChannelApi(fullname,
+    //                         self, hasFlag(CLFlags.STATECHAN_SUBTYPES_FLAG));
+    //                 outputClasses(out);
+    //             }
+    //         }
+    //     }
+    // }
 
     // Endpoint graphs are "inlined", so only a single graph is built (cf. projection output)
     private EGraph getEGraph(Job job, GProtoName fullname, Role role,

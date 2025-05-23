@@ -426,13 +426,13 @@ public class GTGenericBehaviour {
                 )));
                 ErlFun stateFunc = new ErlFun(stateFuncName);
                 stateFunc.addClause(stateParams, stateBody);
-            String spec = stateFuncName + "(" +
-                    "EventType :: term(), " +
-                    "{atom()}, " +
-                    "state_data()) -> " +
-                    GTErlGenUtil.getNextStateReturnType(m, y.right);
-            stateFunc.setSpec(spec);
-            return Stream.of(sendFunc, stateFunc);
+                String spec = stateFuncName + "(" +
+                        "EventType :: term(), " +
+                        "{atom()}, " +
+                        "state_data()) -> " +
+                        GTErlGenUtil.getNextStateReturnType(m, y.right);
+                stateFunc.setSpec(spec);
+                return Stream.of(sendFunc, stateFunc);
             });
         }).collect(Collectors.toList());
     }
@@ -512,7 +512,7 @@ public class GTGenericBehaviour {
         // clause as LHS both in the API and in the role code
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
-            String funcName = GTGenUtil.stateToFuncName(s);
+        String funcName = GTGenUtil.stateToFuncName(s);
 
         List<Stream<ErlFun>> rhsClauses = rhs.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
