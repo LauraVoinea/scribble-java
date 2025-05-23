@@ -1,0 +1,10 @@
+{application,timeout,
+             [{description,"An OTP application"},
+              {vsn,"0.1.0"},
+              {registered,[]},
+              {mod,{timeout_app,[]}},
+              {applications,[kernel,stdlib]},
+              {env,[]},
+              {modules,[a,b,c,gen_a,gen_b,gen_c,timeout_app,timeout_sup]},
+              {licenses,["Apache-2.0"]},
+              {links,[]}]}.
