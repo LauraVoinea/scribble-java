@@ -8,7 +8,9 @@ import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
 import org.scribble.core.type.name.*;
+import org.scribble.ext.gt.codegen.erlang.GTCallbackModule;
 import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
+import org.scribble.ext.gt.codegen.erlang.GTGenericBehaviour;
 import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
@@ -25,6 +27,7 @@ import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.util.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,6 +46,7 @@ public class GTCommandLine2 extends CommandLine {
         GTCommandLine2.LMF = (GTEModelFactory) core.config.mf.local;
 
         Map<GProtoName, GTGType> translated = getTranslated(this);
+        Map<GProtoName, GTLSystem> protocolLocalSystems = new HashMap<>();
 
         Map<GProtoName, Map<Role, GTEFSM>> efsms = new HashMap<>();
         for (GProtoName g : translated.keySet()) {
@@ -70,23 +74,52 @@ public class GTCommandLine2 extends CommandLine {
             Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
 
             Map<Role, GTEFSM> tmp = getEFSMS(s.local, comInvert);
+
+
             efsms.put(simple, tmp);
-            if (debug) {
+//            if (debug) {
                 for (Map.Entry<Role, GTEFSM> x : tmp.entrySet()) {
                     Role r = x.getKey();
                     GTEFSM efsm = x.getValue();
                     System.out.println("\n[debug] EFSM: " + r + ": " + s.local.configs.get(r) + "\n" + efsm.toDot());
                     System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(simple, r, efsm));
                     System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(simple, r, efsm));
+                    try {
+                        if(s.local.configs.get(r) != null)
+                            new GTGenericBehaviour().generateCode(g.getSimpleName().toString(),
+                                    s.local.configs.get(r),
+                                    efsm,
+                                    translate.getLabels().right);
+                        new GTCallbackModule().generate(g.getSimpleName().toString(),
+                                s.local.configs.get(r),
+                                efsm);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                 }
-            }
+//            }
+            protocolLocalSystems.put(g, s.local);
+
         }
 
         for (Pair<String, String[]> a : this.args) {
             if (a.left.equals(GTCLFlags.GT_ED_FSM_GEN_FLAG)) {
                 outEFSM(efsms, a);
-            } else if (a.left.equals(GTCLFlags.GT_ERLANG_API_GEN_FLAG)) {
-                outAPI(efsms, a);
+            } else if (a.left.equals(GTCLFlags.GT_ERLANG_ROLE_GEN_FLAG)) {
+                try {
+                    outAPI(efsms, a, protocolLocalSystems, translated);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }else if (a.left.equals(GTCLFlags.GT_ERLANG_API_GEN_FLAG)) {
+                try {
+                    outALL(efsms, a, protocolLocalSystems, translated);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         }
 
@@ -128,22 +161,69 @@ public class GTCommandLine2 extends CommandLine {
         System.out.println(efsms.get(simple).get(r).toDot());
     }
 
-    static void outAPI(Map<GProtoName, Map<Role, GTEFSM>> efsms, Pair<String, String[]> a) {
-        GProtoName simple = new GProtoName(a.right[0]);
+    static void outAPI(Map<GProtoName, Map<Role, GTEFSM>> efsms, Pair<String, String[]> a,
+                       Map<GProtoName, GTLSystem> protocolLocalSystems,
+                       Map<GProtoName, GTGType> translated) throws IOException {
+        GProtoName protocolName = new GProtoName(a.right[0]);
         Role r = new Role(a.right[1]);
-        GTEFSM m = efsms.get(simple).get(r);
-        GTGenRoleGen g1 = new GTGenRoleGen();
-        GTRoleGen g2 = new GTRoleGen();
-        System.out.println("\n[GTCommandLine2] Gen role for " + simple + "@" + r + ":");
-        System.out.println(g1.generate(simple, r, m));
-        System.out.println("\n[GTCommandLine2] Role for " + simple + "@" + r + ":");
-        System.out.println(g2.generate(simple, r, m));
+        GTEFSM efsm = efsms.get(protocolName).get(r);
+
+        GProtoName protocol = protocolLocalSystems.keySet().stream()
+                .filter(x -> x.getSimpleName().equals(protocolName)).findFirst().orElseThrow(
+                () -> new RuntimeException("Protocol not found: " + protocolName));
+
+        GTLConfig config = protocolLocalSystems.get(protocol).configs.get(r);
+
+        Map<Integer, Pair<Set<Op>, Set<Op>>> labels = translated.get(protocol).getLabels().right;
+
+//        GTGenRoleGen g1 = new GTGenRoleGen();
+//        GTRoleGen g2 = new GTRoleGen();
+        GTGenericBehaviour behaviour = new GTGenericBehaviour();
+        GTCallbackModule callback = new GTCallbackModule();
+        System.out.println("\n[GTCommandLine2] Generic behaviour for " + protocolName + "@" + r + " in ./generated/" + protocolName);
+
+        behaviour.generateCode(protocolName.toString(), config, efsm, labels);
+        callback.generate(protocolName.toString(), config, efsm);
+
+//        System.out.println("\n[GTCommandLine2] Gen role for " + protocolName + "@" + r + ":");
+//        System.out.println(g1.generate(protocolName, r, efsm));
+//        System.out.println("\n[GTCommandLine2] Role for " + protocolName + "@" + r + ":");
+//        System.out.println(g2.generate(protocolName, r, efsm));
     }
 
+    static void outALL(Map<GProtoName, Map<Role, GTEFSM>> efsms, Pair<String, String[]> a,
+                       Map<GProtoName, GTLSystem> protocolLocalSystems,
+                       Map<GProtoName, GTGType> translated) throws IOException {
+        GProtoName protocolName = new GProtoName(a.right[0]);
 
+        // Find the protocol object
+        GProtoName protocol = protocolLocalSystems.keySet().stream()
+                .filter(x -> x.getSimpleName().equals(protocolName)).findFirst().orElseThrow(
+                        () -> new RuntimeException("Protocol not found: " + protocolName));
 
+        // Get all roles for this protocol
+        Map<Role, GTEFSM> roleEfsms = efsms.get(protocolName);
+        if (roleEfsms == null) {
+            throw new RuntimeException("No EFSMs found for protocol: " + protocolName);
+        }
 
+        // Get labels for this protocol
+        Map<Integer, Pair<Set<Op>, Set<Op>>> labels = translated.get(protocol).getLabels().right;
 
+        GTGenericBehaviour behaviour = new GTGenericBehaviour();
+        GTCallbackModule callback = new GTCallbackModule();
+
+        // Generate code for all roles in the protocol
+        for (Role role : roleEfsms.keySet()) {
+            GTEFSM efsm = roleEfsms.get(role);
+            GTLConfig config = protocolLocalSystems.get(protocol).configs.get(role);
+
+            System.out.println("\n[GTCommandLine2] Generic behaviour for " + protocolName + "@" + role + " in ./generated/" + protocolName);
+
+            behaviour.generateCode(protocolName.toString(), config, efsm, labels);
+            callback.generate(protocolName.toString(), config, efsm);
+        }
+    }
 
 
     /* Well formedness */
@@ -350,6 +430,8 @@ public class GTCommandLine2 extends CommandLine {
             case GTCLFlags.GT_ED_FSM_GEN_FLAG:
                 break;
             case GTCLFlags.GT_ERLANG_API_GEN_FLAG:
+                break;
+            case GTCLFlags.GT_ERLANG_ROLE_GEN_FLAG:
                 break;
             default:
                 super.tryBarrierTask(job, task);

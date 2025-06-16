@@ -25,7 +25,7 @@ public class GTGenericBehaviour {
 
     /** Generate and write the Erlang code for the generic behaviour module to a file. */
     // GTLConfig rather that role for sigma.map.keySet()
-    public void generateCode(String protocolName, GTLConfig r, GTEFSM efsm, Map<Integer, Pair<Set<Op>, Set<Op>>> labels, Map<Integer, Set<Op>> com_self) throws IOException {
+    public void generateCode(String protocolName, GTLConfig r, GTEFSM efsm, Map<Integer, Pair<Set<Op>, Set<Op>>> labels) throws IOException {
         Role role = r.self;
         Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
         Files.createDirectories(outputDirectory);

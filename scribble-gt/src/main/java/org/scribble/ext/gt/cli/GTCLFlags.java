@@ -34,6 +34,7 @@ public class GTCLFlags extends CLFlags {
 
     public static final String GT_ED_FSM_GEN_FLAG = "-gt-event-fsm";
     public static final String GT_ERLANG_API_GEN_FLAG = "-gt-gen-erlang";
+    public static final String GT_ERLANG_ROLE_GEN_FLAG = "-gt-gen-erlang-role";
 
     // Non-unique flags
     // ...
@@ -66,6 +67,9 @@ public class GTCLFlags extends CLFlags {
                 new CLFlag(GT_ED_FSM_GEN_FLAG, 2, false, true, true,
                         "Missing protocol/role arguments: "));
         flags.put(GT_ERLANG_API_GEN_FLAG,
+                new CLFlag(GT_ERLANG_API_GEN_FLAG, 1, false, true, true,
+                        "Missing protocol arguments: "));
+        flags.put(GT_ERLANG_ROLE_GEN_FLAG,
                 new CLFlag(GT_ERLANG_API_GEN_FLAG, 2, false, true, true,
                         "Missing protocol/role arguments: "));
 

@@ -81,14 +81,14 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                 }
             } () or Server -> Channel() {
                 // Channel initiates cancel
-                basic_cancel(consumer_tag, nowait) from Channel to Server;
-                basic_cancel(consumer_tag, nowait) from Channel to Consumer;
+                basic_cancel2(consumer_tag, nowait) from Channel to Server;
+                basic_cancel2(consumer_tag, nowait) from Channel to Consumer;
 
                 // Server confirms the cancel request
-                basic_cancel_ok(consumer_tag) from Server to Channel;
+                basic_cancel_ok2(consumer_tag) from Server to Channel;
 
                 // Channel forwards the cancel confirmation to the Consumer
-                basic_cancel_ok(consumer_tag) from Channel to Consumer;
+                basic_cancel_ok2(consumer_tag) from Channel to Consumer;
             }
         }
    /* } () or Consumer -> Channel() {

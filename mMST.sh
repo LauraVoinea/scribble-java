@@ -68,6 +68,9 @@ usage() {
             Skip global-local correspondence checking.
   -gt-gen-erlang 
             Generate Erlang code.
+            ./mMST.sh -gt-gen-erlang <ProtocolName> <PathToScribbleFile>
+  -gt-gen-erlang-role
+            Generate Erlang code.
             ./mMST.sh -gt-gen-erlang <ProtocolName> <Role> <PathToScribbleFile>
   -gt-event-fsm
             Generate event-based FSMs.
@@ -104,11 +107,11 @@ if test -f "$ANTLR_RUNTIME_JAR"; then
     CLASSPATH="$CLASSPATH:$ANTLR_RUNTIME_JAR"
 fi
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr.jar"
-CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr-runtime.jar"
+# CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr-runtime.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/commons-io.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-ast.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-cli.jar"
-CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-codegen.jar"
+# CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-codegen.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-core.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-main.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-parser.jar"
@@ -156,7 +159,7 @@ if [ "$usage" = 1 ]; then
     exit 0
 fi
 
-CMD="java -cp $CLASSPATH org.scribble.ext.gt.cli.GTCommandLine"
+CMD="java -cp $CLASSPATH org.scribble.ext.gt.cli.GTCommandLine2"
 
 scribblec() {
     if [ "$verbose" = 1 ]; then

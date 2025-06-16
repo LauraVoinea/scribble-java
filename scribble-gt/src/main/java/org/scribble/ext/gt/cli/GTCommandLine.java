@@ -387,7 +387,7 @@ public class GTCommandLine extends CommandLine {
                 try {
 //                    System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(null, x.self, efsm));
                     //translate.getLabels().right -- labels from mixed choice
-                    new GTGenericBehaviour().generateCode(g.getSimpleName().toString(), x, efsm, translate.getLabels().right, com_self);
+                    new GTGenericBehaviour().generateCode(g.getSimpleName().toString(), x, efsm, translate.getLabels().right);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

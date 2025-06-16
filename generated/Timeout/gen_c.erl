@@ -1,14 +1,14 @@
 -module(gen_c).
 -behaviour(gen_statem).
 
--export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, s4/3, s5/3]).
+-export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, s19/3, s20/3]).
 
 -include("c.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), a_pid :: pid() | undefined, b_pid :: pid() | undefined}.
 
--callback s4(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
--callback s5(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
--callback init(Args :: list()) -> {ok, s4, state_data()}.
+-callback s20(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
+-callback s19(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s20, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
+-callback init(Args :: list()) -> {ok, s19, state_data()}.
 
 -spec start_link(CallbackModule :: module(), Args :: list()) ->
     {ok, pid()} | {error, term()}.
@@ -24,32 +24,32 @@ start_link(CallbackModule, Args) ->
 callback_mode() ->
     state_functions.
 
--spec init({CallbackModule :: module(), Args :: list()}) -> {ok, s4, state_data()}.
+-spec init({CallbackModule :: module(), Args :: list()}) -> {ok, s19, state_data()}.
 init({CallbackModule, _Args}) ->
     io:format("c: Initializing with callback module ~p~n", [CallbackModule]),
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
--spec s4(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
-s4(EventType, {a2}, #state_data{mc_counter_1 = MC} = Data) ->
-    NewData = Data#state_data{mc_counter_1 = MC + 1},
+-spec s20(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
+s20(EventType, {APid, {a6}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
-    CallbackModule:s4(EventType, {a2}, NewData);
-s4(EventType, {BPid, {'To'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
-    CallbackModule = get(callback_module),
-    CallbackModule:s4(EventType, {BPid, {'To'}}, Data);
-s4(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= a6 
+    CallbackModule:s20(EventType, {APid, {a6}}, Data);
+s20(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= a6 
 		orelse Msg =:= a5 
 		orelse Msg =:= a2 
 		orelse Msg =:= a1 
 		orelse Msg =:= 'To' ->
     {keep_state, Data}.
 
--spec s5(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
-s5(EventType, {APid, {a6}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+-spec s19(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s20, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
+s19(EventType, {a2}, #state_data{mc_counter_1 = MC} = Data) ->
+    NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
-    CallbackModule:s5(EventType, {APid, {a6}}, Data);
-s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= a6 
+    CallbackModule:s19(EventType, {a2}, NewData);
+s19(EventType, {BPid, {'To'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+    CallbackModule = get(callback_module),
+    CallbackModule:s19(EventType, {BPid, {'To'}}, Data);
+s19(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= a6 
 		orelse Msg =:= a5 
 		orelse Msg =:= a2 
 		orelse Msg =:= a1 

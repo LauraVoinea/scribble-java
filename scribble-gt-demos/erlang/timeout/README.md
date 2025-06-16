@@ -1,7 +1,7 @@
 # Erlang Timeout Protocol Implementation
 
 This project contains an Erlang implementation of a distributed protocol named "Timeout", 
-specified in `scribble-gt-demos/classics/Timeout.scr`. It demonstrates the interaction between three roles: A, B, and C, using Erlang's `gen_statem` behavior.
+specified in `scribble-gt-demos/scribble/Timeout.scr`. It demonstrates the interaction between three roles: A, B, and C, using Erlang's `gen_statem` behavior.
 
 ## Implementation Details
 *   **Structure per Role (e.g., Role B):**
@@ -14,13 +14,14 @@ specified in `scribble-gt-demos/classics/Timeout.scr`. It demonstrates the inter
 
 ## How to Run
 
-1.  **Prerequisites:** Ensure you have Erlang/OTP installed.
+1.  **Prerequisites:** Ensure you have Erlang/OTP and rebar3 installed.
 2.  **Navigate to Project Root:** Open your terminal and `cd` into the `timeout` directory (the one containing `rebar3.config`).
 3.  **Compile the project.** Rebar3 will fetch dependencies (if any) and compile your source code. 
 ``` bash
     rebar3 compile
 ```
-4. **Run the Application:** Start an Erlang shell with your application and its dependencies loaded. Use the application name defined in your `.app.src` file (e.g., `timeout_protocol`).
+4. **Run the Application:** 
+
     ```bash
     rebar3 shell
     ```
