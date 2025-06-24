@@ -40,7 +40,7 @@ global protocol DistributedLogging(role Controller, role Logs){
                     stop_logging() from Controller to Logs;
                 }
             }
-        } () or Logs -> Controller(){
+        } or Logs -> Controller {
             timeout() from Controller to Logs;
             ack() from Logs to Controller;
             restart() from Controller to Logs;

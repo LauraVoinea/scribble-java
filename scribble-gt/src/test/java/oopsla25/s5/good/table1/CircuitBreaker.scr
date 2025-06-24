@@ -67,7 +67,7 @@ global protocol CircuitBreaker(role API, role Controller, role Storage, role Use
                  shutdown_storage() from Controller to Storage;
                  shutdown_user() from API to User;
              }
-         } () or Controller -> API(){
+         } or Controller -> API {
             timeout() from API to Controller;
             timeout_notice() from Controller to Storage;
             timeout_notice() from API to User;

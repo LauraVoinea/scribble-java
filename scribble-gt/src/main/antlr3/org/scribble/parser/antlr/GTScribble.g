@@ -640,9 +640,13 @@ gtroleargs:
 ;
 
 gmixed:
+    MIXED_KW gprotoblock OR_KW rolename '->' rolename gprotoblock
+->
+	^(GT_GMIXED gprotoblock ^(ROLEARG_LIST ) rolename rolename ^(ROLEARG_LIST ) gprotoblock)
+/*|
 	MIXED_KW gprotoblock gtroleargs OR_KW rolename '->' rolename gtroleargs gprotoblock
 ->
-	^(GT_GMIXED gprotoblock gtroleargs rolename rolename gtroleargs gprotoblock)
+	^(GT_GMIXED gprotoblock gtroleargs rolename rolename gtroleargs gprotoblock)*/
 ;
 
 

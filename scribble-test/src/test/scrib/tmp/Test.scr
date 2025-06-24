@@ -1494,6 +1494,24 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        2() from B to A;
+    } or A->B {
+        3() from B to A;
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
