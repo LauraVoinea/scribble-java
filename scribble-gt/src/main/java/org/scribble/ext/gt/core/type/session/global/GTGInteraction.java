@@ -4,13 +4,11 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.name.GTOp;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -473,42 +471,6 @@ public class GTGInteraction implements GTGType {
 
 
 
-
-
-
-
-
-
-
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        Collection<GTGType> cs = this.cases.values();
-        if (cs.size() == 1) { return true; }
-
-        // !!! cf. def 4
-        Set<Role> fst = GTUtil.union(cs.iterator().next().getLiveRoles(), Set.of(this.src, this.dst));
-
-        // !!!
-        return cs.stream().skip(1).anyMatch(x -> GTUtil.union(x.getLiveRoles(), Set.of(this.src, this.dst)).equals(fst))
-                && cs.stream().allMatch(GTGType::isRuntimeChoicePartip);
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return this.cases.values().stream().allMatch(x -> x.isUniqueInstan(seen));
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return this.cases.values().stream().allMatch(x -> x.isAwareCorollary(mf, topAll, theta));
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.cases.values().stream().allMatch(GTGType::isCoherent);
-    }
 
 
 

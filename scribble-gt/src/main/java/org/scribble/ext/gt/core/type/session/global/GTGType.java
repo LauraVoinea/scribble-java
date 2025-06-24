@@ -3,12 +3,10 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSessType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -136,47 +134,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* ... preserved -- check */
-
-    boolean isRuntimeChoicePartip();  // cf. "static" choice-partic in isInitialAndWellSet
-
-    default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
-
-    boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
-
-    // LR-initiation
-    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
-
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
 

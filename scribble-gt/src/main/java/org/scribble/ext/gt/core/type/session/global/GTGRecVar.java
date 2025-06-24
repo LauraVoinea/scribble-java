@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
@@ -171,52 +170,6 @@ public class GTGRecVar implements GTGType {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        return true;
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return true;
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return true;
-    }
 
 
 

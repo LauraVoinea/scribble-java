@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.*;
@@ -538,52 +537,6 @@ public class GTGMixedChoice implements GTGType {
                      return res.isPresent() && res.get();
                  })
                  .collect(Collectors.toSet());
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        return this.left.isRuntimeChoicePartip() && this.right.isRuntimeChoicePartip();  // XXX CHECKME (cf. merge third parties)
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        // !!! morally can prune if starting from initial
-        return this.left.isUniqueInstan(seen) && this.right.isUniqueInstan(seen);
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        // Can morally just return true
-        return this.left.isAwareCorollary(mf, topAll, theta) && this.right.isAwareCorollary(mf, topAll, theta);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        // Morally can just return true
-        return this.left.isCoherent() && this.right.isCoherent();
     }
 
 

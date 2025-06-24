@@ -3,7 +3,6 @@ package org.scribble.ext.gt.core.type.session.global;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLRecVar;
@@ -195,37 +194,6 @@ public class GTGRecursion implements GTGType {
 
 
 
-
-
-
-
-
-
-
-
-
-
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        return this.body.isRuntimeChoicePartip();
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return this.body.isUniqueInstan(seen);
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return this.body.isAwareCorollary(mf, topAll, theta);
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return this.body.isCoherent();
-    }
 
 
 
