@@ -115,36 +115,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
 
 
-    // OLD ?
-
-    /* ... static only */
-
-    // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
-    @Override
-    default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
-
-    boolean isInitialWellSet(Set<Integer> cs);
-
-    // TODO
-    // - timeout-partic -- XXX balance
-    // - timeout-pattern -- cf. isSinglePointed
-
-
-    /* ... preserved -- check */
-
-    // boolean isBalanced();  // TODO -- cf. async rec MC example (not left terminating because not balanced)
-
-    // CHECKME: Theta not used for "static" version?
-    // ...doesn't check "initial"
-    boolean isSingleDecision(Set<Role> topAll, Theta theta);  // cf. topPeers in project
-
-    // ..."top-level" left-committing check -- cf. find all mixed-choice within G
-    // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    boolean isClearTermination();  // does "nested traversal" (i.e., visit all MCs)
-
-    // does deps checking for each MC LHS
-    // ...left-committing check under the context of a specific mixed-choice instance
-    boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem);
 
 
     /* ... */
@@ -160,9 +130,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
 
     /* ... */
-
-    // N.B. indiff is mixed-choice/active only (not all globals)
-    Map<Role, Set<Role>> getStrongDeps();
 
     default Map<Integer, Map<Role, Set<Op>>> getCommitting() {
         Set<Integer> cs = getTimeoutIds();

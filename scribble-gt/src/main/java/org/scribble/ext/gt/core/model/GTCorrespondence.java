@@ -47,55 +47,6 @@ public class GTCorrespondence {
     }
 
 
-    /* ... */
-
-    /*public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent) {
-        return checkRuntimeProperties(mf, indent, true, true, true, true, true, true);
-    }*/
-
-    public Optional<Exception> checkRuntimeProperties(
-            GTSModelFactory mf, String indent, Set<Integer> tids,
-            boolean proj,  // Deprecated
-            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
-
-        // local ?
-
-        /*if (proj) {  // !!! cf. checkProjectionCorrespondence
-            Either<Exception, GTLSystem> p = projectTopLevel(roles, global, tids);
-            if (p.isLeft()) {
-                return Optional.of(p.getLeft());
-            }
-        }*/
-
-        // global
-
-        if (cp && !this.global.isRuntimeChoicePartip()) {
-            return Optional.of(new Exception("Not run-time choice-participating: " + this.global));
-        }
-
-        if (ui && !this.global.isUniqueInstan()) {
-            return Optional.of(new Exception("Not unique instantiating: " + this.global));
-        }
-
-        if (co && !this.global.isCoherent()) {
-            return Optional.of(new Exception("Not coherent: " + this.global));
-        }
-
-        if (sd && !this.global.isSingleDecision(this.roles, this.theta)) {
-            return Optional.of(new Exception("Not single-decision: " + this.global));
-        }
-
-        if (ct && !this.global.isClearTermination()) {
-            return Optional.of(new Exception("Not clear-termination: " + this.global));
-        }
-
-        if (ac && !this.global.isAwareCorollary(mf, this.roles, this.theta)) {  // FIXME deprecate mf
-            return Optional.of(new Exception("Not aware corollary: " + this.global));
-        }
-
-        // OK
-        return Optional.empty();
-    }
 
 
     /* ... */

@@ -115,33 +115,6 @@ public class GTGEnd implements GTGType {
 
     // OLD
 
-    /* ... */
-
-    @Override
-    public boolean isInitialWellSet(Set<Integer> cs) {
-        return true;
-    }
-
-    @Override
-    public Map<Role, Set<Role>> getStrongDeps() {
-        return GTUtil.mapOf();
-    }
-
-    @Override
-    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isClearTermination() {
-        return true;
-    }
-
-    @Override
-    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
-
 
     /* ... */
     

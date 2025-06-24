@@ -128,38 +128,6 @@ public class GTGRecursion implements GTGType {
     }
 
 
-
-
-    // OLD ?
-
-    /* ... */
-
-    @Override
-    public boolean isInitialWellSet(Set<Integer> cs) {
-        return this.body.isInitialWellSet(cs);
-    }
-
-    @Override
-    public Map<Role, Set<Role>> getStrongDeps() {
-        return this.body.getStrongDeps();
-    }
-
-    @Override
-    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
-        return this.body.isSingleDecision(topAll, theta);
-    }
-
-    @Override
-    public boolean isClearTermination() {
-        return this.body.isClearTermination();
-    }
-
-    @Override
-    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return this.body.isClearTerminationAux(obs, com, rem);
-    }
-
-
     /* ... */
 
     @Override

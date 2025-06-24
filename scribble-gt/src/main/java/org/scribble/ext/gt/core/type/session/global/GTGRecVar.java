@@ -110,42 +110,6 @@ public class GTGRecVar implements GTGType {
     }
 
 
-
-
-
-    // OLD
-
-    /* ... */
-
-    @Override
-    public boolean isInitialWellSet(Set<Integer> cs) {
-        return true;  // !!! bound recvars not checked
-    }
-
-    @Override
-    public Map<Role, Set<Role>> getStrongDeps() {
-        return GTUtil.mapOf();
-    }
-
-    @Override
-    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isClearTermination() {
-        return true;
-    }
-
-    @Override
-    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();  // XXX async rec MC example
-
-        //HERE // get "mandatory terminating deps" (non recvar paths)
-        // do unfoldall + prune recvar cases => check strong deps on remaining branches
-    }
-
-
     /* ... */
 
     @Override

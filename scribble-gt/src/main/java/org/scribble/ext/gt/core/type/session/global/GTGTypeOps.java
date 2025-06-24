@@ -20,35 +20,7 @@ import java.util.*;
 
 public interface GTGTypeOps extends GTSessType {
 
-    /* ... static only */
 
-    // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
-    boolean isInitialWellSet();
-
-
-
-
-    /* ... preserved -- check */
-
-    boolean isRuntimeChoicePartip();  // cf. "static" choice-partic in isInitialAndWellSet
-
-    boolean isUniqueInstan();
-
-
-    /* ... preserved -- check */
-
-    // CHECKME: Theta not used for "static" version?
-    // ...doesn't check "initial"
-    boolean isSingleDecision(Set<Role> topAll, Theta theta);  // cf. topPeers in project
-
-    // ..."top-level" left-committing check -- cf. find all mixed-choice within G
-    // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    boolean isClearTermination();
-
-    // LR-initiation
-    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
-
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
 
@@ -61,9 +33,6 @@ public interface GTGTypeOps extends GTSessType {
 
 
     /* ... */
-
-    // N.B. indiff is mixed-choice/active only (not all globals)
-    Map<Role, Set<Role>> getStrongDeps();
 
     // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
     Map<Role, Set<Op>> getCommittingTop();
