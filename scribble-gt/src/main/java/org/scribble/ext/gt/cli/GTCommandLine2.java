@@ -71,8 +71,10 @@ public class GTCommandLine2 extends CommandLine {
 
             // Integer is mixed-choice ID `c`
             GProtoName simple = g.getSimpleName();  // TODO replace by fully qualified
-            /*Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
-            Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);*/
+
+            Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
+            //Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
+
             Map<Role, Map<Integer, Set<Op>>> comInvert =
                     explicitObserverLeftCommits
                     ? translate.getExplicitCommitting()

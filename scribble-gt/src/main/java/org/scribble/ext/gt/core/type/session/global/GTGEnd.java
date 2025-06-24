@@ -142,27 +142,6 @@ public class GTGEnd implements GTGType {
         return GTUtil.umodMapOf();
     }
 
-    // ...
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
-        return GTUtil.umodMapOf();
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
-        return GTUtil.umodMapOf();
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
-        return GTUtil.umodMapOf();
-    }
-
-    @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
-    }
 
 
     /* Aux */
@@ -171,19 +150,6 @@ public class GTGEnd implements GTGType {
     public GTGType subs(RecVar v, GTGRecursion subs) {
         return this;
     }
-
-    @Override
-    public Set<Role> getReadyAux(Set<Role> blocked) {
-        return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() { return Collections.emptySet(); }
 
     @Override
     public String toString() {

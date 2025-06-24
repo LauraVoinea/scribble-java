@@ -269,7 +269,7 @@ public class GTGMixedChoice implements GTGType {
         return ConsoleColors.getMCColour(this.c) + res + ConsoleColors.RESET;
     }
 
-   
+
     /* ... */
 
     @Override
@@ -453,59 +453,6 @@ public class GTGMixedChoice implements GTGType {
         }
     }
 
-    // ...
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
-        /*Set<Op> res = this.left.getCommittingLeft(this.observer, com);
-        res.addAll(this.right.getCommittingRight(this.observer, com));*/
-        //Set<Op> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
-        //res.addAll(this.right.getCommittingRight(this.observer, GTUtil.setOf()));
-        Map<Role, Set<Op>> res = this.left.getCommittingLeft(this.observer, GTUtil.setOf());
-        this.right.getCommittingRight(this.observer, GTUtil.setOf()).forEach((k, v) -> {
-            Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
-            ops.addAll(v);
-        });
-        return res;
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
-        //return getCommittingTop();
-        return getCommittingTop(com);
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
-        //return getCommittingTop();
-        return getCommittingTop(com);
-    }
-
-    @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> l = this.left.getLabels();
-        Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> r = this.right.getLabels();
-        Map<Integer, Pair<Set<Op>, Set<Op>>> res = GTUtil.copyOf(l.right);
-        if (res.keySet().stream().anyMatch(x -> r.right.containsKey(x))) {
-            throw new RuntimeException("Shouldn't get here: " + l + " ,," + r);
-        }
-        res.putAll(r.right);
-
-        // FIXME merge across nested MCs? cf. TODO merge for MC
-
-        if (res.containsKey(this.c)) {
-            throw new RuntimeException("Shouldn't get here: " + l + " ,," + r);
-        }
-
-        // CHECKME dropping mergable labs
-        Set<Op> l1 = GTUtil.copyOf(l.left);
-        Set<Op> r1 = GTUtil.copyOf(r.left);
-        l1.removeAll(r.left);
-        r1.removeAll(l.left);
-        res.put(this.c, Pair.of(l1, r1));
-        return Pair.of(GTUtil.setOf(), res);
-    }
-
 
     /* Aux */
 
@@ -516,29 +463,6 @@ public class GTGMixedChoice implements GTGType {
         return new GTGMixedChoice(this.c, left, right, this.other, this.observer, this.otherFailedAnnot);
     }
 
-    @Override
-    public Set<Role> getReadyAux(Set<Role> blocked) {
-
-        // !!! here doing a "weak" version, implicitly bypassing \nu -- cf. def 7 ready (and lemma 3 LR-initiation, quantified over reachable)
-
-        Set<Role> res = this.left.getReadyAux(blocked);
-        res.addAll(this.right.getReadyAux(blocked));  // Should be just this.observer
-        return res;
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        Set<Op> ops = new HashSet<>(this.left.getOps());
-        ops.addAll(this.right.getOps());
-        return ops;
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() {
-        return GTUtil.union(
-                this.left.getRecDecls(),
-                this.right.getRecDecls());
-    }
 
     @Override
     public String toString() {

@@ -153,46 +153,6 @@ public class GTGRecursion implements GTGType {
         return this.body.getCommittingAux(c, com);
     }
 
-    // ...
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
-        return this.body.getCommittingTop();
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
-        return this.body.getCommittingLeft(obs, com);
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
-        return this.body.getCommittingRight(obs, com);
-    }
-
-    @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        return this.body.getLabels();
-    }
-
-
-    /* Aux */
-
-    @Override
-    public Set<Role> getReadyAux(Set<Role> blocked) {
-        return this.body.getReadyAux(blocked);
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        return this.body.getOps();
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() {
-        return GTUtil.union(this.body.getRecDecls(), Set.of(this.var));
-    }
-
     @Override
     public String toString() {
         return ConsoleColors.toRecString("mu " + this.var + "." + this.body);

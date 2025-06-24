@@ -401,78 +401,6 @@ public class GTGInteraction implements GTGType {
         }
     }
 
-    // ...
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
-        Map<Role, Set<Op>> res = GTUtil.mapOf();
-        this.cases.values().forEach(x -> res.putAll(x.getCommittingTop(com)));
-        return res;
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
-        Map<Role, Set<Op>> res = GTUtil.mapOf();
-        Set<Role> com1 = GTUtil.copyOf(com);
-        if ((this.dst.equals(obs) && !com.contains(obs))  // src doesn't need to be com, cf. below case
-                || (com.contains(this.src) && !com.contains(this.dst))) {
-            Set<Op> ops = res.computeIfAbsent(this.dst, x -> new HashSet<>());
-            ops.addAll(this.cases.keySet());
-            com1.add(this.dst);
-        }
-        this.cases.values().forEach(x ->
-                x.getCommittingLeft(obs, com1).forEach((k, v) -> {
-                    Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
-                    ops.addAll(v);
-                }));
-        return res;
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
-        Map<Role, Set<Op>> res = GTUtil.mapOf();
-        Set<Role> com1 = GTUtil.copyOf(com);
-        if (!com.contains(this.src) && this.src.equals(obs)) {
-            Set<Op> ops1 = res.computeIfAbsent(obs, x -> new HashSet<>());
-            ops1.addAll(this.cases.keySet());
-            com1.add(obs);
-            Set<Op> ops2 = res.computeIfAbsent(this.dst, x -> new HashSet<>());  // dst != obs because obs = src
-            ops2.addAll(this.cases.keySet());
-            com1.add(this.dst);
-        } else if (com.contains(this.src) && !com.contains(this.dst)) {
-            Set<Op> v = res.computeIfAbsent(this.dst, x -> new HashSet<>());
-            v.addAll(this.cases.keySet());
-            com1.add(this.dst);
-        }
-        //this.cases.values().stream().forEach(x -> res.putAll(x.getCommittingRight(obs, com1)));
-        this.cases.values().forEach(x ->
-                x.getCommittingRight(obs, com1).forEach((k, v) -> {
-                    Set<Op> ops = res.computeIfAbsent(k, y -> new HashSet<>());
-                    ops.addAll(v);
-                }));
-        return res;
-    }
-
-    @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        /*Map<Op, Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>>> collect =  // ??
-                this.cases.entrySet().stream().collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        x -> x.getValue().getLabels()
-                ));*/
-        Set<Op> imm = GTUtil.setOf();
-        Map<Integer, Pair<Set<Op>, Set<Op>>> nested = GTUtil.mapOf();
-        for (Map.Entry<Op, GTGType> x : this.cases.entrySet()) {
-            Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> tmp = x.getValue().getLabels();
-            imm.add(x.getKey());
-            imm.addAll(tmp.left);
-            if (nested.keySet().stream().anyMatch(y -> tmp.right.keySet().contains(y))) {
-                throw new RuntimeException("Shouldn't get here: " + this + " ,, " + tmp);
-            }
-            nested.putAll(tmp.right);
-        }
-        return Pair.of(imm, nested);
-    }
 
     /* Aux */
 
@@ -486,39 +414,6 @@ public class GTGInteraction implements GTGType {
                                                              LinkedHashMap::new
                                                      ));
         return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), cases);
-    }
-
-    @Override
-    public Set<Role> getReadyAux(Set<Role> blocked) {
-        Set<Role> b = new HashSet<>(blocked);
-        b.add(this.dst);
-        Set<Role> nested = this.cases.values().stream()
-                                     .flatMap(x -> x.getReadyAux(b).stream()).collect(Collectors.toSet());
-        if (!blocked.contains(this.src)) {
-            nested.add(this.src);
-        }
-        return nested;
-    }
-
-    public Role getSender() {
-        return this.src;
-    }
-
-    public Role getReceiver() {
-        return this.dst;
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        Set<Op> ops = new HashSet<>(this.cases.keySet());
-        this.cases.values().forEach(x -> ops.addAll(x.getOps()));
-        return ops;
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getRecDecls().stream()).collect(Collectors.toSet());
     }
 
     @Override
@@ -537,6 +432,7 @@ public class GTGInteraction implements GTGType {
     public static String msgToString(Op op, Payload pay) {
         return op.toString() + pay;
     }
+
 
     /* hashCode, equals, canEquals */
 

@@ -112,11 +112,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     String format(String pref);
 
 
-
-
-
-
-
     /* ... */
 
     default Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> topPeers, Role r) {
@@ -145,38 +140,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
         throw new RuntimeException("TODO");
     }
 
-    // ...
 
-    // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
-    default Map<Role, Set<Op>> getCommittingTop() {
-        return getCommittingTop(GTUtil.setOf());
-    }
-
-    Map<Role, Set<Op>> getCommittingTop(Set<Role> com);
-
-    // com does NOT contain obs by default
-    Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com);
-
-    // com does NOT contain obs by default
-    Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com);
-
-
-    /* ... */
-
-    //GTGType unfoldContext(Map<RecVar, GTGType> c);
-
-    // cf. get(Weak)Acts, "bypass" Theta, c, n
-    default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }
-
-    Set<Role> getReadyAux(Set<Role> blocked);
-
-    Set<Op> getOps();
-
-    Set<RecVar> getRecDecls();
-
-    // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
-    // ingore non-mc or mergable in c, never discarded
-    Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
 
 
 

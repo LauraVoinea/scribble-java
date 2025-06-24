@@ -20,13 +20,6 @@ import java.util.*;
 
 public interface GTGTypeOps extends GTSessType {
 
-
-
-
-
-
-    /* ... preserved -- check */
-
     Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> topPeers, Role r);
 
     Optional<Theta> projectTheta(Set<Integer> cs, Role r);  // TODO refactor (cf. Theta.project)
@@ -34,16 +27,12 @@ public interface GTGTypeOps extends GTSessType {
 
     /* ... */
 
-    // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
-    Map<Role, Set<Op>> getCommittingTop();
-
-
-    /* ... */
-
     Set<Role> getLiveRoles();
 
-    // cf. get(Weak)Acts, "bypass" Theta, c, n
-    Set<Role> getReady();
+    // TODO refactor subs is singleton
+    GTGType subs(RecVar v, GTGRecursion subs);
+
+    Set<Integer> getTimeoutIds();  // c's
 
 
     /* ... GTSessType */
@@ -54,19 +43,4 @@ public interface GTGTypeOps extends GTSessType {
 
 
     /* ... */
-
-    // TODO refactor subs is singleton
-    GTGType subs(RecVar v, GTGRecursion subs);
-
-    //GTGType unfoldContext(Map<RecVar, GTGType> c);
-
-    Set<Integer> getTimeoutIds();  // c's
-
-    Set<Op> getOps();
-
-    // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
-    // ingore non-mc or mergable in c, never discarded
-    Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
-
-    Set<RecVar> getRecDecls();
 }
