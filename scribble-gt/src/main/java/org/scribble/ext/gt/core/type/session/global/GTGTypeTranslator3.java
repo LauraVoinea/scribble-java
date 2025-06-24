@@ -6,7 +6,7 @@ import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.core.type.session.core.type.name.GTRole;
+import org.scribble.ext.gt.core.type.name.GTRole;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 
