@@ -7,19 +7,17 @@ import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.global.*;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.core.type.session.local.Side;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GTGMixedActive implements GTGType {
 
@@ -280,7 +278,7 @@ public class GTGMixedActive implements GTGType {
         Set<Role> rs = getLiveRoles();
         rs.removeAll(getIndifferent(topAll));  // rs comes from top as param (not re-calc in each recursive step)
 
-        Set<SAction<DynamicActionKind>> as = this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
+        Set<SAction<DynamicActionKind>> as = null;//this.right.getWeakActsTop(mf, theta);  // !!! CHECKME R-acting def?  CHECKME weak OK?
         Set<Role> actingR = as.stream().map(x -> x.subj).collect(Collectors.toSet());
         actingR.removeAll(this.committedLeft);  // !!! CHECKME R-acting def?
 
@@ -415,182 +413,6 @@ public class GTGMixedActive implements GTGType {
             }
             return x;
         });
-    }
-
-    /* ... */
-
-    // Pre: a in getActs
-    // Deterministic w.r.t. a -- CHECKME: recursion
-    // !!! TODO if all roles committed, can drop either l or r?
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
-                this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
-                : this.left.step(theta, a, this.c, this.n);
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
-                this.committedLeft.contains(a.subj)
-                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
-                : this.right.step(theta, a, this.c, this.n);
-        return stepAux(theta, a, c, n, optl, optr);
-    }
-
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepAux(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n,
-            Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl,
-            Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr) {
-
-        LinkedHashSet<Role> cl = new LinkedHashSet<>(this.committedLeft);
-        LinkedHashSet<Role> cr = new LinkedHashSet<>(this.committedRight);
-
-        if (optl.isRight() && optr.isRight()) {
-            // [RTAct]
-            return Either.right(Triple.of(
-                    theta,
-                    this.fact.activeMixedChoice(this.c, this.n,
-                            optl.getRight().mid,
-                            optr.getRight().mid,
-                            this.other, this.observer, cl, cr),
-                    Tree.of("[RTAct][..discard..]")));  // TODO both opt strings (currently discarded)
-
-        } else if (optl.isRight()) {
-            if (optr.isRight() || this.committedRight.contains(a.subj)) {
-                return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-            }
-            Triple<Theta, GTGType, Tree<String>> get = optl.getRight();
-            if (a.isReceive()) {
-                String tag;
-                if (this.committedLeft.contains(a.obj) || a.subj.equals(this.observer)) {  // XXX this.p => q ?
-                    // [LRcv1]
-                    cl.add(a.subj);  // !!! l* problem -- but why not always commit as in [lcrv] ?  [rrcv] will "correct" -- invariant: in l xor r, not both
-                    tag = "[LRcv1]";
-                } else {
-                    // [LRcv2]
-                    tag = "[LRcv2]";
-                }
-                GTGMixedActive succ = this.fact.activeMixedChoice(
-                        this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
-                Tree<String> rule = Tree.of(
-                        toStepJudgeString(tag, c, n, theta, this, (GTSAction) a, get.left, succ),
-                        get.right);
-                return Either.right(Triple.of(get.left, succ, rule));
-            } else if (a.isSend()) {  // [LSnd]
-                GTGMixedActive succ = this.fact.activeMixedChoice(
-                        this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, succ, Tree.of(
-                        toStepJudgeString("[LSnd]", c, n, theta, this, (GTSAction) a, get.left, succ),
-                        get.right)));
-            } else if (a instanceof GTSNewTimeout) {  // !!!
-                GTGMixedActive succ = this.fact.activeMixedChoice(
-                        this.c, this.n, get.mid, this.right, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, succ, Tree.of(
-                        toStepJudgeString("[..Ctx1..]", c, n, theta, this, (GTSAction) a, get.left, succ),
-                        get.right)));
-            } else {
-                throw new RuntimeException("TODO: " + a);
-            }
-
-        } else if (optr.isRight()) {
-            Triple<Theta, GTGType, Tree<String>> get = optr.getRight();  // May be empty for nested mixed choices in the "stuck" side
-            if (a.isSend()) {
-                // [RSnd]
-                if (optl.isRight() || this.committedLeft.contains(a.subj)) {
-                    return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-                }
-                cr.add(a.subj);
-                GTGMixedActive succ = this.fact.activeMixedChoice(
-                        this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, succ, Tree.of(
-                        toStepJudgeString("[RSnd]", c, n, theta, this, (GTSAction) a, get.left, succ),
-                        get.right)));
-
-            } else if (a.isReceive()) {
-                // [RRcv]
-                if (optl.isRight()) {  // Redundant due to earlier
-                    return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-                }
-                //cl.remove(a.subj);  // old -- "committed" is now monotonic (committed for certain)
-                cr.add(a.subj);
-                GTGMixedActive succ = this.fact.activeMixedChoice(
-                        this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, succ, Tree.of(
-                        toStepJudgeString("[RRcv]", c, n, theta, this, (GTSAction) a, get.left, succ),
-                        get.right)));
-
-            } else if (a instanceof GTSNewTimeout) {  // HACK
-                GTGMixedActive succ = this.fact.activeMixedChoice(
-                        this.c, this.n, this.left, get.mid, this.other, this.observer, cl, cr);
-                return Either.right(Triple.of(get.left, succ, Tree.of(
-                        toStepJudgeString("[..TO-HACK-R..]", c, n, theta, this, (GTSAction) a, get.left, succ),
-                        get.right)));
-
-            } else {
-                throw new RuntimeException("TODO: " + a);
-            }
-        } else {
-            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-        }
-    }
-
-    @Override
-    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
-            int n) {  // XXX outer still OK to reduce if inner is fully ended?
-
-        Set<Role> bLeft = Stream.concat(blocked.stream(),
-                this.committedRight.stream()).collect(Collectors.toSet());
-
-        /*LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
-        Set<Role> bRight = Stream.concat(blocked.stream(),
-                this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
-        aLeft.addAll(aRight);*/
-        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> aLeft = this.left.getActs(mf, theta, bLeft, this.c, this.n);
-        Set<Role> bRight = Stream.concat(blocked.stream(),
-                this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> aRight = this.right.getActs(mf, theta, bRight, this.c, this.n);
-        aLeft.putAll(aRight);
-
-        return aLeft;
-    }
-
-    /* ... */
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep
-            (
-                    Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-
-        //return step(theta, a, c, n);  // XXX need recursive weakStep
-
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optl =
-                this.committedRight.contains(a.subj)  // !!! [RTAct] needs more restrictions?
-                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
-                : this.left.weakStep(theta, a, this.c, this.n);
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> optr =
-                this.committedLeft.contains(a.subj)
-                ? Either.left(newStepStuck(c, n, theta, this, (GTSAction) a))
-                : this.right.weakStep(theta, a, this.c, this.n);
-        return stepAux(theta, a, c, n, optl, optr);
-    }
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c,
-            int n) {
-        //return getActs(mf, theta, blocked, c, n);  // XXX must do recursive getWeak (else may get \tau)
-
-        Set<Role> bLeft = Stream.concat(blocked.stream(),
-                this.committedRight.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aLeft = this.left.getWeakActs(mf, theta, bLeft, this.c, this.n);
-        Set<Role> bRight = Stream.concat(blocked.stream(),
-                this.committedLeft.stream()).collect(Collectors.toSet());
-        LinkedHashSet<SAction<DynamicActionKind>> aRight = this.right.getWeakActs(mf, theta, bRight, this.c, this.n);
-        aLeft.addAll(aRight);
-        return aLeft;
     }
 
     /* ... */

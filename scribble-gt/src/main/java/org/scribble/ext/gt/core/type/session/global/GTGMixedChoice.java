@@ -1,20 +1,15 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.type.name.GTOp;
-import org.scribble.ext.gt.core.type.session.global.runtime.GTGMixedActive;
 import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.ConsoleColors;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -757,95 +752,6 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public GTGMixedChoice unfoldAllImmediateRecs() {
         return this;
-    }
-
-
-    /* ... */
-
-    @Override
-    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
-        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
-        if (theta.map.containsKey(this.c)) {
-            Integer m = theta.map.get(this.c);
-            //res.add(mf.SNewTimeout(this.c, m));
-            res.put(mf.SNewTimeout(this.c, m), Collections.emptySet());
-        }
-        return res;
-    }
-
-    // c, n not checked?
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-
-        if (!(a instanceof GTSNewTimeout)) {  // E.g., (rec) context rule may "attempt"
-            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-        }
-        GTSNewTimeout<?> cast = (GTSNewTimeout<?>) a;
-        /*Map<Integer, Integer> tmp = new HashMap<>(theta.map);
-        tmp.put(nu.c, tmp.get(nu.c) + 1);
-        Theta theta1 = new Theta(tmp);*/
-        if (cast.c != this.c || cast.n != theta.map.get(this.c)) {
-            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-        }
-
-        Theta theta1 = theta.inc(this.c);
-        GTGMixedActive succ = new GTGMixedActive(cast.c, cast.n,  // FIXME use factory?
-                this.left, this.right, this.other, this.observer,
-                new LinkedHashSet<>(), new LinkedHashSet<>());
-
-        return Either.right(Triple.of(theta1, succ, Tree.of(toStepJudgeString(
-                "[Inst]", c, n, theta, this, cast, theta1, succ))));
-    }
-
-
-    /* ... */
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        //LinkedHashSet<SAction<DynamicActionKind>> tau = getActs(mf, theta, blocked, c, n);
-        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> tau = getActs(mf, theta, blocked, c, n);
-
-        if (tau.isEmpty()) {
-            return new LinkedHashSet<>();
-        } else if (tau.size() > 1) {
-            throw new RuntimeException("Shouldn't get in here: " + tau);
-        }
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> nu =
-                //step(theta, tau.iterator().next(), c, n);
-                step(theta, tau.keySet().iterator().next(), c, n);
-        if (nu.isLeft()) {
-            return GTUtil.setOf();
-        }
-        Triple<Theta, GTGType, Tree<String>> get = nu.getRight();  // mixed active
-
-        // FIXME addRuntimeTestMC(good, bad) -- \nu 2, 2 should not be possible global act, all roles blocked
-        LinkedHashSet<SAction<DynamicActionKind>> tmp = get.mid.getWeakActs(mf, get.left, blocked, c, n);
-
-        return tmp;
-    }
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Integer m = theta.map.get(this.c);
-        SAction<DynamicActionKind> tau = //...getActs(theta, a, Collections.emptySet(), c, n).iterator().next();
-                new GTSNewTimeout<>(this.c, m);  // TODO factory?
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> weak =
-                step(theta, tau, c, n);  // mixed active
-        return weak.flatMapRight(x ->
-                x.mid.weakStep(x.left, a, c, n).mapRight(y ->  // XXX need to stay recursively in weakStep
-                        Triple.of(y.left, y.mid, Tree.of(
-                                toStepJudgeString("[..nu-tau..]", c, n, theta,
-                                        this, (GTSAction) a, y.left, y.mid),
-                                x.right
-                        ))
-                )
-        );
     }
 
 

@@ -26,13 +26,6 @@ public interface GTGTypeOps extends GTSessType {
     boolean isInitialWellSet();
 
 
-    /* ... -- top-down, no global weak */
-
-    // TODO GTSAction
-    //LinkedHashSet<SAction<DynamicActionKind>> getActs(
-    LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTSModelFactory mf,  // HERE TODO remove
-            Theta theta, Set<Role> blocked, int c, int n);
 
 
     /* ... preserved -- check */
@@ -58,15 +51,6 @@ public interface GTGTypeOps extends GTSessType {
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
 
-    /* ... -- fidelity */
-
-    // \nu actions silent
-    LinkedHashSet<SAction<DynamicActionKind>> getWeakActsTop(
-            GTSModelFactory mf,  // TODO remove
-            Theta theta);
-
-    Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStepTop(
-            Theta theta, SAction<DynamicActionKind> a);
 
 
     /* ... preserved -- check */

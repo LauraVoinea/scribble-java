@@ -2,16 +2,12 @@ package org.scribble.ext.gt.core.type.session.global.runtime;
 
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.MActionBase;
-import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.model.local.action.GTESend;
 import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
@@ -20,10 +16,7 @@ import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeFactory;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.GTUtil;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -342,166 +335,7 @@ public class GTGWiggly implements GTGType {
         }
     }
 
-    /* */
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        if (this.dst.equals(a.subj)) {
-            if (a.isReceive()) {  // [Rcv]
-                GTSRecv<DynamicActionKind> cast = (GTSRecv<DynamicActionKind>) a;
-                if (cast.obj.equals(this.src)
-                        && this.cases.containsKey(cast.mid) && cast.c == c && cast.n == n) {
-                    //LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    GTGType succ = this.cases.get(cast.mid);
-                    return Either.right(Triple.of(
-                            theta, succ, Tree.of(toStepJudgeString(
-                                    "[Rcv]", c, n, theta, this, cast, theta, succ))));
-                }
-            }
-            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-        } else {  // [Cont2]
-            Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> nested
-                    = stepNested(theta, a, c, n);
-            return nested.mapRight(x -> {
-                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, new LinkedHashMap<>(this.pays), x.mid);
-                return Triple.of(x.left, succ, Tree.of(
-                        toStepJudgeString("[Cont2]", c, n, theta, this, (GTSAction) a, x.left, succ),
-                        x.right));
-            });
-        }
-    }
-
-    protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> stepNested(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                this.cases.get(this.op).step(theta, a, c, n);
-        return step.mapRight(x -> {
-            LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>(this.cases);
-            cs.put(op, x.mid);
-            return Triple.of(x.left, cs, x.right);
-        });
-    }
-
-    @Override
-    //public LinkedHashSet<SAction<DynamicActionKind>> getActs(
-    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        HashSet<Role> tmp = new HashSet<>(blocked);
-        tmp.add(this.dst);
-        //LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
-        LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> res = new LinkedHashMap<>();
-
-        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
-        for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-            Op op = e.getKey();
-            //LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getActs(mf, theta, tmp, c, n);
-            LinkedHashSet<SAction<DynamicActionKind>> as = new LinkedHashSet<>(e.getValue().getActs(mf, theta, tmp, c, n).keySet());
-            coll.put(op, new LinkedHashSet<>(
-                    as.stream().filter(x -> !x.subj.equals(this.src)).collect(Collectors.toSet())));
-        }
-
-        if (!blocked.contains(this.dst)) {
-            // N.B. SRecv subj is this.dst
-            SRecv<DynamicActionKind> a = mf.GTSRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
-            res.put(a, Collections.emptySet());
-        }
-        this.cases.get(this.op).getActs(mf, theta, blocked, c, n).entrySet().stream()
-                  .filter(x -> x.getKey().subj.equals(this.src))
-                  .forEach(x -> res.put(x.getKey(), x.getValue()));
-
-        // !!!
-        Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
-        for (SAction<DynamicActionKind> a : vs.iterator().next()) {
-            if (vs.stream().allMatch(x -> x.contains(a))) {
-                res.put(a, Collections.emptySet());
-            }
-        }
-
-        return res;
-
-    }
-
-    /* ... */
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        //return step(theta, a, c, n);  // XXX need recursive weakStep
-
-        if (this.dst.equals(a.subj)) {
-            if (a.isReceive()) {  // [Rcv]
-                GTSRecv<DynamicActionKind> cast = (GTSRecv<DynamicActionKind>) a;
-                if (cast.obj.equals(this.src)
-                        && this.cases.containsKey(cast.mid) && cast.c == c && cast.n == n) {
-                    //LinkedHashMap<Op, GTGType> tmp = new LinkedHashMap<>(this.cases);
-                    GTGType succ = this.cases.get(cast.mid);
-                    return Either.right(Triple.of(
-                            theta, succ, Tree.of(toStepJudgeString(
-                                    "[Rcv]", c, n, theta, this, cast, theta, succ))));
-                }
-            }
-            return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-        } else {  // [Cont2]
-            Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> nested
-                    = weakStepNested(theta, a, c, n);
-
-            return nested.mapRight(x -> {
-                GTGWiggly succ = this.fact.wiggly(this.src, this.dst, this.op, new LinkedHashMap<>(this.pays), x.mid);
-                return Triple.of(x.left, succ, Tree.of(
-                        toStepJudgeString("[Cont2]", c, n, theta, this, (GTSAction) a, x.left, succ),
-                        x.right));
-            });
-        }
-    }
-
-    protected Either<Exception, Triple<Theta, LinkedHashMap<Op, GTGType>, Tree<String>>> weakStepNested(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        Either<Exception, Triple<Theta, GTGType, Tree<String>>> step =
-                this.cases.get(this.op).weakStep(theta, a, c, n);
-        return step.mapRight(x -> {
-            LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>(this.cases);
-            cs.put(op, x.mid);
-            return Triple.of(x.left, cs, x.right);
-        });
-    }
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        //return getActs(mf, theta, blocked, c, n);  // XXX must do recursive getWeakActs
-
-        HashSet<Role> tmp = new HashSet<>(blocked);
-        tmp.add(this.dst);
-        LinkedHashSet<SAction<DynamicActionKind>> res = new LinkedHashSet<>();
-
-        Map<Op, LinkedHashSet<SAction<DynamicActionKind>>> coll = new LinkedHashMap<>();  // no subj=this.dst due to tmp (blocked)
-        for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
-            Op op = e.getKey();
-            LinkedHashSet<SAction<DynamicActionKind>> as = e.getValue().getWeakActs(mf, theta, tmp, c, n);
-            coll.put(op, new LinkedHashSet<>(
-                    as.stream().filter(x -> !x.subj.equals(this.src)).collect(Collectors.toSet())));
-        }
-
-        if (!blocked.contains(this.dst)) {
-            // N.B. SRecv subj is this.dst
-            SRecv<DynamicActionKind> a = mf.GTSRecv(this.dst, this.src, this.op, Payload.EMPTY_PAYLOAD, c, n);  // FIXME empty
-            res.add(a);
-        }
-        this.cases.get(this.op).getWeakActs(mf, theta, blocked, c, n).stream()
-                  .filter(x -> x.subj.equals(this.src)).forEach(x -> res.add(x));
-
-        // !!!
-        Collection<LinkedHashSet<SAction<DynamicActionKind>>> vs = coll.values();
-        for (SAction<DynamicActionKind> a : vs.iterator().next()) {
-            if (vs.stream().allMatch(x -> x.contains(a))) {
-                res.add(a);
-            }
-        }
-
-        return res;
-    }
-
+   
     /* ... */
 
     @Override
