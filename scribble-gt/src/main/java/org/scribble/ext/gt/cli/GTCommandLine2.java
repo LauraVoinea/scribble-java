@@ -69,6 +69,14 @@ public class GTCommandLine2 extends CommandLine {
             Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
             Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
 
+            /*Map<Role, Set<Op>> mm = comInvert.entrySet().stream().collect(Collectors.toMap(
+                    x -> x.getKey(),
+                    x -> x.getValue().values().stream().flatMap(y -> y.stream()).collect(Collectors.toSet())));
+            Map<Role, Set<Op>> nn = translate.getCommittingNew();
+            if (!mm.equals(nn)) {
+                throw new RuntimeException("XXXXXX: mm=" + mm + " ,, nn=" + nn);
+            }*/
+
             Map<Role, GTEFSM> tmp = getEFSMS(s.local, comInvert);
             efsms.put(simple, tmp);
             if (debug) {
@@ -233,7 +241,7 @@ public class GTCommandLine2 extends CommandLine {
     }
 
 
-   
+
     /* Projection */
 
     //static GTCorrespondence checkProjection(GTGType translate) {
