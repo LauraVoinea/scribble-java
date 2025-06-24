@@ -857,46 +857,4 @@ public class GTGMixedChoice implements GTGType {
 
 
 
-
-
-
-
-
-
-
-
-    /* ...deprecated */
-
-    // TODO revisit global props vs. syntactic WF approximations (cf. projection)
-    @Override
-    public boolean isSinglePointed() {
-        Set<Op> ops = this.left.getOps();
-        ops.retainAll(this.right.getOps());
-        if (!ops.isEmpty()) {
-            return false;
-        }
-        if (!(this.left instanceof GTGInteraction) || !(this.right instanceof GTGInteraction)) {
-            return false;
-        }
-        GTGInteraction left = (GTGInteraction) this.left;
-        GTGInteraction right = (GTGInteraction) this.right;
-        return left.src.equals(right.dst) && right.dst.equals(this.other)
-                && left.dst.equals(right.src) && right.src.equals(this.observer)
-                && this.left.isSinglePointed() && this.right.isSinglePointed();
-    }
-
-    @Override
-    public boolean isGood() {
-        return isCoherent();  // TODO redo as full participation
-    }
-
-    /* ... */
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        throw new RuntimeException("Deprecated?");
-        /*return this.left.isLeftCommittingAux(this.observer, com, rem)
-                && this.left.isClearTermination()
-                && this.right.isClearTermination();*/
-    }
 }

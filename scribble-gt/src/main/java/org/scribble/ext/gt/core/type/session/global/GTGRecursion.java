@@ -374,33 +374,4 @@ public class GTGRecursion implements GTGType {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* ...deprecated */
-
-    @Override
-    public boolean isSinglePointed() {
-        return this.body.isSinglePointed();
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.body.isGood();
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return this.body.isLeftCommitting(com, rem);
-    }
 }

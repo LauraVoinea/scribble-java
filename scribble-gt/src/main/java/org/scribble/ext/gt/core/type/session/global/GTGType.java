@@ -334,36 +334,4 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
 
 
-
-
-
-
-
-
-
-
-
-    /* deprecated */
-
-    @Deprecated
-    boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
-
-    @Deprecated
-    boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
-
-    // well-set -- init WF
-    // coherence -- run-time invariant (lemma 3)
-
-    // ...G aware Theta -- all t in G aware Theta
-
-    // lemma 4: "aware" + coherent => progress
-    // theorem 1: well-set + choice-participation => progress
-
-    // "awareness properties" -- run-time invariant (lemma 2)
-
-
-    /* ... */
-
-    @Deprecated
-    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
 }

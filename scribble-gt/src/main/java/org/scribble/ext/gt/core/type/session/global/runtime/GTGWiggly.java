@@ -150,25 +150,6 @@ public class GTGWiggly implements GTGType {
     /* ... */
 
     @Override
-    public boolean isSinglePointed() {
-        /*Set<Op> labs1 = new HashSet<>(labs);
-        labs1.addAll(this.cases.keySet());
-        if (labs1.size() != labs.size() + this.cases.keySet().size()) {
-            return false;
-        }
-        return this.cases.values().stream().allMatch(x -> x.isStaticWF(labs1));*/
-        throw new RuntimeException("N/A");
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.cases.values().stream().allMatch(GTGType::isGood)
-                && this.cases.containsKey(this.op);  // !!!
-    }
-
-    /* ... */
-
-    @Override
     public boolean isInitialWellSet(Set<Integer> cs) {
         return false;
     }
@@ -212,19 +193,6 @@ public class GTGWiggly implements GTGType {
     @Override
     public boolean isClearTermination() {
         return this.cases.values().stream().allMatch(GTGType::isClearTermination);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        /*if (!com.contains(this.src) || rem.contains(this.dst)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));*/
-        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override

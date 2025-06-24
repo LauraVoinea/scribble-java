@@ -156,32 +156,6 @@ public class GTGMixedActive implements GTGType {
         return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
     }
 
-    @Override
-    public boolean isSinglePointed() {
-        if (!this.committedLeft.isEmpty() || !this.committedRight.isEmpty()) {
-            throw new RuntimeException();
-        }
-        Set<Op> ops = this.left.getOps();
-        ops.retainAll(this.right.getOps());
-        if (!ops.isEmpty()) {
-            return false;
-        }
-        if (!(this.left instanceof GTGInteraction) || !(this.right instanceof GTGInteraction)) {
-            return false;
-        }
-        GTGInteraction left = (GTGInteraction) this.left;
-        GTGInteraction right = (GTGInteraction) this.right;
-        return left.src.equals(right.dst) && right.dst.equals(this.other)
-                && left.dst.equals(right.src) && right.src.equals(this.observer)
-                && this.left.isSinglePointed() && this.right.isSinglePointed();
-    }
-
-    @Override
-    public boolean isGood() {
-        return (this.committedLeft.isEmpty() || this.committedRight.isEmpty())
-                && this.left.isGood() && this.right.isGood();
-    }
-
     /* ... */
 
     @Override
@@ -254,11 +228,6 @@ public class GTGMixedActive implements GTGType {
         return this.left.isClearTerminationAux(this.observer, GTUtil.setOf(), rs)  // n.b., roles(this) -- "outer" roles not involved at all don't matter
                 && this.left.isClearTermination()
                 && this.right.isClearTermination();
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {  // Deprecated
-        throw new RuntimeException("Shouldn't get here: " + this);
     }
 
     @Override

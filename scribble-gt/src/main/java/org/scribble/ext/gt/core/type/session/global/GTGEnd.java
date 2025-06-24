@@ -320,21 +320,4 @@ public class GTGEnd implements GTGType {
 
 
 
-
-    /* ...deprecated */
-
-    @Override
-    public boolean isSinglePointed() {
-        return true;
-    }
-
-    @Override
-    public boolean isGood() {
-        return true;
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
 }

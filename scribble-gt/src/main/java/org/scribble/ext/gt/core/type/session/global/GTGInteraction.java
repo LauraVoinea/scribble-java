@@ -877,31 +877,4 @@ public class GTGInteraction implements GTGType {
 
 
 
-
-
-
-
-    /* ...deprecated */
-
-    @Override
-    public boolean isSinglePointed() {
-        return this.cases.values().stream().allMatch(GTGType::isSinglePointed);
-    }
-
-    @Override
-    public boolean isGood() {
-        return this.cases.values().stream().allMatch(GTGType::isGood);
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        if (!com.contains(this.src) || rem.contains(this.dst)) {
-            return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(com, rem));
-        }
-        Set<Role> c_copy = GTUtil.copyOf(com);
-        Set<Role> r_copy = GTUtil.copyOf(rem);
-        c_copy.add(this.dst);
-        r_copy.remove(this.dst);
-        return this.cases.values().stream().allMatch(x -> x.isLeftCommitting(c_copy, r_copy));
-    }
 }
