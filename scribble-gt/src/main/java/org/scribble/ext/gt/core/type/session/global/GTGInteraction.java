@@ -12,6 +12,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.name.GTOp;
 import org.scribble.ext.gt.core.type.session.global.runtime.GTGWiggly;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
@@ -93,6 +94,36 @@ public class GTGInteraction implements GTGType {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
+        Map<Role, Set<Op>> res = new HashMap<>();
+        Set<Role> tmp = com;
+        if (!com.contains(this.dst) && com.contains(this.src)) {
+            tmp = new HashSet<>(com);
+            tmp.add(this.dst);
+            res.put(this.dst, this.cases.keySet());
+        } else {
+            res.put(this.dst,
+                    this.cases.keySet().stream()
+                              .filter(x -> ((GTOp) x).annots.contains(GTOp.EXPLICIT_COMMIT))
+                              .collect(Collectors.toSet()));
+        }
+        /*for (GTGType x : this.cases.values()) {
+            x.getExplicitCommittingAux(c, tmp).forEach((k, v) ->
+                    res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v));
+        }*/
+        for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
+            Set<Role> tmp2 = new HashSet<>(tmp);
+            if (((GTOp) e.getKey()).annots.contains(GTOp.EXPLICIT_COMMIT)) {
+                tmp2.add(this.dst);
+            }
+            e.getValue().getExplicitCommittingAux(c, tmp2).forEach((k, v) ->
+                    res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v));
+        }
+
+        return res;
     }
 
     @Override

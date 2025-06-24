@@ -272,7 +272,7 @@ LINE_COMMENT:
  * Section 2.3 Identifiers
  */
 ID:
-	(LETTER | DIGIT | UNDERSCORE)*  
+	(LETTER | DIGIT | UNDERSCORE | '@' | '*' )*
       /* Underscore currently can cause ambiguities in the API generation naming
        * scheme But maybe only consecutive underscores are the problem -- cannot
        * completely disallow underscores as needed for projection naming scheme

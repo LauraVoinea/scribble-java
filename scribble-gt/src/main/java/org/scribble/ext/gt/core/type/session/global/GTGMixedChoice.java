@@ -10,6 +10,7 @@ import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.Sigma;
+import org.scribble.ext.gt.core.type.name.GTOp;
 import org.scribble.ext.gt.core.type.session.global.runtime.GTGMixedActive;
 import org.scribble.ext.gt.core.type.session.local.*;
 import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
@@ -96,9 +97,43 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
+    public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
+        if (c == this.c) {
+            Map<Role, Set<Op>> res = new HashMap<>();
+
+            Set<Op> obs = new HashSet<>();
+            // obs not implicitly com on LHS
+            obs.addAll(((GTGInteraction) this.right).cases.keySet());
+            res.put(this.observer, obs);
+            Set<Op> oth = new HashSet<>();
+            oth.addAll(((GTGInteraction) this.right).cases.keySet());
+            res.put(this.other, oth);
+
+            Map<Role, Set<Op>> ll = this.left.getExplicitCommittingAux(c, com);  // obs not implicitly com on LHS
+            ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+
+            Set<Role> r = new HashSet<>(com);
+            r.add(this.observer);
+            r.add(this.other);
+            Map<Role, Set<Op>> rr = this.right.getExplicitCommittingAux(c, r);
+            rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+           
+            return res;
+        } else {
+            Map<Role, Set<Op>> res = new HashMap<>();
+            Map<Role, Set<Op>> ll = this.left.getExplicitCommittingAux(c, com);
+            ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            Map<Role, Set<Op>> rr = this.right.getExplicitCommittingAux(c, com);
+            rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+            return res;
+        }
+    }
+
+    @Override
     public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
         if (c == this.c) {
             Map<Role, Set<Op>> res = new HashMap<>();
+
             Set<Op> obs = new HashSet<>();
             obs.addAll(((GTGInteraction) this.left).cases.keySet());
             obs.addAll(((GTGInteraction) this.right).cases.keySet());
@@ -109,13 +144,15 @@ public class GTGMixedChoice implements GTGType {
 
             Set<Role> l = new HashSet<>(com);
             l.add(this.observer);
-            Map<Role, Set<Op>> ll = this.left.getCommittingAuxNew(c, l);
+            Map<Role, Set<Op>> ll = this.left.getCommittingAuxNew(c, l);  // Should be visiting continuations, but doesn't hurt to start top of left
             ll.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
             Set<Role> r = new HashSet<>(com);
             r.add(this.observer);
             r.add(this.other);
-            Map<Role, Set<Op>> rr = this.right.getCommittingAuxNew(c, r);
+
+            Map<Role, Set<Op>> rr = this.right.getCommittingAuxNew(c, r);  // Should be visiting continuations, but doesn't hurt
             rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
+
             return res;
         } else {
             Map<Role, Set<Op>> res = new HashMap<>();

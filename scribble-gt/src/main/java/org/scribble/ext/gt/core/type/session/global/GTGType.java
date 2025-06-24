@@ -50,6 +50,21 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Optional<Exception> checkWellFormed();
 
+    default Map<Role, Map<Integer, Set<Op>>> getExplicitCommitting() {
+        Map<Role, Map<Integer, Set<Op>>> res = new HashMap<>();
+        getTimeoutIds().forEach(x -> getExplicitCommitting(x)
+                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashMap<>())
+                                      .computeIfAbsent(x, z -> new HashSet<>())
+                                      .addAll(v)));
+        return res;
+    }
+
+    default Map<Role, Set<Op>> getExplicitCommitting(int c) {
+        return getExplicitCommittingAux(c, Collections.emptySet());
+    }
+
+    Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com);
+
     default Map<Role, Set<Op>> getCommittingNew() {
         Map<Role, Set<Op>> res = new HashMap<>();
         getTimeoutIds().forEach(x -> getCommittingNew(x)

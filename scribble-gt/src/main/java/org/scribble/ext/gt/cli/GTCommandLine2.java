@@ -35,10 +35,15 @@ public class GTCommandLine2 extends CommandLine {
     public static GTSModelFactory GMF;
     public static GTEModelFactory LMF;
 
+    // Used in GTJob
+    public static List<Pair<String, String[]>> ARGS;
+
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
     protected Optional<Exception> gtMain() {
         Core core = this.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
+        boolean explicitObserverLeftCommits = this.args.stream().anyMatch(
+                x -> x.left.equals(GTCLFlags.GT_EXPLICIT_OBSERVER_LEFT_COMMITS));
         GTCommandLine2.GMF = (GTSModelFactory) core.config.mf.global;
         GTCommandLine2.LMF = (GTEModelFactory) core.config.mf.local;
 
@@ -68,6 +73,11 @@ public class GTCommandLine2 extends CommandLine {
             GProtoName simple = g.getSimpleName();  // TODO replace by fully qualified
             Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
             Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
+
+            if (explicitObserverLeftCommits) {
+                Map<Role, Map<Integer, Set<Op>>> exp = translate.getExplicitCommitting();
+                //System.out.println("222222: " + exp);
+            }
 
             /*Map<Role, Set<Op>> mm = comInvert.entrySet().stream().collect(Collectors.toMap(
                     x -> x.getKey(),
@@ -301,6 +311,9 @@ public class GTCommandLine2 extends CommandLine {
 
     static GTCommandLine2 init(String[] args) {
         GTCommandLine2 cl = new GTCommandLine2(args);
+
+        GTCommandLine2.ARGS = cl.args;
+
         try {
             cl.run();
         } catch (CommandLineException | AntlrSourceException x) {

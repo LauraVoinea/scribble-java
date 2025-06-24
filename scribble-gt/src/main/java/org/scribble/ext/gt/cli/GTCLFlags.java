@@ -35,6 +35,8 @@ public class GTCLFlags extends CLFlags {
     public static final String GT_ED_FSM_GEN_FLAG = "-gt-event-fsm";
     public static final String GT_ERLANG_API_GEN_FLAG = "-gt-gen-erlang";
 
+    public static final String GT_EXPLICIT_OBSERVER_LEFT_COMMITS = "-gt-explicit-observer-left-commits";
+
     // Non-unique flags
     // ...
 
@@ -52,6 +54,8 @@ public class GTCLFlags extends CLFlags {
         flags.put(NO_CORRESPONDENCE, new CLFlag(NO_CORRESPONDENCE,
                 0, true, false, false, "Duplicate flag: "));
         flags.put(GT_NO_CORRESPONDENCE_FLAG, new CLFlag(GT_NO_CORRESPONDENCE_FLAG,
+                0, true, false, false, "Duplicate flag: "));
+        flags.put(GT_EXPLICIT_OBSERVER_LEFT_COMMITS, new CLFlag(GT_EXPLICIT_OBSERVER_LEFT_COMMITS,
                 0, true, false, false, "Duplicate flag: "));
 
         flags.put(GT_JAVA_API_GEN_FLAG, new CLFlag(GT_JAVA_API_GEN_FLAG,

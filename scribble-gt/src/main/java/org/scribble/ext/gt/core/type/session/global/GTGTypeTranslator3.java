@@ -6,6 +6,7 @@ import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.core.type.name.GTOp;
 import org.scribble.ext.gt.core.type.name.GTRole;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
@@ -82,16 +83,16 @@ public class GTGTypeTranslator3 {
         if (!(m instanceof SigLitNode)) {
             throw new RuntimeException("TODO: " + m);
         }
-        Op op = ((SigLitNode) m).getOpChild().toName();
+        Op op = translateOp(((SigLitNode) m).getOpChild().toName());
         //Map<Op, GTGType> cs = Collections.singletonMap(op, cont);
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         cs.put(op, cont);
-        GTRole src = new GTRole(g.getSourceChild().toName());
+        GTRole src = translateRole(g.getSourceChild().toName());
         List<Role> dsts = g.getDestinationRoles();
         if (dsts.size() != 1) {
             throw new RuntimeException("TODO: " + g);
         }
-        GTRole dst = new GTRole(dsts.get(0));
+        GTRole dst = translateRole(dsts.get(0));
 
         LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         Payload payload = ((SigLitNode) m).getPayloadListChild().toPayload();
@@ -100,13 +101,24 @@ public class GTGTypeTranslator3 {
         return this.fact.choice(src, dst, pays, cs);
     }
 
+    protected GTOp translateOp(Op op) {
+        Set<String> annots = new HashSet<>();
+        String x = op.toString();
+        if (x.endsWith("*")) {
+            annots.add(GTOp.EXPLICIT_COMMIT);
+            x = x.substring(0, x.length() - "*".length());
+        }
+        return new GTOp(annots, x);
+    }
+
     protected GTRole translateRole(Role r) {
         Set<String> annots = new HashSet<>();
         String x = r.toString();
-        if (x.endsWith("*")) {
+        /*if (x.endsWith("*")) {
             annots.add(GTRole.EXPLICIT_COMMIT);
             x = x.substring(0, x.length() - "*".length());
-        } else if (x.endsWith("@failed")) {
+        } else*/
+        if (x.endsWith("@failed")) {
             annots.add(GTRole.FAILED_ANNOT);
             x = x.substring(0, x.length() - "@failed".length());
         }
@@ -127,16 +139,21 @@ public class GTGTypeTranslator3 {
             }
             GTGInteraction cast = (GTGInteraction) c;
             if (dst == null) {
-                dst = new GTRole(cast.dst);
-            } else if (!dst.equals(cast.dst)) {
+                dst = translateRole(cast.dst);
+            } else if (!dst.equals(translateRole(cast.dst))) {
                 throw new RuntimeException("Non-directed choice:\n" + g);
             }
             pays.putAll(cast.pays);
             ds.putAll(cast.cases);
         }
-        GTRole subj = new GTRole(g.getSubjectChild().toName());
+        GTRole subj = translateRole(g.getSubjectChild().toName());
 
         return this.fact.choice(subj, dst, pays, ds);
+    }
+
+    // !!! Workaround
+    protected boolean gTRoleFullEquals(GTRole r1, GTRole r2) {
+        return r1.equals(r2) && r1.annots.equals(r2.annots);
     }
 
     protected GTGRecursion translateGRecursion(GRecursion g) {
@@ -151,8 +168,8 @@ public class GTGTypeTranslator3 {
     protected GTGMixedChoice translateGMixed(GTGMixed g) {
         GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
-        GTRole other = new GTRole(g.getOtherChild().toName());
-        GTRole observer = new GTRole(g.getObserverChild().toName());
+        GTRole other = translateRole(g.getOtherChild().toName());
+        GTRole observer = translateRole(g.getObserverChild().toName());
         List<Role> leftCommitted = g.getLeftRoleListChild().getRoles();  // TODO remove committed from Scribble syntax?
         List<Role> rightCommitted = g.getRightRoleListChild().getRoles();
         if (!leftCommitted.isEmpty() || !rightCommitted.isEmpty()) {

@@ -73,6 +73,11 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
+        return this.body.getExplicitCommittingAux(c, com);
+    }
+
+    @Override
     public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
         return this.body.getCommittingAuxNew(c, com);
     }

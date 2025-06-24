@@ -55,6 +55,11 @@ public class GTGEnd implements GTGType {
     }
 
     @Override
+    public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
+        return Collections.emptyMap();
+    }
+
+    @Override
     public Map<Role, Set<Op>> getCommittingAuxNew(int c, Set<Role> com) {
         return Collections.emptyMap();
     }
