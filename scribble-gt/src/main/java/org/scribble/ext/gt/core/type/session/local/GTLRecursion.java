@@ -6,9 +6,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
-import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.LinkedHashSet;
@@ -87,11 +85,6 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public GTLType unfoldAllImmediateRecs() {
-        return this.body.subs(this.var, this).unfoldAllImmediateRecs();
-    }
-
-    @Override
     public String toString() {
         return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }
@@ -122,11 +115,4 @@ public class GTLRecursion implements GTLType {
         return o instanceof GTLRecursion;
     }
 
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        return GTUtil.mapOf();
-    }
 }

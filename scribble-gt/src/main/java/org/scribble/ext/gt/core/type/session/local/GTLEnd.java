@@ -6,8 +6,6 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
-import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.Map;
@@ -42,16 +40,6 @@ public class GTLEnd implements GTLType {
     }
 
     @Override
-    public GTLEnd unfoldAllImmediateRecs() {
-        return this;
-    }
-
-    /*@Override
-    public GTLEnd unfoldContext(Map<RecVar, GTLType> env) {
-        return this;
-    }*/
-
-    @Override
     public String toString() {
         return "end";
     }
@@ -83,13 +71,4 @@ public class GTLEnd implements GTLType {
 
 
 
-
-
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        return GTUtil.mapOf();
-    }
 }

@@ -7,7 +7,6 @@ import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
-import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
 import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.util.Pair;
@@ -95,12 +94,7 @@ public class GTLSelect implements GTLType {
                                                      ));
         return this.fact.select(this.dst, new LinkedHashMap<>(this.pays), cases);
     }
-
-    @Override
-    public GTLSelect unfoldAllImmediateRecs() {
-        return this;
-    }
-
+   
     @Override
     public String toString() {
         return this.dst + (ConsoleColors.OLPLUS + "{")
@@ -151,19 +145,4 @@ public class GTLSelect implements GTLType {
 
 
 
-
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getActive(theta).entrySet().stream())
-                         .collect(Collectors.toMap(
-                                 Map.Entry::getKey,
-                                 Map.Entry::getValue,
-                                 (x, y) -> x < y ? x : y,
-                                 LinkedHashMap::new
-                         ));
-    }
 }

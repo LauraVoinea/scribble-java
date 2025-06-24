@@ -587,14 +587,6 @@ public class GTGMixedChoice implements GTGType {
     }
 
 
-    /* ... */
-
-    @Override
-    public GTGMixedChoice unfoldAllImmediateRecs() {
-        return this;
-    }
-
-
 
 
 

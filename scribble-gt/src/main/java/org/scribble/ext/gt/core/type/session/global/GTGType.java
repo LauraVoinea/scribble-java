@@ -1,17 +1,14 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSessType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -22,9 +19,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     int GLOBAL_END_HASH = 1663;
     int GLOBAL_CHOICE_HASH = 1667;
-    int GLOBAL_WIGGLY_HASH = 1669;
     int GLOBAL_MIXED_DEF_HASH = 1693;
-    int GLOBAL_MIXED_ACTIVE_HASH = 1697;
     int GLOBAL_REC_HASH = 1699;
     int GLOBAL_RECVAR_HASH = 1709;
 
@@ -183,12 +178,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
 
-
-    /* ... */
-
-    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
-    @Override
-    GTGType unfoldAllImmediateRecs();
 
 
 

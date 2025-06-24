@@ -219,13 +219,6 @@ public class GTGRecVar implements GTGType {
     }
 
 
-    /* ... */
-
-    @Override
-    public GTGType unfoldAllImmediateRecs() {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }
-
 
 
 

@@ -1,21 +1,15 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.global.actions.SAction;
-import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSessType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
 
 
 public interface GTGTypeOps extends GTSessType {
@@ -35,12 +29,4 @@ public interface GTGTypeOps extends GTSessType {
     Set<Integer> getTimeoutIds();  // c's
 
 
-    /* ... GTSessType */
-
-    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
-    @Override
-    GTGType unfoldAllImmediateRecs();  // unfold all rec prefixes -- non rec is idemp
-
-
-    /* ... */
 }

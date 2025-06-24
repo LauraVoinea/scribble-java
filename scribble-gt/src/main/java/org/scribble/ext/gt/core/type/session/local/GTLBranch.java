@@ -10,7 +10,6 @@ import org.scribble.ext.gt.core.model.efsm.event.GTVAction;
 import org.scribble.ext.gt.core.model.efsm.event.GTVEpsilon;
 import org.scribble.ext.gt.core.model.efsm.event.GTVEvent;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
-import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
 import org.scribble.util.Pair;
 
@@ -132,12 +131,7 @@ public class GTLBranch implements GTLType {
                                                      ));
         return this.fact.branch(this.src, new LinkedHashMap<>(this.pays), cases);
     }
-
-    @Override
-    public GTLBranch unfoldAllImmediateRecs() {
-        return this;
-    }
-
+   
     @Override
     public String toString() {
         return this.src + "&{"
@@ -189,20 +183,4 @@ public class GTLBranch implements GTLType {
 
 
 
-
-
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getActive(theta).entrySet().stream())
-                         .collect(Collectors.toMap(
-                                 Map.Entry::getKey,
-                                 Map.Entry::getValue,
-                                 (x, y) -> x < y ? x : y,
-                                 LinkedHashMap::new
-                         ));
-    }
 }

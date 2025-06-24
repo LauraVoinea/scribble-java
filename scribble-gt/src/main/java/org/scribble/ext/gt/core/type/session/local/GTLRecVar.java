@@ -7,7 +7,6 @@ import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVRecVar;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
-import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.util.Pair;
 
 import java.util.Map;
@@ -43,18 +42,6 @@ public class GTLRecVar implements GTLType {
     }
 
     @Override
-    public GTLRecVar unfoldAllImmediateRecs() {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }
-
-    /*@Override
-    public GTLType unfoldContext(Map<RecVar, GTLType> env) {
-        return env.containsKey(this.var)
-                ? env.get(this.var)
-                : this;  // CHECKME
-    }*/
-
-    @Override
     public String toString() {
         return this.var.toString();
     }
@@ -84,10 +71,4 @@ public class GTLRecVar implements GTLType {
     }
 
 
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }
 }

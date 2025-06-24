@@ -20,8 +20,6 @@ import java.util.stream.Stream;
 // !!! FIXME naming "interaction" vs. "choice" (in other places)
 public class GTGInteraction implements GTGType {
 
-    private final GTGTypeFactory fact = GTGTypeFactory.FACTORY;
-
     public final Role src;
     public final Role dst;
     public final Map<Op, Payload> pays;  // Pre: Unmodifiable -- keyset subset of cases; values non-null
@@ -510,14 +508,6 @@ public class GTGInteraction implements GTGType {
     @Override
     public boolean isCoherent() {
         return this.cases.values().stream().allMatch(GTGType::isCoherent);
-    }
-
-
-    /* ... */
-
-    @Override
-    public GTGInteraction unfoldAllImmediateRecs() {
-        return this;
     }
 
 

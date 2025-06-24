@@ -6,9 +6,7 @@ import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
-import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -214,11 +212,6 @@ public class GTLMixedChoice implements GTLType {
     }
 
     @Override
-    public GTLMixedChoice unfoldAllImmediateRecs() {
-        return this;
-    }
-
-    @Override
     public String toString() {
         return ConsoleColors.toMixedChoiceString(this.left.toString())
                 + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE
@@ -253,14 +246,4 @@ public class GTLMixedChoice implements GTLType {
         return o instanceof GTLMixedChoice;
     }
 
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        if (!theta.map.containsKey(this.c)) {
-            throw new RuntimeException("Shouldn't get here: " + this);
-        }
-        return GTUtil.mapOf(this.c, theta.map.get(this.c));
-    }
 }

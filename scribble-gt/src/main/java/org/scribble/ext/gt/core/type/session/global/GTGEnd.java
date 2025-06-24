@@ -211,13 +211,4 @@ public class GTGEnd implements GTGType {
         return true;
     }
 
-
-    /* ... */
-
-    @Override
-    public GTGEnd unfoldAllImmediateRecs() {
-        return this;
-    }
-
-
 }

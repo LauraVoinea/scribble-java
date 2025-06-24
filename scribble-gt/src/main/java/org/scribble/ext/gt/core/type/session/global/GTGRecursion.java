@@ -10,7 +10,6 @@ import org.scribble.ext.gt.core.type.session.local.GTLRecVar;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
-import org.scribble.ext.gt.util.GTUtil;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -228,13 +227,6 @@ public class GTGRecursion implements GTGType {
         return this.body.isCoherent();
     }
 
-
-    /* ... */
-
-    @Override
-    public GTGType unfoldAllImmediateRecs() {
-        return this.body.subs(this.var, this).unfoldAllImmediateRecs();
-    }
 
 
 
