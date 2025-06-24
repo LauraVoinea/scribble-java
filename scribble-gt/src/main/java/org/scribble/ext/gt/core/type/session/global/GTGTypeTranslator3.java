@@ -6,6 +6,7 @@ import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.ast.global.GTAnnotNode;
 import org.scribble.ext.gt.core.type.name.GTOp;
 import org.scribble.ext.gt.core.type.name.GTRole;
 import org.scribble.ext.gt.ast.global.GTGMixed;
@@ -172,9 +173,11 @@ public class GTGTypeTranslator3 {
         GTRole observer = translateRole(g.getObserverChild().toName());
         List<Role> leftCommitted = g.getLeftRoleListChild().getRoles();  // TODO remove committed from Scribble syntax?
         List<Role> rightCommitted = g.getRightRoleListChild().getRoles();
+        boolean hasFailedAnnot = g.hasFailedAnnot();
+
         if (!leftCommitted.isEmpty() || !rightCommitted.isEmpty()) {
             throw new RuntimeException("TODO deprecated: " + g);
         }
-        return this.fact.mixedChoice(GTGTypeTranslator3.counter++, left, right, other, observer);//, committedLeft, committedRight);
+        return this.fact.mixedChoice(GTGTypeTranslator3.counter++, left, right, other, observer, hasFailedAnnot);//, committedLeft, committedRight);
     }
 }

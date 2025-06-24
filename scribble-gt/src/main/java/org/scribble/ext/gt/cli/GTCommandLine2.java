@@ -205,6 +205,9 @@ public class GTCommandLine2 extends CommandLine {
         Optional<Exception> wf = unfolded.checkWellFormed();
         if (wf.isPresent()) { return wf; }
 
+        Optional<Exception> failed = unfolded.checkedFailedAnnots();
+        if (failed.isPresent()) { return failed; }
+
         Optional<Exception> aware = translate.isSyntacticAware();
         if (aware.isPresent()) {
             //return Optional.of(new Exception("Not aware: " + translate));

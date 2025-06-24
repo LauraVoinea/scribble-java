@@ -50,6 +50,12 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Optional<Exception> checkWellFormed();
 
+    default Optional<Exception> checkedFailedAnnots() {
+        return checkedFailedAnnotsAux(Collections.emptySet());
+    }
+
+    Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed);
+
     default Map<Role, Map<Integer, Set<Op>>> getExplicitCommitting() {
         Map<Role, Map<Integer, Set<Op>>> res = new HashMap<>();
         getTimeoutIds().forEach(x -> getExplicitCommitting(x)

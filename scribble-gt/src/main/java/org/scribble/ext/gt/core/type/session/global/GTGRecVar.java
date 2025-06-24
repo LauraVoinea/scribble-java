@@ -54,6 +54,11 @@ public class GTGRecVar implements GTGType {
     }
 
     @Override
+    public Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed) {
+        return Optional.empty();
+    }
+
+    @Override
     public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
         return Collections.emptyMap();
     }

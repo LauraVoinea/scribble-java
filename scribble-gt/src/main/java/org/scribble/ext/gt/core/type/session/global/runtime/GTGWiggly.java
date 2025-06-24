@@ -83,6 +83,11 @@ public class GTGWiggly implements GTGType {
     }
 
     @Override
+    public Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed) {
+        throw new RuntimeException("Shouldn't get here: " + this);
+    }
+
+    @Override
     public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
         throw new RuntimeException("Shouldn't get here: " + this);
     }

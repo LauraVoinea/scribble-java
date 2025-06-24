@@ -97,6 +97,17 @@ public class GTGInteraction implements GTGType {
     }
 
     @Override
+    public Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed) {
+        if (failed.contains(this.src)) {
+            return Optional.of(new Exception("Cannot use failed role " + this.src + ": " + this));
+        }
+        if (failed.contains(this.dst)) {
+            return Optional.of(new Exception("Cannot use failed role " + this.dst + ": " + this));
+        }
+        return this.cases.values().stream().flatMap(x -> x.checkedFailedAnnotsAux(failed).stream()).findAny();
+    }
+
+    @Override
     public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
         Map<Role, Set<Op>> res = new HashMap<>();
         Set<Role> tmp = com;

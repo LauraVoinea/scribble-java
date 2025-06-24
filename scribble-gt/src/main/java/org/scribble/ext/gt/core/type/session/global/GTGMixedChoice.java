@@ -31,13 +31,17 @@ public class GTGMixedChoice implements GTGType {
     public final GTGType left;  // !!! interaction (other -> obs)
     public final GTGType right;  // !!! interaction (obs -> other)
 
+    public final boolean otherFailedAnnot;
+
     protected GTGMixedChoice(
-            int c, GTGType left, GTGType right, Role other, Role observer) {
+            int c, GTGType left, GTGType right, Role other, Role observer, boolean hasFailedAnnot) {
         this.c = c;
         this.other = other;
         this.observer = observer;
         this.left = left;
         this.right = right;
+
+        this.otherFailedAnnot = hasFailedAnnot;
     }
 
     @Override
@@ -67,7 +71,7 @@ public class GTGMixedChoice implements GTGType {
     @Override
     public GTGType unfoldAllOnceAux(Set<RecVar> recvars) {
         return new GTGMixedChoice(this.c, this.left.unfoldAllOnceAux(recvars),
-                this.right.unfoldAllOnceAux(recvars), this.other, this.observer);
+                this.right.unfoldAllOnceAux(recvars), this.other, this.observer, this.otherFailedAnnot);
     }
 
     @Override
@@ -97,6 +101,23 @@ public class GTGMixedChoice implements GTGType {
     }
 
     @Override
+    public Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed) {
+        return this.left.checkedFailedAnnotsAux(failed)
+                        .or(() -> {
+                            if (this.otherFailedAnnot) {
+                                Set<Role> tmp = new HashSet<>(failed);
+                                tmp.add(this.other);
+                                GTGInteraction right = (GTGInteraction) this.right;
+                                return right.cases.values().stream()
+                                                  .flatMap(x -> x.checkedFailedAnnotsAux(tmp).stream())
+                                                  .findAny();
+                            } else {
+                                return this.right.checkedFailedAnnotsAux(failed);
+                            }
+                        });
+    }
+
+    @Override
     public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
         if (c == this.c) {
             Map<Role, Set<Op>> res = new HashMap<>();
@@ -117,7 +138,7 @@ public class GTGMixedChoice implements GTGType {
             r.add(this.other);
             Map<Role, Set<Op>> rr = this.right.getExplicitCommittingAux(c, r);
             rr.forEach((k, v) -> res.computeIfAbsent(k, x -> new HashSet<>()).addAll(v));
-           
+
             return res;
         } else {
             Map<Role, Set<Op>> res = new HashMap<>();
@@ -580,7 +601,7 @@ public class GTGMixedChoice implements GTGType {
     public GTGMixedChoice subs(RecVar v, GTGRecursion subs) {
         GTGType left = this.left.subs(v, subs);
         GTGType right = this.right.subs(v, subs);
-        return new GTGMixedChoice(this.c, left, right, this.other, this.observer);
+        return new GTGMixedChoice(this.c, left, right, this.other, this.observer, this.otherFailedAnnot);
     }
 
     @Override
@@ -611,7 +632,7 @@ public class GTGMixedChoice implements GTGType {
     public String toString() {
         return ConsoleColors.toMixedChoiceString("(" + this.left)
                 + ConsoleColors.toMixedChoiceString(" " + ConsoleColors.WHITE_TRIANGLE  // XXX not fully working, cf. ConsoleColors reset and nested
-                + this.c + ":" + this.other + "," + this.observer
+                + this.c + ":" + this.other + (this.otherFailedAnnot ? "@failed" : "") + "," + this.observer
                 + " " + this.right)
                 + ConsoleColors.toMixedChoiceString(")");
     }

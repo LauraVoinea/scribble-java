@@ -1287,8 +1287,25 @@ global protocol FailureHandling(role M, role W, role FD) {
             HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
             continue X;
         } () or W -> FD () { // RHS
-            Timeout() from FD to W; //@'failed W'  // TODO handle keyword with failure-prone role, subclass of mixed
+            Timeout() from FD to W; //@'failed W'  // TODO handle keyword with failure-prone role, subclass of mixed  // See next...
             Crash() from FD to M;
+        }
+    }
+}
+//*/
+
+//* // Fig. 7  // Testing @failed
+//data <java> "java.lang.String" from "rt.jar" as Data;
+global protocol FailureHandling(role M, role W, role FD) {
+    init(Data) from M to W;
+    rec X {
+        mixed { // LHS
+            HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
+            continue X;
+        } or W @failed -> FD { // RHS
+            Timeout() from FD to W; //@'failed W'
+            Crash() from FD to M;
+            //Bad() from W to FD;  // Uncomment is BAD
         }
     }
 }
@@ -1315,7 +1332,7 @@ global protocol Interr(role P, role Q) {
 //*/
 
 
-//* Fig. 7  // Testing -gt-explicit-observer-no-commits
+/* Fig. 7  // Testing -gt-explicit-observer-no-commits
 //@'explicit-observer-left-commits'  // !!! -gt-explicit-observer-no-commits
 global protocol Interr(role P, role Q) {
     mixed { // LHS

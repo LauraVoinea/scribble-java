@@ -67,6 +67,7 @@ tokens
 
   // GT
   MIXED_KW = 'mixed';
+  FAILED_ANNOT = '@failed';
 
 
   /* Scribble AST token types (corresponding to the Scribble BNF).  
@@ -272,7 +273,7 @@ LINE_COMMENT:
  * Section 2.3 Identifiers
  */
 ID:
-	(LETTER | DIGIT | UNDERSCORE | '@' | '*' )*
+	(LETTER | DIGIT | UNDERSCORE | '*' )*
       /* Underscore currently can cause ambiguities in the API generation naming
        * scheme But maybe only consecutive underscores are the problem -- cannot
        * completely disallow underscores as needed for projection naming scheme
@@ -640,9 +641,9 @@ gtroleargs:
 ;
 
 gmixed:
-    MIXED_KW gprotoblock OR_KW rolename '->' rolename gprotoblock
+    MIXED_KW gprotoblock OR_KW rolename FAILED_ANNOT? '->' rolename gprotoblock
 ->
-	^(GT_GMIXED gprotoblock ^(ROLEARG_LIST ) rolename rolename ^(ROLEARG_LIST ) gprotoblock)
+	^(GT_GMIXED gprotoblock ^(ROLEARG_LIST ) rolename rolename ^(ROLEARG_LIST ) gprotoblock FAILED_ANNOT?)
 /*|
 	MIXED_KW gprotoblock gtroleargs OR_KW rolename '->' rolename gtroleargs gprotoblock
 ->

@@ -34,8 +34,8 @@ public class GTGTypeFactory {
     }
 
     public GTGMixedChoice mixedChoice(
-            int c, GTGType left, GTGType right, Role other, Role observer) {  // other->observer |> observer->other
-        return new GTGMixedChoice(c, left, right, other, observer);
+            int c, GTGType left, GTGType right, Role other, Role observer, boolean hasFailedAnnot) {  // other->observer |> observer->other
+        return new GTGMixedChoice(c, left, right, other, observer, hasFailedAnnot);
     }
 
     public GTGMixedActive activeMixedChoice(

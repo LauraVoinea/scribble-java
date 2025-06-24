@@ -73,6 +73,11 @@ public class GTGRecursion implements GTGType {
     }
 
     @Override
+    public Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed) {
+        return this.body.checkedFailedAnnotsAux(failed);
+    }
+
+    @Override
     public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
         return this.body.getExplicitCommittingAux(c, com);
     }
