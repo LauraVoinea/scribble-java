@@ -71,10 +71,12 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com);
 
-    default Map<Role, Set<Op>> getCommittingNew() {
-        Map<Role, Set<Op>> res = new HashMap<>();
+    default Map<Role, Map<Integer, Set<Op>>> getCommittingNew() {
+        Map<Role, Map<Integer, Set<Op>>> res = new HashMap<>();
         getTimeoutIds().forEach(x -> getCommittingNew(x)
-                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v)));
+                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashMap<>())
+                                      .computeIfAbsent(x, z -> new HashSet<>())
+                                      .addAll(v)));
         return res;
     }
 

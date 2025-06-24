@@ -1294,7 +1294,7 @@ global protocol FailureHandling(role M, role W, role FD) {
 }
 //*/
 
-//* // Fig. 7  // Testing @failed
+/* // Fig. 7  // Testing @failed
 //data <java> "java.lang.String" from "rt.jar" as Data;
 global protocol FailureHandling(role M, role W, role FD) {
     init(Data) from M to W;
@@ -1332,7 +1332,7 @@ global protocol Interr(role P, role Q) {
 //*/
 
 
-/* Fig. 7  // Testing -gt-explicit-observer-no-commits
+//* Fig. 7  // Testing -gt-explicit-observer-no-commits
 //@'explicit-observer-left-commits'  // !!! -gt-explicit-observer-no-commits
 global protocol Interr(role P, role Q) {
     mixed { // LHS
