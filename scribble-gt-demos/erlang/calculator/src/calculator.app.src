@@ -1,0 +1,15 @@
+{application, calculator,
+ [{description, "A calculator application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {calculator_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, [calculator, calculator_app, calculator_sup, alice, carol, srv, gen_alice, gen_carol, gen_srv]},
+
+  {licenses, ["Apache-2.0"]},
+  {links, []}
+ ]}.
