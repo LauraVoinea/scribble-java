@@ -159,39 +159,9 @@ public class GTCommandLine2 extends CommandLine {
     }
 
 
-
-
-
-
-
     /* Well formedness */
 
     static Optional<Exception> checkStaticProperties(boolean debug, GTGType translate) {
-        /*// OLD
-        // initial awareness
-        Optional<Exception> res;
-        res = checkInitialWellSet(translate);
-        if (res.isPresent()) { return res; }
-        res = checkSingleDecision(translate);
-        if (res.isPresent()) { return res; }
-        res = checkClearTermination(translate);
-        //return res;
-        if (res.isPresent()) {
-            throw new RuntimeException(res.get());
-        }*/
-
-        // initial
-        // well-formed
-        // aware  !! white triangle
-        // balanced
-
-        /*if (debug) {
-            System.out.println("\naaaaa initial and p->q: " + translate.isInitialAndpq());
-            System.out.println("bbbbb committing: " + translate.getCommittingNew());
-            System.out.println("ccccc strict deps: " + translate.getStrictSyntacticDeps());
-            System.out.println("ddddd aware: " + translate.isSyntacticAware());
-            System.out.println("eeeee balanced: " + translate.isBalanced());
-        }*/
 
         Optional<Exception> initial = translate.isInitialAndpq();
         if (initial.isPresent()) {
@@ -221,38 +191,6 @@ public class GTCommandLine2 extends CommandLine {
 
         return Optional.empty();
     }
-
-
-
-
-    // OLD
-
-    // TODO make checkStaticProperties -- cf. GTCorrespondence.checkRuntimeProperties
-    // no messages in transit and no active timeouts.
-    static Optional<Exception> checkInitialWellSet(GTGType translate) {  // "check..." vs. "is..."
-        return translate.isInitialWellSet()
-               ? Optional.empty() :
-               Optional.of(new Exception("Not initial and well-set: " + translate));
-    }
-
-    // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
-    static Optional<Exception> checkSingleDecision(GTGType translate) {
-        Set<Role> rs = translate.getLiveRoles();
-        if (!translate.isSingleDecision(rs, new Theta(translate.getTimeoutIds()))) {
-            return Optional.of(new Exception("Not single-decision: " + translate));
-            //} else if (!translate.isLeftCommitting()) {
-        }
-        return Optional.empty();
-    }
-
-    // Clear-termination requires that all participants are eventually notified that the left-hand side branch is taken.
-    static Optional<Exception> checkClearTermination(GTGType translate) {
-        if (!translate.isClearTermination()) {
-            return Optional.of(new Exception("Not left-committing (clear-termination): " + translate));
-        }
-        return Optional.empty();
-    }
-
 
 
     /* Projection */
