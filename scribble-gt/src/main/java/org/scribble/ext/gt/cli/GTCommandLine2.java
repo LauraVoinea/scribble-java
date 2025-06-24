@@ -7,7 +7,10 @@ import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
-import org.scribble.core.type.name.*;
+import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.name.ModuleName;
+import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
 import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
@@ -15,11 +18,13 @@ import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.local.*;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.GTLConfig;
+import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.main.GTMain;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.Either;
 import org.scribble.job.Job;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
@@ -72,9 +77,8 @@ public class GTCommandLine2 extends CommandLine {
             // Integer is mixed-choice ID `c`
             GProtoName simple = g.getSimpleName();  // TODO replace by fully qualified
 
-            Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
-            //Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
-
+            /*Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
+            //Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);*/
             Map<Role, Map<Integer, Set<Op>>> comInvert =
                     explicitObserverLeftCommits
                     ? translate.getExplicitCommitting()
@@ -113,6 +117,7 @@ public class GTCommandLine2 extends CommandLine {
         return Optional.empty();
     }
 
+    // keep
     static Map<Role, Map<Integer, Set<Op>>> getComInvert(Map<Integer, Map<Role, Set<Op>>> comFull) {
         Map<Role, Map<Integer, Set<Op>>> comInvert = new HashMap<>();
         comFull.forEach((k, vs) -> {
@@ -197,9 +202,7 @@ public class GTCommandLine2 extends CommandLine {
 
     /* Projection */
 
-    //static GTCorrespondence checkProjection(GTGType translate) {
     static Either<Exception, GTCorrespondence> checkProjection(GTGType translate) {
-        // Check projection -- TODO Either
         Set<Role> rs = translate.getLiveRoles();
         Set<Integer> tids = translate.getTimeoutIds();
         Theta theta = new Theta(tids);
@@ -305,7 +308,7 @@ public class GTCommandLine2 extends CommandLine {
             CommandLineException {
         job.runPasses();
 
-        //job.getCore().runPasses();  // HERE HERE FIXME: base imed GTGMixedChoice visit/agg/gather overrides
+        //job.getCore().runPasses();  // ...base imed GTGMixedChoice visit/agg/gather overrides
     }
 
     @Override
