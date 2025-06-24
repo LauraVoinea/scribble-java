@@ -77,7 +77,7 @@ public class GTCommandLine2 extends CommandLine {
                     explicitObserverLeftCommits
                     ? translate.getExplicitCommitting()
                     : translate.getCommittingNew();
-            //System.out.println("222222: " + exp);
+            //System.out.println("\n222222: " + comInvert);
 
             /*Map<Role, Set<Op>> mm = comInvert.entrySet().stream().collect(Collectors.toMap(
                     x -> x.getKey(),

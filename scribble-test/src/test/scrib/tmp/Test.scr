@@ -1064,7 +1064,7 @@ global protocol Proto1(role A, role B, role C) {
         a1() from A to B;
         a2() from B to C;
         a5() from B to A;  // !!! left committing
-    } () or A -> B () {
+    } or A -> B {
         a3() from B to A;
         a4() from B to C;
     }
@@ -1102,7 +1102,7 @@ global protocol Timeout(role A, role B, role C) {
         a2() from B to C;
         a5() from B to A;
         a6() from A to C;
-    } () or A -> B () { // "Right-hand" side (RHS)
+    } or A -> B { // "Right-hand" side (RHS)
         To() from B to A;
         To() from B to C;
     }
