@@ -150,6 +150,7 @@ public class GTCommandLine2 extends CommandLine {
             Map<Integer, Set<Op>> com_self = comInvert.getOrDefault(x.self, Collections.emptyMap());
             GTEFSM efsm = x.type.construct(x.self, com_self, Map.of(), GTVState.TOP_SCOPE, s_init, end).fix();
             efsms.put(x.self, efsm);
+            GTVState.resetIdCounter();
         }
         return efsms;
     }
