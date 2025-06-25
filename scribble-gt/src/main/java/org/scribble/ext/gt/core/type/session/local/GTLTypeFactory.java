@@ -4,8 +4,6 @@ import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedActive;
-import org.scribble.ext.gt.core.type.session.local.runtime.GTLMixedCommitted;
 
 import java.util.LinkedHashMap;
 
@@ -35,14 +33,6 @@ public class GTLTypeFactory {
 
     public GTLMixedChoice mixedChoice(int c, GTLType left, GTLType right) {
         return new GTLMixedChoice(c, left, right);
-    }
-
-    public GTLMixedActive mixedActive(int c, int n, GTLType left, GTLType right) {
-        return new GTLMixedActive(c, n, left, right);
-    }
-
-    public GTLMixedCommitted mixedCommitted(int c, int n, GTLType type, Side side) {
-        return new GTLMixedCommitted(c, n, type, side);
     }
 
     public GTLEnd end() {

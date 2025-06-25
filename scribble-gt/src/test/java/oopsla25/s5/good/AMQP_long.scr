@@ -54,7 +54,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
 
                         continue SelectiveMessageDelivery;
 
-                    }() or Channel -> Consumer() {
+                    } or Channel -> Consumer {
                         // In reality, the Consumer can cancel at any time
                         // Consumer initiates cancel
                         basic_cancel(consumer_tag, nowait) from Consumer to Channel;
@@ -82,7 +82,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                     // Consumer acknowledges the cancel request
                    // basic_cancel_ok(consumer_tag) from Consumer to Channel; //dummy message
                 }
-            } () or Server -> Channel() {
+            } or Server -> Channel {
                 // Channel initiates cancel
                 basic_cancel1(consumer_tag, nowait) from Channel to Server;  // !!! renamed labels
                 basic_cancel1(consumer_tag, nowait) from Channel to Consumer;

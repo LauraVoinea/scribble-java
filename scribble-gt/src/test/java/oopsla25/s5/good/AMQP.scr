@@ -24,7 +24,7 @@ global protocol AMQP(role C, role H, role S) {
             processing_complete(delivery_tag) from C to H;
             update_delivery_state(delivery_tag) from H to S;
             continue SelectiveMessageDelivery;
-        } () or H->C () {  // XXX mixed pq qp broken
+        } or H->C {  // XXX mixed pq qp broken
             basic_cancel(consumer_tag, nowait) from C to H;
             basic_cancel(consumer_tag, nowait) from H to S;
             basic_cancel_ok(consumer_tag) from S to H;

@@ -1,17 +1,12 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.GTSessType;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
-import org.scribble.ext.gt.util.*;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -22,9 +17,7 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     int GLOBAL_END_HASH = 1663;
     int GLOBAL_CHOICE_HASH = 1667;
-    int GLOBAL_WIGGLY_HASH = 1669;
     int GLOBAL_MIXED_DEF_HASH = 1693;
-    int GLOBAL_MIXED_ACTIVE_HASH = 1697;
     int GLOBAL_REC_HASH = 1699;
     int GLOBAL_RECVAR_HASH = 1709;
 
@@ -50,10 +43,33 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Optional<Exception> checkWellFormed();
 
-    default Map<Role, Set<Op>> getCommittingNew() {
-        Map<Role, Set<Op>> res = new HashMap<>();
+    default Optional<Exception> checkedFailedAnnots() {
+        return checkedFailedAnnotsAux(Collections.emptySet());
+    }
+
+    Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed);
+
+    default Map<Role, Map<Integer, Set<Op>>> getExplicitCommitting() {
+        Map<Role, Map<Integer, Set<Op>>> res = new HashMap<>();
+        getTimeoutIds().forEach(x -> getExplicitCommitting(x)
+                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashMap<>())
+                                      .computeIfAbsent(x, z -> new HashSet<>())
+                                      .addAll(v)));
+        return res;
+    }
+
+    default Map<Role, Set<Op>> getExplicitCommitting(int c) {
+        return getExplicitCommittingAux(c, Collections.emptySet());
+    }
+
+    Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com);
+
+    default Map<Role, Map<Integer, Set<Op>>> getCommittingNew() {
+        Map<Role, Map<Integer, Set<Op>>> res = new HashMap<>();
         getTimeoutIds().forEach(x -> getCommittingNew(x)
-                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v)));
+                .forEach((k, v) -> res.computeIfAbsent(k, z -> new HashMap<>())
+                                      .computeIfAbsent(x, z -> new HashSet<>())
+                                      .addAll(v)));
         return res;
     }
 
@@ -89,41 +105,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     String format(String pref);
 
 
-
-
-
-    // OLD ?
-
-    /* ... static only */
-
-    // Initial and well-set -- well-set => initial  // TODO refactor using choice-partic and timeout-partic/pattern
-    @Override
-    default boolean isInitialWellSet() { return isInitialWellSet(GTUtil.setOf()); }
-
-    boolean isInitialWellSet(Set<Integer> cs);
-
-    // TODO
-    // - timeout-partic -- XXX balance
-    // - timeout-pattern -- cf. isSinglePointed
-
-
-    /* ... preserved -- check */
-
-    // boolean isBalanced();  // TODO -- cf. async rec MC example (not left terminating because not balanced)
-
-    // CHECKME: Theta not used for "static" version?
-    // ...doesn't check "initial"
-    boolean isSingleDecision(Set<Role> topAll, Theta theta);  // cf. topPeers in project
-
-    // ..."top-level" left-committing check -- cf. find all mixed-choice within G
-    // !!! CHECKME "approx" of awareness clear-termination -- cf. LHS weak-deps to obs
-    boolean isClearTermination();  // does "nested traversal" (i.e., visit all MCs)
-
-    // does deps checking for each MC LHS
-    // ...left-committing check under the context of a specific mixed-choice instance
-    boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem);
-
-
     /* ... */
 
     default Optional<Pair<? extends GTLType, Sigma>> projectTop(Set<Role> topPeers, Role r) {
@@ -137,9 +118,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
 
     /* ... */
-
-    // N.B. indiff is mixed-choice/active only (not all globals)
-    Map<Role, Set<Role>> getStrongDeps();
 
     default Map<Integer, Map<Role, Set<Op>>> getCommitting() {
         Set<Integer> cs = getTimeoutIds();
@@ -155,192 +133,13 @@ public interface GTGType extends GTSessType, GTGTypeOps {
         throw new RuntimeException("TODO");
     }
 
-    // ...
 
-    // Returns messages that when received on LHS mean role is committed to LHS, cf. [LRecv]
-    default Map<Role, Set<Op>> getCommittingTop() {
-        return getCommittingTop(GTUtil.setOf());
-    }
 
-    Map<Role, Set<Op>> getCommittingTop(Set<Role> com);
 
-    // com does NOT contain obs by default
-    Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com);
 
-    // com does NOT contain obs by default
-    Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com);
 
 
-    /* ... */
 
-    //GTGType unfoldContext(Map<RecVar, GTGType> c);
 
-    // cf. get(Weak)Acts, "bypass" Theta, c, n
-    default Set<Role> getReady() { return getReadyAux(Collections.emptySet()); }
 
-    Set<Role> getReadyAux(Set<Role> blocked);
-
-    Set<Op> getOps();
-
-    Set<RecVar> getRecDecls();
-
-    // left = "current", right = c -> (left, right) -- the "immediate" discardable labels of a timeout c -- not nested ones, reduction would use the nested c' tag
-    // ingore non-mc or mergable in c, never discarded
-    Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* ... preserved -- check */
-
-    boolean isRuntimeChoicePartip();  // cf. "static" choice-partic in isInitialAndWellSet
-
-    default boolean isUniqueInstan() { return isUniqueInstan(GTUtil.setOf()); }
-
-    boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen);
-
-    // LR-initiation
-    boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta);  // FIXME refactor mf out of params
-
-    boolean isCoherent();  // TODO well-set => coherent -- coherent + full participation should be preserved -- TODO rename?
-
-
-    /* ... */
-
-    // !!! cannot do once-unfold as-you-go (i.e., just subs), rec needs to do the subs then unfold after
-    @Override
-    GTGType unfoldAllImmediateRecs();
-
-
-    /* ... -- top-down, no global weak */
-
-    /*// !!! c, n not _necessary_ for G reduction -- but needed(?) for fidelity
-    default LinkedHashSet<SAction<DynamicActionKind>> getActsTop(
-            GTSModelFactory mf, Theta theta) {
-        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
-    }*/
-
-    default LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActsTop(
-            GTSModelFactory mf,  // TODO remove
-            Theta theta) {
-        return getActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // CHECKME LType, cf. GTGType.getWeakActsTop
-    }
-
-    // TODO GTSAction
-    //LinkedHashSet<SAction<DynamicActionKind>> getActs(
-    LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(  // HERE HERE cf. GTLType,
-                                                                     GTSModelFactory mf,  // TODO remove
-                                                                     Theta theta, Set<Role> blocked, int c, int n);
-
-    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> stepTop(
-            Theta theta, SAction<DynamicActionKind> a) {
-        return step(theta, a, GTLType.c_TOP, GTLType.n_INIT);
-    }
-
-    // TODO GTSAction
-    // a is deterministic (including "nested" steps)
-    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
-    Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n);
-
-    default Exception newStepStuck(int c, int n, Theta theta, GTGType t, GTSAction a) {
-        return new Exception("Stuck: " + c + ", " + n + " " + ConsoleColors.VDASH + " "
-                + theta + ", " + t + " --" + a + "-->");
-    }
-
-    default String toStepJudgeString(
-            String tag, int c, int n, Theta theta_l, GTGType left, GTSAction a,
-            Theta theta_r, GTGType right) {
-        return tag + "  " + c + ", " + n + " " + ConsoleColors.VDASH + " "
-                + theta_l + ", " + left + " --" + a + "--> " + theta_r + ", " + right;
-    }
-
-
-    /* ... -- fidelity */
-
-    // \nu actions silent
-    default LinkedHashSet<SAction<DynamicActionKind>> getWeakActsTop(
-            GTSModelFactory mf,  // TODO remove
-            Theta theta) {
-        return getWeakActs(mf, theta, Collections.emptySet(), GTLType.c_TOP, GTLType.n_INIT);  // !!! from L type (could refactor)
-    }
-
-    LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf,  // TODO remove
-            Theta theta, Set<Role> blocked, int c, int n);
-
-    default Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStepTop(
-            Theta theta, SAction<DynamicActionKind> a) {
-        return weakStep(theta, a, GTLType.c_TOP, GTLType.n_INIT);
-    }
-
-    // TODO GTSAction
-    // a is deterministic (including "nested" steps) -- weak is excluding \nu
-    // c, n for action labels -- cf. projection (can derive c, n from MC syntax)
-    Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* deprecated */
-
-    @Deprecated
-    boolean isSinglePointed();  // TODO -> well-set?  // Initial WF -- !!! includes mixed-choice distinct labels check -- currently "globally" distinct using getOps
-
-    @Deprecated
-    boolean isGood();  // TODO -> full participation?  // !!! includes wiggly op annot check
-
-    // well-set -- init WF
-    // coherence -- run-time invariant (lemma 3)
-
-    // ...G aware Theta -- all t in G aware Theta
-
-    // lemma 4: "aware" + coherent => progress
-    // theorem 1: well-set + choice-participation => progress
-
-    // "awareness properties" -- run-time invariant (lemma 2)
-
-
-    /* ... */
-
-    @Deprecated
-    boolean isLeftCommitting(Set<Role> com, Set<Role> rem);  // ...except for GTMixedChoice
 }

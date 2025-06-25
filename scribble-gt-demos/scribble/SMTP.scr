@@ -49,7 +49,7 @@ global protocol SMTP(role S, role C)
                                                     						}
                                                     					} or {
                                                     					    Bogus () from C to S;
-                                                    					    mixed{ //error causing mixed
+                                                    					    mixed{
                                                                                 Data() from C to S;
                                                                                 354() from S to C;
                                                                                 //too from C to S; //to:<you>

@@ -5,6 +5,7 @@ module CircuitBreaker;
 global protocol CircuitBreaker(role API, role Controller, role Storage, role User){
      Start() from Controller to Storage;
      Start() from Controller to API ;
+     
      HardPing() from Storage to Controller;
      rec Loop {
          Request() from User to API;

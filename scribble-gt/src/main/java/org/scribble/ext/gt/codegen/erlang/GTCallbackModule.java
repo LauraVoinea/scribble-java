@@ -114,6 +114,10 @@ public class GTCallbackModule {
         List<ErlFun> aggregatedFuns = GTErlGenUtil.aggregateTypeSpecs(functions);
         GTErlGenUtil.writeStateFunctions(writer, aggregatedFuns);
 
+        // Generate init/1 function
+        ErlFun connFun = genConnectionFunction(role, efsm, r.sigma.map.keySet());
+        connFun.write(writer);
+        writer.writeLine("");
         writer.close();
     }
 
@@ -146,51 +150,6 @@ public class GTCallbackModule {
 
         // Build the function body as a sequence of expressions.
         ErlSeq bodySeq = new ErlSeq();
-
-        // --- For each role other than self, generate a binding for that role's PID and send a message.
-        for (Role r : roles) {
-            if (r.equals(self))
-                continue;
-            // Assume role names are in lowercase (e.g. "bob")
-            String rName = r.toString().toLowerCase();
-            ErlVar rPidVar = new ErlVar(rName + "Pid");
-
-            // Build the case expression: case whereis(r) of ... end.
-            ErlCall whereisCall = new ErlCall("whereis", List.of(new ErlAtom(rName)));
-            ErlCase caseExpr = new ErlCase(whereisCall);
-            // Clause 1: when undefined
-            ErlSeq undefinedSeq = new ErlSeq();
-            ErlCall formatCallCase = new ErlCall("io", "format", List.of(
-                    new ErlString(rName + " is not available yet. Will retry...~n"),
-                    new ErlList(Collections.emptyList())
-            ));
-            undefinedSeq.addExpression(formatCallCase);
-            ErlCall sleepCall = new ErlCall("timer", "sleep", List.of(new ErlAtom("1000")));
-            undefinedSeq.addExpression(sleepCall);
-            // Retry: whereis(r)
-            ErlCall whereisCall2 = new ErlCall("whereis", List.of(new ErlAtom(rName)));
-            undefinedSeq.addExpression(whereisCall2);
-            caseExpr.addClause(new ErlAtom("undefined"), undefinedSeq);
-            // Clause 2: pattern: Pid -> Pid
-            caseExpr.addClause(new ErlVar("Pid"), new ErlVar("Pid"));
-
-            // Bind the result of the case expression to rPidVar.
-            ErlMatch assignRPid = new ErlMatch(rPidVar, caseExpr);
-            bodySeq.addExpression(assignRPid);
-
-            // Send a message to that role:
-            // Build the message tuple: {<self>_pid, self()}
-            String selfField = self.toString().toLowerCase() + "_pid";
-            ErlTuple msgTuple = new ErlTuple(List.of(
-                    new ErlAtom(selfField),
-                    new ErlCall("self", Collections.emptyList())
-            ));
-            // Build the send expression: rPidVar ! {<self>_pid, self()}
-            ErlCall sendExpr = new ErlCall(new ErlOp("!"),
-                    List.of(rPidVar, msgTuple));
-            bodySeq.addExpression(sendExpr);
-        }
-
         // --- Create state data record.
         // Build a record update for state_data with:
         // - For each role (other than self) add a field <role>_pid bound to that role's PID variable.
@@ -236,6 +195,79 @@ public class GTCallbackModule {
         initFun.addClause(headArgs, bodySeq);
         initFun.setSpec(initFun.getName() + "(list()) -> " + GTErlGenUtil.getNextStateReturnType(efsm, initState));
         return initFun;
+    }
+
+    private ErlFun genConnectionFunction(Role self, GTEFSM efsm, Set<Role> roles) {
+        // Function head: connection() ->
+        List<ErlTerm> headArgs = List.of();
+
+        // Build the function body as a sequence of expressions.
+        ErlSeq bodySeq = new ErlSeq();
+
+        // --- Print a connection message.
+        ErlCall connFormat = new ErlCall("io", "format", List.of(
+                new ErlString(self.toString().toLowerCase() + " connected ~n"),
+                new ErlList(Collections.emptyList())
+        ));
+        bodySeq.addExpression(connFormat);
+
+        // Return tuple for connection
+        ErlTerm retTuple = new ErlTuple(List.of(
+                new ErlAtom("ok"),
+                new ErlVar("Data")
+        ));
+
+        bodySeq.addExpression(retTuple);
+
+                // --- For each role other than self, generate a binding for that role's PID and send a message.
+        for (Role r : roles) {
+            if (r.equals(self))
+                continue;
+            // Assume role names are in lowercase (e.g. "bob")
+            String rName = r.toString().toLowerCase();
+            ErlVar rPidVar = new ErlVar(rName + "Pid");
+
+            // Build the case expression: case whereis(r) of ... end.
+            ErlCall whereisCall = new ErlCall("whereis", List.of(new ErlAtom(rName)));
+            ErlCase caseExpr = new ErlCase(whereisCall);
+            // Clause 1: when undefined
+            ErlSeq undefinedSeq = new ErlSeq();
+            ErlCall formatCallCase = new ErlCall("io", "format", List.of(
+                    new ErlString(rName + " is not available yet. Will retry...~n"),
+                    new ErlList(Collections.emptyList())
+            ));
+            undefinedSeq.addExpression(formatCallCase);
+            ErlCall sleepCall = new ErlCall("timer", "sleep", List.of(new ErlAtom("1000")));
+            undefinedSeq.addExpression(sleepCall);
+            // Retry: whereis(r)
+            ErlCall whereisCall2 = new ErlCall("whereis", List.of(new ErlAtom(rName)));
+            undefinedSeq.addExpression(whereisCall2);
+            caseExpr.addClause(new ErlAtom("undefined"), undefinedSeq);
+            // Clause 2: pattern: Pid -> Pid
+            caseExpr.addClause(new ErlVar("Pid"), new ErlVar("Pid"));
+
+            // Bind the result of the case expression to rPidVar.
+            ErlMatch assignRPid = new ErlMatch(rPidVar, caseExpr);
+            bodySeq.addExpression(assignRPid);
+
+            // Send a message to that role:
+            // Build the message tuple: {<self>_pid, self()}
+            String selfField = self.toString().toLowerCase() + "_pid";
+            ErlTuple msgTuple = new ErlTuple(List.of(
+                    new ErlAtom(selfField),
+                    new ErlCall("self", Collections.emptyList())
+            ));
+            // Build the send expression: rPidVar ! {<self>_pid, self()}
+            ErlCall sendExpr = new ErlCall(new ErlOp("!"),
+                    List.of(rPidVar, msgTuple));
+            bodySeq.addExpression(sendExpr);
+        }
+
+        // Create the connection function.
+        ErlFun connFun = new ErlFun("connection");
+        connFun.addClause(headArgs, bodySeq);
+        connFun.setSpec(connFun.getName() + "() -> {state_data()}");
+        return connFun;
     }
 
     /** Build the callback_mode/0 function (returns 'state_functions'). */
@@ -432,7 +464,7 @@ public class GTCallbackModule {
         String sendName = "send_" + "s" + s.id + "_" + paramA;
 
         ErlCall formatCall = new ErlCall("io", "format", List.of(
-                new ErlString("B: s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
+                new ErlString(self.toString() + ": s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
                 new ErlList(Collections.emptyList())
         ));
         // Clause 2: Pattern "2" -> send call then next state.
@@ -500,7 +532,7 @@ public class GTCallbackModule {
             ErlFun sendFunc = genMakeChoice_a(e.op);
 
             ErlCall logRcv = new ErlCall("io", "format", List.of(
-                    new ErlString("B: s" + s.id + " Received " + headExtTuple + " from " + a.role + " ~n"),
+                    new ErlString(e.role.toString() + ": s" + s.id + " Received " + headExtTuple + " from " + a.role + " ~n"),
                     new ErlList(Collections.emptyList())
             ));
 
@@ -668,6 +700,7 @@ public class GTCallbackModule {
                         ));
                 }
                 // Otherwise, build a case expression.
+                //TODO: 1 or 2
                 ErlCall makeChoiceCall = new ErlCall("make_choice_" + sName, List.of(new ErlVar("Data")));
                 ErlCase caseExpr = new ErlCase(makeChoiceCall);
                 tauTransitions.forEach((key, actions) -> {
@@ -704,4 +737,5 @@ public class GTCallbackModule {
 
 
 }
+
 

@@ -6,11 +6,16 @@ import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
+import org.scribble.ext.gt.ast.global.GTAnnotNode;
+import org.scribble.ext.gt.core.type.name.GTOp;
+import org.scribble.ext.gt.core.type.name.GTRole;
 import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // org.scribble.ast -> org.scribble.ext.gt.core.type.session
@@ -79,22 +84,46 @@ public class GTGTypeTranslator3 {
         if (!(m instanceof SigLitNode)) {
             throw new RuntimeException("TODO: " + m);
         }
-        Op op = ((SigLitNode) m).getOpChild().toName();
+        Op op = translateOp(((SigLitNode) m).getOpChild().toName());
         //Map<Op, GTGType> cs = Collections.singletonMap(op, cont);
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         cs.put(op, cont);
-        Role src = g.getSourceChild().toName();
+        GTRole src = translateRole(g.getSourceChild().toName());
         List<Role> dsts = g.getDestinationRoles();
         if (dsts.size() != 1) {
             throw new RuntimeException("TODO: " + g);
         }
-        Role dst = dsts.get(0);
+        GTRole dst = translateRole(dsts.get(0));
 
         LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         Payload payload = ((SigLitNode) m).getPayloadListChild().toPayload();
         pays.put(op, payload);
 
         return this.fact.choice(src, dst, pays, cs);
+    }
+
+    protected GTOp translateOp(Op op) {
+        Set<String> annots = new HashSet<>();
+        String x = op.toString();
+        if (x.endsWith("*")) {
+            annots.add(GTOp.EXPLICIT_COMMIT);
+            x = x.substring(0, x.length() - "*".length());
+        }
+        return new GTOp(annots, x);
+    }
+
+    protected GTRole translateRole(Role r) {
+        Set<String> annots = new HashSet<>();
+        String x = r.toString();
+        /*if (x.endsWith("*")) {
+            annots.add(GTRole.EXPLICIT_COMMIT);
+            x = x.substring(0, x.length() - "*".length());
+        } else*/
+        if (x.endsWith("@failed")) {
+            annots.add(GTRole.FAILED_ANNOT);
+            x = x.substring(0, x.length() - "@failed".length());
+        }
+        return new GTRole(annots, x);
     }
 
     // Pre: role enabling OK (choice subj = first senders)
@@ -104,23 +133,28 @@ public class GTGTypeTranslator3 {
                              .collect(Collectors.toUnmodifiableList());  // cs.len > 0
         LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
-        Role dst = null;
+        GTRole dst = null;
         for (GTGType c : cs) {
             if (!(c instanceof GTGInteraction)) {  // !!! (all) end not currently allowed
                 throw new RuntimeException("TODO: " + cs);
             }
             GTGInteraction cast = (GTGInteraction) c;
             if (dst == null) {
-                dst = cast.dst;
-            } else if (!dst.equals(cast.dst)) {
+                dst = translateRole(cast.dst);
+            } else if (!dst.equals(translateRole(cast.dst))) {
                 throw new RuntimeException("Non-directed choice:\n" + g);
             }
             pays.putAll(cast.pays);
             ds.putAll(cast.cases);
         }
-        Role subj = g.getSubjectChild().toName();
+        GTRole subj = translateRole(g.getSubjectChild().toName());
 
         return this.fact.choice(subj, dst, pays, ds);
+    }
+
+    // !!! Workaround
+    protected boolean gTRoleFullEquals(GTRole r1, GTRole r2) {
+        return r1.equals(r2) && r1.annots.equals(r2.annots);
     }
 
     protected GTGRecursion translateGRecursion(GRecursion g) {
@@ -135,13 +169,15 @@ public class GTGTypeTranslator3 {
     protected GTGMixedChoice translateGMixed(GTGMixed g) {
         GTGType left = translateGSeq(g.getLeftBlockChild().getInteractSeqChild());
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
-        Role other = g.getOtherChild().toName();
-        Role observer = g.getObserverChild().toName();
+        GTRole other = translateRole(g.getOtherChild().toName());
+        GTRole observer = translateRole(g.getObserverChild().toName());
         List<Role> leftCommitted = g.getLeftRoleListChild().getRoles();  // TODO remove committed from Scribble syntax?
         List<Role> rightCommitted = g.getRightRoleListChild().getRoles();
+        boolean hasFailedAnnot = g.hasFailedAnnot();
+
         if (!leftCommitted.isEmpty() || !rightCommitted.isEmpty()) {
             throw new RuntimeException("TODO deprecated: " + g);
         }
-        return this.fact.mixedChoice(this.counter++, left, right, other, observer);//, committedLeft, committedRight);
+        return this.fact.mixedChoice(GTGTypeTranslator3.counter++, left, right, other, observer, hasFailedAnnot);//, committedLeft, committedRight);
     }
 }

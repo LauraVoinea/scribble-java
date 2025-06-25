@@ -91,6 +91,10 @@ public class GTEFSM {
     }
 
 
+    public Set<GTVEvent> getE() {
+        return E;
+    }
+
     /* ... */
 
     @Override

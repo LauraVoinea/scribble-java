@@ -70,3 +70,18 @@ scribble-test/src/test/scrib/test/test5/Test5/
 scribble-test/src/test/scrib/test/test6/Test6/
 scribble-test/src/test/scrib/test/test7/Test7/
 
+# Erlang crash dumps
+erl_crash.dump
+*.erl.crashdump
+*.dump
+
+# rebar3 build artifacts
+_build/
+_cover/
+deps/
+rebar.lock
+
+# releases
+rel/
+
+generated/

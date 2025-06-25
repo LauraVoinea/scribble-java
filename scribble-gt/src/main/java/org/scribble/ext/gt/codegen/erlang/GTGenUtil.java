@@ -9,6 +9,7 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GTGenUtil {
 
@@ -70,6 +71,15 @@ public class GTGenUtil {
                      ? StateKind.BRANCH
                      : StateKind.EXTERNAL_MIXED_NOT_ENTRY;
         }
+    }
+
+    public static Set<GTVEvent> getEvents(GTEFSM m) {
+        //get all events from the GTEFSM m
+        return m.delta.entrySet().stream()
+                .flatMap(x -> x.getKey().right instanceof GTVEvent ?
+                        Stream.of((GTVEvent) x.getKey().right) : Stream.empty())
+                .collect(Collectors.toSet());
+
     }
 
     protected static Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filterEdgesByState(

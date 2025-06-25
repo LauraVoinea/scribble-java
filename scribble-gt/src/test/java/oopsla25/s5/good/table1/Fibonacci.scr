@@ -14,7 +14,7 @@ global protocol Fibonacci(role a, role b){
                 stop() from a to b;
                 ack() from b to a; // otherwise Not left-committing (clear-termination)
             }
-		} () or a->b() {
+		} or a->b {
 		    error() from b to a;
 		}
 	}

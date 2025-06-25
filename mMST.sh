@@ -71,7 +71,7 @@ usage() {
             ./mMST.sh -gt-gen-erlang <ProtocolName> <PathToScribbleFile>
   -gt-gen-erlang-role
             Generate Erlang code.
-            ./mMST.sh -gt-gen-erlang <ProtocolName> <Role> <PathToScribbleFile>
+            ./mMST.sh -gt-gen-erlang-role <ProtocolName> <Role> <PathToScribbleFile>
   -gt-event-fsm
             Generate event-based FSMs.
             ./mMST.sh -gt-event-fsm <ProtocolName> <Role> <PathToScribbleFile>
@@ -161,6 +161,7 @@ fi
 
 CMD="java -cp $CLASSPATH org.scribble.ext.gt.cli.GTCommandLine2"
 
+# Define the main GT invocation function
 scribblec() {
     if [ "$verbose" = 1 ]; then
         echo "Executing: $CMD" "$@"
@@ -168,21 +169,17 @@ scribblec() {
     eval "$CMD" "$@"
 }
 
+# When the batch flag is set, loop through all `.scr` files and process them
 if [ "$run_all_gt_examples" = 1 ]; then
     EXAMPLES_DIR="$SCRIBHOME/scribble-gt-demos/scribble"
     if [ ! -d "$EXAMPLES_DIR" ]; then
         echo "Error: Examples directory not found: $EXAMPLES_DIR" >&2
         exit 1
     fi
-    
     echo "Running all examples from: $EXAMPLES_DIR"
-    
-    # Check if there are any .scr files
-    # -quit makes find exit after the first match, efficient for just checking existence
     if [ -z "$(find "$EXAMPLES_DIR" -type f -name '*.scr' -print -quit)" ]; then
         echo "No .scr examples found in $EXAMPLES_DIR"
     else
-        # If examples are found, then loop and process
         find "$EXAMPLES_DIR" -type f -name '*.scr' -print0 | while IFS= read -r -d $'\0' scr_file; do
             echo "Processing example: $scr_file"
             scribblec "$scr_file"

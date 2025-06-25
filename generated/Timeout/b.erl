@@ -48,7 +48,7 @@ s3(internal, {'To'}, #state_data{c_pid = CPid} = Data) ->
 s5(internal, {'To'}, #state_data{a_pid = APid} = Data) ->
     case make_choice_To(Data) of
         1 ->
-            {keep_state, Data};
+            {'keep_state DOOOOOOO', Data};
         2 ->
             io:format("B: s5 Sending To to A ~n", []),
             gen_b:send_s5_To(APid, Data),

@@ -1,20 +1,27 @@
 module OnlineWallet;
 
+data <erlang> "integer()" from "rt.jar" as amount;
+data <erlang> "integer()" from "rt.jar" as balance;
+data <erlang> "integer()" from "rt.jar" as overdraft;
+data <erlang> "string()" from "rt.jar" as id;
+data <erlang> "string()" from "rt.jar" as password;
+data <erlang> "string()" from "rt.jar" as payee;
+
 // Roles:
 //   S: Server – Handles account information and payment processing.
 //   C: Client – Initiates login and initiates payment or quit.
 //   A: Authenticator – Verifies login and directs protocol branching.
 
 global protocol OnlineWallet(role S, role C, role A) {
-    login() from C to A;
+    login(id, password) from C to A;
         choice at A {
             login_success () from A to C;
             login_accepted () from A to S;
             rec  LOOP {
-                account() from S to C;
+                account(balance, overdraft) from S to C;
                 mixed{
-                    choice  at C {
-                        pay() from C to S;
+                    choice at C {
+                        pay(payee, amount) from C to S;
                         confirmation() from S to C;
                         keep_alive() from C to A;
                         continue  LOOP;
@@ -23,7 +30,7 @@ global protocol OnlineWallet(role S, role C, role A) {
                         quit_ack() from S to C;
                         end_session() from C to A;
                     }
-                } () or C->S() {
+                } () or C -> S () {
                          timeout() from S to C;
                          timeout() from S to A;
                          }

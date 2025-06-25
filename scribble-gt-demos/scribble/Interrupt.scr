@@ -2,14 +2,18 @@ module Interrupt;
 
 global protocol Interrupt(role P, role Q) {
     mixed {  // LHS
+        Start() from P to Q;
+    rec X {
         choice at P {
-            rec X {
                 More() from P to Q;
                 continue X;
             }
         } or {
-            Stop() from P to Q;
+            Stop*() from P to Q;
+            Ack() from Q to P;
         }
     } () or P -> Q ()  {  // RHS
         Interrupt() from Q to P;  //@'interrupt'
-}   }
+
+}   
+}

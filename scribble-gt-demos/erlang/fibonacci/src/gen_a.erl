@@ -16,7 +16,9 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-           gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
+           gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, 
+           []);
+            % [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
       {error, Reason} ->
             {error, Reason}
     end.
@@ -75,7 +77,7 @@ s9(EventType, {BPid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) whe
 s9(EventType, {BPid, {error}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s9(EventType, {BPid, {error}}, Data);
-s9(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= ack 
+s9(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {ack} 
 		orelse Msg =:= {error}
 		orelse Msg =:= {fibonacci}
 		orelse Msg =:= {stop} ->

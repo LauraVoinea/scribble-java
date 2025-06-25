@@ -26,13 +26,13 @@ specified in `scribble-gt-demos/scribble/Timeout.scr`. It demonstrates the inter
     rebar3 shell
     ```
    Inside the shell, start the application:
-    ```erlang
+    ```rebar3
     application:start(timeout). 
 
 5. You should see the output from the functions of roles A, B, and C in the shell. The debug logs (`a_debug.log`, `b_debug.log`, `c_debug.log`) will be created in the project's root directory (or wherever the shell is started). 
 
 6. **Stop:** To stop the application:
- ```erlang
+ ```rebar3
  application:stop(timeout).
  ```
 To stop the shell, press `Ctrl+C`, or type `q().` and press Enter.

@@ -24,7 +24,7 @@ global protocol TravelAgency(role Client, role Agency, role Supplier)
                 resubmitting() from Client to Supplier;
                 continue Loop;
             }
-		} () or Client -> Agency(){
+		} or Client -> Agency {
                price_adjustment() from Agency to Client;
                cancel_agency() from Client to Agency;
                cancel_supplier() from Client to Supplier;

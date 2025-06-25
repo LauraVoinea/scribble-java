@@ -6,7 +6,7 @@ global protocol Progress(role p, role q) {
     mixed {
         a() from q to p;
         //a1() from p to q;  // !!! left committing -- XXX progress ?  // cf. Ex. 3.7 ?
-    } () or q->p () {
+    } or q->p {
         b() from p to q;
     }
 }

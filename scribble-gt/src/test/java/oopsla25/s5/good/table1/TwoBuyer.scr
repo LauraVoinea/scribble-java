@@ -19,11 +19,11 @@ global protocol TwoBuyer(role Alice, role Bob, role Seller){
                 cancel_confirmation() from Seller to Bob;
                 cancel_notification() from Bob to Alice;
           }
-          } () or Bob -> Seller(){
+          } or Bob -> Seller {
               response_timeout() from Seller to Bob;
               response_timeout() from Seller to Alice;
           }
-  }() or Alice -> Seller() {
+  } or Alice -> Seller {
       not_available() from Seller to Alice;
       not_available() from Seller to Bob;
   }

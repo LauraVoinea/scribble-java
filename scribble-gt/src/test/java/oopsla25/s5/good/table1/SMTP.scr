@@ -69,7 +69,7 @@ global protocol SMTP(role S, role C)
                                                                                         continue Z1;
                                                                                     }
                                                                                 }
-                                                                            } () or C -> S() {
+                                                                            } or C -> S {
     	                                                                      Timeout () from S to C;
                                                                             }
                                                     					}
@@ -108,7 +108,7 @@ global protocol SMTP(role S, role C)
     		Ack() from S to C; //extra message
     	}
 
-    	} () or C -> S() {
+    	} or C -> S {
     	    Timeout() from S to C;
     	}
 }

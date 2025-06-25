@@ -1,7 +1,7 @@
 module Calculator;
 
-data <java> "java.lang.Integer" from "rt.jar" as number;
-data <java> "java.lang.Integer" from "rt.jar" as result;
+data <erlang> "integer()" from "rt.jar" as number;
+data <erlang> "integer()" from "rt.jar" as result;
 
 
 global protocol Calculator(role Alice, role Carol, role Srv){

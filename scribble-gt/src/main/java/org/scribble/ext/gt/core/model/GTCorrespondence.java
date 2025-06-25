@@ -2,7 +2,6 @@ package org.scribble.ext.gt.core.model;
 
 import org.scribble.ast.global.GProtoDecl;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
 import org.scribble.ext.gt.core.model.local.GTLConfig;
 import org.scribble.ext.gt.core.model.local.GTLSystem;
@@ -46,106 +45,6 @@ public class GTCorrespondence {
         this.local = local;
     }
 
-
-    /* ... */
-
-    /*public Optional<Exception> checkRuntimeProperties(GTSModelFactory mf, String indent) {
-        return checkRuntimeProperties(mf, indent, true, true, true, true, true, true);
-    }*/
-
-    public Optional<Exception> checkRuntimeProperties(
-            GTSModelFactory mf, String indent, Set<Integer> tids,
-            boolean proj,  // Deprecated
-            boolean cp, boolean ui, boolean co, boolean sd, boolean ct, boolean ac) {
-
-        // local ?
-
-        /*if (proj) {  // !!! cf. checkProjectionCorrespondence
-            Either<Exception, GTLSystem> p = projectTopLevel(roles, global, tids);
-            if (p.isLeft()) {
-                return Optional.of(p.getLeft());
-            }
-        }*/
-
-        // global
-
-        if (cp && !this.global.isRuntimeChoicePartip()) {
-            return Optional.of(new Exception("Not run-time choice-participating: " + this.global));
-        }
-
-        if (ui && !this.global.isUniqueInstan()) {
-            return Optional.of(new Exception("Not unique instantiating: " + this.global));
-        }
-
-        if (co && !this.global.isCoherent()) {
-            return Optional.of(new Exception("Not coherent: " + this.global));
-        }
-
-        if (sd && !this.global.isSingleDecision(this.roles, this.theta)) {
-            return Optional.of(new Exception("Not single-decision: " + this.global));
-        }
-
-        if (ct && !this.global.isClearTermination()) {
-            return Optional.of(new Exception("Not clear-termination: " + this.global));
-        }
-
-        if (ac && !this.global.isAwareCorollary(mf, this.roles, this.theta)) {  // FIXME deprecate mf
-            return Optional.of(new Exception("Not aware corollary: " + this.global));
-        }
-
-        // OK
-        return Optional.empty();
-    }
-
-
-    /* ... */
-
-    // Checks projection correspondence between global and local
-    public Optional<Exception> checkProjectionCorrespondence(
-            boolean debug, GTSModelFactory mf, String indent) {
-
-        if (!this.roles.equals(this.local.configs.keySet())) {
-            throw new RuntimeException("Roles mismatch: roles=" + this.roles + ", locals=" + this.local.configs.keySet());
-        }
-
-        /*if (!this.global.isGood()) {
-            throw new RuntimeException("Not good: " + this.global);
-        }*/
-        /*if (!this.global.isAwareCorollary(mf, this.theta)) {  // cf. checkRuntimeProperties
-            return Optional.of(new Exception("Not run-time aware: " + this.global));
-        }
-        if (!this.global.isCoherent()) {
-            return Optional.of(new Exception("Not coherent: " + this.global));
-        }*/
-
-        Either<Exception, GTLSystem> e = projectTopLevel(this.roles, this.global, this.tids);
-        if (e.isLeft()) {
-            return Optional.of(e.getLeft());
-        }
-        GTLSystem projected = e.getRight();
-        for (Role r : this.roles) {
-            GTLConfig p = projected.configs.get(r);
-            if (debug) {
-                System.out.println(indent + "Projected onto " + r + ": " + p);  // FIXME UI output
-            }
-            GTLConfig q = this.local.configs.get(r);
-
-            /*if (debug) {
-                System.out.println(indent + "Checking Local subtype of Projection: " + q + " <: " + p);  // FIXME UI output
-            }*/
-            //*
-            //if (!p.equals(q)) {  // XXXXXX -- N.B. equality including GC env etc.
-            if (!q.isSubtype(p)) {
-                return Optional.of(new Exception("Local config mismatch for " + r + ":\n\tprojected=" + p + "\n\tlocal=    " + q));
-            }
-            //*/
-
-            // !!! XXX FIXME check Sigma, Theta and Discard
-
-        }
-
-        return Optional.empty();
-    }
 
     /* ... */
 

@@ -8,7 +8,7 @@ global protocol WF(role p, role q, role r) {
         c() from q to r;
         // 1() from r to q;
         // 2() from q to p;
-    } () or p->q () {
+    } or p->q {
         b() from q to p;
         c() from q to r;  // !!! cf. indifferent
         // 3() from p to r;  // n.b. reverse dir and different peer

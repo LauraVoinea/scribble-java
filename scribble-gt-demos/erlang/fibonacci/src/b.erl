@@ -84,7 +84,7 @@ s6(internal, {fibonacci}, #state_data{a_pid = APid, prev_value = Prev, curr_valu
 
 -define(ERROR_INTERVAL, 5).
 -spec make_choice_error(state_data()) -> integer().
-make_choice_error(#state_data{mc_counter_1 = Count}) -> 1.
+make_choice_error(_Data) -> 1.
 
 -define(MAX_STOP_ITER, 8).
 -spec make_choice_stop(state_data()) -> integer().
