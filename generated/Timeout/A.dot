@@ -1,9 +1,9 @@
 digraph G {
 compound = true;
-"4" [ label="s4 ▷ MC=1" ];
-"5" [ label="s5  MC=1" ];
-"6" [ label="s6  MC=1" ];
-"2" [ label="s2  MC=0" ];
+"4" [ label="4[] ▷1:" ];
+"5" [ label="5[] 1:" ];
+"6" [ label="6[] 1:" ];
+"2" [ label="2[] 0:" ];
 "4" -> "2" [ label="B?To()/ε*" ];
 "6" -> "2" [ label="𝜏_a6/C!a6()" ];
 "5" -> "2" [ label="B?To()/ε*" ];
