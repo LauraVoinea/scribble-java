@@ -7,7 +7,10 @@ import org.scribble.cli.CommandLine;
 import org.scribble.cli.CommandLineException;
 import org.scribble.core.job.Core;
 import org.scribble.core.job.CoreArgs;
-import org.scribble.core.type.name.*;
+import org.scribble.core.type.name.GProtoName;
+import org.scribble.core.type.name.ModuleName;
+import org.scribble.core.type.name.Op;
+import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.codegen.erlang.GTGenRoleGen;
 import org.scribble.ext.gt.codegen.erlang.GTRoleGen;
 import org.scribble.ext.gt.core.model.GTCorrespondence;
@@ -15,11 +18,13 @@ import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.local.*;
+import org.scribble.ext.gt.core.model.local.GTEModelFactory;
+import org.scribble.ext.gt.core.model.local.GTLConfig;
+import org.scribble.ext.gt.core.model.local.GTLSystem;
 import org.scribble.ext.gt.core.type.session.global.GTGType;
 import org.scribble.ext.gt.core.type.session.global.GTGTypeTranslator3;
 import org.scribble.ext.gt.main.GTMain;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.Either;
 import org.scribble.job.Job;
 import org.scribble.main.resource.locator.DirectoryResourceLocator;
 import org.scribble.main.resource.locator.ResourceLocator;
@@ -35,10 +40,15 @@ public class GTCommandLine2 extends CommandLine {
     public static GTSModelFactory GMF;
     public static GTEModelFactory LMF;
 
+    // Used in GTJob
+    public static List<Pair<String, String[]>> ARGS;
+
     // i.e., check Correspondence (modulo GTCLFlags.NO_CORRESPONDENCE flag)
     protected Optional<Exception> gtMain() {
         Core core = this.getJob().getCore();
         boolean debug = core.config.hasFlag(CoreArgs.VERBOSE);
+        boolean explicitObserverLeftCommits = this.args.stream().anyMatch(
+                x -> x.left.equals(GTCLFlags.GT_EXPLICIT_OBSERVER_LEFT_COMMITS));
         GTCommandLine2.GMF = (GTSModelFactory) core.config.mf.global;
         GTCommandLine2.LMF = (GTEModelFactory) core.config.mf.local;
 
@@ -66,8 +76,22 @@ public class GTCommandLine2 extends CommandLine {
 
             // Integer is mixed-choice ID `c`
             GProtoName simple = g.getSimpleName();  // TODO replace by fully qualified
-            Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
-            Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);
+
+            /*Map<Integer, Map<Role, Set<Op>>> comFull = translate.getCommitting();
+            //Map<Role, Map<Integer, Set<Op>>> comInvert = getComInvert(comFull);*/
+            Map<Role, Map<Integer, Set<Op>>> comInvert =
+                    explicitObserverLeftCommits
+                    ? translate.getExplicitCommitting()
+                    : translate.getCommittingNew();
+            //System.out.println("\n222222: " + comInvert);
+
+            /*Map<Role, Set<Op>> mm = comInvert.entrySet().stream().collect(Collectors.toMap(
+                    x -> x.getKey(),
+                    x -> x.getValue().values().stream().flatMap(y -> y.stream()).collect(Collectors.toSet())));
+            Map<Role, Set<Op>> nn = translate.getCommittingNew();
+            if (!mm.equals(nn)) {
+                throw new RuntimeException("XXXXXX: mm=" + mm + " ,, nn=" + nn);
+            }*/
 
             Map<Role, GTEFSM> tmp = getEFSMS(s.local, comInvert);
             efsms.put(simple, tmp);
@@ -93,6 +117,7 @@ public class GTCommandLine2 extends CommandLine {
         return Optional.empty();
     }
 
+    // keep
     static Map<Role, Map<Integer, Set<Op>>> getComInvert(Map<Integer, Map<Role, Set<Op>>> comFull) {
         Map<Role, Map<Integer, Set<Op>>> comInvert = new HashMap<>();
         comFull.forEach((k, vs) -> {
@@ -141,39 +166,9 @@ public class GTCommandLine2 extends CommandLine {
     }
 
 
-
-
-
-
-
     /* Well formedness */
 
     static Optional<Exception> checkStaticProperties(boolean debug, GTGType translate) {
-        /*// OLD
-        // initial awareness
-        Optional<Exception> res;
-        res = checkInitialWellSet(translate);
-        if (res.isPresent()) { return res; }
-        res = checkSingleDecision(translate);
-        if (res.isPresent()) { return res; }
-        res = checkClearTermination(translate);
-        //return res;
-        if (res.isPresent()) {
-            throw new RuntimeException(res.get());
-        }*/
-
-        // initial
-        // well-formed
-        // aware  !! white triangle
-        // balanced
-
-        /*if (debug) {
-            System.out.println("\naaaaa initial and p->q: " + translate.isInitialAndpq());
-            System.out.println("bbbbb committing: " + translate.getCommittingNew());
-            System.out.println("ccccc strict deps: " + translate.getStrictSyntacticDeps());
-            System.out.println("ddddd aware: " + translate.isSyntacticAware());
-            System.out.println("eeeee balanced: " + translate.isBalanced());
-        }*/
 
         Optional<Exception> initial = translate.isInitialAndpq();
         if (initial.isPresent()) {
@@ -186,6 +181,9 @@ public class GTCommandLine2 extends CommandLine {
         }
         Optional<Exception> wf = unfolded.checkWellFormed();
         if (wf.isPresent()) { return wf; }
+
+        Optional<Exception> failed = unfolded.checkedFailedAnnots();
+        if (failed.isPresent()) { return failed; }
 
         Optional<Exception> aware = translate.isSyntacticAware();
         if (aware.isPresent()) {
@@ -202,42 +200,9 @@ public class GTCommandLine2 extends CommandLine {
     }
 
 
-
-
-    // OLD
-
-    // TODO make checkStaticProperties -- cf. GTCorrespondence.checkRuntimeProperties
-    // no messages in transit and no active timeouts.
-    static Optional<Exception> checkInitialWellSet(GTGType translate) {  // "check..." vs. "is..."
-        return translate.isInitialWellSet()
-               ? Optional.empty() :
-               Optional.of(new Exception("Not initial and well-set: " + translate));
-    }
-
-    // single-decision ensures that all non-indifferent roles depend on the timeout observer in the right-hand side of a timeout.
-    static Optional<Exception> checkSingleDecision(GTGType translate) {
-        Set<Role> rs = translate.getLiveRoles();
-        if (!translate.isSingleDecision(rs, new Theta(translate.getTimeoutIds()))) {
-            return Optional.of(new Exception("Not single-decision: " + translate));
-            //} else if (!translate.isLeftCommitting()) {
-        }
-        return Optional.empty();
-    }
-
-    // Clear-termination requires that all participants are eventually notified that the left-hand side branch is taken.
-    static Optional<Exception> checkClearTermination(GTGType translate) {
-        if (!translate.isClearTermination()) {
-            return Optional.of(new Exception("Not left-committing (clear-termination): " + translate));
-        }
-        return Optional.empty();
-    }
-
-
     /* Projection */
 
-    //static GTCorrespondence checkProjection(GTGType translate) {
     static Either<Exception, GTCorrespondence> checkProjection(GTGType translate) {
-        // Check projection -- TODO Either
         Set<Role> rs = translate.getLiveRoles();
         Set<Integer> tids = translate.getTimeoutIds();
         Theta theta = new Theta(tids);
@@ -292,6 +257,9 @@ public class GTCommandLine2 extends CommandLine {
 
     static GTCommandLine2 init(String[] args) {
         GTCommandLine2 cl = new GTCommandLine2(args);
+
+        GTCommandLine2.ARGS = cl.args;
+
         try {
             cl.run();
         } catch (CommandLineException | AntlrSourceException x) {
@@ -340,7 +308,7 @@ public class GTCommandLine2 extends CommandLine {
             CommandLineException {
         job.runPasses();
 
-        //job.getCore().runPasses();  // HERE HERE FIXME: base imed GTGMixedChoice visit/agg/gather overrides
+        //job.getCore().runPasses();  // ...base imed GTGMixedChoice visit/agg/gather overrides
     }
 
     @Override

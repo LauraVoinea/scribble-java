@@ -1,24 +1,19 @@
 package org.scribble.ext.gt.core.type.session.global;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
 import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.local.Sigma;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 import org.scribble.ext.gt.core.type.session.local.GTLTypeFactory;
-import org.scribble.ext.gt.util.Either;
 import org.scribble.ext.gt.util.GTUtil;
-import org.scribble.ext.gt.util.Tree;
-import org.scribble.ext.gt.util.Triple;
 import org.scribble.util.Pair;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 // !!! No "fid"
 public class GTGEnd implements GTGType {
@@ -52,6 +47,16 @@ public class GTGEnd implements GTGType {
     @Override
     public Optional<Exception> checkWellFormed() {
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<Exception> checkedFailedAnnotsAux(Set<Role> failed) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Role, Set<Op>> getExplicitCommittingAux(int c, Set<Role> com) {
+        return Collections.emptyMap();
     }
 
     @Override
@@ -109,33 +114,6 @@ public class GTGEnd implements GTGType {
 
     // OLD
 
-    /* ... */
-
-    @Override
-    public boolean isInitialWellSet(Set<Integer> cs) {
-        return true;
-    }
-
-    @Override
-    public Map<Role, Set<Role>> getStrongDeps() {
-        return GTUtil.mapOf();
-    }
-
-    @Override
-    public boolean isSingleDecision(Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isClearTermination() {
-        return true;
-    }
-
-    @Override
-    public boolean isClearTerminationAux(Role obs, Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
-
 
     /* ... */
     
@@ -163,27 +141,6 @@ public class GTGEnd implements GTGType {
         return GTUtil.umodMapOf();
     }
 
-    // ...
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingTop(Set<Role> com) {
-        return GTUtil.umodMapOf();
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingLeft(Role obs, Set<Role> com) {
-        return GTUtil.umodMapOf();
-    }
-
-    @Override
-    public Map<Role, Set<Op>> getCommittingRight(Role obs, Set<Role> com) {
-        return GTUtil.umodMapOf();
-    }
-
-    @Override
-    public Pair<Set<Op>, Map<Integer, Pair<Set<Op>, Set<Op>>>> getLabels() {
-        return Pair.of(GTUtil.setOf(), GTUtil.mapOf());
-    }
 
 
     /* Aux */
@@ -192,19 +149,6 @@ public class GTGEnd implements GTGType {
     public GTGType subs(RecVar v, GTGRecursion subs) {
         return this;
     }
-
-    @Override
-    public Set<Role> getReadyAux(Set<Role> blocked) {
-        return GTUtil.setOf();
-    }
-
-    @Override
-    public Set<Op> getOps() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public Set<RecVar> getRecDecls() { return Collections.emptySet(); }
 
     @Override
     public String toString() {
@@ -237,94 +181,4 @@ public class GTGEnd implements GTGType {
 
 
 
-
-
-
-
-
-
-
-    /* ... */
-
-    @Override
-    public boolean isRuntimeChoicePartip() {
-        return true;
-    }
-
-    @Override
-    public boolean isUniqueInstan(Set<Pair<Integer, Integer>> seen) {
-        return true;
-    }
-
-    @Override
-    public boolean isAwareCorollary(GTSModelFactory mf, Set<Role> topAll, Theta theta) {
-        return true;
-    }
-
-    @Override
-    public boolean isCoherent() {
-        return true;
-    }
-
-
-    /* ... */
-
-    @Override
-    public GTGEnd unfoldAllImmediateRecs() {
-        return this;
-    }
-
-
-    /* ... */
-
-    @Override
-    public LinkedHashMap<SAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        return new LinkedHashMap<>();
-    }
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> step(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return Either.left(newStepStuck(c, n, theta, this, (GTSAction) a));
-    }
-
-    /* ... */
-
-    @Override
-    public Either<Exception, Triple<Theta, GTGType, Tree<String>>> weakStep(
-            Theta theta, SAction<DynamicActionKind> a, int c, int n) {
-        return step(theta, a, c, n);
-    }
-
-    @Override
-    public LinkedHashSet<SAction<DynamicActionKind>> getWeakActs(
-            GTSModelFactory mf, Theta theta, Set<Role> blocked, int c, int n) {
-        //return getActs(mf, theta, blocked, c, n);
-        return new LinkedHashSet<>(getActs(mf, theta, blocked, c, n).keySet());
-    }
-
-
-
-
-
-
-
-
-    /* ...deprecated */
-
-    @Override
-    public boolean isSinglePointed() {
-        return true;
-    }
-
-    @Override
-    public boolean isGood() {
-        return true;
-    }
-
-    @Override
-    public boolean isLeftCommitting(Set<Role> com, Set<Role> rem) {
-        return rem.isEmpty();
-    }
 }

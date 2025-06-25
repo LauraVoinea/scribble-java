@@ -1,23 +1,18 @@
 package org.scribble.ext.gt.core.type.session.local;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
-import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.local.Discard;
-import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.util.*;
+import org.scribble.ext.gt.util.ConsoleColors;
 import org.scribble.util.Pair;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class GTLRecursion implements GTLType {
 
@@ -90,11 +85,6 @@ public class GTLRecursion implements GTLType {
     }
 
     @Override
-    public GTLType unfoldAllImmediateRecs() {
-        return this.body.subs(this.var, this).unfoldAllImmediateRecs();
-    }
-
-    @Override
     public String toString() {
         return ConsoleColors.toRecString("mu " + this.var + "." + this.body);
     }
@@ -125,66 +115,4 @@ public class GTLRecursion implements GTLType {
         return o instanceof GTLRecursion;
     }
 
-
-    /* ... */
-
-    @Override
-    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        //return unfoldAllOnce().getActs(mf, self, blocked, sigma, theta, c, n);
-        LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> as =
-                this.unfoldAllImmediateRecs().getActs(mf, self, blocked, sigma, theta, c, n);
-        return as.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                x -> GTUtil.union(x.getValue(), Set.of(this.var)),
-                (x, y) -> x,  // CHECKME
-                LinkedHashMap::new
-        ));
-    }
-
-    @Override
-    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> step(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> step =
-                this.unfoldAllImmediateRecs().step(com, self, a, sigma, theta, c, n);
-        return step.mapRight(x -> Pair.of(
-                Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
-                        toStepJudgeString("[Rec]", c, n, theta, this, sigma,
-                                (GTEAction) a, x.left.thrd, x.left.fst, x.left.snd),
-                        x.left.frth)),
-                x.right));
-    }
-
-    /* ... */
-
-    @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
-            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        //return getActs(mf, self, blocked, sigma, theta, c, n);
-        return this.unfoldAllImmediateRecs().getWeakActs(mf, com, self, blocked, sigma, theta, c, n);
-    }
-
-    @Override
-    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> weakStep(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        //return step(com, self, a, sigma, theta, c, n);
-        Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>, Map<Pair<Integer, Integer>, Discard>>> step =
-                this.unfoldAllImmediateRecs().weakStep(com, self, a, sigma, theta, c, n);
-        return step.mapRight(x -> Pair.of(
-                Quad.of(x.left.fst, x.left.snd, x.left.thrd, Tree.of(
-                        toStepJudgeString("[Rec_" + this.var + "]", c, n, theta, this, sigma,
-                                (GTEAction) a, x.left.thrd, x.left.fst, x.left.snd),
-                        x.left.frth)),
-                x.right));
-    }
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        return GTUtil.mapOf();
-    }
 }

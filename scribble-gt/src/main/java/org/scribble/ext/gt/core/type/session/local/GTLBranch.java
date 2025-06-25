@@ -1,26 +1,16 @@
 package org.scribble.ext.gt.core.type.session.local;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
-import org.scribble.ext.gt.core.model.efsm.event.*;
-import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.local.Discard;
-import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.core.model.local.action.GTERecv;
-import org.scribble.ext.gt.core.model.local.action.GTESend;
+import org.scribble.ext.gt.core.model.efsm.event.GTVAction;
+import org.scribble.ext.gt.core.model.efsm.event.GTVEpsilon;
+import org.scribble.ext.gt.core.model.efsm.event.GTVEvent;
+import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
 import org.scribble.ext.gt.core.type.session.global.GTGInteraction;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.GTUtil;
-import org.scribble.ext.gt.util.Quad;
-import org.scribble.ext.gt.util.Tree;
 import org.scribble.util.Pair;
 
 import java.util.*;
@@ -141,12 +131,7 @@ public class GTLBranch implements GTLType {
                                                      ));
         return this.fact.branch(this.src, new LinkedHashMap<>(this.pays), cases);
     }
-
-    @Override
-    public GTLBranch unfoldAllImmediateRecs() {
-        return this;
-    }
-
+   
     @Override
     public String toString() {
         return this.src + "&{"
@@ -198,95 +183,4 @@ public class GTLBranch implements GTLType {
 
 
 
-
-
-    /* ... */
-
-    @Override
-    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        Optional<GTESend<DynamicActionKind>> first = sigma.map.get(this.src)
-                                                              .stream().filter(x -> x.c == c && x.n == n).findFirst();
-        if (first.isPresent()) {
-            GTESend<DynamicActionKind> m = first.get();
-            //return Stream.of(m.toDynamicDual(this.src)).collect(Collectors.toCollection(LinkedHashSet::new));
-            LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> res = GTUtil.mapOf();
-            res.put(m.toDynamicDual(this.src), Collections.emptySet());
-            return res;
-        } else {
-            //return GTUtil.setOf();
-            return GTUtil.mapOf();
-        }
-    }
-
-    @Override
-    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> step(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-
-        if (!(a instanceof GTERecv<?>) || !sigma.map.containsKey(a.peer)) {
-            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
-        }
-        GTERecv<DynamicActionKind> cast = (GTERecv<DynamicActionKind>) a;
-        GTESend<DynamicActionKind> m = cast.toDynamicDual(self);
-        if (!sigma.map.get(a.peer).contains(m)) {
-            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
-        }
-
-        if (!a.peer.equals(this.src) || !this.cases.keySet().contains(a.mid)  // TODO check payload?
-                || cast.c != c || cast.n != n) {
-            //System.out.println("99999999: " + !a.peer.equals(this.src) + " ,, " + !this.cases.keySet().contains(a.mid) + " ,, " + (cast.c != c) + " .. " + cast.c + " .. " + c + " ,, " + (cast.n != n));
-            return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
-        }
-        boolean[] found = {false};
-        List<GTESend<DynamicActionKind>> tmp = sigma.map.get(a.peer).stream().filter(x -> {
-            if (!found[0] && x.equals(m)) {
-                found[0] = true;
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
-        Map<Role, List<GTESend<DynamicActionKind>>> map = new HashMap<>(sigma.map);
-        map.put(this.src, tmp);
-        Sigma sigma1 = new Sigma(map);
-        GTLType succ = this.cases.get(a.mid);
-        return Either.right(Pair.of(
-                Quad.of(succ, sigma1, theta, Tree.of(
-                        toStepJudgeString("[Rcv]", c, n, theta, this, sigma,
-                                (GTEAction) a, theta, succ, sigma1)
-                )),
-                GTUtil.mapOf()
-        ));
-    }
-
-    /* ... */
-
-    @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
-            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        ////return getActs(mf, self, blocked, sigma, theta, c, n);
-        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
-    }
-
-    @Override
-    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> weakStep(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        return step(com, self, a, sigma, theta, c, n);
-    }
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        return this.cases.values().stream()
-                         .flatMap(x -> x.getActive(theta).entrySet().stream())
-                         .collect(Collectors.toMap(
-                                 Map.Entry::getKey,
-                                 Map.Entry::getValue,
-                                 (x, y) -> x < y ? x : y,
-                                 LinkedHashMap::new
-                         ));
-    }
 }

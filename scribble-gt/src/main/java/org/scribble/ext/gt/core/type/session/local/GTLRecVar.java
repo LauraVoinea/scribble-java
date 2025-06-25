@@ -1,7 +1,5 @@
 package org.scribble.ext.gt.core.type.session.local;
 
-import org.scribble.core.model.DynamicActionKind;
-import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
@@ -9,18 +7,11 @@ import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVRecVar;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.GTVRecv;
-import org.scribble.ext.gt.core.model.global.Theta;
-import org.scribble.ext.gt.core.model.local.Discard;
-import org.scribble.ext.gt.core.model.local.GTEModelFactory;
-import org.scribble.ext.gt.core.model.local.Sigma;
-import org.scribble.ext.gt.core.model.local.action.GTEAction;
-import org.scribble.ext.gt.util.Either;
-import org.scribble.ext.gt.util.GTUtil;
-import org.scribble.ext.gt.util.Quad;
-import org.scribble.ext.gt.util.Tree;
 import org.scribble.util.Pair;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class GTLRecVar implements GTLType {
 
@@ -42,22 +33,6 @@ public class GTLRecVar implements GTLType {
         return new GTEFSM(Set.of(s1), s1, Set.of(), Set.of(), Map.of());
     }
 
-    /* ... */
-
-    @Override
-    //public LinkedHashSet<EAction<DynamicActionKind>> getActs(
-    public LinkedHashMap<EAction<DynamicActionKind>, Set<RecVar>> getActs(
-            GTEModelFactory mf, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        throw new RuntimeException("Unsupported operation: " + this);
-    }
-
-    @Override
-    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> step(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        return Either.left(newStuck(c, n, theta, this, (GTEAction) a));
-    }
-
 
     /* ... */
 
@@ -65,18 +40,6 @@ public class GTLRecVar implements GTLType {
     public GTLType subs(RecVar rv, GTLType t) {
         return this.var.equals(rv) ? t : this;
     }
-
-    @Override
-    public GTLRecVar unfoldAllImmediateRecs() {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }
-
-    /*@Override
-    public GTLType unfoldContext(Map<RecVar, GTLType> env) {
-        return env.containsKey(this.var)
-                ? env.get(this.var)
-                : this;  // CHECKME
-    }*/
 
     @Override
     public String toString() {
@@ -108,26 +71,4 @@ public class GTLRecVar implements GTLType {
     }
 
 
-    /* ... */
-
-    @Override
-    public LinkedHashSet<EAction<DynamicActionKind>> getWeakActs(
-            GTEModelFactory mf, Set<Op> com, Role self, Set<Role> blocked, Sigma sigma, Theta theta, int c, int n) {
-        //return getActs(mf, self, blocked, sigma, theta, c, n);
-        return new LinkedHashSet<>(getActs(mf, self, blocked, sigma, theta, c, n).keySet());
-    }
-
-    @Override
-    public Either<Exception, Pair<Quad<GTLType, Sigma, Theta, Tree<String>>,
-            Map<Pair<Integer, Integer>, Discard>>> weakStep(
-            Set<Op> com, Role self, EAction<DynamicActionKind> a, Sigma sigma, Theta theta, int c, int n) {
-        return step(com, self, a, sigma, theta, c, n);
-    }
-
-    /* Aux */
-
-    @Override
-    public Map<Integer, Integer> getActive(Theta theta) {
-        throw new RuntimeException("Shouldn't get here: " + this);
-    }
 }

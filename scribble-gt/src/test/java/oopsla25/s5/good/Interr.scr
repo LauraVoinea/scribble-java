@@ -1,6 +1,9 @@
 module Interr;
 
 
+// TODO test flag to test -gt-explicit-observer-left-commits
+
+
 //* Fig. 7
 // !!! //@'explicit-observer-left-commits'
 global protocol Interr(role P, role Q) {
@@ -15,7 +18,7 @@ global protocol Interr(role P, role Q) {
                 Ack() from Q to P;  // !!! Fixed -- cf. Ex 3.8
             }
         }
-    } () or P->Q () { // RHS
+    } or P->Q { // RHS
         Interrupt() from Q to P;
     }
 }

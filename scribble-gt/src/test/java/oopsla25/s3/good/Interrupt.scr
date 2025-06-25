@@ -7,7 +7,7 @@ global protocol Proto1(role A, role B, role C) {
         a1() from A to B;
         a2() from B to C;
         a5() from B to A;  // !!! left committing
-    } () or A -> B () {
+    } or A -> B {
         a3() from B to A;
         a4() from B to C;
     }

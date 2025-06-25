@@ -21,7 +21,7 @@ global protocol RoleCapture(role p, role q, role r) {
             b() from q to p;
             a() from p to r;
             continue t;
-        } () or q->p () {
+        } or q->p {
             1() from p to q;
             2() from p to r;
         }

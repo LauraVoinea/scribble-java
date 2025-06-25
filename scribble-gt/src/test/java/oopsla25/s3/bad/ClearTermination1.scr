@@ -5,7 +5,7 @@ module ClearTermination1;
 global protocol Ex3_7a(role p, role q) {
     mixed {
         a() from q to p;
-    } () or q->p () {
+    } or q->p {
         b() from p to q;
     }
 }

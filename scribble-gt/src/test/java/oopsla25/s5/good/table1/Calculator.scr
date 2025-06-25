@@ -17,7 +17,7 @@ global protocol Calc(role Alice, role Carol, role Server){
                result_diff() from Server to Carol;
                diff_result() from Carol to Alice;
            }
-       } () or Carol -> Server() {
+       } or Carol -> Server {
            timeout() from Server to Carol;
            cancel() from Carol to Alice;
     }

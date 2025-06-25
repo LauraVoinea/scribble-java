@@ -21,7 +21,7 @@ global protocol Ex3_7c(role p, role q, role r) {
             a() from q to p;
             continue t;
         }
-    } () or q->r () {
+    } or q->r {
         b() from r to q;
         b() from r to p;
     }

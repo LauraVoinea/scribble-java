@@ -10,6 +10,8 @@ import org.scribble.core.type.session.STypeFactory;
 import org.scribble.core.type.session.global.GTGTypeFactoryImpl;
 import org.scribble.core.type.session.local.LTypeFactoryImpl;
 import org.scribble.del.DelFactory;
+import org.scribble.ext.gt.cli.GTCLFlags;
+import org.scribble.ext.gt.cli.GTCommandLine2;
 import org.scribble.job.Job;
 import org.scribble.util.ScribException;
 
@@ -34,5 +36,22 @@ public class GTJob extends Job {
     protected STypeFactory newSTypeFactory() {
         return new STypeFactory(
                 new GTGTypeFactoryImpl(), new LTypeFactoryImpl());
+    }
+
+    // !!! Workaround for role annots
+    @Override
+    public void runPasses() throws ScribException {
+        /*verbosePrintPass("Starting Job passes on:");
+        for (ModuleName fullname : this.context.getFullModuleNames()) {
+            verbosePrintln(this.context.getModule(fullname).toString());
+        }*/
+
+        boolean explicitObserverLeftCommits = GTCommandLine2.ARGS.stream().anyMatch(
+                x -> x.left.equals(GTCLFlags.GT_EXPLICIT_OBSERVER_LEFT_COMMITS));
+        runVisitorPassOnAllModules(this.config.vf.DelDecorator(this));
+
+        if (!explicitObserverLeftCommits) {
+            runVisitorPassOnAllModules(this.config.vf.NameDisambiguator(this));  // Includes validating names used in subprotocol calls..
+        }
     }
 }

@@ -1064,7 +1064,7 @@ global protocol Proto1(role A, role B, role C) {
         a1() from A to B;
         a2() from B to C;
         a5() from B to A;  // !!! left committing
-    } () or A -> B () {
+    } or A -> B {
         a3() from B to A;
         a4() from B to C;
     }
@@ -1102,7 +1102,7 @@ global protocol Timeout(role A, role B, role C) {
         a2() from B to C;
         a5() from B to A;
         a6() from A to C;
-    } () or A -> B () { // "Right-hand" side (RHS)
+    } or A -> B { // "Right-hand" side (RHS)
         To() from B to A;
         To() from B to C;
     }
@@ -1287,14 +1287,31 @@ global protocol FailureHandling(role M, role W, role FD) {
             HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
             continue X;
         } () or W -> FD () { // RHS
-            Timeout() from FD to W; //@'failed W'  // TODO handle keyword with failure-prone role, subclass of mixed
+            Timeout() from FD to W; //@'failed W'  // TODO handle keyword with failure-prone role, subclass of mixed  // See next...
             Crash() from FD to M;
         }
     }
 }
 //*/
 
-/* Fig. 7
+/* // Fig. 7  // Testing @failed
+//data <java> "java.lang.String" from "rt.jar" as Data;
+global protocol FailureHandling(role M, role W, role FD) {
+    init(Data) from M to W;
+    rec X {
+        mixed { // LHS
+            HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
+            continue X;
+        } or W @failed -> FD { // RHS
+            Timeout() from FD to W; //@'failed W'
+            Crash() from FD to M;
+            //Bad() from W to FD;  // Uncomment is BAD
+        }
+    }
+}
+//*/
+
+/* Fig. 7  // Testing -gt-explicit-observer-no-commits
 //@'explicit-observer-left-commits'
 global protocol Interr(role P, role Q) {
     mixed { // LHS
@@ -1304,7 +1321,7 @@ global protocol Interr(role P, role Q) {
                 More() from P to Q;  // a
                 continue X;
             } or {
-                Stop() from P to Q;  // !!! Q*;  // Q commits  // d
+                Stop() from P to Q;  // !!! Q*;  // Q commits  // d  // see next...
                 Ack() from Q to P;  // !!! Fixed -- cf. Ex 3.8
             }
         }
@@ -1313,6 +1330,28 @@ global protocol Interr(role P, role Q) {
     }
 }
 //*/
+
+
+//* Fig. 7  // Testing -gt-explicit-observer-no-commits
+//@'explicit-observer-left-commits'  // !!! -gt-explicit-observer-no-commits
+global protocol Interr(role P, role Q) {
+    mixed { // LHS
+        Start() from P to Q;  // c
+        rec X {  // !!! XXX Fig. 7 wrong order
+            choice at P {
+                More() from P to Q;  // a
+                continue X;
+            } or {
+                //Stop() from P to Q;  // !!! Q*;  // Q commits  // d  // see next...
+                Stop*() from P to Q;
+                Ack() from Q to P;  // !!! Fixed -- cf. Ex 3.8
+            }
+        }
+    } or P->Q { // RHS
+        Interrupt() from Q to P;
+    }
+ }
+ //*/
 
 /* // Fig. 8
 data <java> "java.lang.String" from "rt.jar" as register_default_consumer;
@@ -1486,6 +1525,27 @@ global protocol Proto1(role A, role B, role C) {
 
 
 
+
+
+
+
+
+
+
+
+/*
+global protocol Proto1(role A, role B) {
+    mixed {
+        1() from A to B;
+        2() from B to A;
+        3() from A to B;
+        4() from B to A;
+    } or A->B {
+        5() from B to A@failed;  // Testing @failed
+        //6() from A to B;       // Uncomment is bad
+    }
+}
+//*/
 
 
 
