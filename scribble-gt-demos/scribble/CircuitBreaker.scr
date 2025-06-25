@@ -35,11 +35,11 @@ global protocol CircuitBreaker(role API, role Controller, role Storage, role Use
  }
  */
 
- global protocol API(role API, role Controller, role Storage, role User){
+ global protocol CircuitBreaker(role API, role Controller, role Storage, role User){
      start_storage() from Controller to Storage;
      start_controller() from Controller to API;
      hard_ping() from Storage to Controller;
-
+     ready() from API to User;
      rec Loop {
          request() from User to API;
          get_mode() from API to Controller;
