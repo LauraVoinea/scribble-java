@@ -3,7 +3,6 @@ package org.scribble.ext.gt.codegen.erlang;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
-import org.scribble.gt.codegen.Event;
 import org.scribble.util.Pair;
 
 import java.util.*;

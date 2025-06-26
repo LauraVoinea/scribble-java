@@ -1,10 +1,10 @@
 module amqp_selective_consumer;
-data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
-data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
-data <java> "java.lang.String" from "rt.jar" as nowait;
-data <java> "java.lang.String" from "rt.jar" as exchange;
-data <java> "java.lang.String" from "rt.jar" as routing_key;
-data <java> "java.lang.String" from "rt.jar" as pid;
+data <erlang> "integer()" from "rt.jar" as consumer_tag;
+data <erlang> "integer()" from "rt.jar" as delivery_tag;
+data <erlang> "string()" from "rt.jar" as nowait;
+data <erlang> "string()" from "rt.jar" as exchange;
+data <erlang> "string()" from "rt.jar" as routing_key;
+data <erlang> "string()" from "rt.jar" as pid;
 
 
 global protocol AMQP(role Consumer, role Channel, role Server) {
@@ -51,7 +51,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
 
                         continue SelectiveMessageDelivery;
 
-                    }() or Channel -> Consumer() {
+                    } or Channel -> Consumer {
                         // In reality, the Consumer can cancel at any time
                         // Consumer initiates cancel
                         basic_cancel(consumer_tag, nowait) from Consumer to Channel;
@@ -79,7 +79,7 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                     // Consumer acknowledges the cancel request
                    // basic_cancel_ok(consumer_tag) from Consumer to Channel; //dummy message
                 }
-            } () or Server -> Channel() {
+            } or Server -> Channel {
                 // Channel initiates cancel
                 basic_cancel2(consumer_tag, nowait) from Channel to Server;
                 basic_cancel2(consumer_tag, nowait) from Channel to Consumer;

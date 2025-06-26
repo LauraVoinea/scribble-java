@@ -5,8 +5,6 @@
 
 # Mixed-Choice, Asynchronous Multiparty Session Types
 
-ANONYMOUS AUTHORS
-
 <!--
 - a brief Introduction,
 - a Hardware Dependencies section,
@@ -22,7 +20,7 @@ ANONYMOUS AUTHORS
 
 > *In the Introduction, briefly explain the purpose of the artifact and how it supports the paper. We recommend listing all claims in the paper and stating whether or not each is supported. For supported claims, say how the artifact provides support. For unsupported claims, explain why they are omitted.*
 
-## 1.1. Contents
+## 1.1. Archive contents
 
 The artifact archive `paper672.zip` contains:
 
@@ -31,7 +29,6 @@ The artifact archive `paper672.zip` contains:
     - markdown: `paper672-overview.md` -- links clickable depending on markdown viewer app;
     - pdf: `paper672-overview.pdf`.
 - The **main artifact** as a **Docker image**: `oopsla2425-paper672-artifactTODO.tar.gz`
-    - The Docker image contains the mixed-choice Scribble toolchain (protocol validation and Erlang `gen_statem` code generation), a preconfigured Erlang/OTP environment with `rebar3`, and all example protocols plus their generated Erlang code under `scribble-gt-demos`.
 - The original submission version of our **paper**: `oopsla2425-paper672.pdf`
 
 Following the Call for Artifacts, this Overview has the following sections:
@@ -47,30 +44,50 @@ Following the Call for Artifacts, this Overview has the following sections:
 
 ---
 
-## 1.2. <a name="PURPOSE"></a> Purpose: A toolchain for specifying and implementing Erlang `gen_statem` programs using Multiparty Session Types with mixed-choice
+## 1.2. <a name="PURPOSE"></a> Purpose: A toolchain for specifying and implementing Erlang `gen_statem` programs using mixed-choice multiparty session types
 
 This artifact demonstrates the prototype toolchain presented in the
 submitted paper.
 
+Acronyms:
+
+- MST = Multiparty Session Types
+- EFSM = Event-driven State Machine (a la Erlang's `gen_statem`)
+
 As described in the paper (mainly Secs. 2.2 and 5), a programmer follows two
 main steps:
 
-1. **Specify the mixed-choice protocol using our extension of Scribble.**  
-   Our toolchain will statically validate the syntactic conditions
-   for well-formedness and generate:
-   - ...Protocol- and role-specific Erlang `gen_statem` APIs **TODO**
-   - ...Template Erlang `gen_statem` programs that implement each role
-     **TODO**
+1. **Specify the message passing protocol using our extension of Scribble for
+   mixed-choice MST.**  
+   Our tool statically validates the syntactic conditions for well-formedness
+   based on our theory in the paper.
+   If valid, it generates, for each role in the protocol, two Erlang modules:
+   - **A protocol-enforcing generic behaviour module (`gen_<role>.erl`).**
+     This module provides a protocol- and role-specific `gen_statem` wrapper that
+     enforces the protocol rules for the given role.  It contains the
+     EFSM logic derived from the protocol, including state transitions,
+     message handling, and the runtime mechanisms for mixed-choice and garbage
+     collection.  It exposes a public API for sending messages.
+   - **A template callback module (`<role>.erl`).**  This module is generated
+     to provide a template implementation of the above `gen_statem` behaviour
+     with placeholder callback functions for handling the EFSM events.  The
+     programmer can add to and modify it to implement the required
+     application-specific logic (e.g., local computations after receiving a message,
+     internal decisions for selecting protocol choices, etc).
+
 2. **Adapt and complete the generated template programs.**  
 The developer completes the program by:
     -   Filling in the placeholder functions in the template (`<role>.erl`) with the specific logic for the application.
-    -   Configuring how the different roles (now running as independent components) will be launched and connected at startup.
+    -   Configuring how the different roles will be launched and connected at startup.
         -   Launching a process for each role in the protocol.
         -   Distributing the initial contact information (process IDs) so the roles know how to communicate with each other.
-        -   Supervising these processes to provide fault-tolerance, automatically restarting any component that might fail.
+        -   Supervising these processes to provide fault-tolerance.
 
 See [A.2.](#YOURWAY) for a tutorial with concrete illustration of these steps **TODO**.  
 
+
+<!--
+...based on our theory
 
 The main safety guarantees:
 
@@ -81,6 +98,8 @@ The main safety guarantees:
 3.  **Runtime Safety for Mixed-Choice:** The generated code tracks mixed-choice instances and **purges stale messages** from other branches, preventing them from causing protocol violations.
 
 4.  **Static Analysis:** The generated code also includes type specifications that can be used with tools such as Dialyzer, allowing some programming errors to be caught statically. This is complemented by runtime checks that leverage Erlang's standard failure-handling mechanisms for robustness.
+-->
+
 
 ---
 
@@ -101,11 +120,25 @@ revised artifact later along with the revised paper.  Possible changes:
 </td></tr>
 </table>
 
-The main statement in the submitted paper (l.1067): (Apologies, we did not
+The main statement in the submitted paper: (Apologies, we did not
 format it as an explicit "Data-Availability Statement" section.)
 
-> **<em>We will submit our implementation, examples and RabbitMQ case study as an artifact.</em>**
+> l.1067 **<em>We will submit our implementation, examples and RabbitMQ case study as an artifact.</em>**
 
+Our Docker image supports these claims by providing these materials:
+
+- The source code of:
+  - Our Scribble-based tool for validating protocols and generating Erlang
+    `gen_statem` code.
+  - The Erlang runtime for our generated `gen_statem` code.
+  - All the example protocols from Table 1 along with their pre-generated (and
+    minimally implemented) Erlang code.
+  - ...AMQP
+- Scripts and a preconfigured Erlang/OTP environment with `rebar3` (the
+  official Erlang build tool) for building and running all of the above.
+
+
+<!--
 ...enumerate these and other claims from the paper related to our toolchain and examples.
 
 Claims:
@@ -122,12 +155,7 @@ Claims:
 - syntactic WF -- SUPPORTED
 - running examples -- SUPPORTED
 - ...TODO
-
-Summary of differences: **TODO**
-
-- ...code gen changed?
-- ...minor Scribble notation differences
-
+-->
 
 
 
@@ -193,10 +221,10 @@ Run all examples:
    In `$MY_LOCAL_DIR`, do:
    ```sh
    docker load -i oopsla23-paper437-artifact56-docker.tar.gz
-   docker run --rm -it rbst
+   docker run -it --rm --entrypoint /bin/bash scribble-gt
    ```
 
-4. **"Kick-the-tires" Test: Validate all protocols and generate code.**
+4. **"Kick-the-tires" Test: Validate  protocols and generate code.**
     The simplest way to check that the toolchain is working is to run the main script to process all example protocols. This will validate each protocol and generate the corresponding Erlang code.
 
     Inside the container shell, run:
@@ -205,12 +233,35 @@ Run all examples:
     ```
     **Expected output**.
     The script will loop through all `.scr` files in `scribble-gt-demos/scribble/`, validating and projecting each of them. It should complete without errors.
-   The generated Erlang code will be placed under `generated/<protocol_name>`
+    The generated Erlang code will be placed under `generated/<protocol_name>`
 
    To validate one example at a time: 
-   **TODO:**
+   Run each example: 
+    ```sh
+    ./mMST.sh -gt-no-corr scribble-gt-demos/scribble/<ProtocolName>.scr
+    ```
+   This will run scribble on the specific example.
+  
+   To generate code for all roles in the protocol:
+   ```sh
+    ./mMST.sh -gt-gen-erlang <ProtocolName> scribble-gt-demos/scribble/<ProtocolName>.scr
+    ```
+    The generated Erlang code will be placed under `generated/<protocol_name>`
+   
+   To generate code for a specific role in the protocol:
+   ```sh
+    ./mMST.sh -gt-gen-erlang-role <ProtocolName> <Role> scribble-gt-demos/scribble/<ProtocolName>.scr
+    ```
 
-5. **Walkthrough: Compile and run a single example.**
+  To generate event-based FSMs for a specific role in the protocol:
+  
+    ```sh
+    ./mMST.sh -gt-event-fsm <ProtocolName> <Role> scribble-gt-demos/scribble/<ProtocolName>.scr
+    ```
+
+    The generated `<role>.dot` file will be placed under `generated/<protocol_name>`
+
+5. **Walkthrough: Compile and run an Erlang example.**
     Let's run the `CircuitBreaker` example. The Erlang code is already generated in the image, so we just need to compile and run it.
 
     Inside the container, navigate to the example's directory:
@@ -229,9 +280,9 @@ Run all examples:
     You will see log messages from the different roles (API, Controller, Storage, User) as they interact according to the protocol.
     ```
     ok
-    B: s1 Sending start_storage to Storage 
-    B: s3 Sending start_controller to API 
-    A: s1 Sending start_user to User 
+    Controller: s1 Sending start_storage to Storage 
+    Controller: s3 Sending start_controller to API 
+    Storage: s1 Sending hard_ping to Controller 
     ...
     ```
 
@@ -281,12 +332,20 @@ Run all examples:
 </tr>
 </table>
 
+...under `scribble-gt-demos`.
+
 **Notes** on compiling and running examples.
 
 -   All Erlang examples are self-contained `rebar3` projects.
 -   To run an example, first `cd` into its directory (e.g., `cd scribble-gt-demos/erlang/circuit_breaker/`).
 -   Use `rebar3 shell` to compile the project and start an interactive Erlang shell.
 -   Inside the shell, use `application:start(example_name).` to run the application.
+
+Summary of differences: **TODO**
+
+- ...code gen changed?
+- ...minor Scribble notation differences
+
 
 
 ---
@@ -483,7 +542,7 @@ earlier table.
 
 - &#8203;(1) **Calculator**
 
-  This example demonstrates a basic multiparty protocol with recursion.
+  This example demonstrates a distributed multiparty calculator protocol with branching, recursion, mixed choice, and garbage collection of stale messages.
 
     **Instructions:**
     1. Navigate to the example directory: `cd scribble-gt-demos/erlang/calculator/`
@@ -498,7 +557,7 @@ earlier table.
     ```
 
 - &#8203;(2) **CircuitBreaker**
-  This example demonstrates a **mixed-choice (MC)**. The `API` role observes the `Controller`. If the `Controller` sends `trip`, the circuit breaks. Otherwise, the `User` can continue making requests. This also demonstrates **garbage collection (GC)** of stale messages.
+  This example demonstrates a **mixed-choice (MC)**. 
 
     **Expected output**.
     TODO
@@ -519,16 +578,13 @@ earlier table.
   1.  **Directory**: `cd /root/scribble-java/scribble-gt-demos/erlang/distributed_logging/`
   2.  **Shell**: `rebar3 shell`
   3.  **Run**: `application:start(distributed_logging).`
-  4.  **Expected output**: A log message is sent, acknowledged, and collected.
-      ```
-      ok
-      L: s1 Sending start_source to Source
-      S: s1 Sending log("hello") to Logger
-      L: s3 Sending ack() to Source
-      S: s3 Received ack
-      L: s3 Sending collect("hello") to Collector
-      C: s1 Received log: "hello"
-      ```
+  4.  **Expected output**: 
+
+    ```sh
+    TODO
+    ...
+    ```
+
   5.  **Stop**: `application:stop(distributed_logging).` then `q().`.
 
 - &#8203; (4) **Fibonacci**
@@ -538,15 +594,12 @@ earlier table.
   2.  **Shell**: `rebar3 shell`
   3.  **Run**: `application:start(fibonacci).`
   4.  **Expected output**: A log message is sent, acknowledged, and collected.
-      ```
-      ok
-      L: s1 Sending start_source to Source
-      S: s1 Sending log("hello") to Logger
-      L: s3 Sending ack() to Source
-      S: s3 Received ack
-      L: s3 Sending collect("hello") to Collector
-      C: s1 Received log: "hello"
-      ```
+
+
+    ```sh
+    TODO
+    ...
+    ```
   5.  **Stop**: `application:stop(fibonacci).` then `q().`.
 
 - &#8203; (5) **OnlineWallet**
@@ -556,15 +609,11 @@ earlier table.
   2.  **Shell**: `rebar3 shell`
   3.  **Run**: `application:start(online_wallet).`
   4.  **Expected output**: A log message is sent, acknowledged, and collected.
-      ```
-      ok
-      L: s1 Sending start_source to Source
-      S: s1 Sending log("hello") to Logger
-      L: s3 Sending ack() to Source
-      S: s3 Received ack
-      L: s3 Sending collect("hello") to Collector
-      C: s1 Received log: "hello"
-      ```
+
+    ```sh
+    TODO
+    ...
+    ```
   5.  **Stop**: `application:stop(online_wallet).` then `q().`.
 
 
@@ -575,15 +624,11 @@ earlier table.
   2.  **Shell**: `rebar3 shell`
   3.  **Run**: `application:start(smtp).`
   4.  **Expected output**: A log message is sent, acknowledged, and collected.
-      ```
-      ok
-      L: s1 Sending start_source to Source
-      S: s1 Sending log("hello") to Logger
-      L: s3 Sending ack() to Source
-      S: s3 Received ack
-      L: s3 Sending collect("hello") to Collector
-      C: s1 Received log: "hello"
-      ```
+
+    ```sh
+    TODO
+    ...
+    ```
   5.  **Stop**: `application:stop(smtp).` then `q().`.
 
 - &#8203; (7) **TwoBuyer**
@@ -593,15 +638,11 @@ earlier table.
   2.  **Shell**: `rebar3 shell`
   3.  **Run**: `application:start(two_buyer).`
   4.  **Expected output**: A log message is sent, acknowledged, and collected.
-      ```
-      ok
-      L: s1 Sending start_source to Source
-      S: s1 Sending log("hello") to Logger
-      L: s3 Sending ack() to Source
-      S: s3 Received ack
-      L: s3 Sending collect("hello") to Collector
-      C: s1 Received log: "hello"
-      ```
+
+    ```sh
+    TODO
+    ...
+    ```
 5.  **Stop**: `application:stop(two_buyer).` then `q().`.
 
 - &#8203; (7) **TravelAgency**
@@ -611,15 +652,11 @@ earlier table.
   2.  **Shell**: `rebar3 shell`
   3.  **Run**: `application:start(travel_agency).`
   4.  **Expected output**: A log message is sent, acknowledged, and collected.
-      ```
-      ok
-      L: s1 Sending start_source to Source
-      S: s1 Sending log("hello") to Logger
-      L: s3 Sending ack() to Source
-      S: s3 Received ack
-      L: s3 Sending collect("hello") to Collector
-      C: s1 Received log: "hello"
-      ```
+
+    ```sh
+    TODO
+    ...
+    ```
 5.  **Stop**: `application:stop(travel_agency).` then `q().`.
 
 
@@ -888,4 +925,15 @@ All of the examples in this artifact satisfy the above conditions.
 
 
 **FIXME** double check all line numbers using submission version
+
+deprecate?
+
+
+- fig. 7 fixes
+- s3 progress test -- fixes?
+- misc. incomplete examples (omit)
+- dialyzer
+- annots -- protocols only
+- ...explicit obs left commits
+- ...D EFSM gen
 

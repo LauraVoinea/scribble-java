@@ -18,7 +18,7 @@ global protocol Calculator(role Alice, role Carol, role Srv){
                result_diff(result) from Srv to Carol;
                diff_result(result) from Carol to Alice;
            }
-       } () or Carol -> Srv() {
+       } or Carol -> Srv {
            timeout() from Srv to Carol;
            cancel() from Carol to Alice;
     }

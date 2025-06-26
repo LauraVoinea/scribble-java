@@ -517,7 +517,7 @@ public class GTGenericBehaviour {
         sendFunc.addClause(sendParams, sendBody);
 
         StringBuilder specType = new StringBuilder();
-        specType.append("sendName(");
+        specType.append(sendName).append("(");
         specType.append(role).append(" :: pid()");
         for (ErlTerm elem : payloadVars) {
             specType.append(", ").append(elem).append(" :: term()");

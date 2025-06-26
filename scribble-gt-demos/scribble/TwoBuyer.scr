@@ -1,12 +1,15 @@
 module TwoBuyer;
 
+data <erlang> "string()" from "rt.jar" as title;
+data <erlang> "integer()" from "rt.jar" as price;
+data <erlang> "integer()" from "rt.jar" as amount;
 
 global protocol TwoBuyer(role Alice, role Bob, role Seller){
   mixed{
-      request_title() from Alice to Seller;
-      price_quote() from Seller to Alice;
-      price_quote() from Seller to Bob;
-      contribution() from Alice to Bob;
+      request_title(title) from Alice to Seller;
+      price_quote(price) from Seller to Alice;
+      price_quote(price) from Seller to Bob;
+      contribution(amount) from Alice to Bob;
       mixed{
           choice at Bob{
               accept_quote() from Bob to Seller;
@@ -17,11 +20,11 @@ global protocol TwoBuyer(role Alice, role Bob, role Seller){
                 cancel_confirmation() from Seller to Bob;
                 cancel_notification() from Bob to Alice;
           }
-          } () or Bob -> Seller(){
+          } or Bob -> Seller{
               response_timeout() from Seller to Bob;
               response_timeout() from Seller to Alice;
           }
-  }() or Alice -> Seller() {
+  } or Alice -> Seller {
       not_available() from Seller to Alice;
       not_available() from Seller to Bob;
   }

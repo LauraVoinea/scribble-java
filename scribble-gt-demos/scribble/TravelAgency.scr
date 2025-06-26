@@ -1,16 +1,22 @@
 module TravelAgency;
 
+data <erlang> "string()" from "rt.jar" as destination;
+data <erlang> "string()" from "rt.jar" as address;
+data <erlang> "string()" from "rt.jar" as date;
+data <erlang> "integer()" from "rt.jar" as price;
+data <erlang> "integer()" from "rt.jar" as amount;
+
 global protocol TravelAgency(role Client, role Agency, role Supplier)
 {
 	rec Loop {
-		booking_request() from Client to Agency;
-		price_quote() from Agency to Client;
+		booking_request(destination) from Client to Agency;
+		price_quote(price) from Agency to Client;
 		mixed{
             choice at Client {
                 accept_offer() from Client to Agency;
                 accept_confirmation() from Agency to Client; //addition for left commiting
-                provide_address() from Client to Supplier;
-                confirm_date() from Supplier to Client;
+                provide_address(address) from Client to Supplier;
+                confirm_date(date) from Supplier to Client;
             } or {
                 reject_offer() from Client to Agency;
                 reject_confirmation() from Agency to Client; //addition for left commiting
@@ -21,8 +27,8 @@ global protocol TravelAgency(role Client, role Agency, role Supplier)
                 resubmitting() from Client to Supplier;
                 continue Loop;
             }
-		} () or Client -> Agency(){
-               price_adjustment() from Agency to Client;
+		} or Client -> Agency {
+               price_adjustment(price) from Agency to Client;
                cancel_agency() from Client to Agency;
                cancel_supplier() from Client to Supplier;
 		}

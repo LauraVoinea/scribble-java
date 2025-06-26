@@ -7,12 +7,13 @@ global protocol Interrupt(role P, role Q) {
         choice at P {
                 More() from P to Q;
                 continue X;
-            }
+
         } or {
             Stop*() from P to Q;
             Ack() from Q to P;
         }
-    } () or P -> Q ()  {  // RHS
+        }
+    } or P -> Q  {  // RHS
         Interrupt() from Q to P;  //@'interrupt'
 
 }   

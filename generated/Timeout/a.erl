@@ -16,31 +16,13 @@ callback_mode() ->
 
 -spec init(list()) -> {ok, s4, state_data(), [{next_event, internal, {a1}}]}.
 init([]) ->
-    BPid = case whereis(b) of
-        undefined ->
-            io:format("b is not available yet. Will retry...~n", []),
-            timer:sleep(1000),
-            whereis(b);
-        Pid ->
-            Pid
-    end,
-    BPid ! {a_pid, self()},
-    CPid = case whereis(c) of
-        undefined ->
-            io:format("c is not available yet. Will retry...~n", []),
-            timer:sleep(1000),
-            whereis(c);
-        Pid ->
-            Pid
-    end,
-    CPid ! {a_pid, self()},
-    Data = #state_data{mc_counter_1 = 0, b_pid = BPid, c_pid = CPid},
+    Data = #state_data{mc_counter_1 = 0},
     io:format("a initialized ~n", []),
     {ok, s4, Data, [{next_event, internal, {a1}}]}.
 
 -spec s4(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
 s4(internal, {a1}, #state_data{b_pid = BPid} = Data) ->
-    io:format("B: s4 Sending a1 to B ~n", []),
+    io:format("A: s4 Sending a1 to B ~n", []),
     gen_a:send_s4_a1(BPid, Data),
     {next_state, s5, Data};
 s4(cast, {BPid, {'To'}}, #state_data{b_pid = BPid} = Data) ->
@@ -54,7 +36,28 @@ s5(cast, {BPid, {a5}}, #state_data{b_pid = BPid} = Data) ->
 
 -spec s6(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
 s6(internal, {a6}, #state_data{c_pid = CPid} = Data) ->
-    io:format("B: s6 Sending a6 to C ~n", []),
+    io:format("A: s6 Sending a6 to C ~n", []),
     gen_a:send_s6_a6(CPid, Data),
     {stop, normal, Data}.
+
+-spec connection() -> {state_data()}.
+connection() ->
+    io:format("a connected ~n", []),
+    BPid = case whereis(b) of
+        undefined ->
+            io:format("b is not available yet. Will retry...~n", []),
+            timer:sleep(1000),
+            whereis(b);
+        Pid_b ->
+            Pid_b
+    end,
+    CPid = case whereis(c) of
+        undefined ->
+            io:format("c is not available yet. Will retry...~n", []),
+            timer:sleep(1000),
+            whereis(c);
+        Pid_c ->
+            Pid_c
+    end,
+    #state_data{b_pid = BPid, c_pid = CPid}.
 

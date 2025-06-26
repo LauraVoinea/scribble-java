@@ -16,25 +16,7 @@ callback_mode() ->
 
 -spec init(list()) -> {ok, s5, state_data(), [{next_event, internal, {'To'}}]}.
 init([]) ->
-    APid = case whereis(a) of
-        undefined ->
-            io:format("a is not available yet. Will retry...~n", []),
-            timer:sleep(1000),
-            whereis(a);
-        Pid ->
-            Pid
-    end,
-    APid ! {b_pid, self()},
-    CPid = case whereis(c) of
-        undefined ->
-            io:format("c is not available yet. Will retry...~n", []),
-            timer:sleep(1000),
-            whereis(c);
-        Pid ->
-            Pid
-    end,
-    CPid ! {b_pid, self()},
-    Data = #state_data{mc_counter_1 = 0, a_pid = APid, c_pid = CPid},
+    Data = #state_data{mc_counter_1 = 0},
     io:format("b initialized ~n", []),
     {ok, s5, Data, [{next_event, internal, {'To'}}]}.
 
@@ -48,9 +30,9 @@ s3(internal, {'To'}, #state_data{c_pid = CPid} = Data) ->
 s5(internal, {'To'}, #state_data{a_pid = APid} = Data) ->
     case make_choice_To(Data) of
         1 ->
-            {'keep_state DOOOOOOO', Data};
+            {keep_state, Data};
         2 ->
-            io:format("B: s5 Sending To to A ~n", []),
+            gen_b:send_s5_To(APid, Data),
             gen_b:send_s5_To(APid, Data),
             {next_state, s3, Data, [{next_event, internal, {'To'}}]}
     end;
@@ -59,7 +41,7 @@ s5(cast, {APid, {a1}}, #state_data{a_pid = APid} = Data) ->
         1 ->
             {next_state, s6, Data, [{next_event, internal, {a2}}]};
         2 ->
-            io:format("B: s5 Sending To to A ~n", []),
+            gen_b:send_s5_To(APid, Data),
             gen_b:send_s5_To(APid, Data),
             {next_state, s3, Data, [{next_event, internal, {'To'}}]}
     end.
@@ -83,4 +65,25 @@ make_choice_a1(_Data) ->
 -spec make_choice_To(state_data()) -> integer().
 make_choice_To(_Data) ->
     rand:uniform(2).
+
+-spec connection() -> {state_data()}.
+connection() ->
+    io:format("b connected ~n", []),
+    APid = case whereis(a) of
+        undefined ->
+            io:format("a is not available yet. Will retry...~n", []),
+            timer:sleep(1000),
+            whereis(a);
+        Pid_a ->
+            Pid_a
+    end,
+    CPid = case whereis(c) of
+        undefined ->
+            io:format("c is not available yet. Will retry...~n", []),
+            timer:sleep(1000),
+            whereis(c);
+        Pid_c ->
+            Pid_c
+    end,
+    #state_data{a_pid = APid, c_pid = CPid}.
 

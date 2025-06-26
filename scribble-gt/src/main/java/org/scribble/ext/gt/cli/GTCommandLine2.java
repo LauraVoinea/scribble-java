@@ -103,8 +103,7 @@ public class GTCommandLine2 extends CommandLine {
 //                    System.out.println("\n[debug] EFSM: " + r + ": " + s.local.configs.get(r) + "\n" + efsm.toDot());
 //                    System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(simple, r, efsm));
 //                    System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(simple, r, efsm));
-                    System.err.println(r + " <> " + translate.getCommitting().get(r) + "\n" + translate.getExplicitCommitting().get(r)
-                  );
+
 //                    System.err.println("===========> " + efsm.E + "  " + GTGenUtil.getEvents(efsm) + "\n" + efsm.delta);
                     try {
                         if(s.local.configs.get(r) != null)

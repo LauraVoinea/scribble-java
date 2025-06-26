@@ -30,7 +30,7 @@ global protocol OnlineWallet(role S, role C, role A) {
                         quit_ack() from S to C;
                         end_session() from C to A;
                     }
-                } () or C -> S () {
+                } or C -> S {
                          timeout() from S to C;
                          timeout() from S to A;
                          }

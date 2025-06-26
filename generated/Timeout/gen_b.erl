@@ -10,7 +10,8 @@
 -callback s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s3, state_data(), [{next_event, internal, {'To'}}]} | {next_state, s6, state_data(), [{next_event, internal, {a2}}]} | {keep_state, state_data()}.
 -callback s6(EventType :: term(), {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {a5}}]}.
 -callback s7(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback init(Args :: list()) -> {ok, s5, state_data(), [{next_event, internal, {'To'}}]}.
+-callback init(Args :: list()) -> 
+	{ok, s5, state_data(), [{next_event, internal, {'To'}}]}.
 
 -spec start_link(CallbackModule :: module(), Args :: list()) ->
     {ok, pid()} | {error, term()}.
@@ -26,7 +27,8 @@ start_link(CallbackModule, Args) ->
 callback_mode() ->
     state_functions.
 
--spec init({CallbackModule :: module(), Args :: list()}) -> {ok, s5, state_data(), [{next_event, internal, {'To'}}]}.
+-spec init({CallbackModule :: module(), Args :: list()}) -> 
+	{ok, s5, state_data(), [{next_event, internal, {'To'}}]}.
 init({CallbackModule, _Args}) ->
     io:format("b: Initializing with callback module ~p~n", [CallbackModule]),
     put(callback_module, CallbackModule),
@@ -43,18 +45,14 @@ send_s7_a5(APid, Data) ->
     gen_statem:cast(APid, {self(), {a5}, Counter}).
 
 -spec s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s3, state_data(), [{next_event, internal, {'To'}}]} | {next_state, s6, state_data(), [{next_event, internal, {a2}}]} | {keep_state, state_data()}.
-s5(EventType, {'To'}, Data) ->
-    CallbackModule = get(callback_module),
-    CallbackModule:s5(EventType, {'To'}, Data);
-s5(EventType, {APid, {a1}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s5(EventType, {'To'}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
-    CallbackModule:s5(EventType, {APid, {a1}}, NewData);
-s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= a6 
-		orelse Msg =:= a5 
-		orelse Msg =:= a2 
-		orelse Msg =:= a1 
-		orelse Msg =:= 'To' ->
+    CallbackModule:s5(EventType, {'To'}, NewData);
+s5(EventType, {APid, {a1}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+    CallbackModule = get(callback_module),
+    CallbackModule:s5(EventType, {APid, {a1}}, Data);
+s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {a1} ->
     {keep_state, Data}.
 
 -spec s6(EventType :: term(), {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {a5}}]}.

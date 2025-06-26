@@ -12,7 +12,7 @@ global protocol SimpleVoting(role Voter, role Server){
                 No() from Voter to Server;
                 Result() from Server to Voter;
             }
-        }() or Voter->Server(){
+        } or Voter->Server{
             error() from Server to Voter;
         }
     } or {
