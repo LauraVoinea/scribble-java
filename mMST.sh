@@ -63,6 +63,8 @@ usage() {
 
   -run-all-gt-examples     Run default operations for all examples in
                            scribble-gt-demos/scribble/
+  -run-all-erlang-examples Run compile and test on all Erlang examples under
+                          scribble-gt-demos/erlang/
 
   -gt-no-corr
             Skip global-local correspondence checking.
@@ -124,6 +126,8 @@ usage=0
 verbose=0
 ARGS="" # Initialize ARGS to empty string
 run_all_gt_examples=0 # Flag for the new option
+run_all_erlang_examples=0 # Flag for running Erlang examples
+run_all_dialyzer_examples=0 # Flag for running Dialyzer on all Erlang examples
 
 while true; do
     case "$1" in
@@ -145,6 +149,14 @@ while true; do
         -run-all-gt-examples)
             run_all_gt_examples=1
             shift # Consume the option
+            ;;
+        -run-all-erlang-examples)
+            run_all_erlang_examples=1
+            shift
+            ;;
+        -run-all-dialyzer-examples)
+            run_all_dialyzer_examples=1
+            shift
             ;;
         *)
             ARGS="${ARGS}${ARGS:+ }$1" # Append argument with a preceding space if ARGS is not empty
@@ -188,6 +200,32 @@ if [ "$run_all_gt_examples" = 1 ]; then
         done
     fi
     exit 0 # Exit after running all examples
+elif [ "$run_all_erlang_examples" = 1 ]; then
+    ERL_DIR="$SCRIBHOME/scribble-gt-demos/erlang"
+    if [ ! -d "$ERL_DIR" ]; then
+        echo "Error: Erlang examples directory not found: $ERL_DIR" >&2
+        exit 1
+    fi
+    echo "Running Erlang examples from: $ERL_DIR"
+    for dir in "$ERL_DIR"/*/; do
+        [ -d "$dir" ] || continue
+        echo "Building and testing: $dir"
+        (cd "$dir" && rebar3 compile && rebar3 eunit)
+    done
+    exit 0
+elif [ "$run_all_dialyzer_examples" = 1 ]; then
+    ERL_DIR="$SCRIBHOME/scribble-gt-demos/erlang"
+    if [ ! -d "$ERL_DIR" ]; then
+        echo "Error: Erlang examples directory not found: $ERL_DIR" >&2
+        exit 1
+    fi
+    echo "Running Dialyzer on Erlang examples from: $ERL_DIR"
+    for dir in "$ERL_DIR"/*/; do
+        [ -d "$dir" ] || continue
+        echo "Dialyzing: $dir"
+        (cd "$dir" && rebar3 dialyzer)
+    done
+    exit 0
 else
     # Original execution path for single file or specific options
     scribblec "$ARGS"
