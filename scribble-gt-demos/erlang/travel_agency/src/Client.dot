@@ -1,0 +1,34 @@
+digraph G {
+compound = true;
+"3" [ label="3[Loop] 0:" ];
+"4" [ label="4[] 0:" ];
+"9" [ label="9[] ▷1:" ];
+"10" [ label="10[] 1:" ];
+"11" [ label="11[] 1:" ];
+"12" [ label="12[] 1:" ];
+"2" [ label="2[] 0:" ];
+"14" [ label="14[] 1:" ];
+"15" [ label="15[] 1:" ];
+"17" [ label="17[] 1:" ];
+"18" [ label="18[] 1:" ];
+"6" [ label="6[] 1:" ];
+"7" [ label="7[] 1:" ];
+"9" -> "10" [ label="𝜏_accept_offer/Agency!accept_offer()" ];
+"17" -> "18" [ label="Agency?repeat_confirmation()/ε" ];
+"6" -> "7" [ label="𝜏_cancel_agency/Agency!cancel_agency()" ];
+"9" -> "6" [ label="Agency?price_adjustment()/ε*" ];
+"4" -> "9" [ label="Agency?price_quote()/ε" ];
+"9" -> "17" [ label="𝜏_resubmit_request/Agency!resubmit_request()" ];
+"12" -> "2" [ label="Supplier?confirm_date()/ε" ];
+"14" -> "6" [ label="Agency?price_adjustment()/ε*" ];
+"10" -> "6" [ label="Agency?price_adjustment()/ε*" ];
+"17" -> "6" [ label="Agency?price_adjustment()/ε*" ];
+"7" -> "2" [ label="𝜏_cancel_supplier/Supplier!cancel_supplier()" ];
+"18" -> "3" [ label="𝜏_resubmitting/Supplier!resubmitting()" ];
+"14" -> "15" [ label="Agency?reject_confirmation()/ε" ];
+"3" -> "4" [ label="𝜏_booking_request/Agency!booking_request()" ];
+"11" -> "12" [ label="𝜏_provide_address/Supplier!provide_address()" ];
+"15" -> "2" [ label="𝜏_cancel_booking/Supplier!cancel_booking()" ];
+"9" -> "14" [ label="𝜏_reject_offer/Agency!reject_offer()" ];
+"10" -> "11" [ label="Agency?accept_confirmation()/ε" ];
+}

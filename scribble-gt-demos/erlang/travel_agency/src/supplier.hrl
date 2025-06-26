@@ -1,0 +1,1 @@
+-record(state_data, {mc_counter_1 = 0 :: integer(), agency_pid :: pid() | undefined, client_pid :: pid() | undefined}).
