@@ -101,17 +101,13 @@ public class GTGInteraction implements GTGType {
         if (!com.contains(this.dst) && com.contains(this.src)) {
             tmp = new HashSet<>(com);
             tmp.add(this.dst);
-            res.put(this.dst, this.cases.keySet());
+            res.put(this.dst, new HashSet<>(this.cases.keySet()));
         } else {
             res.put(this.dst,
                     this.cases.keySet().stream()
                               .filter(x -> ((GTOp) x).annots.contains(GTOp.EXPLICIT_COMMIT))
-                              .collect(Collectors.toSet()));
+                              .collect(Collectors.toCollection(HashSet::new)));
         }
-        /*for (GTGType x : this.cases.values()) {
-            x.getExplicitCommittingAux(c, tmp).forEach((k, v) ->
-                    res.computeIfAbsent(k, z -> new HashSet<>()).addAll(v));
-        }*/
         for (Map.Entry<Op, GTGType> e : this.cases.entrySet()) {
             Set<Role> tmp2 = new HashSet<>(tmp);
             if (((GTOp) e.getKey()).annots.contains(GTOp.EXPLICIT_COMMIT)) {
@@ -458,17 +454,6 @@ public class GTGInteraction implements GTGType {
     public boolean canEquals(Object o) {
         return o instanceof GTGInteraction;
     }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
