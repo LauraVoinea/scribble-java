@@ -199,7 +199,7 @@ public class GTCallbackModule {
 
     private ErlFun genConnectionFunction(Role self, GTEFSM efsm, Set<Role> roles) {
         // Function head: connection() ->
-        List<ErlTerm> headArgs = List.of();
+        List<ErlTerm> headArgs = List.of(new ErlVar("Data"));
 
         // Build the function body as a sequence of expressions.
         ErlSeq bodySeq = new ErlSeq();
@@ -248,14 +248,23 @@ public class GTCallbackModule {
 
 
         }
-        ErlRecordUpdate stateRecord = new ErlRecordUpdate(null, "state_data");
+        // TODO: Handle the case where a role's PID is still undefined after retrying.
+//        if
+//        CPid =:= undefined ->
+//                io:format("c is still not available after retrying. Exiting...~n", []),
+//        exit({error, no_c_pid}); [...]
+//        end,
+
+
+        ErlRecordUpdate stateRecord = new ErlRecordUpdate(
+                new ErlVar("Data"), "state_data");
         recFields.forEach(stateRecord::addField);
         bodySeq.addExpression(stateRecord);
 
         // Create the connection function.
         ErlFun connFun = new ErlFun("connection");
         connFun.addClause(headArgs, bodySeq);
-        connFun.setSpec(connFun.getName() + "() -> {state_data()}");
+        connFun.setSpec(connFun.getName() + "(state_data()) -> state_data()");
         return connFun;
     }
 

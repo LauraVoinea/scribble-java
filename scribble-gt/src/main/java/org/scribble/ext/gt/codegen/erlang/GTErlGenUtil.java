@@ -197,14 +197,19 @@ public class GTErlGenUtil {
                     GTVTau tau = (GTVTau) entry.getKey().right;
                     String a = GTGenUtil.eventToParam(tau);
                     if (succ.equals(m.init))
-                        return "{ok, " + sName + ", state_data(), [{next_event, internal, {" + new ErlAtom(a) + "}}]}";
+                        return "{ok, " + sName + ", state_data(), " +
+                                "[{next_event, internal, {" + new ErlAtom(a) + "}}]}";
                     // Return a tuple with an extra list element.
-                    return "{next_state, " + sName + ", state_data(), [{next_event, internal, {" + new ErlAtom(a) + "}}]}";
+                    return "{next_state, " + sName + ", state_data(), " +
+                            "[{next_event, internal, {" + new ErlAtom(a) + "}}]}" +
+                            " | \n\t {keep_state, state_data()}";
                 } else {
                     if (succ.equals(m.init))
                         return "{ok, " + sName + ", state_data()} | {next_state, " + sName + ", state_data(), [term()]}";
                     // Return a union of possible return types.
-                    return "{next_state, " + sName + ", state_data()} | {next_state, " + sName + ", state_data(), [term()]}";
+                    return "{next_state, " + sName + ", state_data()} | " +
+                            "{next_state, " + sName + ", state_data(), [term()]}"
+                            + " | \n\t {keep_state, state_data()}";
                 }
             }
             case BRANCH:

@@ -748,9 +748,12 @@ public class GTGenericBehaviour {
                         bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                                 Arrays.asList(
                                         new ErlVar("EventType"),
-                                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                                        data
-                                )));
+//                                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                                        new ErlTuple( tupleElements.stream()
+                                                .filter(elem -> !elem.toString().equals("Counter"))
+                                                .collect(Collectors.toList())
+                                        ),
+                                data)));
 
                         ErlFun clause = new ErlFun(funcName);
                         clause.addClause(params, guard, bodySeq);
