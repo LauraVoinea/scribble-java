@@ -277,8 +277,8 @@ public class GTGenericBehaviour {
         // Create the init function and add the single clause.
         ErlFun initFun = new ErlFun("init");
         initFun.addClause(headArgs, bodySeq);
-        //TODO: fix return type
-        initFun.setSpec("init({CallbackModule :: module(), Args :: list()}) -> " +
+
+        initFun.setSpec("init({CallbackModule :: module(), Args :: list()}) -> \n\t" +
                 GTErlGenUtil.getNextStateReturnType(efsm, initState));
         return initFun;
     }
@@ -335,10 +335,8 @@ public class GTGenericBehaviour {
             String paramA = GTGenUtil.eventToParam(e);
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
             Map<String, ErlTerm> fields = new LinkedHashMap<>();
-            //TODO: add PIDs
             if(s.c > 0)
                 fields.put("mc_counter_" + s.c, new ErlVar("MC"));
-            ErlRecordPattern pattern = new ErlRecordPattern("state_data", fields);
 
             List<ErlTerm> payloadVars = e.pay.elems.stream().map(elem ->
                             new ErlVar(elem.toString())).collect(Collectors.toList());
@@ -349,14 +347,29 @@ public class GTGenericBehaviour {
             ErlTuple payloadTuple = new ErlTuple(tupleElements);
 
             return actions.stream().map(pair -> {
-                List<ErlTerm> headArgs = Arrays.asList(
+                ErlTuple patternTuple =  new ErlTuple(
+                        Arrays.asList(new ErlVar(e.role.toString()+"Pid"), payloadTuple));
+                ErlGuard guard = null;
+                List<ErlTerm> headArgs;
+                if(s.c > 0) {
+                     guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
+                     patternTuple.addElement( new ErlVar("Counter"));
+                     ErlRecordPattern pattern = new ErlRecordPattern("state_data", fields);
+                     headArgs = Arrays.asList(
                         new ErlVar("EventType"),
-                        new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), payloadTuple, new ErlVar("Counter"))),
+                        patternTuple,
                         new ErlMatch(pattern, new ErlVar("Data"))
                 );
+                } else{
+                    headArgs = Arrays.asList(
+                        new ErlVar("EventType"),
+                        patternTuple,
+                        new ErlVar("Data")
+                );
+                }
 
-                ErlGuard guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
                 ErlSeq bodySeq = new ErlSeq();
+
                 bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                         new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
                 bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
@@ -367,11 +380,11 @@ public class GTGenericBehaviour {
                         )));
                 ErlFun clauseFun = new ErlFun(funcName);
                 clauseFun.addClause(headArgs, guard, bodySeq);
-                //TODO: specific specs for params?
+                //TODO: specific specs for payloads
                 String spec = funcName + "(" +
                         "term(), " +
                         "{pid(), {atom(), term()}}, " +
-                        "state_data()) -> " +
+                        "state_data()) -> \n\t " +
                         GTErlGenUtil.getNextStateReturnType(m, pair.right);
                 clauseFun.setSpec(spec);
                 return clauseFun;
@@ -434,7 +447,7 @@ public class GTGenericBehaviour {
                 String spec = stateFuncName + "(" +
                         "EventType :: term(), " +
                         "{atom()}, " +
-                        "state_data()) -> " +
+                        "state_data()) -> \n\t" +
                         GTErlGenUtil.getNextStateReturnType(m, y.right);
                 stateFunc.setSpec(spec);
                 return Stream.of(sendFunc, stateFunc);
@@ -455,13 +468,16 @@ public class GTGenericBehaviour {
         }
 
         String sendName = "send_" + "s" + s.id + "_" + paramA;
-
+        List<ErlTerm> payloadVars = p.elems.stream()
+                .map(elem -> new ErlVar(elem.toString()))
+                .collect(Collectors.toList());
         // Build function head: [ <Role>Pid, Data ]
         ErlVar role = new ErlVar(r.toString() + "Pid");
-        List<ErlTerm> sendParams = Arrays.asList(
-                role,
-                new ErlVar("Data")
-        );
+
+        List<ErlTerm> sendParams = new ArrayList<>();
+        sendParams.add(role);
+        sendParams.addAll(payloadVars);
+        sendParams.add(new ErlVar("Data"));
 
         // Build the body sequence.
         ErlSeq sendBody = new ErlSeq();
@@ -473,10 +489,8 @@ public class GTGenericBehaviour {
                     new ErlRecordAccess(new ErlVar("Data"), "state_data", "mc_counter_" + s.c)
             ));
 
-        // Build the payload tuple by mapping each element of p to an ErlAtom.
-        List<ErlTerm> payloadVars = p.elems.stream()
-                .map(elem -> new ErlAtom(elem.toString()))
-                .collect(Collectors.toList());
+        // Build the payload tuple by mapping each element of p to an ErlVar.
+
         // Build a tuple for the payload: {paramA, PayloadElements...}
         // Prepend the parameter as an atom.
         List<ErlTerm> secondTupleElements = new LinkedList<>();
@@ -501,8 +515,19 @@ public class GTGenericBehaviour {
 
         ErlFun sendFunc = new ErlFun(sendName);
         sendFunc.addClause(sendParams, sendBody);
-        // send_test(BobPid :: pid(), Data :: state_data()) -> ok.
-        sendFunc.setSpec(sendName + "(" + role + " :: pid(), Data :: state_data()) -> ok");
+
+        StringBuilder specType = new StringBuilder();
+        specType.append("sendName(");
+        specType.append(role).append(" :: pid()");
+        for (ErlTerm elem : payloadVars) {
+            specType.append(", ").append(elem).append(" :: term()");
+        }
+        specType.append(", ");
+        if(s.c == 0)
+            specType.append("_");
+        specType.append("Data :: state_data()) -> ok");
+
+        sendFunc.setSpec(specType.toString());
         return sendFunc;
     }
 
@@ -521,31 +546,48 @@ public class GTGenericBehaviour {
 
         List<Stream<ErlFun>> rhsClauses = rhs.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
-
+            //RHS of Internal mixed choice??
             return actions.stream().filter(p -> p.left instanceof GTVSendStar).map(p -> {
                 GTVSendStar a = (GTVSendStar) p.left;
                 String paramA = GTGenUtil.sendToParam(a);
                 ErlFun sendFunc = genSendFun(s, paramA, p.left);
+                Map<String, ErlTerm> fields = new HashMap<>();
+                if(s.c > 0)
+                    fields.put("mc_counter_" + s.c, new ErlVar("MC"));
+                ErlRecordPattern dataPattern = new ErlRecordPattern("state_data", fields);
+
                 List<ErlTerm> params = Arrays.asList(
                         new ErlVar("EventType"),
                         new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                        new ErlVar("Data")
+                        //new ErlVar("Data")
+                        new ErlMatch(dataPattern, new ErlVar("Data"))
                 );
-
                 ErlSeq bodySeq = new ErlSeq();
+                ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
+                if(s.c > 0){
+                     recordUpdate.addField("mc_counter_" + s.c,
+                             new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
+                     );
+                }
+                     ErlMatch match = new ErlMatch(new ErlVar("NewData"), recordUpdate);
+                     bodySeq.addExpression(match);
+
+
                 bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                         new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
                 bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName, Arrays.asList(
                         new ErlVar("EventType"),
                         new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-                        new ErlVar("Data")
+//                        new ErlVar("Data")
+                        new ErlVar("NewData")
+
                 )));
                 ErlFun clause = new ErlFun(funcName);
                 clause.addClause(params, bodySeq);
                 String rhsSpec = funcName + "(" +
                         "EventType :: term(), " +
                         "{atom()}, " +
-                        "state_data()) -> " +
+                        "state_data()) -> \n\t " +
                         GTErlGenUtil.getNextStateReturnType(m, p.right);
                 clause.setSpec(rhsSpec);
                 return Stream.of(sendFunc, clause);
@@ -583,19 +625,21 @@ public class GTGenericBehaviour {
             );
             ErlSeq bodySeq = new ErlSeq();
             ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
-            if(s.c > 0){
-                recordUpdate.addField("mc_counter_" + s.c,
-                        new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
-                );
-            }
-            ErlMatch match = new ErlMatch(new ErlVar("NewData"), recordUpdate);
-            bodySeq.addExpression(match);
+        //     if(s.c > 0){
+        //         recordUpdate.addField("mc_counter_" + s.c,
+        //                 new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
+        //         );
+        //     }
+        //     ErlMatch match = new ErlMatch(new ErlVar("NewData"), recordUpdate);
+        //     bodySeq.addExpression(match);
+//            bodySeq.addExpression(new ErlVar("Data"));
             bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                     new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName, Arrays.asList(
                     new ErlVar("EventType"),
                     new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+ "Pid"), payloadTuple)),
-                    new ErlVar("NewData")
+                //     new ErlVar("NewData")
+                    new ErlVar("Data")
             )));
             ErlFun clause = new ErlFun(funcName);
             clause.addClause(params, guard, bodySeq);
@@ -603,7 +647,7 @@ public class GTGenericBehaviour {
             String lhsSpec = funcName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
-                    "state_data()) -> " +
+                    "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
             return clause;
@@ -684,7 +728,7 @@ public class GTGenericBehaviour {
                         String lhsSpec = funcName + "(" +
                                 "EventType :: term(), " +
                                 "{pid(), {term()}, integer()}, " +
-                                "state_data()) -> " +
+                                "state_data()) -> \n\t" +
                                 GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
                         clause.setSpec(lhsSpec);
 
@@ -742,7 +786,7 @@ public class GTGenericBehaviour {
             String lhsSpec = funcName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
-                    "state_data()) -> " +
+                    "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
             return clause;
@@ -816,7 +860,7 @@ public class GTGenericBehaviour {
             String lhsSpec = funcName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
-                    "state_data()) -> " +
+                    "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
 
