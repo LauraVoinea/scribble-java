@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Copyright 2008 The Scribble Authors
 #
@@ -180,7 +180,9 @@ if [ "$run_all_gt_examples" = 1 ]; then
     if [ -z "$(find "$EXAMPLES_DIR" -type f -name '*.scr' -print -quit)" ]; then
         echo "No .scr examples found in $EXAMPLES_DIR"
     else
-        find "$EXAMPLES_DIR" -type f -name '*.scr' -print0 | while IFS= read -r -d $'\0' scr_file; do
+        # find "$EXAMPLES_DIR" -type f -name '*.scr' -print0 | while IFS= read -r -d $'\0' scr_file; do
+        find "$EXAMPLES_DIR" -type f -name '*.scr' | while IFS= read -r scr_file; do
+
             echo "Processing example: $scr_file"
             scribblec "$scr_file"
         done
