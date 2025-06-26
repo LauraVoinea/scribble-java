@@ -1,0 +1,15 @@
+{application, two_buyer,
+ [{description, "A two_buyer application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {two_buyer_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache-2.0"]},
+  {links, []}
+ ]}.
