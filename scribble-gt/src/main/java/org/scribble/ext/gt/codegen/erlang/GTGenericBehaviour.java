@@ -684,17 +684,46 @@ public class GTGenericBehaviour {
                     Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
 
                     return actions.stream().flatMap(p -> {
+                        ErlGuard guard = null;
+                        List<ErlTerm> tupleElements = new ArrayList<>();
+                        if(entry.getKey().right instanceof GTVRecv){
+                            GTVRecv e = (GTVRecv) entry.getKey().right;
+                            Map<String, ErlTerm> fields = new LinkedHashMap<>();
+
+                            // Build the payload tuple by mapping each element of p to an ErlVar.
+                            List<ErlTerm> payload = new ArrayList<>();
+                            payload.add(new ErlAtom(paramA));
+
+                            List<ErlTerm> payloadVars = e.pay.elems.stream()
+                                    .map(elem -> new ErlVar(elem.toString()))
+                                    .collect(Collectors.toList());
+
+                            ErlTuple payloadTuple = new ErlTuple(payload);
+                            payload.addAll(payloadVars);
+                            guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
+                            tupleElements = Arrays.asList(
+                                    new ErlVar(e.role.toString()+ "Pid"),
+                                    new ErlTuple(payload),
+                                    new ErlVar("Counter"));
+
+                        }
+
                         Map<String, ErlTerm> fields = new LinkedHashMap<>();
-                        // TODO: add PIDs?
                         if(s.c > 0)
                             fields.put("mc_counter_" + s.c, new ErlVar("MC"));
                         ErlRecordPattern dataPattern = new ErlRecordPattern("state_data", fields);
 
+
+                        if (tupleElements.isEmpty()) {
+                            tupleElements.add(new ErlAtom(paramA));
+                        }
+
                         List<ErlTerm> params = Arrays.asList(
                                 new ErlVar("EventType"),
-                                new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                                new ErlTuple(tupleElements),
                                 new ErlMatch(dataPattern, new ErlVar("Data"))
                         );
+
                         ErlSeq bodySeq = new ErlSeq();
 
                         // Update the counter: Data#state_data{mc_counter_<s.c> = MC + 1}
@@ -724,7 +753,7 @@ public class GTGenericBehaviour {
                                 )));
 
                         ErlFun clause = new ErlFun(funcName);
-                        clause.addClause(params, bodySeq);
+                        clause.addClause(params, guard, bodySeq);
                         String lhsSpec = funcName + "(" +
                                 "EventType :: term(), " +
                                 "{pid(), {term()}, integer()}, " +
@@ -793,8 +822,7 @@ public class GTGenericBehaviour {
         }).collect(Collectors.toList());
     }
 
-    //TODO: what is generateExternalMixedII?
-    // still seems output input
+    // ! |> ? -- events tau |> ? -- actions ! |> eps* -- entry
     protected List<ErlFun> generateExternalMixedII(GTEFSM m, GTVState s) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);

@@ -155,12 +155,12 @@ public class GTCallbackModule {
         // - For each role (other than self) add a field <role>_pid bound to that role's PID variable.
         LinkedHashMap<String, ErlTerm> recFields = new LinkedHashMap<>();
         recFields.put("mc_counter_1", new ErlAtom("0")); // you could later compute this dynamically.
-        for (Role r : roles) {
-            if (r.equals(self))
-                continue;
-            String rName = r.toString().toLowerCase();
-            recFields.put(rName + "_pid", new ErlVar(rName + "Pid"));
-        }
+//        for (Role r : roles) {
+//            if (r.equals(self))
+//                continue;
+//            String rName = r.toString().toLowerCase();
+//            recFields.put(rName + "_pid", new ErlVar(rName + "Pid"));
+//        }
         ErlRecordUpdate stateRecord = new ErlRecordUpdate(null, "state_data");
         recFields.forEach(stateRecord::addField);
         ErlMatch assignData = new ErlMatch(new ErlVar("Data"), stateRecord);
@@ -210,23 +210,19 @@ public class GTCallbackModule {
                 new ErlList(Collections.emptyList())
         ));
         bodySeq.addExpression(connFormat);
+        // --- Create state data record.
+        // Build a record update for state_data with:
+        // - For each role (other than self) add a field <role>_pid bound to that role's PID variable.
+        LinkedHashMap<String, ErlTerm> recFields = new LinkedHashMap<>();
 
-        // Return tuple for connection
-        ErlTerm retTuple = new ErlTuple(List.of(
-                new ErlAtom("ok"),
-                new ErlVar("Data")
-        ));
-
-        bodySeq.addExpression(retTuple);
-
-                // --- For each role other than self, generate a binding for that role's PID and send a message.
+        // --- For each role other than self, generate a binding for that role's PID and send a message.
         for (Role r : roles) {
             if (r.equals(self))
                 continue;
             // Assume role names are in lowercase (e.g. "bob")
             String rName = r.toString().toLowerCase();
             ErlVar rPidVar = new ErlVar(rName + "Pid");
-
+            recFields.put(rName + "_pid", rPidVar);
             // Build the case expression: case whereis(r) of ... end.
             ErlCall whereisCall = new ErlCall("whereis", List.of(new ErlAtom(rName)));
             ErlCase caseExpr = new ErlCase(whereisCall);
@@ -244,24 +240,17 @@ public class GTCallbackModule {
             undefinedSeq.addExpression(whereisCall2);
             caseExpr.addClause(new ErlAtom("undefined"), undefinedSeq);
             // Clause 2: pattern: Pid -> Pid
-            caseExpr.addClause(new ErlVar("Pid"), new ErlVar("Pid"));
+            caseExpr.addClause(new ErlVar("Pid_" + rName), new ErlVar("Pid_" + rName));
 
             // Bind the result of the case expression to rPidVar.
             ErlMatch assignRPid = new ErlMatch(rPidVar, caseExpr);
             bodySeq.addExpression(assignRPid);
 
-            // Send a message to that role:
-            // Build the message tuple: {<self>_pid, self()}
-            String selfField = self.toString().toLowerCase() + "_pid";
-            ErlTuple msgTuple = new ErlTuple(List.of(
-                    new ErlAtom(selfField),
-                    new ErlCall("self", Collections.emptyList())
-            ));
-            // Build the send expression: rPidVar ! {<self>_pid, self()}
-            ErlCall sendExpr = new ErlCall(new ErlOp("!"),
-                    List.of(rPidVar, msgTuple));
-            bodySeq.addExpression(sendExpr);
+
         }
+        ErlRecordUpdate stateRecord = new ErlRecordUpdate(null, "state_data");
+        recFields.forEach(stateRecord::addField);
+        bodySeq.addExpression(stateRecord);
 
         // Create the connection function.
         ErlFun connFun = new ErlFun("connection");
@@ -301,7 +290,8 @@ public class GTCallbackModule {
                 // 1. First argument: the mode, as a constant atom "cast".
                 ErlTerm arg1 = new ErlAtom("cast");
 
-                List<ErlTerm> payloadVars = e.pay.elems.stream().map(elem -> new ErlAtom(elem.toString())).
+                List<ErlTerm> payloadVars = e.pay.elems.stream().map(
+                        elem -> new ErlVar(elem.toString())).
                         collect(Collectors.toList());
                 List<ErlTerm> tupleElements = new ArrayList<>();
                 tupleElements.add(new ErlAtom(paramA));
@@ -506,7 +496,8 @@ public class GTCallbackModule {
             Pair<GTVAction, GTVState> succ = vs.iterator().next();
             String a1 = GTGenUtil.eventToParam(e);
 
-            List<ErlTerm> payloadVars = e.pay.elems.stream().map(elem -> new ErlAtom(elem.toString())).
+            List<ErlTerm> payloadVars = e.pay.elems.stream().map(
+                    elem -> new ErlVar(elem.toString())).
                     collect(Collectors.toList());
             List<ErlTerm> tupleElements = new ArrayList<>();
             tupleElements.add(new ErlAtom(a1));
