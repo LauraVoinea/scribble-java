@@ -1,7 +1,5 @@
 module AMQP_long;
 
-
-//* // https://github.com/LauraVoinea/scribble-java/blob/gt-artifact/scribble-gt-demos/new/amqp_selective_consumer.scr
 data <java> "java.lang.Integer" from "rt.jar" as consumer_tag;
 data <java> "java.lang.Integer" from "rt.jar" as delivery_tag;
 data <java> "java.lang.String" from "rt.jar" as nowait;
@@ -10,6 +8,7 @@ data <java> "java.lang.String" from "rt.jar" as routing_key;
 data <java> "java.lang.String" from "rt.jar" as pid;
 
 
+// https://github.com/LauraVoinea/scribble-java/blob/gt-artifact/scribble-gt-demos/scribble/amqp_selective_consumer.scr
 global protocol AMQP(role Consumer, role Channel, role Server) {
     // consumers are monitored by channels once registered,
 
@@ -84,20 +83,18 @@ global protocol AMQP(role Consumer, role Channel, role Server) {
                 }
             } or Server -> Channel {
                 // Channel initiates cancel
-                basic_cancel1(consumer_tag, nowait) from Channel to Server;  // !!! renamed labels
-                basic_cancel1(consumer_tag, nowait) from Channel to Consumer;
+                basic_cancel2(consumer_tag, nowait) from Channel to Server;
+                basic_cancel2(consumer_tag, nowait) from Channel to Consumer;
 
                 // Server confirms the cancel request
-                basic_cancel_ok1(consumer_tag) from Server to Channel;
+                basic_cancel_ok2(consumer_tag) from Server to Channel;
 
                 // Channel forwards the cancel confirmation to the Consumer
-                basic_cancel_ok1(consumer_tag) from Channel to Consumer;
+                basic_cancel_ok2(consumer_tag) from Channel to Consumer;
             }
         }
-//    } () or Consumer -> Channel() {
-//        // Monitoring and lifecycle management of Consumers
-//        consumer_down(Pid) from Consumer to Channel;
-//    }
-    }
-//*/
-
+   /* } or Consumer -> Channel {
+        // Monitoring and lifecycle management of Consumers
+        consumer_down(Pid) from Consumer to Channel;
+    } */
+}

@@ -6,7 +6,7 @@ import org.scribble.ext.gt.cli.GTCommandLine2;
 
 public class TestUtil {
 
-    public static final String BASE_PATH = "C:\\Users\\Raymond\\winroot\\home\\eey335\\code\\java\\intellij\\git\\github.com\\rhu1-scribble-core-gt\\scribble-java\\scribble-gt\\src\\test\\java\\oopsla25";
+    public static final String BASE_PATH = ".\\src\\test\\java\\oopsla25";
 
     public static void testGood(String scribFile) {
         GTCommandLine2.main(new String[]{scribFile});
