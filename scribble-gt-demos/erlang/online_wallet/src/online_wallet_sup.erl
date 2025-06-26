@@ -1,0 +1,38 @@
+%%%-------------------------------------------------------------------
+%% @doc online_wallet top level supervisor.
+%% @end
+%%%-------------------------------------------------------------------
+
+-module(online_wallet_sup).
+
+-behaviour(supervisor).
+
+-export([start_link/0]).
+
+-export([init/1]).
+
+-define(SERVER, ?MODULE).
+
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+
+init([]) ->
+    SupFlags = #{strategy => one_for_one, intensity => 5, period => 10},
+    ChildSpecs = [
+        #{id => a,
+            start => {a, start_link, []},
+            restart => temporary,
+            shutdown => 5000,
+            type => worker},
+        #{id => c,
+            start => {c, start_link, []},
+            restart => temporary,
+            shutdown => 5000,
+            type => worker},
+        #{id => s,
+            start => {s, start_link, []},
+            restart => temporary,
+            shutdown => 5000,
+            type => worker}
+    ],
+    {ok, {SupFlags, ChildSpecs}}.
