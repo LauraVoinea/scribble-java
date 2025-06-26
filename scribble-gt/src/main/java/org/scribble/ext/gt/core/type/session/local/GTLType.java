@@ -26,7 +26,7 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
 
     /* ... */
 
-    // this merge g  -- should be symmetric
+    // this merge g -- should be symmetric
     Optional<? extends GTLType> merge(GTLType t);
 
     // cf. s param

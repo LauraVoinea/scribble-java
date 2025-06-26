@@ -5,14 +5,11 @@ import org.scribble.core.job.CoreArgs;
 import org.scribble.core.lang.global.GProtocol;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.type.kind.Global;
-import org.scribble.core.type.kind.ProtoKind;
 import org.scribble.core.type.name.ModuleName;
 import org.scribble.core.type.name.ProtoName;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.STypeFactory;
-import org.scribble.core.type.session.Seq;
 import org.scribble.core.visit.gather.RoleGatherer;
-import org.scribble.core.visit.gather.STypeGatherer;
 import org.scribble.ext.gt.core.model.global.GTSModelFactoryImpl;
 import org.scribble.ext.gt.core.model.local.GTEModelFactoryImpl;
 import org.scribble.util.ScribException;
@@ -46,8 +43,6 @@ public class GTCore extends Core {
                 "Checking for unused role decls on all inlined globals...");
         for (ProtoName<Global> fullname : this.context.getParsedFullnames()) {
             // CHECKME: relegate to "warning" ? -- some downsteam operations may depend on this though (e.g., graph building?)
-            System.out.println("11111111111: " + this.context.getInlined(fullname));
-            System.out.println("11111111111: " + this.context.getInlined(fullname).def);
             Set<Role> used = this.context.getInlined(fullname).def
 
                     //.acceptNoThrow(new RoleGatherer<>())

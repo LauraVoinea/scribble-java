@@ -1,7 +1,6 @@
 package org.scribble.ext.gt.core.type.name;
 
 import org.scribble.core.type.name.Op;
-import org.scribble.core.type.name.Role;
 
 import java.util.Collections;
 import java.util.Set;

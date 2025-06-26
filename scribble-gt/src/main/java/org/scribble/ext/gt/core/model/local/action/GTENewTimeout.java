@@ -33,14 +33,14 @@ import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
 
-// !!! not a CFSM action...
+// not a CFSM action...
 public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements GTEAction {
 
     public final int c;
     public final int n;
 
     public GTENewTimeout(int id, ModelFactory mf, int c, int n) {
-        super(id, mf, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);  // !!! CHECKME record local role?
+        super(id, mf, Role.EMPTY_ROLE, Op.EMPTY_OP, Payload.EMPTY_PAYLOAD);
         this.c = c;
         this.n = n;
     }
@@ -60,11 +60,6 @@ public class GTENewTimeout<A extends ActionKind> extends EAction<A> implements G
     @Override
     public SSend<StaticActionKind> toStaticGlobal(Role self) {
         return this.mf.global.SSend(self, this.peer, this.mid, this.payload);
-    }
-
-    @Override
-    public GTSNewTimeout<DynamicActionKind> mirror(GTSModelFactory mf, Role self) {
-        return mf.SNewTimeout(this.c, this.n);
     }
 
     /* ... */

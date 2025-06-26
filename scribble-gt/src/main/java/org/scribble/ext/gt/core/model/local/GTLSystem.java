@@ -11,7 +11,7 @@ public class GTLSystem {
     public final Map<Role, GTLConfig> configs;
 
     public GTLSystem(Map<Role, GTLConfig> configs) {
-        this.configs = Collections.unmodifiableMap(new HashMap<>(configs));
+        this.configs = Map.copyOf(configs);
     }
 
 

@@ -7,7 +7,6 @@ import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.type.kind.Local;
 import org.scribble.core.type.name.RecVar;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,43 +47,6 @@ public class GTEState extends MPrettyState<RecVar, EAction<StaticActionKind>, GT
     @Override
     protected boolean canEquals(MState<?, ?, ?, ?> s) {
         return s instanceof GTEState;
-    }
-
-
-    /* ... */
-
-    // Dup from EState
-    public GTEStateKind getStateKind() {
-        List<EAction<StaticActionKind>> as = this.getActions();
-        if (as.size() == 0) {
-            return GTEStateKind.TERMINAL;
-        } else {
-            if (as.stream().filter(x -> !x.mid.toString().startsWith("*"))  // !!! cf. GTFsmConstructor.makeStar
-                  .allMatch(a -> a.isSend()))  // || a.isRequest() || a.isClientWrap()))  // ClientWrap should be unary?
-            {
-                return GTEStateKind.OUTPUT;
-            } else if (as.stream().filter(x -> !x.mid.toString().startsWith("*"))
-                         .allMatch(EAction<StaticActionKind>::isReceive)) {
-                return (as.stream().filter(x -> !x.mid.toString().startsWith("*")).count() == 1)  // !!! cf. GTFsmConstructor.makeStar
-                       ? GTEStateKind.UNARY_RECEIVE
-                       : GTEStateKind.POLY_RECIEVE;
-            }
-
-            /*else if (as.size() == 2) {
-                // internal/external mixed choice -- two actions, one I one O
-            }*/
-
-            /*else if (as.stream().allMatch(EAction<StaticActionKind>::isAccept)) {
-                return EStateKind.ACCEPT;  // Distinguish unary for API gen?  cf. receive
-            } else if (as.size() == 1 && as.get(0).isDisconnect()) {
-                return EStateKind.OUTPUT;
-            } else if (as.size() == 1 && as.get(0).isServerWrap()) {
-                return EStateKind.SERVER_WRAP;
-            }*/
-            else {
-                throw new RuntimeException("TODO: " + as);
-            }
-        }
     }
 
 }

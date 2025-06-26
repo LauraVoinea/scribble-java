@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-// !!! No "fid"
 public class GTLEnd implements GTLType {
 
     public static final GTLEnd END = new GTLEnd();
@@ -27,7 +26,6 @@ public class GTLEnd implements GTLType {
     @Override
     public GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                             int c, GTVState s, GTVState end) {
-        // CHECKME draw recvStars?
         return new GTEFSM(Set.of(end), end, Set.of(), Set.of(), Map.of());
     }
 

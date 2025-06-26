@@ -1,15 +1,12 @@
 package org.scribble.ext.gt.core.model.local;
 
-import org.scribble.core.model.*;
+import org.scribble.core.model.DynamicActionKind;
+import org.scribble.core.model.MActionBase;
+import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.endpoint.EModelFactoryImpl;
-import org.scribble.core.model.endpoint.actions.ESend;
-import org.scribble.core.model.global.SModelFactoryImpl;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
-import org.scribble.ext.gt.core.model.global.action.GTSRecv;
-import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.action.GTENewTimeout;
 import org.scribble.ext.gt.core.model.local.action.GTERecv;
 import org.scribble.ext.gt.core.model.local.action.GTESend;

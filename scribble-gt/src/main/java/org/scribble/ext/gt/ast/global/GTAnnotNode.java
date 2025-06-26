@@ -19,7 +19,6 @@ import org.antlr.runtime.Token;
 import org.scribble.ast.name.simple.RoleNode;
 import org.scribble.core.type.name.Role;
 import org.scribble.del.DelFactory;
-import org.w3c.dom.Node;
 
 public class GTAnnotNode extends RoleNode {
     //public static final RoleNode SELF = ...;  // No: no token info

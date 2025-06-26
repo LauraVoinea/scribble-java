@@ -17,7 +17,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// !!! FIXME naming "interaction" vs. "choice" (in other places)
 public class GTLBranch implements GTLType {
 
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
@@ -52,7 +51,6 @@ public class GTLBranch implements GTLType {
             Op x = it.next();
             if (this.cases.containsKey(x)) {  // Would be nice if get returned Optional... can map empty directly
                 if (cast.cases.containsKey(x)) {
-                    // case x in both branches: !!! currently recursively merging but could just simplify to equality
                     Optional<? extends GTLType> opt = this.cases.get(x).merge(cast.cases.get(x));
                     if (!opt.isPresent()) {
                         return Optional.empty();
@@ -122,16 +120,17 @@ public class GTLBranch implements GTLType {
 
     @Override
     public GTLBranch subs(RecVar rv, GTLType t) {
-        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
-                                                     .collect(Collectors.toMap(
-                                                             Map.Entry::getKey,
-                                                             x -> x.getValue().subs(rv, t),
-                                                             (x, y) -> null,
-                                                             LinkedHashMap::new
-                                                     ));
+        LinkedHashMap<Op, GTLType> cases =
+                this.cases.entrySet().stream()
+                          .collect(Collectors.toMap(
+                                  Map.Entry::getKey,
+                                  x -> x.getValue().subs(rv, t),
+                                  (x, y) -> null,
+                                  LinkedHashMap::new
+                          ));
         return this.fact.branch(this.src, new LinkedHashMap<>(this.pays), cases);
     }
-   
+
     @Override
     public String toString() {
         return this.src + "&{"
@@ -142,7 +141,6 @@ public class GTLBranch implements GTLType {
     }
 
     protected String msgToString(Op op) {
-        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
         return GTGInteraction.msgToString(op, this.pays.get(op));
     }
 

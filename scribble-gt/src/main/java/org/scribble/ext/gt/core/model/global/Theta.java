@@ -25,15 +25,11 @@ public class Theta {
         return new Theta(tmp);
     }
 
-    // HERE HERE global vs. local modelling of Theta (sync vs async w.r.t Theta) -- projection of global Theta to local Thetas
-    public Theta project(Role r) {
-        throw new RuntimeException("TODO");  // Currently GTGType.projectTheta
-    }
-
     @Override
     public String toString() {
         return this.map.toString();
     }
+
 
     /* hashCode, equals */
 

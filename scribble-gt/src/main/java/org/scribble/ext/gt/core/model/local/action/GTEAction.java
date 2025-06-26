@@ -10,5 +10,4 @@ public interface GTEAction {
 
     int getN();
 
-    GTSAction mirror(GTSModelFactory mf, Role self);
 }

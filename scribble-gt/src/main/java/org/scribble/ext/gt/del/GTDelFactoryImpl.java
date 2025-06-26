@@ -18,37 +18,37 @@ import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.del.global.GTGMixedDel;
 
 
-public class GTDelFactoryImpl extends DelFactoryImpl implements GTDelFactory
-{
-	/**
-	 * Existing (base) node classes with new dels
-   * (Instantiating existing node classes with new dels)
-	 */
+public class GTDelFactoryImpl extends DelFactoryImpl implements GTDelFactory {
+    /**
+     * Existing (base) node classes with new dels
+     * (Instantiating existing node classes with new dels)
+     */
 
 
-	/* General and globals */
-
-	/* Locals */
+    /* General and globals */
 
 
-	/**
-	 * New (Assrt) node types  
-	 */
-	
-	/* General and globals */
+    /* Locals */
 
-	@Override
-	public void GTGMixed(GTGMixed n)
-	{
-		//setDel(n, createDefaultDel());
-		setDel(n, new GTGMixedDel());
-	}
-	
 
-	/**
-	 * New (Assrt) node types
-	 * (Explicitly creating new Assrt nodes)
-	 */
+    /**
+     * New (Assrt) node types
+     */
 
-	/* General and globals */
+
+    /* General and globals */
+    @Override
+    public void GTGMixed(GTGMixed n) {
+        //setDel(n, createDefaultDel());
+        setDel(n, new GTGMixedDel());
+    }
+
+
+    /**
+     * New (Assrt) node types
+     * (Explicitly creating new Assrt nodes)
+     */
+
+
+    /* General and globals */
 }

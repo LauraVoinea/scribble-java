@@ -51,11 +51,6 @@ public class GTESend<A extends ActionKind> extends ESend<A> implements GTEAction
 
     }
 
-    @Override
-    public GTSSend<DynamicActionKind> mirror(GTSModelFactory mf, Role self) {
-        return mf.GTSSend(self, this.peer, this.mid, this.payload, this.c, this.n);
-    }
-
     /* ... */
 
     @Override
@@ -70,7 +65,6 @@ public class GTESend<A extends ActionKind> extends ESend<A> implements GTEAction
 
     @Override
     public String toString() {
-        //return "(" + this.obj + ", " + this.mid + ":" + this.payload + ", " + c + ", " + n + ")";
         return this.obj + getCommSymbol() + "(" + this.mid + this.payload + ", " + c + ", " + n + ")";
     }
 

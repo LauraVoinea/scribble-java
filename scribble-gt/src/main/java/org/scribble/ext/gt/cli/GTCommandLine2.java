@@ -83,7 +83,6 @@ public class GTCommandLine2 extends CommandLine {
                     explicitObserverLeftCommits
                     ? translate.getExplicitCommitting()
                     : translate.getCommittingNew();
-            //System.out.println("\n222222: " + comInvert);
 
             /*Map<Role, Set<Op>> mm = comInvert.entrySet().stream().collect(Collectors.toMap(
                     x -> x.getKey(),
@@ -166,7 +165,7 @@ public class GTCommandLine2 extends CommandLine {
     }
 
 
-    /* Well formedness */
+    /* Well-formedness */
 
     static Optional<Exception> checkStaticProperties(boolean debug, GTGType translate) {
 
@@ -187,7 +186,6 @@ public class GTCommandLine2 extends CommandLine {
 
         Optional<Exception> aware = translate.isSyntacticAware();
         if (aware.isPresent()) {
-            //return Optional.of(new Exception("Not aware: " + translate));
             return aware;
         }
 

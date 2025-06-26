@@ -55,13 +55,13 @@ public class GTGRecursion implements GTGType {
         }
     }
 
-    // !!! assumes unfolded all once
+    // assumes unfolded all once
     @Override
     public Set<Op> getChoiceLabelsUpTo(int c) {
         return Collections.emptySet();
     }
 
-    // !!! assumes unfolded all once
+    // assumes unfolded all once
     @Override
     public Optional<Exception> checkWellFormed() {
         return Optional.empty();
@@ -181,15 +181,6 @@ public class GTGRecursion implements GTGType {
     public boolean canEquals(Object o) {
         return o instanceof GTGRecursion;
     }
-
-
-
-
-
-
-
-
-
 
 
 

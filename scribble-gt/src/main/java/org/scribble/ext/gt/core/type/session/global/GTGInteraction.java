@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// !!! FIXME naming "interaction" vs. "choice" (in other places)
 public class GTGInteraction implements GTGType {
 
     public final Role src;
@@ -169,27 +168,23 @@ public class GTGInteraction implements GTGType {
         return copy;
     }
 
-    // !!! syntactic deps relies on RHS awareness -- RHS can happen any time (i.e., before an LHS committing action), but single-decision ensures all aware
+    // syntactic deps relies on RHS awareness -- RHS can happen any time (i.e., before an LHS committing action), but single-decision ensures all aware
     @Override
     public Map<Role, Set<Role>> getEventualSyntacticDeps() {
         boolean allDiv = this.cases.values().stream().allMatch(GTGType::isDiverging);
         Map<Role, Set<Role>> nested =
                 this.cases.values().stream()
-
-                          // !!! OK because _eventual_ can be freely past or future (cf. strict)
-                          // !!! TODO could also relax MC left/right if diverging ?
+                          // OK because _eventual_ can be freely past or future (cf. strict)
                           .filter(x -> allDiv || !x.isDiverging())
-
-                          .map(GTGType::getEventualSyntacticDeps)  // !!! eventual
+                          .map(GTGType::getEventualSyntacticDeps)
                           .reduce(GTGInteraction::mergeSyntacticDeps).get();  // Pre: non-empty
 
         Map<Role, Set<Role>> copy = new HashMap<>(nested);
-        //copy.put(this.src, Collections.emptySet());  // !!! eventual
 
         for (Map.Entry<Role, Set<Role>> x : nested.entrySet()) {
             Role k = x.getKey();
             Set<Role> vs = x.getValue();
-            if (vs.contains(this.dst)) {  // !!! eventual
+            if (vs.contains(this.dst)) {
                 Set<Role> tmp = new HashSet<>(vs);
                 tmp.add(this.src);
                 copy.put(k, tmp);
@@ -305,8 +300,8 @@ public class GTGInteraction implements GTGType {
                     this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));
             Optional<Pair<? extends GTLType, Sigma>> fst = str.findFirst().get();  // Non-empty
 
-            // FIXME stream made twice... -- refactor with GTGWiggly
-            str = this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));  // !!! XXX
+            // TODO stream made twice... -- refactor with GTGWiggly
+            str = this.cases.values().stream().map(x -> x.project(topPeers, r, c, n));
             return str.skip(1).reduce(fst, GTGInteraction::mergePair);
         }
     }
@@ -316,9 +311,11 @@ public class GTGInteraction implements GTGType {
         if (this.src.equals(r) || this.dst.equals(r)) {
             return Optional.of(new Theta(cs));
         }
-        // FIXME refactor merge
-        List<Optional<Theta>> distinct = this.cases.values().stream()
-                                                   .map(x -> x.projectTheta(cs, r)).distinct().collect(Collectors.toList());
+        // TODO refactor merge
+        List<Optional<Theta>> distinct =
+                this.cases.values().stream()
+                          .map(x -> x.projectTheta(cs, r)).distinct()
+                          .collect(Collectors.toList());
         if (distinct.size() != 1) {
             return Optional.empty();
         }
@@ -328,38 +325,24 @@ public class GTGInteraction implements GTGType {
 
     /* ... */
 
-    // TODO refactor with GTMixedActive -- XXX mixed active needs to do Sigma.circ
     public static Optional<Pair<? extends GTLType, Sigma>> mergePair(
             Optional<Pair<? extends GTLType, Sigma>> left,
             Optional<Pair<? extends GTLType, Sigma>> right) {
-        /*if (left.isEmpty() || right.isEmpty()) {
-            return Optional.empty();
-        }*/
         Optional<? extends GTLType> merge = mergeSyntacticDeps(left.map(x -> x.left), right.map(x -> x.left));
         Optional<Sigma> sigma = mergeSigma(left.map(x -> x.right), right.map(x -> x.right));
-        return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));  // nested `map` OK, result should be empty only when Opt is empty
+        return merge.flatMap(x -> sigma.map(y -> new Pair<>(x, y)));
     }
 
     public static Optional<Sigma> mergeSigma(
             Optional<Sigma> left, Optional<Sigma> right) {
         return left.flatMap(x ->
                 right.flatMap(y ->
-                        x.equals(y) ? Optional.of(x) : Optional.empty()));  // nested `flatMap`, result may be empty even if Opt not empty
+                        x.equals(y) ? Optional.of(x) : Optional.empty()));
     }
 
-    // !!! TODO refactor with GTLType.merge
+    // TODO refactor with GTLType.merge
     public static Optional<? extends GTLType> mergeSyntacticDeps(
             Optional<? extends GTLType> left, Optional<? extends GTLType> right) {
-        /*if (left.isEmpty() || right.isEmpty()) {
-            return Optional.empty();
-        }
-        GTLType l = left.get();
-        GTLType r = right.get();
-        if (l.equals(r)) {  // !!! TODO
-            return left;
-        } else {
-            throw new RuntimeException("TODO");
-        }*/
         return left.flatMap(x -> right.flatMap(x::merge));
     }
 
@@ -398,13 +381,14 @@ public class GTGInteraction implements GTGType {
 
     @Override
     public GTGInteraction subs(RecVar v, GTGRecursion subs) {
-        LinkedHashMap<Op, GTGType> cases = this.cases.entrySet().stream()
-                                                     .collect(Collectors.toMap(
-                                                             Map.Entry::getKey,
-                                                             x -> x.getValue().subs(v, subs),
-                                                             (x, y) -> null,
-                                                             LinkedHashMap::new
-                                                     ));
+        LinkedHashMap<Op, GTGType> cases =
+                this.cases.entrySet().stream()
+                          .collect(Collectors.toMap(
+                                  Map.Entry::getKey,
+                                  x -> x.getValue().subs(v, subs),
+                                  (x, y) -> null,
+                                  LinkedHashMap::new
+                          ));
         return new GTGInteraction(this.src, this.dst, new LinkedHashMap<>(this.pays), cases);
     }
 
@@ -417,7 +401,6 @@ public class GTGInteraction implements GTGType {
     }
 
     protected String msgToString(Op op) {
-        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
         return msgToString(op, this.pays.get(op));
     }
 

@@ -13,14 +13,9 @@
  */
 package org.scribble.ext.gt.del.global;
 
-import org.antlr.runtime.tree.CommonTree;
 import org.scribble.ast.ScribNode;
 import org.scribble.core.lang.global.GNode;
-import org.scribble.core.type.name.Role;
-import org.scribble.core.type.session.global.GSeq;
-import org.scribble.core.type.session.global.GTGTypeFactoryImpl;
 import org.scribble.del.global.GCompoundSessionNodeDel;
-import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.del.GTMixedDel;
 import org.scribble.visit.GTypeTranslator;
 
@@ -28,10 +23,10 @@ public class GTGMixedDel extends GTMixedDel implements GCompoundSessionNodeDel {
 
     @Override
     public GNode translate(ScribNode n, GTypeTranslator t) {
-        return null;  // !!! XXX HERE HERE FIXME: cf. GInteractionSeqDel  // Currently Core not used -- GTCommandLine takes JobConfig parsed (post disamb)
-        ////throw new RuntimeException("TODO");  // HERE HERE in base core MixedChoice, override visit methods to do general homomorphic visit of mixed choice
+        return null;  // XXX cf. GInteractionSeqDel  // Currently Core not used -- GTCommandLine takes JobConfig parsed (post disamb)
+        ////throw new RuntimeException("TODO");  // in base core MixedChoice, override visit methods to do general homomorphic visit of mixed choice
 
-        /* cf. GTGTypeTranslator2
+        /*
         GTGMixed cast = (GTGMixed) n;
         CommonTree src = cast.getSource();
         Role other = cast.getOtherChild().toName();
