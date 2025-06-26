@@ -5,7 +5,7 @@ module ClearTermination3;
 global protocol Ex3_7c(role p, role q, role r) {
 //    mixed {
 //        c() from q to r;
-//        rec t {  // !!! XXX EFSM (state kind) for p: mu t.q&{a().t} ▷1 r&{b().end}
+//        rec t {  // ...EFSM (state kind) for p: mu t.q&{a().t} ▷1 r&{b().end}
 //            a() from q to p;
 //            continue t;
 //        }
@@ -16,7 +16,7 @@ global protocol Ex3_7c(role p, role q, role r) {
 
     mixed {
         c() from q to r;
-        a() from q to p;  // !!! equiv  // XXX FIXME EFSM
+        a() from q to p;  // equiv
         rec t {
             a() from q to p;
             continue t;
