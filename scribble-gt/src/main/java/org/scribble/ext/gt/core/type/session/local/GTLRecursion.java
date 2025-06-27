@@ -47,30 +47,6 @@ public class GTLRecursion implements GTLType {
         recvars.add(this.var);
         GTVState s1 = new GTVState(s.isEntry, c, recvars);
         return this.body.construct(r, com, recvStars, c, s1, end);
-
-        /*GTEFSM m_body = this.body.construct(r, com, recvStars, end);
-        Set<RecVar> recvars = new LinkedHashSet<>();
-        recvars.add(this.var);
-        recvars.addAll(m_body.init.recvars);
-        GTVState init = new GTVState(recvars);
-
-        Set<GTVState> tmp = new LinkedHashSet<>(m_body.S);
-        tmp.remove(m_body.init);
-        Set<GTVState> S = new LinkedHashSet<>();
-        S.add(init);
-        S.addAll(tmp);
-
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
-        for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> x : m_body.delta.entrySet()) {
-            Pair<GTVState, GTVEvent> k = x.getKey();
-            Set<Pair<GTVAction, GTVState>> v = x.getValue();
-            if (k.left.equals(m_body.init)) {
-                delta.put(new Pair<>(init, k.right), v);
-            } else {
-                delta.put(k, v);
-            }
-        }
-        return new GTEFSM(S, init, m_body.E, m_body.A, delta);*/
     }
 
 

@@ -7,7 +7,7 @@ global protocol RoleCapture(role p, role q, role r) {
 //        a() from p to r;
 //        mixed {
 //            b() from q to p;
-//            continue t;  // !!! XXX EFSM for r: t |> ...
+//            continue t;  // XXX EFSM for r: t |> ...
 //        } () or q->p () {
 //            1() from p to q;
 //            2() from p to r;

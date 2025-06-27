@@ -86,8 +86,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
 
     Map<Role, Set<Role>> getEventualSyntacticDeps();
 
-    //HERE  // and left committing filter out diverging choice-cases and diverging MC-left
-
     boolean isDiverging();
 
     Set<RecVar> getFreeRecVars();

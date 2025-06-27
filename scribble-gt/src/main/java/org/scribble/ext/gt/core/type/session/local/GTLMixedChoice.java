@@ -12,7 +12,6 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// HERE extend ANTLR -- copy frontend stuff from scrib-assrt
 public class GTLMixedChoice implements GTLType {
 
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
@@ -60,7 +59,6 @@ public class GTLMixedChoice implements GTLType {
         GTLBranch left = (GTLBranch) this.left;
         GTLSelect right = (GTLSelect) this.right;
 
-        // !!! right.cases.size() == 1
         Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 x -> x.getValue().construct(r, com, recvStars, this.c, new GTVState(this.c), end),
@@ -68,21 +66,13 @@ public class GTLMixedChoice implements GTLType {
                 LinkedHashMap::new
         ));
 
-        /*Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
-        Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
-        leftStars.put(this.c, new Pair<>(new GTVRecv(r, op, right.pays.get(op)), cases_right.get(op).init));*/
-        /*if (s.c != GTVState.NON_MIXED_ENTRY) {
-            throw new RuntimeException("Shouldn't get here: " + s.c);
-        }*/
         GTVState s1 = new GTVState(true, this.c, s.recvars);
         GTEFSM m_left = left.construct(r, com, recvStars, this.c, s1, end);
         GTVState init = m_left.init;
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
         Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
         Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
-        //Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = m_left.delta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new LinkedHashSet<>(x.getValue())));
-        // !!! right.cases.size() == 1
         for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
             Op op_right = x.getKey();
             GTEFSM m_right = x.getValue();
@@ -90,14 +80,10 @@ public class GTLMixedChoice implements GTLType {
             E.addAll(m_right.E);
             A.addAll(m_right.A);
 
-            GTVSendStar a = new GTVSendStar(right.dst, op_right, right.pays.get(op_right));
-            //Set<Pair<GTVAction, GTVState>> tmp = new LinkedHashSet<>();
-            //tmp.add(new Pair<>(a, m_right.init));
-            // !!! left.cases.size() == 1
+            GTVSendStar a = new GTVSendStar(right.dst, op_right);
             for (Map.Entry<Op, GTLType> y : left.cases.entrySet()) {
                 Op op_left = y.getKey();
                 GTVRecv e = new GTVRecv(left.src, op_left, left.pays.get(op_left));
-                //delta.put(new Pair<>(init, e), tmp);
                 Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(new Pair<>(init, e), z -> new LinkedHashSet<>());
                 tmp2.add(new Pair<>(a, m_right.init));
             }
@@ -107,7 +93,6 @@ public class GTLMixedChoice implements GTLType {
             GTVTau tau = new GTVTau(op_right);
             delta.put(new Pair<>(init, tau), tmp3);
 
-            //delta.putAll(m_right.delta);
             for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m_right.delta.entrySet()) {
                 Pair<GTVState, GTVEvent> k = y.getKey();
                 Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(k, z -> new LinkedHashSet<>());
@@ -127,15 +112,11 @@ public class GTLMixedChoice implements GTLType {
         }
     }
 
-    /* com needs to be Map<Role, Map<Integer, Set<Op>>>  // int is c
-    ... or calc/ env manually during construction !!! local is easier than global <<<< */
-
     protected GTEFSM constructExternal(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                                        int c, GTVState s, GTVState end) {
         GTLType left = this.left;
         GTLBranch right = (GTLBranch) this.right;
 
-        // !!! right.cases.size() == 1
         Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 x -> x.getValue().construct(r, com, recvStars, this.c, new GTVState(this.c), end),
@@ -146,9 +127,6 @@ public class GTLMixedChoice implements GTLType {
         Map<Integer, Pair<GTVRecv, GTVState>> leftStars = new LinkedHashMap<>(recvStars);
         Op op = cases_right.keySet().iterator().next();  // !!! right.cases.size() == 1
         leftStars.put(this.c, new Pair<>(new GTVRecv(right.src, op, right.pays.get(op)), cases_right.get(op).init));
-        /*if (s.c != GTVState.NON_MIXED_ENTRY) {
-            throw new RuntimeException("Shouldn't get here: " + s.c);
-        }*/
         GTVState s1 = new GTVState(true, this.c, s.recvars);
         GTEFSM m_left = left.construct(r, com, leftStars, this.c, s1, end);
 
@@ -156,17 +134,13 @@ public class GTLMixedChoice implements GTLType {
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
         Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
         Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
-        //Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = new LinkedHashMap<>();
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = m_left.delta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new LinkedHashSet<>(x.getValue())));
-        // !!! right.cases.size() == 1
         for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
-            Op op_right = x.getKey();
             GTEFSM m_right = x.getValue();
             S.addAll(m_right.S);
             E.addAll(m_right.E);
             A.addAll(m_right.A);
 
-            //delta.putAll(m_right.delta);
             for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> y : m_right.delta.entrySet()) {
                 Pair<GTVState, GTVEvent> k = y.getKey();
                 Set<Pair<GTVAction, GTVState>> tmp2 = delta.computeIfAbsent(k, z -> new LinkedHashSet<>());
@@ -196,7 +170,6 @@ public class GTLMixedChoice implements GTLType {
                 return MixedKind.EXTERNAL_II;
             }
         }
-        // !!! cf. unfolding examples, e.g., (5), (6)
         throw new RuntimeException("EFSM construction not supported by the implementation: " + this);
     }
 

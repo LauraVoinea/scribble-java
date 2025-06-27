@@ -6,10 +6,9 @@ import org.scribble.ast.global.*;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.ext.gt.ast.global.GTAnnotNode;
+import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.core.type.name.GTOp;
 import org.scribble.ext.gt.core.type.name.GTRole;
-import org.scribble.ext.gt.ast.global.GTGMixed;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 
 import java.util.HashSet;
@@ -129,7 +128,7 @@ public class GTGTypeTranslator3 {
     // Pre: role enabling OK (choice subj = first senders)
     protected GTGInteraction translateGChoice(GChoice g) {
         List<GProtoBlock> bs = g.getBlockChildren();
-        List<GTGType> cs = bs.stream().map(x -> translate(x))
+        List<GTGType> cs = bs.stream().map(this::translate)
                              .collect(Collectors.toUnmodifiableList());  // cs.len > 0
         LinkedHashMap<Op, Payload> pays = new LinkedHashMap<>();
         LinkedHashMap<Op, GTGType> ds = new LinkedHashMap<>();
@@ -141,7 +140,7 @@ public class GTGTypeTranslator3 {
             GTGInteraction cast = (GTGInteraction) c;
             if (dst == null) {
                 dst = translateRole(cast.dst);
-            } else if (!dst.equals(translateRole(cast.dst))) {
+            } else if (!gTRoleFullEquals(dst, translateRole(cast.dst))) {
                 throw new RuntimeException("Non-directed choice:\n" + g);
             }
             pays.putAll(cast.pays);
@@ -152,7 +151,7 @@ public class GTGTypeTranslator3 {
         return this.fact.choice(subj, dst, pays, ds);
     }
 
-    // !!! Workaround
+    // Workaround
     protected boolean gTRoleFullEquals(GTRole r1, GTRole r2) {
         return r1.equals(r2) && r1.annots.equals(r2.annots);
     }

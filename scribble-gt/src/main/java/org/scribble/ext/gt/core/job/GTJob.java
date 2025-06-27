@@ -51,7 +51,7 @@ public class GTJob extends Job {
         runVisitorPassOnAllModules(this.config.vf.DelDecorator(this));
 
         if (!explicitObserverLeftCommits) {
-            runVisitorPassOnAllModules(this.config.vf.NameDisambiguator(this));  // Includes validating names used in subprotocol calls..
+            runVisitorPassOnAllModules(this.config.vf.NameDisambiguator(this));  // Includes validating names used in subprotocol calls...
         }
     }
 }

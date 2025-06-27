@@ -16,7 +16,6 @@ package org.scribble.ext.gt.parser;
 import org.antlr.runtime.Token;
 import org.scribble.ast.ScribNode;
 import org.scribble.ast.ScribNodeBase;
-import org.scribble.ast.name.simple.RoleNode;
 import org.scribble.del.DelFactory;
 import org.scribble.ext.gt.ast.global.GTAnnotNode;
 import org.scribble.ext.gt.ast.global.GTGMixed;
@@ -24,7 +23,6 @@ import org.scribble.parser.ScribAntlrTokens;
 import org.scribble.parser.ScribTreeAdaptor;
 
 public class GTScribTreeAdaptor extends ScribTreeAdaptor {
-    //public GTScribTreeAdaptor(DelFactory df)
     public GTScribTreeAdaptor(ScribAntlrTokens tokens, DelFactory df) {
         //super(df);
         super(tokens, df);
@@ -44,30 +42,18 @@ public class GTScribTreeAdaptor extends ScribTreeAdaptor {
              *  Parser returns a base token type, we create an ext node type but keep the base token
              */
 
-            // TODO: integrate with ASSRT variants below?  maybe by un-deprecating reconstructs to make base children configs valid
-
-			/*case "MODULE":
-			case "GPROTOHEADER":
-				throw new RuntimeException("Deprecated \"" + t.getText() + "\": " + t);
-
-			case "GMSGTRANSFER": //n = new AssrtGMsgTransfer(t); break;
-			case "GCONNECT": //n = new AssrtGConnect(t); break;
-				throw new RuntimeException("Deprecated \"" + t.getText() + "\": " + t);
-
-				//case AssrtScribbleParser.GCONTINUE: n = new AssrtGContinue(t); break;
-			case "GDO": n = new AssrtGDo(t); break;*/
-
-            //case AssrtScribbleParser.GRECURSION: n = new AssrtGRecursion(t); break;
-
 
             /**
              *  Creating explicitly new ext (Assrt) node types
              *  Parser returns an ext token type, we create the corresponding ext node type
              */
 
+
             /* Simple names "constructed directly" by parser, cf. assrt_varname: t=ID -> ID<AssrtIntVarNameNode>[$t] ; */
 
+
             /* Compound names */
+
 
             // Non-name (i.e., general) AST nodes
             //case "ASSRT_MODULE": n = new AssrtModule(t); break;

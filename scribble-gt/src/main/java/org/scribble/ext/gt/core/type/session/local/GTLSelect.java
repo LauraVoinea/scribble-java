@@ -14,7 +14,6 @@ import org.scribble.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// !!! FIXME naming "interaction" vs. "choice" (in other places)
 public class GTLSelect implements GTLType {
 
     private final GTLTypeFactory fact = GTLTypeFactory.FACTORY;
@@ -42,7 +41,6 @@ public class GTLSelect implements GTLType {
     @Override
     public GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                             int c, GTVState s, GTVState end) {
-        //GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
         //S.add(init);
         S.add(s);
@@ -52,7 +50,6 @@ public class GTLSelect implements GTLType {
         for (Map.Entry<Op, GTLType> x : this.cases.entrySet()) {
             Op op_i = x.getKey();
             GTLType succ_i = x.getValue();
-            //Map<Integer, Pair<GTVRecv, GTVState>> stars = com.contains(op_i) ? Map.of() : recvStars;
             Map<Integer, Pair<GTVRecv, GTVState>> stars = new HashMap<>(recvStars);
             for (Map.Entry<Integer, Set<Op>> y : com.entrySet()) {
                 if (y.getValue().contains(op_i)) {
@@ -85,16 +82,17 @@ public class GTLSelect implements GTLType {
 
     @Override
     public GTLSelect subs(RecVar rv, GTLType t) {
-        LinkedHashMap<Op, GTLType> cases = this.cases.entrySet().stream()
-                                                     .collect(Collectors.toMap(
-                                                             Map.Entry::getKey,
-                                                             x -> x.getValue().subs(rv, t),
-                                                             (x, y) -> null,
-                                                             LinkedHashMap::new
-                                                     ));
+        LinkedHashMap<Op, GTLType> cases =
+                this.cases.entrySet().stream()
+                          .collect(Collectors.toMap(
+                                  Map.Entry::getKey,
+                                  x -> x.getValue().subs(rv, t),
+                                  (x, y) -> null,
+                                  LinkedHashMap::new
+                          ));
         return this.fact.select(this.dst, new LinkedHashMap<>(this.pays), cases);
     }
-   
+
     @Override
     public String toString() {
         return this.dst + (ConsoleColors.OLPLUS + "{")
@@ -105,7 +103,6 @@ public class GTLSelect implements GTLType {
     }
 
     protected String msgToString(Op op) {
-        //return op + (!this.pays.containsKey(op) ? "" : "(" + this.pays.get(op) + ")");
         return GTGInteraction.msgToString(op, this.pays.get(op));
     }
 

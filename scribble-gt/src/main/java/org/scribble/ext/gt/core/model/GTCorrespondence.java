@@ -38,8 +38,8 @@ public class GTCorrespondence {
     // tids = cs
     // In general, roles/tids (for original starting protocol) is superset of those in global
     public GTCorrespondence(Set<Role> roles, Set<Integer> tids, Theta theta, GTGType global, GTLSystem local) {
-        this.roles = Collections.unmodifiableSet(new HashSet<>(roles));
-        this.tids = Collections.unmodifiableSet(new HashSet<>(tids));
+        this.roles = Set.copyOf(roles);
+        this.tids = Set.copyOf(tids);
         this.theta = theta;
         this.global = global;
         this.local = local;
@@ -69,34 +69,26 @@ public class GTCorrespondence {
         return e.getRight();
     }
 
-    // CHECKME roles.equals(this.roles) ? -- deprecate roles param below?
+    // CHECKME roles.equals(this.roles) ?
     // TODO move to GTGType
     public static Either<Exception, GTLSystem> projectTopLevel(
             Set<Role> roles, GTGType global, Set<Integer> cs) {
-        //Theta theta = new Theta(global.getTimeoutIds());
         Map<Role, GTLConfig> locals = new HashMap<>();
         for (Role r : roles) {
             Set<Role> peers = GTUtil.copyOf(roles);
             peers.remove(r);
             Optional<Pair<? extends GTLType, Sigma>> opt = global.projectTop(peers, r);
             if (!opt.isPresent()) {
-                //throw new RuntimeException("Couldn't project onto " + r + ": " + global);
                 return Either.left(new Exception("Couldn't project onto " + r + ": " + global));
             }
             Pair<? extends GTLType, Sigma> p = opt.get();
-            /*if (!p.right.equals(new Sigma(roles))) {
-                throw new RuntimeException("Shouldn't get here: " + p);
-            }*/
 
             Optional<Theta> opt_theta = global.projectTheta(cs, r);
             if (!opt_theta.isPresent()) {
-                //throw new RuntimeException("Couldn't project onto " + r + ": " + global);
                 return Either.left(new Exception("Couldn't project THETA for " + r + ": " + global));
             }
 
-            //locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get()));
             locals.put(r, new GTLConfig(r, p.left, p.right, opt_theta.get(), GTUtil.mapOf()));
-            //System.out.println("Project onto " + r + ": " + p.left);
         }
         return Either.right(new GTLSystem(locals));
     }

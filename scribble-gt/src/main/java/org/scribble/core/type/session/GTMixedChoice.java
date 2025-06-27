@@ -22,9 +22,6 @@ import org.scribble.core.visit.STypeAgg;
 import org.scribble.core.visit.STypeAggNoThrow;
 import org.scribble.util.ScribException;
 
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 // Inactive only (user source)
 public abstract class GTMixedChoice<K extends ProtoKind, B extends Seq<K, B>>
         extends STypeBase<K, B> implements SType<K, B> {
@@ -88,112 +85,6 @@ public abstract class GTMixedChoice<K extends ProtoKind, B extends Seq<K, B>>
                 && this.other.equals(them.other) && this.observer.equals(them.observer)
                 && this.left.equals(them.left) && this.right.equals(them.right);
     }
-	
 
 
-
-
-
-
-
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-
-	@Override
-	public SType<K, B> visitWith(STypeVisitor<K, B> v) throws ScribException
-	{
-		return v.visitChoice(this);
-	}
-	
-	@Override
-	public SType<K, B> visitWithNoEx(STypeVisitorNoEx<K, B> v)
-	{
-		return v.visitChoice(this);
-	}
-
-	@Override
-	public Set<Role> getRoles()
-	{
-		Set<Role> res = Stream.of(this.subj).collect(Collectors.toSet());
-		this.blocks.forEach(x -> res.addAll(x.getRoles()));
-		return res;
-	}
-
-	@Override
-	public Set<MessageId<?>> getMessageIds()
-	{
-		return this.blocks.stream().flatMap(x -> x.getMessageIds().stream())
-				.collect(Collectors.toSet());
-	}
-	
-	@Override
-	public Set<RecVar> getRecVars()
-	{
-		return this.blocks.stream().flatMap(x -> x.getRecVars().stream())
-				.collect(Collectors.toSet());
-	}
-
-	@Override
-	public Choice<K, B> getInlined(STypeInliner v)
-	{
-		CommonTree source = getSource();  // CHECKME: or empty source?
-		List<B> blocks = this.blocks.stream().map(x -> x.getInlined(v))
-				.collect(Collectors.toList());
-		return reconstruct(source, this.subj, blocks);
-	}
-
-	@Override
-	public Choice<K, B> unfoldAllOnce(STypeUnfolder<K> u)
-	{
-		CommonTree source = getSource();  // CHECKME: or empty source?
-		List<B> blocks = this.blocks.stream().map(x -> x.unfoldAllOnce(u))
-				.collect(Collectors.toList());
-		return reconstruct(source, this.subj, blocks);
-	}
-	
-	@Override
-	public List<ProtocolName<K>> getProtoDependencies()
-	{
-		return this.blocks.stream().flatMap(x -> x.getProtoDependencies().stream())
-				.distinct().collect(Collectors.toList());
-	}
-
-	@Override
-	public List<MemberName<?>> getNonProtoDependencies()
-	{
-		return this.blocks.stream()
-				.flatMap(x -> x.getNonProtoDependencies().stream()).distinct()
-				.collect(Collectors.toList());
-	}
-
-	@Override
-	public Choice<K, B> substitute(Substitutions subs)
-	{
-		List<B> blocks = this.blocks.stream().map(x -> x.substitute(subs))
-				.collect(Collectors.toList());
-		return reconstruct(getSource(), subs.subsRole(this.subj), blocks);
-	}
-
-	@Override
-	public Choice<K, B> pruneRecs()
-	{
-		List<B> blocks = this.blocks.stream().map(x -> x.pruneRecs())
-				.collect(Collectors.toList());
-		return reconstruct(getSource(), this.subj, blocks);
-	}
-	*/
 }

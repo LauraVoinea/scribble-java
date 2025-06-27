@@ -2,7 +2,6 @@ package org.scribble.ext.gt.util;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 // L=error, R=result
@@ -16,27 +15,10 @@ public interface Either<L, R> {
         return new Right<>(right);
     }
 
-    /*default <T, U> Either<T, U> map(
-            Function<? super L, ? extends T> left,
-            Function<? super R, ? extends U> right) {
-        return isLeft() ? new Left<>(left.apply(getLeft().get())) : new Right(right.apply(getRight().get()));
-    }*/
-
-    // mapLeft -- isLeft ? map Left : unchanged Right
-
     // ifPresent
     default <U> Either<L, U> mapRight(Function<? super R, ? extends U> right) {
         return isRight() ? new Right<>(right.apply(getRight())) : new Left<>(getLeft());
-        //return map(x -> x, right);
     }
-
-    /*default <T, U> Either<T, U> flatMap(
-            Function<? super L, ? extends Either<T, U>> left,
-            Function<? super R, ? extends Either<T, U>> right) {
-        return isLeft() ? left.apply(getLeft().get()) : right.apply(getRight().get());
-    }*/
-
-    // flatMapLeft -- isLeft ? flatMap Left : unchanged Right
 
     // andThen
     default <U> Either<L, U> flatMapRight(Function<? super R, ? extends Either<L, U>> right) {
@@ -51,12 +33,6 @@ public interface Either<L, R> {
     L getLeft();
 
     R getRight();
-
-    /*static <L, R> Either<L, R> join(Either<L, Either<L, R>> outer) {
-        return outer.isLeft()
-                ? new Left<>(outer.getLeft().get())
-                : outer.getRight().get();  //outer.mapRight(x -> x.getRight().get());
-    }*/
 }
 
 class Left<L, R> implements Either<L, R> {
@@ -66,16 +42,6 @@ class Left<L, R> implements Either<L, R> {
     protected Left(@NotNull L left) {
         this.left = left;
     }
-
-    /*@Override
-    public <T> Either<T, R> mapLeft(Function<? super L, ? extends T> left) {
-        return new Left(left.apply(this.left));
-    }
-
-    @Override
-    public <T> Either<L, T> mapRight(Function<? super R, ? extends T> left) {
-        return new Left<>(this.left);
-    }*/
 
     @Override
     public boolean isLeft() {
@@ -110,16 +76,6 @@ class Right<L, R> implements Either<L, R> {
     protected Right(R right) {
         this.right = right;
     }
-
-    /*@Override
-    public <T> Either<T, R> mapLeft(Function<? super L, ? extends T> right) {
-        return new Right<>(this.right);
-    }
-
-    @Override
-    public <T> Either<L, T> mapRight(Function<? super R, ? extends T> right) {
-        return new Right<>(right.apply(this.right));
-    }*/
 
     @Override
     public boolean isLeft() {

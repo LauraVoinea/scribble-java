@@ -9,7 +9,7 @@ global protocol LabelCapture(role p, role q, role r) {
             b() from p to q;
             ack1() from q to p;
             ack2() from q to r;
-            continue t;  // !!! XXX not left-committing for p -- also, XXX EFSM for r: t |> t
+            continue t;  // ...not left-committing for p -- also, XXX EFSM for r: t |> t
         } or p->q {
             c() from q to p;
             c2() from q to r;  // !!!

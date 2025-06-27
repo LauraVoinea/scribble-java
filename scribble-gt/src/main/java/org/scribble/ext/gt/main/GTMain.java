@@ -8,7 +8,6 @@ import org.scribble.del.DelFactory;
 import org.scribble.ext.gt.core.job.GTJob;
 import org.scribble.ext.gt.del.GTDelFactoryImpl;
 import org.scribble.ext.gt.parser.GTScribAntlrWrapper;
-import org.scribble.job.Job;
 import org.scribble.main.Main;
 import org.scribble.main.resource.locator.ResourceLocator;
 import org.scribble.parser.ScribAntlrWrapper;

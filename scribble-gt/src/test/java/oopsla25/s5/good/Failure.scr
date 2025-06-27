@@ -10,7 +10,7 @@ global protocol FailureHandling(role M, role W, role FD) {
             HB() from W to FD; OK() from FD to M; result(Data) from W to M; more(Data) from M to W;
             continue X;
         } or W @failed -> FD { // RHS
-            Timeout() from FD to W; //@'failed W'  // TODO handle keyword with failure-prone role, subclass of mixed
+            Timeout() from FD to W; //@'failed W'
             Crash() from FD to M;
         }
     }

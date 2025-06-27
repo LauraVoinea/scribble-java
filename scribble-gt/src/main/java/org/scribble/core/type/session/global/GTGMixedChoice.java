@@ -65,7 +65,7 @@ public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType
     @Override
     public <T> T acceptNoThrow(STypeAggNoThrow<Global, GSeq, T> v) {
 
-        // HERE HERE adding base visitor overrids for this new AST node on demand
+        // !!! XXX adding base visitor overrids for this new AST node on demand
 
         if (v instanceof Substitutor<?, ?>) {
             Substitutor<Global, GSeq> cast = (Substitutor<Global, GSeq>) v;
@@ -74,7 +74,7 @@ public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType
             GSeq left = (GSeq) this.left.acceptNoThrow(cast);
             GSeq right = (GSeq) this.right.acceptNoThrow(cast);
             return (T) reconstruct(getSource(), other, observer, left, right);  // T = SType<Global, GSeq> implied by Subs/Visitor instantiation of T in Agg
-            // CHECKME refactor to better satisfy <T> outside of Visitor class? as here)
+            // CHECKME refactor to better satisfy <T> outside of Visitor class? as here
         } else if (v instanceof GTypeInliner) {
             return (T) visitNoThrowMixedChoice((GTypeInliner) v);  // T = SType<Global, GSeq>
         } else {
@@ -110,98 +110,3 @@ public class GTGMixedChoice extends GTMixedChoice<Global, GSeq> implements GType
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-	@Override
-	public Set<Role> checkRoleEnabling(Set<Role> enabled) throws ScribException
-	{
-		if (!enabled.contains(this.subj))
-		{
-			throw new ScribException("Subject not enabled: " + this.subj);
-		}
-		Set<Role> subj = Stream.of(this.subj).collect(Collectors.toSet());
-		List<Set<Role>> blocks = new LinkedList<>();
-		for (GSeq block : this.blocks)
-		{
-			blocks.add(block.checkRoleEnabling(subj));
-		}
-		Set<Role> res = new HashSet<>(enabled);
-		Set<Role> tmp = blocks.stream().flatMap(x -> x.stream())
-				.filter(x -> blocks.stream().allMatch(y -> y.contains(x)))
-				.collect(Collectors.toSet());
-		res.addAll(tmp);
-		return Collections.unmodifiableSet(res);
-	}
-
-	@Override
-	public Map<Role, Role> checkExtChoiceConsistency(Map<Role, Role> enablers)
-			throws ScribException
-	{
-		Map<Role, Role> subj = Stream.of(this.subj)
-				.collect(Collectors.toMap(x -> x, x -> x));
-		List<Map<Role, Role>> blocks = new LinkedList<>();
-		for (GSeq block : this.blocks)
-		{
-			blocks.add(block.checkExtChoiceConsistency(subj));
-		}
-		Map<Role, Role> res = new HashMap<>(enablers);
-		Set<Entry<Role, Role>> all = blocks.stream()
-				.flatMap(x -> x.entrySet().stream()).collect(Collectors.toSet());
-		for (Entry<Role, Role> e : all)
-		{
-			Role enabled = e.getKey();
-			Role enabler = e.getValue();
-			if (all.stream().anyMatch(
-					x -> x.getKey().equals(enabled) && !x.getValue().equals(enabler)))
-			{
-				throw new ScribException(
-						"Inconsistent external choice subjects for " + enabled + ": "
-								+ all.stream().filter(x -> x.getKey().equals(enabled))
-										.collect(Collectors.toList()));
-			}
-			if (!res.containsKey(enabled))
-			{
-				res.put(enabled, enabler);
-			}
-		}
-		return Collections.unmodifiableMap(res);
-	}
-	
-	@Override
-	public LType projectInlined(Role self)
-	{
-		return projectAux(self,
-				this.blocks.stream().map(x -> x.projectInlined(self)));
-	}
-	
-	private LType projectAux(Role self, Stream<LSeq> blocks)
-	{
-		Role subj = this.subj.equals(self) ? Role.SELF : this.subj;  
-				// CHECKME: "self" also explicitly used for Do, but implicitly for MessageTransfer, inconsistent?
-		List<LSeq> tmp = blocks
-				.filter(x -> !x.isEmpty())
-				.collect(Collectors.toList());
-		if (tmp.isEmpty())
-		{
-			return LSkip.SKIP;  // CHECKME: OK, or "empty" choice at subj still important?
-		}
-		return new LChoice(null, subj, tmp);
-	}
-	
-	@Override
-	public LType project(ProjEnv v)
-	{
-		return projectAux(v.self, this.blocks.stream().map(x -> x.project(v)));
-	}
-*/

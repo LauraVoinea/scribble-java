@@ -40,17 +40,11 @@ public class GTVState {
         this.recvars = Collections.unmodifiableSet(new LinkedHashSet<>(recvars));
     }
 
-    /*public boolean isMixedEntry() {
-        //return this.c != NON_MIXED_ENTRY;
-        return isEntry;
-    }*/
-
     @Override
     public String toString() {
         return this.id + this.recvars.toString() + " "
                 + (this.isEntry ? ConsoleColors.WHITE_TRIANGLE : "")
                 + this.c;
-        //+ (this.c == TOP_SCOPE ? "" : (" " + ConsoleColors.WHITE_TRIANGLE + c));
     }
 
     @Override

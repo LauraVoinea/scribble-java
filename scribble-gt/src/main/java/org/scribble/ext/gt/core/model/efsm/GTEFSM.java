@@ -9,10 +9,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-// HERE HERE
-// - use existing com to test paper examples => API gen
-// - generalise com to per MC -- in getCommittingTop record recursively collected committing inside each MC
-
 public class GTEFSM {
 
     public final Set<GTVState> S;

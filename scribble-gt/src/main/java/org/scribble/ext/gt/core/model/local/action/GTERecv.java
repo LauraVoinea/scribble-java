@@ -49,11 +49,6 @@ public class GTERecv<A extends ActionKind> extends ERecv<A> implements GTEAction
 
     }
 
-    @Override
-    public GTSRecv<DynamicActionKind> mirror(GTSModelFactory mf, Role self) {
-        return mf.GTSRecv(self, this.peer, this.mid, this.payload, this.c, this.n);
-    }
-
     /* ... */
 
     @Override
