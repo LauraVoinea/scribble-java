@@ -1,0 +1,15 @@
+module nMC;
+
+
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        1() from A to B;
+        2() from C to B;
+        3() from B to A;
+        4() from B to C;
+    } or A->B {
+        5() from B to A;
+        6() from B to C;
+    }
+}
+
