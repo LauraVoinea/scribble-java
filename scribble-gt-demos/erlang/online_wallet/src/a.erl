@@ -76,11 +76,11 @@ s1(cast, {_CPid, {login, Id, Password}}, Data) ->
 -spec connection(state_data()) -> state_data().
 connection(Data) ->
     io:format("a connected ~n", []),
-    CPid = case whereis(c) of
+    CPid = case whereis(client) of
         undefined ->
             io:format("c is not available yet. Will retry...~n", []),
             timer:sleep(1000),
-            whereis(c);
+            whereis(client);
         Pid_c ->
             Pid_c
     end,

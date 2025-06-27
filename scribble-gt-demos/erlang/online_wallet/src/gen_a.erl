@@ -61,15 +61,15 @@ s12(EventType, {auth_fail}, Data) ->
     CallbackModule:s12(EventType, {auth_fail}, Data).
 
 -spec s8(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s8, state_data()} | {stop, normal, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
-s8(EventType, {CPid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s8(EventType, {CPid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s8(EventType, {CPid, {keep_alive}}, NewData);
-s8(EventType, {CPid, {end_session}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s8(EventType, {CPid, {end_session}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s8(EventType, {CPid, {end_session}}, NewData);
-s8(EventType, {SPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s8(EventType, {SPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     CallbackModule = get(callback_module),
     CallbackModule:s8(EventType, {SPid, {timeout}}, Data);
 s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {timeout} 

@@ -174,6 +174,8 @@ if [ "$usage" = 1 ]; then
     usage
     exit 0
 elif [ "$run_clean_all" = 1 ]; then
+    echo "Cleaning all Maven modules..."
+    mvn clean -q
     echo "Removing generated/ directory..."
     rm -rf "$SCRIBHOME/generated"
     echo "Cleaning Erlang example builds..."

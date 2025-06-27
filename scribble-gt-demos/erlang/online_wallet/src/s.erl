@@ -114,11 +114,11 @@ connection(Data) ->
         Pid_a ->
             Pid_a
     end,
-    CPid = case whereis(c) of
+    CPid = case whereis(client) of
         undefined ->
             io:format("S: c is not available yet. Will retry...~n", []),
             timer:sleep(1000),
-            whereis(c);
+            whereis(client);
         Pid_c ->
             Pid_c
     end,
