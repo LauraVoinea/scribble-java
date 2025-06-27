@@ -23,7 +23,6 @@ public interface GTGTypeOps extends GTSessType {
 
     Set<Role> getLiveRoles();
 
-    // TODO refactor subs is singleton
     GTGType subs(RecVar v, GTGRecursion subs);
 
     Set<Integer> getTimeoutIds();  // c's

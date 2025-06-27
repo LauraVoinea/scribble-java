@@ -5,13 +5,10 @@ import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.ERecv;
-import org.scribble.core.model.endpoint.actions.ESend;
-import org.scribble.core.model.global.actions.SRecv;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
 import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 

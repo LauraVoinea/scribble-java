@@ -4,15 +4,11 @@ import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.DynamicActionKind;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.StaticActionKind;
-import org.scribble.core.model.endpoint.actions.ERecv;
 import org.scribble.core.model.endpoint.actions.ESend;
-import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.global.GTSModelFactory;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSRecv;
 import org.scribble.ext.gt.core.model.global.action.GTSSend;
 import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 
@@ -21,7 +17,6 @@ public class GTESend<A extends ActionKind> extends ESend<A> implements GTEAction
     public final int c;
     public final int n;
 
-    // MActionBase.DYNAMIC_ID for dynamic
     // peer is receiver
     public GTESend(int id, ModelFactory ef, Role peer, MsgId<?> mid, Payload pay,
                    int c, int n) {

@@ -3,8 +3,6 @@ package org.scribble.ext.gt.core.model.global;
 import org.scribble.core.model.ActionKind;
 import org.scribble.core.model.ModelFactory;
 import org.scribble.core.model.global.SModelFactoryImpl;
-import org.scribble.core.model.global.actions.SRecv;
-import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.MsgId;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
@@ -18,16 +16,18 @@ public class GTSModelFactoryImpl extends SModelFactoryImpl implements GTSModelFa
         super(mf);
     }
 
+    @Override
     public <A extends ActionKind> GTSSend<A> GTSSend(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
         return new GTSSend<>(subj, obj, mid, pay, c, n);
     }
 
+    @Override
     public <A extends ActionKind> GTSRecv<A> GTSRecv(Role subj, Role obj, MsgId<?> mid, Payload pay, int c, int n) {
         return new GTSRecv<>(subj, obj, mid, pay, c, n);
     }
 
     @Override
-    public GTSNewTimeout SNewTimeout(int c, int n) {
-        return new GTSNewTimeout(c, n);
+    public <A extends ActionKind> GTSNewTimeout<A> SNewTimeout(int c, int n) {
+        return new GTSNewTimeout<>(c, n);
     }
 }

@@ -2,8 +2,6 @@ package org.scribble.ext.gt.core.model.local;
 
 import org.scribble.core.type.name.Role;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public class GTLSystem {

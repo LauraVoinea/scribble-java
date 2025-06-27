@@ -76,15 +76,11 @@ public class GTGTypeTranslator3 {
     }
 
     protected GTGInteraction translateGMessageTransfer(GMsgTransfer g, GTGType cont) {
-
-        //... HERE: update translation from raw AST nodes
-
         MsgNode m = g.getMessageNodeChild();
         if (!(m instanceof SigLitNode)) {
             throw new RuntimeException("TODO: " + m);
         }
         Op op = translateOp(((SigLitNode) m).getOpChild().toName());
-        //Map<Op, GTGType> cs = Collections.singletonMap(op, cont);
         LinkedHashMap<Op, GTGType> cs = new LinkedHashMap<>();
         cs.put(op, cont);
         GTRole src = translateRole(g.getSourceChild().toName());
@@ -114,10 +110,6 @@ public class GTGTypeTranslator3 {
     protected GTRole translateRole(Role r) {
         Set<String> annots = new HashSet<>();
         String x = r.toString();
-        /*if (x.endsWith("*")) {
-            annots.add(GTRole.EXPLICIT_COMMIT);
-            x = x.substring(0, x.length() - "*".length());
-        } else*/
         if (x.endsWith("@failed")) {
             annots.add(GTRole.FAILED_ANNOT);
             x = x.substring(0, x.length() - "@failed".length());
@@ -170,7 +162,7 @@ public class GTGTypeTranslator3 {
         GTGType right = translateGSeq(g.getRightBlockChild().getInteractSeqChild());
         GTRole other = translateRole(g.getOtherChild().toName());
         GTRole observer = translateRole(g.getObserverChild().toName());
-        List<Role> leftCommitted = g.getLeftRoleListChild().getRoles();  // TODO remove committed from Scribble syntax?
+        List<Role> leftCommitted = g.getLeftRoleListChild().getRoles();
         List<Role> rightCommitted = g.getRightRoleListChild().getRoles();
         boolean hasFailedAnnot = g.hasFailedAnnot();
 
