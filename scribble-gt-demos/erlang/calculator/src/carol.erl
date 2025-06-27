@@ -45,7 +45,7 @@ connect(Data) ->
 s3(internal, {second}, #state_data{srv_pid = SrvPid} = Data) ->
     io:format("Carol: s3 Sending second to Srv ~n", []),
 
-    Number = 2, % Example number, can be replaced with actual logic
+    Number = 2,
 
     gen_carol:send_s3_second(SrvPid, Number, Data),
     case make_choice_s7(Data) of
@@ -66,7 +66,7 @@ s5(internal, {cancel}, #state_data{alice_pid = AlicePid} = Data) ->
     {next_state, s12, state_data(), [{next_event, internal, {diff_result}}]}.
 s11(cast, {SrvPid, {timeout}}, #state_data{srv_pid = SrvPid} = Data) ->
     {next_state, s5, Data, [{next_event, internal, {cancel}}]};
-s11(cast, {SrvPid, {result_diff, result}}, #state_data{srv_pid = SrvPid} = Data) ->
+s11(cast, {SrvPid, {result_diff, Result}}, #state_data{srv_pid = SrvPid} = Data) ->
     {next_state, s12, Data, [{next_event, internal, {diff_result}}]}.
 
 -spec s7(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s8, state_data()} | {next_state, s11, state_data()} | {next_state, s5, state_data(), [{next_event, internal, {cancel}}]}.
@@ -92,7 +92,7 @@ s12(internal, {diff_result}, #state_data{alice_pid = AlicePid} = Data) ->
     {next_state, s9, state_data(), [{next_event, internal, {sum_result}}]}.
 s8(cast, {SrvPid, {timeout}}, #state_data{srv_pid = SrvPid} = Data) ->
     {next_state, s5, Data, [{next_event, internal, {cancel}}]};
-s8(cast, {SrvPid, {result_sum, result}}, #state_data{srv_pid = SrvPid} = Data) ->
+s8(cast, {SrvPid, {result_sum, Result}}, #state_data{srv_pid = SrvPid} = Data) ->
     {next_state, s9, Data, [{next_event, internal, {sum_result}}]}.
 
 -spec make_choice_s7(state_data()) -> integer().
@@ -102,7 +102,8 @@ make_choice_s7(_Data) ->
 -spec s9(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
 s9(internal, {sum_result}, #state_data{alice_pid = AlicePid} = Data) ->
     io:format("Carol: s9 Sending sum_result to Alice ~n", []),
-    gen_carol:send_s9_sum_result(AlicePid, Data),
+    Result = 42,
+    gen_carol:send_s9_sum_result(AlicePid,Result, Data),
     {stop, normal, Data}.
 
 -spec s1(internal, {atom()}, state_data()) -> {next_state, s3, state_data(), [{next_event, internal, {second}}]}.

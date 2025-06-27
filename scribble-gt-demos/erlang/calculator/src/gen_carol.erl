@@ -1,7 +1,7 @@
 -module(gen_carol).
 -behaviour(gen_statem).
 
--export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, send_s1_first/3, s1/3, send_s3_second/3, s3/3, send_s7_sum/2, s7/3, send_s7_diff/2, s8/3, send_s9_sum_result/2, s9/3, s11/3, send_s12_diff_result/2, s12/3, send_s5_cancel/2, s5/3]).
+-export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, send_s1_first/3, s1/3, send_s3_second/3, s3/3, send_s7_sum/2, s7/3, send_s7_diff/2, s8/3, send_s9_sum_result/3, s9/3, s11/3, send_s12_diff_result/2, s12/3, send_s5_cancel/2, s5/3]).
 
 -include("carol.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), srv_pid :: pid() | undefined, alice_pid :: pid() | undefined}.
@@ -77,9 +77,9 @@ send_s5_cancel(AlicePid, Data) ->
 s8(EventType, {SrvPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s8(EventType, {SrvPid, {timeout}}, Data);
-s8(EventType, {SrvPid, {result_sum, result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s8(EventType, {SrvPid, {result_sum, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
-    CallbackModule:s8(EventType, {SrvPid, {result_sum, result}}, Data);
+    CallbackModule:s8(EventType, {SrvPid, {result_sum, Result}}, Data);
 s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {diff} 
 		orelse Msg =:= {diff_result} 
 		orelse Msg =:= {result_sum} 
@@ -99,9 +99,9 @@ s9(EventType, {sum_result}, Data) ->
 s11(EventType, {SrvPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s11(EventType, {SrvPid, {timeout}}, Data);
-s11(EventType, {SrvPid, {result_diff, result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s11(EventType, {SrvPid, {result_diff, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
-    CallbackModule:s11(EventType, {SrvPid, {result_diff, result}}, Data);
+    CallbackModule:s11(EventType, {SrvPid, {result_diff, Result}}, Data);
 s11(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {diff} 
 		orelse Msg =:= {diff_result} 
 		orelse Msg =:= {result_sum} 
@@ -135,10 +135,10 @@ send_s12_diff_result(AlicePid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(AlicePid, {self(), {diff_result, result}, Counter}).
 
--spec send_s9_sum_result(AlicePid :: pid(), Data :: state_data()) -> ok.
-send_s9_sum_result(AlicePid, Data) ->
+-spec send_s9_sum_result(AlicePid :: pid(), Result :: term(), Data :: state_data()) -> ok.
+send_s9_sum_result(AlicePid, Result, Data) ->
     Counter = Data#state_data.mc_counter_1,
-    gen_statem:cast(AlicePid, {self(), {sum_result, result}, Counter}).
+    gen_statem:cast(AlicePid, {self(), {sum_result, Result}, Counter}).
 
 -spec send_s7_diff(SrvPid :: pid(), Data :: state_data()) -> ok.
 send_s7_diff(SrvPid, Data) ->

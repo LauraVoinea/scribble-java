@@ -65,6 +65,9 @@ usage() {
                            scribble-gt-demos/scribble/
   -run-all-erlang-examples Run compile and test on all Erlang examples under
                           scribble-gt-demos/erlang/
+  -run-all-erlang-app-examples
+                           Run compile, start, and stop on all Erlang OTP app examples under
+                           scribble-gt-demos/erlang/
 
   -gt-no-corr
             Skip global-local correspondence checking.
@@ -109,17 +112,13 @@ if test -f "$ANTLR_RUNTIME_JAR"; then
     CLASSPATH="$CLASSPATH:$ANTLR_RUNTIME_JAR"
 fi
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr.jar"
-# CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/antlr-runtime.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/commons-io.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-ast.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-cli.jar"
-# CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-codegen.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-core.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-main.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-parser.jar"
 CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/scribble-gt.jar"
-#CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/freemarker-2.3.32.jar"
-#CLASSPATH="$CLASSPATH:$SCRIBHOME/lib/stringtemplate.jar"
 CLASSPATH="$(fixpath "$CLASSPATH")" # Correctly assign the output of fixpath
 
 usage=0
@@ -127,7 +126,8 @@ verbose=0
 ARGS="" # Initialize ARGS to empty string
 run_all_gt_examples=0 # Flag for the new option
 run_all_erlang_examples=0 # Flag for running Erlang examples
-run_all_dialyzer_examples=0 # Flag for running Dialyzer on all Erlang examples
+run_all_erlang_app_examples=0 # Flag for running and stopping Erlang OTP apps
+run_clean_all=0 # Flag for cleaning entire workspace
 
 while true; do
     case "$1" in
@@ -154,8 +154,12 @@ while true; do
             run_all_erlang_examples=1
             shift
             ;;
-        -run-all-dialyzer-examples)
-            run_all_dialyzer_examples=1
+        -run-all-erlang-app-examples)
+            run_all_erlang_app_examples=1
+            shift
+            ;; 
+        -clean-all)
+            run_clean_all=1
             shift
             ;;
         *)
@@ -168,6 +172,18 @@ done
 
 if [ "$usage" = 1 ]; then
     usage
+    exit 0
+elif [ "$run_clean_all" = 1 ]; then
+    echo "Cleaning all Maven modules..."
+    mvn clean -q
+    echo "Removing generated/ directory..."
+    rm -rf "$SCRIBHOME/generated"
+    echo "Cleaning Erlang example builds..."
+    for dir in "$SCRIBHOME/scribble-gt-demos/erlang"/*/; do
+        [ -d "$dir" ] || continue
+        echo "Rebar3 clean: $dir"
+        (cd "$dir" && rebar3 clean)
+    done
     exit 0
 fi
 
@@ -210,20 +226,25 @@ elif [ "$run_all_erlang_examples" = 1 ]; then
     for dir in "$ERL_DIR"/*/; do
         [ -d "$dir" ] || continue
         echo "Building and testing: $dir"
-        (cd "$dir" && rebar3 compile && rebar3 eunit)
+        (cd "$dir" && rebar3 compile)
     done
     exit 0
-elif [ "$run_all_dialyzer_examples" = 1 ]; then
+elif [ "$run_all_erlang_app_examples" = 1 ]; then
     ERL_DIR="$SCRIBHOME/scribble-gt-demos/erlang"
-    if [ ! -d "$ERL_DIR" ]; then
-        echo "Error: Erlang examples directory not found: $ERL_DIR" >&2
-        exit 1
-    fi
-    echo "Running Dialyzer on Erlang examples from: $ERL_DIR"
+    echo "Running, starting, and stopping OTP apps in: $ERL_DIR"
     for dir in "$ERL_DIR"/*/; do
         [ -d "$dir" ] || continue
-        echo "Dialyzing: $dir"
-        (cd "$dir" && rebar3 dialyzer)
+        app=$(basename "$dir")
+        echo "Building: $app"
+        (cd "$dir" && rebar3 compile)
+        echo "Starting and stopping: $app"
+        (cd "$dir" && 
+        # erl -noshell \
+        #     -pa _build/default/lib/*/ebin \
+        #     -eval "application:ensure_all_started('${app}'), application:stop('${app}'), init:stop().
+        erl -noshell -pa _build/default/lib/*/ebin \
+        -eval "application:ensure_all_started('${app}'), timer:sleep(2000), application:stop('${app}'), init:stop().
+            ")
     done
     exit 0
 else

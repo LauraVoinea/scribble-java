@@ -1,2 +1,0 @@
--record(state_data, {a_pid :: pid() | undefined, c_pid :: pid() | undefined}).
-
