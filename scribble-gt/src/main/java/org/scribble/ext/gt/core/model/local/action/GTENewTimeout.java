@@ -22,15 +22,10 @@ import org.scribble.core.model.StaticActionKind;
 import org.scribble.core.model.endpoint.actions.EAction;
 import org.scribble.core.model.endpoint.actions.ERecv;
 import org.scribble.core.model.endpoint.actions.ESend;
-import org.scribble.core.model.global.actions.SAction;
 import org.scribble.core.model.global.actions.SSend;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
 import org.scribble.core.type.session.Payload;
-import org.scribble.ext.gt.core.model.global.GTSModelFactory;
-import org.scribble.ext.gt.core.model.global.action.GTSAction;
-import org.scribble.ext.gt.core.model.global.action.GTSNewTimeout;
-import org.scribble.ext.gt.core.model.local.GTEModelFactory;
 import org.scribble.ext.gt.util.ConsoleColors;
 
 // not a CFSM action...

@@ -49,7 +49,7 @@ public class GTLBranch implements GTLType {
         Iterator<Op> it = Stream.of(this.cases.keySet(), cast.cases.keySet()).flatMap(Collection::stream).iterator();
         while (it.hasNext()) {
             Op x = it.next();
-            if (this.cases.containsKey(x)) {  // Would be nice if get returned Optional... can map empty directly
+            if (this.cases.containsKey(x)) {
                 if (cast.cases.containsKey(x)) {
                     Optional<? extends GTLType> opt = this.cases.get(x).merge(cast.cases.get(x));
                     if (!opt.isPresent()) {
@@ -78,9 +78,7 @@ public class GTLBranch implements GTLType {
     @Override
     public GTEFSM construct(Role r, Map<Integer, Set<Op>> com, Map<Integer, Pair<GTVRecv, GTVState>> recvStars,
                             int c, GTVState s, GTVState end) {
-        //GTVState init = new GTVState();
         Set<GTVState> S = new LinkedHashSet<>();
-        //S.add(init);
         S.add(s);
         Set<GTVEvent> E = new LinkedHashSet<>();
         Set<GTVAction> A = new LinkedHashSet<>();

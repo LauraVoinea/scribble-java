@@ -41,16 +41,6 @@ public interface GTLType extends GTSessType { //<Global, GSeq>, GNode {
     GTLType subs(RecVar rv, GTLType t);
 
 
-
-
-
-
-
-
-
-
-
-
     /* ... -- n.b. formal local LTS is config LTS (hence sigma, theta etc params below) */
 
     //int c_TOP = -1;

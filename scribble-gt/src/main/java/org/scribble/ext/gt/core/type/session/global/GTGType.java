@@ -33,7 +33,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
         return unfoldAllOnceAux(Set.of());
     }
 
-    // TODO refactor subs is singleton
     @Override
     GTGType subs(RecVar v, GTGRecursion subs);
 
@@ -93,7 +92,6 @@ public interface GTGType extends GTSessType, GTGTypeOps {
     // Only uses strict deps
     Optional<Exception> isSyntacticAware();
 
-    // TODO Optional<Exception>
     Optional<Exception> isBalanced();
 
     default String format() {

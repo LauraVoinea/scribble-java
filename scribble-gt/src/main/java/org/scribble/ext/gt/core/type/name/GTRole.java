@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 public class GTRole extends Role {
 
     public static final String FAILED_ANNOT = "@failed";
-    public static final String EXPLICIT_COMMIT = "*";
 
     public final Set<String> annots;
 

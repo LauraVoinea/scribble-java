@@ -3,6 +3,7 @@ package org.scribble.ext.gt.core.type.session.local;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.RecVar;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
@@ -59,9 +60,11 @@ public class GTLMixedChoice implements GTLType {
         GTLBranch left = (GTLBranch) this.left;
         GTLSelect right = (GTLSelect) this.right;
 
-        Map<Op, GTEFSM> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
+        Map<Op, Pair<Payload, GTEFSM>> cases_right = right.cases.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                x -> x.getValue().construct(r, com, recvStars, this.c, new GTVState(this.c), end),
+                x -> new Pair<>(
+                        right.pays.get(x.getKey()),
+                        x.getValue().construct(r, com, recvStars, this.c, new GTVState(this.c), end)),
                 (x, y) -> null,
                 LinkedHashMap::new
         ));
@@ -72,15 +75,20 @@ public class GTLMixedChoice implements GTLType {
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
         Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
         Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = m_left.delta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new LinkedHashSet<>(x.getValue())));
-        for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta =
+                m_left.delta.entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> new LinkedHashSet<>(x.getValue())));
+        for (Map.Entry<Op, Pair<Payload, GTEFSM>> x : cases_right.entrySet()) {
             Op op_right = x.getKey();
-            GTEFSM m_right = x.getValue();
+            Pair<Payload, GTEFSM> tmp = x.getValue();
+            Payload pay = tmp.left;
+            GTEFSM m_right = tmp.right;
             S.addAll(m_right.S);
             E.addAll(m_right.E);
             A.addAll(m_right.A);
 
-            GTVSendStar a = new GTVSendStar(right.dst, op_right);
+            GTVSendStar a = new GTVSendStar(right.dst, op_right, pay);
             for (Map.Entry<Op, GTLType> y : left.cases.entrySet()) {
                 Op op_left = y.getKey();
                 GTVRecv e = new GTVRecv(left.src, op_left, left.pays.get(op_left));
@@ -134,7 +142,10 @@ public class GTLMixedChoice implements GTLType {
         Set<GTVState> S = new LinkedHashSet<>(m_left.S);
         Set<GTVEvent> E = new LinkedHashSet<>(m_left.E);
         Set<GTVAction> A = new LinkedHashSet<>(m_left.A);
-        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta = m_left.delta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new LinkedHashSet<>(x.getValue())));
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> delta =
+                m_left.delta.entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        x -> new LinkedHashSet<>(x.getValue())));
         for (Map.Entry<Op, GTEFSM> x : cases_right.entrySet()) {
             GTEFSM m_right = x.getValue();
             S.addAll(m_right.S);

@@ -109,18 +109,7 @@ public class GTGEnd implements GTGType {
     }
 
 
-
-
-
-    // OLD
-
-
     /* ... */
-    
-    /*@Override
-    public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> rs, Role r) {
-        return Optional.of(new Pair<>(GTLTypeFactory.FACTORY.end(), new Sigma(rs)));
-    }*/
 
     @Override
     public Optional<Pair<? extends GTLType, Sigma>> project(Set<Role> topPeers, Role r, int c, int n) {
@@ -133,7 +122,7 @@ public class GTGEnd implements GTGType {
         return Optional.of(new Theta(cs));
     }
 
-
+   
     /* ... */
 
     @Override
@@ -154,6 +143,7 @@ public class GTGEnd implements GTGType {
     public String toString() {
         return "end";
     }
+
 
     /* hashCode, equals, canEquals */
 
