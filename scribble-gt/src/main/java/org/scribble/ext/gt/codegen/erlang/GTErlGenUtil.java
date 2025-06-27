@@ -83,6 +83,7 @@ public class GTErlGenUtil {
     protected static void writeStateFunctions(FileWriter writer, List<ErlFun> stateFunctions) throws IOException {
         for (ErlFun fun : stateFunctions) {
 //            writer.writeLine("%% State function: " + fun.getName());
+            //TODO: pretty spec
             fun.write(writer);
             writer.writeLine("");
         }

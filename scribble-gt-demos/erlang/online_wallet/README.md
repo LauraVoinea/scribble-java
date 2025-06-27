@@ -1,16 +1,16 @@
 # Erlang Online Wallet Protocol Implementation
 
 This project contains an Erlang implementation of a distributed protocol named "Online Wallet", 
-specified in `scribble-gt-demos/scribble/OnlineWallet.scr`. It demonstrates the interaction between three roles: A, B, and S, using Erlang's `gen_statem` behavior.
+specified in `scribble-gt-demos/scribble/OnlineWallet.scr`. It demonstrates the interaction between three roles: A, C, and S, using Erlang's `gen_statem` behavior.
 
 ## Implementation Details
-*   **Structure per Role (e.g., Role B):**
-    *   `gen_b.erl`: A generic `gen_statem` wrapper. It handles the core state machine logic defined by the protocol (states, transitions, event forwarding, message sending with counters). It takes a callback module as an argument. This module is typically *not* modified by the user implementing the protocol logic.
-    *   `b.erl`: The callback module for `gen_b.erl`. It implements the application-specific logic for role B, such as making choices, managing role-specific data, and reacting to messages forwarded by `gen_b`. This is the module the user would typically implement or modify.
-    *   `b.hrl`: A header file defining the `state_data` record used by role B to maintain its state (e.g., PIDs of other roles, counters).
+*   **Structure per Role (e.g., Role C):**
+    *   `gen_c.erl`: A generic `gen_statem` wrapper. It handles the core state machine logic defined by the protocol (states, transitions, event forwarding, message sending with counters). It takes a callback module as an argument. This module is typically *not* modified by the user implementing the protocol logic.
+    *   `c.erl`: The callback module for `gen_c.erl`. It implements the application-specific logic for role C, such as making choices, managing role-specific data, and reacting to messages forwarded by `gen_c`. This is the module the user would typically implement or modify.
+    *   `c.hrl`: A header file defining the `state_data` record used by role C to maintain its state (e.g., PIDs of other roles, counters).
 *   **Message Handling:** Messages between roles include a counter (`mc_counter_1` in the provided code) to discard stale messages stemming from either side of the mixed-choice. 
-* The generic modules (`gen_a`, `gen_b`, `gen_s`) handle checking these counters and removing stale messages from the event queue before forwarding events to the callback modules.
-*   **Debugging/Logging:** The `start_link` functions are configured to enable `gen_statem` tracing, logging debug information to files like `a_debug.log`, `b_debug.log`, `s_debug.log`.
+* The generic modules (`gen_a`, `gen_c`, `gen_s`) handle checking these counters and removing stale messages from the event queue before forwarding events to the callback modules.
+*   **Debugging/Logging:** The `start_link` functions are configured to enable `gen_statem` tracing, logging debug information to files like `a_debug.log`, `c_debug.log`, `s_debug.log`.
 
 ## How to Run
 
@@ -28,7 +28,7 @@ specified in `scribble-gt-demos/scribble/OnlineWallet.scr`. It demonstrates the 
 ```rebar3
  application:start(online_wallet).
 ```
-   You should see interaction logs for roles A, B, and S, and debug files (`a_debug.log`, `b_debug.log`, `s_debug.log`) will be created in the project root.
+   You should see interaction logs for roles A, C, and S, and debug files (`a_debug.log`, `c_debug.log`, `s_debug.log`) will be created in the project root.
 
 5. **Stop the Application:**
 ```rebar3
@@ -39,6 +39,6 @@ specified in `scribble-gt-demos/scribble/OnlineWallet.scr`. It demonstrates the 
 
 ## Key Features Demonstrated
 * Handling of multiparty communication, branching/select, mixed choice, and message purging.
-* Separation of generic protocol mechanics (the `gen_*` modules) from application-specific logic (`a.erl`, `b.erl`, `s.erl`).
+* Separation of generic protocol mechanics (the `gen_*` modules) from application-specific logic (`a.erl`, `c.erl`, `s.erl`).
 * Use of counters to discard stale messages in mixed-choice scenarios.
 

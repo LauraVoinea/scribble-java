@@ -2,5 +2,5 @@
 *DBG* a receive internal {a1} in state s4
 *DBG* a consume internal init_state in state s4
 *DBG* a consume internal {a1} in state s4 => s5
-*DBG* a receive cast {<0.178.0>,{'To'},1} in state s5
+*DBG* a receive cast {<0.244.0>,{'To'},1} in state s5
 *DBG* a terminate normal in state s5

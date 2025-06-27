@@ -88,7 +88,7 @@ public class GTCallbackModule {
         }
 
         // Write export lists.
-        String exportsLine = "-export([" + String.join(", ", exportNames) + "]).";
+        String exportsLine = "-export([" + String.join(",\n\t ", exportNames) + "\n\t]).";
         writer.writeLine(exportsLine);
         writer.writeLine("");
 
@@ -108,7 +108,7 @@ public class GTCallbackModule {
         writer.writeLine("");
 
         // Generate init/1 function
-        ErlFun initFun = genInitFunction(role, efsm, efsm.init, r.sigma.map.keySet());
+        ErlFun initFun = genInitFunction(role, efsm, efsm.init);
         initFun.write(writer);
         writer.writeLine("");
         List<ErlFun> aggregatedFuns = GTErlGenUtil.aggregateTypeSpecs(functions);
@@ -144,7 +144,7 @@ public class GTCallbackModule {
 
 
     /** Build the init/1 function, which initializes gen_role. */
-    private ErlFun genInitFunction(Role self, GTEFSM efsm, GTVState initState, Set<Role> roles) {
+    private ErlFun genInitFunction(Role self, GTEFSM efsm, GTVState initState) {
         // Function head: init([]) ->
         List<ErlTerm> headArgs = List.of(new ErlList(Collections.emptyList()));
 
@@ -155,12 +155,7 @@ public class GTCallbackModule {
         // - For each role (other than self) add a field <role>_pid bound to that role's PID variable.
         LinkedHashMap<String, ErlTerm> recFields = new LinkedHashMap<>();
         recFields.put("mc_counter_1", new ErlAtom("0")); // you could later compute this dynamically.
-//        for (Role r : roles) {
-//            if (r.equals(self))
-//                continue;
-//            String rName = r.toString().toLowerCase();
-//            recFields.put(rName + "_pid", new ErlVar(rName + "Pid"));
-//        }
+
         ErlRecordUpdate stateRecord = new ErlRecordUpdate(null, "state_data");
         recFields.forEach(stateRecord::addField);
         ErlMatch assignData = new ErlMatch(new ErlVar("Data"), stateRecord);
@@ -480,16 +475,16 @@ public class GTCallbackModule {
 //                        "send_" + paramA,
                 sendName, params
         );
-//        ErlCall formatCall = new ErlCall("io", "format", List.of(
-//                new ErlString(self.toString() + ": s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
-//                new ErlList(Collections.emptyList())
-//        ));
+        ErlCall formatCall = new ErlCall("io", "format", List.of(
+                new ErlString(self.toString() + ": s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
+                new ErlList(Collections.emptyList())
+        ));
         // Clause 2: Pattern "2" -> send call then next state.
-        ErlCall rhsSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), sendName,
-                List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
+//        ErlCall rhsSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), sendName,
+//                List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
         ErlSeq rhsBodySeq = new ErlSeq();
         rhsBodySeq.addExpression(sendCall);
-        rhsBodySeq.addExpression(rhsSendCall);
+        rhsBodySeq.addExpression(formatCall);
         ErlTerm rhsNextState = genNextState(m, sendStar.right);
         rhsBodySeq.addExpression(rhsNextState);
         rhsCase.addClause(new ErlAtom("2"), rhsBodySeq);
@@ -549,10 +544,11 @@ public class GTCallbackModule {
             // Generate the function for make_choice on external events.
             ErlFun sendFunc = genMakeChoice_a(e.op);
 
-            ErlCall logRcv = new ErlCall("io", "format", List.of(
-                    new ErlString(e.role.toString() + ": s" + s.id + " Received " + headExtTuple + " from " + a.role + " ~n"),
-                    new ErlList(Collections.emptyList())
-            ));
+//            ErlCall logRcv = new ErlCall("io", "format", List.of(
+//                    new ErlString(e.role.toString() + ": s" + s.id + " Received "
+//                            + headExtTuple.getElements() + " from " + a.role + " ~n"),
+//                    new ErlList(Collections.emptyList())
+//            ));
 
             // Build body as a case expression.
             // Call: make_choice_<a1>(Data)
@@ -563,12 +559,9 @@ public class GTCallbackModule {
             // Clause 2: Pattern "2" -> send call then next state.
             //RHS choice; send RHS label
 
-            ErlCall extSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), sendName,
-                    List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
+
             ErlSeq extBodySeq = new ErlSeq();
             extBodySeq.addExpression(sendCall);
-            extBodySeq.addExpression(extSendCall);
-            //TODO: RHS continuation
             extBodySeq.addExpression(rhsNextState);
             extCase.addClause(new ErlAtom("2"), extBodySeq);
 

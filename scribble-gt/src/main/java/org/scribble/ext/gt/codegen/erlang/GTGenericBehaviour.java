@@ -104,7 +104,7 @@ public class GTGenericBehaviour {
         }
 
         // Write export lists.
-        String exportsLine = "-export([" + String.join(", ", exportNames) + "]).";
+        String exportsLine = "-export([" + String.join(", \n\t ", exportNames) + "\n\t ]).";
         writer.writeLine(exportsLine);
         writer.writeLine("");
 
