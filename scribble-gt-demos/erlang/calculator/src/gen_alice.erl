@@ -30,14 +30,14 @@ init({CallbackModule, _Args}) ->
     CallbackModule:init([]).
 
 -spec s4(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {stop, normal, state_data()} | {stop, normal, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
-s4(EventType, {CarolPid, {diff_result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
+s4(EventType, {CarolPid, {diff_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
-    CallbackModule:s4(EventType, {CarolPid, {diff_result}}, NewData);
-s4(EventType, {CarolPid, {sum_result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
+    CallbackModule:s4(EventType, {CarolPid, {diff_result, Result}}, NewData);
+s4(EventType, {CarolPid, {sum_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
-    CallbackModule:s4(EventType, {CarolPid, {sum_result}}, NewData);
+    CallbackModule:s4(EventType, {CarolPid, {sum_result, Result}}, NewData);
 s4(EventType, {CarolPid, {cancel}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),

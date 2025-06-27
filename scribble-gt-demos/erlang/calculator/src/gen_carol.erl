@@ -1,7 +1,7 @@
 -module(gen_carol).
 -behaviour(gen_statem).
 
--export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, send_s1_first/3, s1/3, send_s3_second/3, s3/3, send_s7_sum/2, s7/3, send_s7_diff/2, s8/3, send_s9_sum_result/3, s9/3, s11/3, send_s12_diff_result/2, s12/3, send_s5_cancel/2, s5/3]).
+-export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, send_s1_first/3, s1/3, send_s3_second/3, s3/3, send_s7_sum/2, s7/3, send_s7_diff/2, s8/3, send_s9_sum_result/3, s9/3, s11/3, send_s12_diff_result/3, s12/3, send_s5_cancel/2, s5/3]).
 
 -include("carol.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), srv_pid :: pid() | undefined, alice_pid :: pid() | undefined}.
@@ -130,10 +130,10 @@ send_s1_first(SrvPid, Number, _Data) ->
 send_s3_second(SrvPid, Number, _Data) ->
     gen_statem:cast(SrvPid, {self(), {second, Number}}).
 
--spec send_s12_diff_result(AlicePid :: pid(), Data :: state_data()) -> ok.
-send_s12_diff_result(AlicePid, Data) ->
+-spec send_s12_diff_result(AlicePid :: pid(), Result :: term(), Data :: state_data()) -> ok.
+send_s12_diff_result(AlicePid, Result, Data) ->
     Counter = Data#state_data.mc_counter_1,
-    gen_statem:cast(AlicePid, {self(), {diff_result, result}, Counter}).
+    gen_statem:cast(AlicePid, {self(), {diff_result, Result}, Counter}).
 
 -spec send_s9_sum_result(AlicePid :: pid(), Result :: term(), Data :: state_data()) -> ok.
 send_s9_sum_result(AlicePid, Result, Data) ->

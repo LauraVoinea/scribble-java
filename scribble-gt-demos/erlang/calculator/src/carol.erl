@@ -83,8 +83,9 @@ s7(cast, {SrvPid, {timeout}}, #state_data{srv_pid = SrvPid} = Data) ->
 
 -spec s12(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
 s12(internal, {diff_result}, #state_data{alice_pid = AlicePid} = Data) ->
-    io:format("Carol: s12 Sending diff_result to Alice ~n", []),
-    gen_carol:send_s12_diff_result(AlicePid, Data),
+    Result = 24,
+    io:format("Carol: s12 Sending diff_result ~p to Alice ~n", [Result]),
+    gen_carol:send_s12_diff_result(AlicePid, Result, Data),
     {stop, normal, Data}.
 
 -spec s8(cast, {pid(), {atom(), term()}}, state_data()) -> 
@@ -93,6 +94,7 @@ s12(internal, {diff_result}, #state_data{alice_pid = AlicePid} = Data) ->
 s8(cast, {SrvPid, {timeout}}, #state_data{srv_pid = SrvPid} = Data) ->
     {next_state, s5, Data, [{next_event, internal, {cancel}}]};
 s8(cast, {SrvPid, {result_sum, Result}}, #state_data{srv_pid = SrvPid} = Data) ->
+    io:format("Carol: s8 Received result_sum ~p from Srv ~n", [Result]),
     {next_state, s9, Data, [{next_event, internal, {sum_result}}]}.
 
 -spec make_choice_s7(state_data()) -> integer().
