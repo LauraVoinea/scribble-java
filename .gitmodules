@@ -1,3 +1,3 @@
 [submodule "scribble-gt-demos/erlang/scribble-gt-demos/erlang/rabbitmq-server"]
-	path = scribble-gt-demos/erlang/scribble-gt-demos/erlang/rabbitmq-server
+	path = scribble-gt-demos/erlang/rabbitmq-server
 	url = git@github.com:LauraVoinea/rabbitmq-server.git
