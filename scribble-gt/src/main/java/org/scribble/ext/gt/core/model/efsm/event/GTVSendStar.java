@@ -10,17 +10,15 @@ public class GTVSendStar implements GTVAction {
     public final Op op;
     public final Payload pay;
 
-
-    public GTVSendStar(Role role, Op op, Payload payload) {
+    public GTVSendStar(Role role, Op op, Payload pay) {
         this.role = role;
         this.op = op;
-        this.pay = payload;
-
+        this.pay = pay;
     }
 
     @Override
     public String toString() {
-        return this.role + "!*" + this.op;
+        return this.role + "!*" + this.op + this.pay;
     }
 
     @Override
@@ -28,6 +26,7 @@ public class GTVSendStar implements GTVAction {
         int hash = 15493;
         hash = 31 * hash + this.role.hashCode();
         hash = 31 * hash + this.op.hashCode();
+        hash = 31 * hash + this.pay.hashCode();
         return hash;
     }
 
@@ -39,6 +38,6 @@ public class GTVSendStar implements GTVAction {
         if (!(o instanceof GTVSendStar cast)) {
             return false;
         }
-        return this.role.equals(cast.role) && this.op.equals(cast.op);
+        return this.role.equals(cast.role) && this.op.equals(cast.op) && this.pay.equals(cast.pay);
     }
 }

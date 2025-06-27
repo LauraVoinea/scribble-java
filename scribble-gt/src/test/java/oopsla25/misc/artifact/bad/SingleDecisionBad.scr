@@ -1,0 +1,13 @@
+module SingleDecisionBad;
+
+
+global protocol Proto1(role A, role B, role C) {
+    mixed {
+        0() from A to B;
+        1() from B to A;
+    } or A->B {
+        3() from A to B;  // cf. A->B |> B->A
+        2() from B to A;
+    }
+}
+

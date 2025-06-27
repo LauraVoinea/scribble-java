@@ -1,6 +1,5 @@
 package org.scribble.ext.gt.core.model.global;
 
-import org.scribble.core.type.name.Role;
 import org.scribble.ext.gt.core.type.session.local.GTLType;
 
 import java.util.*;

@@ -1,0 +1,15 @@
+module ClearTerminationBad;
+
+
+global protocol Proto1(role A, role B, role C) {
+    rec X {
+        mixed {
+            0() from A to B;
+            continue X;
+        } or A->B {
+            1() from B to A;
+            continue X;
+        }
+    }
+}
+
