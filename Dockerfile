@@ -71,6 +71,7 @@ RUN apt-get update -y \
       rebar3 \
       vim \
       nano \
+      graphviz \
  && rm -rf /var/lib/apt/lists/*
 
 # Modern Erlang and Elixir

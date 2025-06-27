@@ -32,7 +32,7 @@ public class GTCLFlags extends CLFlags {
     public static final String GT_NO_CORRESPONDENCE_FLAG = "-gt-no-corr";
     public static final String GT_JAVA_API_GEN_FLAG = "-gt-api-gen";
 
-    public static final String GT_ED_FSM_GEN_FLAG = "-gt-event-fsm";
+    public static final String GT_ED_FSM_GEN_FLAG = "-gt-gen-efsm";
     public static final String GT_ERLANG_API_GEN_FLAG = "-gt-gen-erlang";
     public static final String GT_ERLANG_ROLE_GEN_FLAG = "-gt-gen-erlang-role";
 

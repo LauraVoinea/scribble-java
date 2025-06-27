@@ -1,4 +1,4 @@
--module(c).
+-module(client).
 -behaviour(gen_c).
 
 -export([init/1,

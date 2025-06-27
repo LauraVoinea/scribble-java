@@ -1,4 +1,3 @@
-
 ---
 
 **OOPSLA 24/25 > Paper #672 > Artifact TODO > Overview**
@@ -256,7 +255,7 @@ Run all examples:
   To generate event-based FSMs for a specific role in the protocol:
   
     ```sh
-    ./mMST.sh -gt-event-fsm <ProtocolName> <Role> scribble-gt-demos/scribble/<ProtocolName>.scr
+    ./mMST.sh -gt-gen-efsm <ProtocolName> <Role> scribble-gt-demos/scribble/<ProtocolName>.scr
     ```
 
     The generated `<role>.dot` file will be placed under `generated/<protocol_name>`

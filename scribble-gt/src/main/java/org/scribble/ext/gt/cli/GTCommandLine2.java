@@ -176,10 +176,15 @@ public class GTCommandLine2 extends CommandLine {
     }
 
     static void outEFSM(Map<GProtoName, Map<Role, GTEFSM>> efsms, Pair<String, String[]> a) {
-        GProtoName simple = new GProtoName(a.right[0]);
+        GProtoName proto = new GProtoName(a.right[0]);
         Role r = new Role(a.right[1]);
-        System.out.println("\n[GTCommandLine2] event-driven FSM for " + simple + "@" + r + ":");
-        System.out.println(efsms.get(simple).get(r).toDot());
+        GTEFSM efsm = efsms.get(proto).get(r);
+        String dotDir = "./generated/" + proto.getSimpleName();
+        try {
+            new DotWriter().writeDotFile(efsm, dotDir, r.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write .dot for " + proto + "@" + r, e);
+        }
     }
 
     static void outAPI(Map<GProtoName, Map<Role, GTEFSM>> efsms, Pair<String, String[]> a,
@@ -200,7 +205,7 @@ public class GTCommandLine2 extends CommandLine {
         GTCallbackModule callback = new GTCallbackModule();
         System.out.println("\n[GTCommandLine2] Generic behaviour for " + protocolName + "@" + r + " in ./generated/" + protocolName);
 
-        behaviour.generateCode(protocolName.toString(), config, efsm, translated.get(protocolName).getExplicitCommitting().get(r));
+        behaviour.generateCode(protocolName.toString(), config, efsm, translated.get(protocol).getExplicitCommitting().get(r));
         callback.generate(protocolName.toString(), config, efsm);
 
     }
@@ -234,7 +239,7 @@ public class GTCommandLine2 extends CommandLine {
 
             System.out.println("\n[GTCommandLine2] Generic behaviour for " + protocolName + "@" + role + " in ./generated/" + protocolName);
 
-            behaviour.generateCode(protocolName.toString(), config, efsm, translated.get(protocolName).getExplicitCommitting().get(role));
+            behaviour.generateCode(protocolName.toString(), config, efsm, translated.get(protocol).getExplicitCommitting().get(role));
             callback.generate(protocolName.toString(), config, efsm);
         }
     }

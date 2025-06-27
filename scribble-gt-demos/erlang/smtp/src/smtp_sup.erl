@@ -24,8 +24,8 @@ init([]) ->
             restart => temporary,
             shutdown => 5000,
             type => worker},
-        #{id => c,
-            start => {c, start_link, []},
+        #{id => client,
+            start => {client, start_link, []},
             restart => temporary,
             shutdown => 5000,
             type => worker}

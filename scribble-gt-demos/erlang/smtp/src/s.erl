@@ -320,11 +320,11 @@ s27(internal, {'250'}, #state_data{c_pid = CPid} = Data) ->
 -spec connection(state_data()) -> state_data().
 connection(Data) ->
     io:format("s connected ~n", []),
-    CPid = case whereis(c) of
+    CPid = case whereis(client) of
         undefined ->
             io:format("c is not available yet. Will retry...~n", []),
             timer:sleep(1000),
-            whereis(c);
+            whereis(client);
         Pid_c ->
             Pid_c
     end,
