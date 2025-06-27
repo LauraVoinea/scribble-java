@@ -173,10 +173,31 @@ s3(EventType, {ready}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {ready}, Data).
 
--spec s4(term(), {pid(), {atom()}}, state_data()) -> {next_state, s5, state_data(), [{next_event, internal, {get_mode}}]}.
+-spec s4(term(), {pid(), {atom()}}, state_data()) ->
+  {next_state, s5, state_data(), [{next_event, internal, {get_mode}}]} |
+  {keep_state, state_data()}.
 s4(EventType, {UserPid, {request}}, Data) ->
     CallbackModule = get(callback_module),
-    CallbackModule:s4(EventType, {UserPid, {request}}, Data).
+    CallbackModule:s4(EventType, {UserPid, {request}}, Data);
+s4(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {shutdown_storage}
+  orelse Msg =:= {shutdown_user}
+  orelse Msg =:= {ack}
+  orelse Msg =:= {api_response}
+  orelse Msg =:= {error_notice}
+  orelse Msg =:= {shutdown_ack}
+  orelse Msg =:= {timeout}
+  orelse Msg =:= {shutdown_api}
+  orelse Msg =:= {service_operational}
+  orelse Msg =:= {error_response}
+  orelse Msg =:= {timeout_notice}
+  orelse Msg =:= {prepare_shutdown}
+  orelse Msg =:= {error_ack}
+  orelse Msg =:= {storage_request}
+  orelse Msg =:= {cancel_ack}
+  orelse Msg =:= {storage_restart}
+  orelse Msg =:= {storage_reponse} ->
+  {keep_state, Data}.
+
 
 -spec s5(EventType :: term(), {atom()}, state_data()) -> {next_state, s10, state_data(), [{next_event, internal, {timeout}}]}.
 s5(EventType, {get_mode}, Data) ->

@@ -67,9 +67,7 @@ s5(internal, {get_mode}, Data) ->
 s7(internal, {timeout_notice}, #state_data{user_pid = UserPid} = Data) when is_pid(UserPid) ->
     io:format("API: s7 Sending timeout_notice to User ~n", []),
     gen_api:send_s7_timeout_notice(UserPid, Data),
-    {next_state, s4, Data};
-s7(internal, {timeout_notice}, Data) ->
-    {keep_state, Data}.
+    {next_state, s4, Data}.
 
 -spec make_choice_service_operational(state_data()) -> integer().
 make_choice_service_operational(_Data) ->
