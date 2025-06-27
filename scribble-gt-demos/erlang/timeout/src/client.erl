@@ -1,4 +1,4 @@
--module(c).
+-module(client).
 -behaviour(gen_c).
 
 -export([init/1, callback_mode/0, start_link/0, s4/3, s5/3]).

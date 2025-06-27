@@ -58,11 +58,11 @@ init([]) ->
         Pid ->
             Pid
     end,
-    CPid = case whereis(c) of
+    CPid = case whereis(client) of
         undefined ->
             io:format("B: c is not available yet. Will retry...~n", []),
             timer:sleep(1000),
-            whereis(c);
+            whereis(client);
         Pid1 ->
             Pid1
     end,

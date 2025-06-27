@@ -25,15 +25,14 @@ init([]) ->
             Pid
     end,
     BPid ! {a_pid, self()},
-    CPid = case whereis(c) of
+    CPid = case whereis(client) of
         undefined ->
             io:format("c is not available yet. Will retry...~n", []),
             timer:sleep(1000),
-            whereis(c);
+            whereis(client);
         Pid1 ->
             Pid1
     end,
-%%    CPid ! {a_pid, self()},
     Data = #state_data{mc_counter_1 = 0, b_pid = BPid, c_pid = CPid},
     io:format("a initialized ~n", []),
     {ok, s4, Data, [{next_event, internal, {a1}}]}.
