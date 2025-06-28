@@ -110,7 +110,7 @@ s11(EventType, {BobPid, {reject_quote}, Counter}, #state_data{mc_counter_1 = MC}
 s11(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_quote} 
 		orelse Msg =:= {accept_quote} ->
     {keep_state, Data};
-s11(_EventType, {_Pid, {request_title, Title}, _Counter}, Data) ->
+s11(_EventType, {_Pid, {request_title, _Title}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec send_s5_not_available(AlicePid :: pid(), Data :: state_data()) -> ok.

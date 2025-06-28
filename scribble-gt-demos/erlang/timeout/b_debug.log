@@ -1,6 +1,10 @@
 *DBG* b enter gen_b in state s5
 *DBG* b receive internal {'To'} in state s5
 *DBG* b consume internal init_state in state s5
-*DBG* b receive internal {'To'} in state s3
-*DBG* b consume internal {'To'} in state s5 => s3
-*DBG* b terminate normal in state s3
+*DBG* b consume internal {'To'} in state s5
+*DBG* b receive cast {<0.87.0>,{a1},1} in state s5
+*DBG* b receive internal {a2} in state s6
+*DBG* b consume cast {<0.87.0>,{a1},1} in state s5 => s6
+*DBG* b receive internal {a5} in state s7
+*DBG* b consume internal {a2} in state s6 => s7
+*DBG* b terminate normal in state s7

@@ -260,7 +260,7 @@ elif [ "$run_gt_gen_efsm" = 1 ]; then
     # Convert .dot to .png if present
     DOT_FILE="$SCRIBHOME/generated/$PROTOCOL_NAME/$ROLE_NAME.dot"
     if [ -f "$DOT_FILE" ]; then
-        echo "Generating PNG from .dot file: $DOT_FILE"
+        echo "Generating EFSM: $DOT_FILE for $ROLE_NAME in protocol $PROTOCOL_NAME"
         # Ensure Graphviz 'dot' is available
         if ! command -v dot >/dev/null 2>&1; then
             echo "Error: 'dot' command not found. Please install Graphviz (e.g. 'brew install graphviz')" >&2

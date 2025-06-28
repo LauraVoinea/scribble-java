@@ -95,15 +95,13 @@ public class GTCommandLine2 extends CommandLine {
 
             Map<Role, GTEFSM> tmp = getEFSMS(s.local, comInvert);
             efsms.put(simple, tmp);
-//            if (debug) {
+            if (debug) {
                 for (Map.Entry<Role, GTEFSM> x : tmp.entrySet()) {
                     Role r = x.getKey();
                     GTEFSM efsm = x.getValue();
 //                    System.out.println("\n[debug] EFSM: " + r + ": " + s.local.configs.get(r) + "\n" + efsm.toDot());
 //                    System.out.println("\n[debug] Role gen:\n" + new GTRoleGen().generate(simple, r, efsm));
 //                    System.out.println("\n[debug] Gen role gen:\n" + new GTGenRoleGen().generate(simple, r, efsm));
-
-//                    System.err.println("===========> " + efsm.E + "  " + GTGenUtil.getEvents(efsm) + "\n" + efsm.delta);
                     try {
                         if(s.local.configs.get(r) != null)
                             new GTGenericBehaviour().generateCode(g.getSimpleName().toString(),
@@ -117,7 +115,7 @@ public class GTCommandLine2 extends CommandLine {
                     }
 
                 }
-//            }
+            }
             protocolLocalSystems.put(g, s.local);
 
         }
@@ -203,10 +201,12 @@ public class GTCommandLine2 extends CommandLine {
 
         GTGenericBehaviour behaviour = new GTGenericBehaviour();
         GTCallbackModule callback = new GTCallbackModule();
-        System.out.println("\n[GTCommandLine2] Generic behaviour for " + protocolName + "@" + r + " in ./generated/" + protocolName);
 
         behaviour.generateCode(protocolName.toString(), config, efsm, translated.get(protocol).getExplicitCommitting().get(r));
+        System.out.println("\n[GTCommandLine2] Generic behaviour module for " + protocolName + "@" + r + " in ./generated/" + protocolName);
         callback.generate(protocolName.toString(), config, efsm);
+        System.out.println("\n[GTCommandLine2] Callback module for " + protocolName + "@" + r + " in ./generated/" + protocolName);
+
 
     }
 
@@ -237,10 +237,11 @@ public class GTCommandLine2 extends CommandLine {
             GTEFSM efsm = roleEfsms.get(role);
             GTLConfig config = protocolLocalSystems.get(protocol).configs.get(role);
 
-            System.out.println("\n[GTCommandLine2] Generic behaviour for " + protocolName + "@" + role + " in ./generated/" + protocolName);
-
             behaviour.generateCode(protocolName.toString(), config, efsm, translated.get(protocol).getExplicitCommitting().get(role));
+            System.out.println("\n[GTCommandLine2] Generic behaviour module for " + protocolName + "@" + role + " in ./generated/" + protocolName);
             callback.generate(protocolName.toString(), config, efsm);
+            System.out.println("\n[GTCommandLine2] Callback module for " + protocolName + "@" + role + " in ./generated/" + protocolName);
+
         }
     }
 

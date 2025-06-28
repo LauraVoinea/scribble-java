@@ -1,20 +1,22 @@
 module Interrupt;
 
+
+//* Fig. 7
+// !!! //@'explicit-observer-left-commits'
 global protocol Interrupt(role P, role Q) {
-    mixed {  // LHS
-        Start() from P to Q;
-    rec X {
-        choice at P {
-                More() from P to Q;
+    mixed { // LHS
+        Start() from P to Q;  // c
+        rec X {  // !!! XXX Fig. 7 wrong order
+            choice at P {
+                More() from P to Q;  // a
                 continue X;
-
-        } or {
-            Stop*() from P to Q;
-            Ack() from Q to P;
+            } or {
+                Stop() from P to Q;  // !!! Q*;  // Q commits  // d
+                Ack() from Q to P;  // !!! Fixed -- cf. Ex 3.8
+            }
         }
-        }
-    } or P -> Q  {  // RHS
-        Interrupt() from Q to P;  //@'interrupt'
-
-}   
+    } or P->Q { // RHS
+        Interrupt() from Q to P;
+    }
 }
+//*/

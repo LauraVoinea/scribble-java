@@ -106,9 +106,9 @@ s12(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {cancel_confirmation}
 		orelse Msg =:= {response_timeout} 
 		orelse Msg =:= {not_available} ->
     {keep_state, Data};
-s12(_EventType, {_Pid, {contribution, Amount}, _Counter}, Data) ->
+s12(_EventType, {_Pid, {contribution, _Amount}, _Counter}, Data) ->
     {keep_state, Data};
-s12(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+s12(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec s8(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {next_state, s12, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
@@ -128,9 +128,9 @@ s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {cancel_confirmation}
 		orelse Msg =:= {response_timeout} 
 		orelse Msg =:= {not_available} ->
     {keep_state, Data};
-s8(_EventType, {_Pid, {contribution, Amount}, _Counter}, Data) ->
+s8(_EventType, {_Pid, {contribution, _Amount}, _Counter}, Data) ->
     {keep_state, Data};
-s8(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+s8(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec s9(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
@@ -145,9 +145,9 @@ s9(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {cancel_confirmation}
 		orelse Msg =:= {response_timeout} 
 		orelse Msg =:= {not_available} ->
     {keep_state, Data};
-s9(_EventType, {_Pid, {contribution, Amount}, _Counter}, Data) ->
+s9(_EventType, {_Pid, {contribution, _Amount}, _Counter}, Data) ->
     {keep_state, Data};
-s9(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+s9(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec send_s10_purchase_notification(AlicePid :: pid(), Data :: state_data()) -> ok.

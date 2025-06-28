@@ -60,7 +60,7 @@ s4(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {purchase_notification}
 		orelse Msg =:= {cancel_notification} 
 		orelse Msg =:= {response_timeout} ->
     {keep_state, Data};
-s4(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+s4(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec s5(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.

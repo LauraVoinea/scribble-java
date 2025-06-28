@@ -65,8 +65,10 @@ s5(internal, {cancel}, #state_data{alice_pid = AlicePid} = Data) ->
     {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} | 
     {next_state, s12, state_data(), [{next_event, internal, {diff_result}}]}.
 s11(cast, {SrvPid, {timeout}}, #state_data{srv_pid = SrvPid} = Data) ->
+    io:format("Carol: s11 Received timeout from Srv ~n", []),
     {next_state, s5, Data, [{next_event, internal, {cancel}}]};
 s11(cast, {SrvPid, {result_diff, Result}}, #state_data{srv_pid = SrvPid} = Data) ->
+    io:format("Carol: s11 Received result_diff ~p from Srv ~n", [Result]),
     {next_state, s12, Data, [{next_event, internal, {diff_result}}]}.
 
 -spec s7(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s8, state_data()} | {next_state, s11, state_data()} | {next_state, s5, state_data(), [{next_event, internal, {cancel}}]}.

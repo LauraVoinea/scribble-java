@@ -54,7 +54,7 @@ s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {resubmitting}
 		orelse Msg =:= {cancel_booking} 
 		orelse Msg =:= {cancel_supplier} ->
     {keep_state, Data};
-s5(_EventType, {_Pid, {provide_address, Address}, _Counter}, Data) ->
+s5(_EventType, {_Pid, {provide_address, _Address}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.

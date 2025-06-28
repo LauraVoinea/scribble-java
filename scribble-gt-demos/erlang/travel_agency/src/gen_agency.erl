@@ -69,7 +69,7 @@ s6(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_offer}
 		orelse Msg =:= {cancel_agency} 
 		orelse Msg =:= {resubmit_request} ->
     {keep_state, Data};
-s6(_EventType, {_Pid, {booking_request, Destination}, _Counter}, Data) ->
+s6(_EventType, {_Pid, {booking_request, _Destination}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec s13(EventType :: term(), {atom()}, state_data()) -> {ok, s3, state_data()}.
@@ -101,7 +101,7 @@ s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_offer}
 		orelse Msg =:= {cancel_agency} 
 		orelse Msg =:= {resubmit_request} ->
     {keep_state, Data};
-s8(_EventType, {_Pid, {booking_request, Destination}, _Counter}, Data) ->
+s8(_EventType, {_Pid, {booking_request, _Destination}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
@@ -115,7 +115,7 @@ send_s8_price_adjustment(ClientPid, Price, Data) ->
     gen_statem:cast(ClientPid, {self(), {price_adjustment, Price}, Counter}).
 
 -spec send_s4_price_quote(ClientPid :: pid(), Price :: term(), _Data :: state_data()) -> ok.
-send_s4_price_quote(ClientPid, Price, Data) ->
+send_s4_price_quote(ClientPid, Price, _Data) ->
     gen_statem:cast(ClientPid, {self(), {price_quote, Price}}).
 
 -spec code_change(OldVsn :: term(), StateName :: atom(), StateData :: state_data(), Extra :: term()) ->

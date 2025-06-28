@@ -90,11 +90,11 @@ s9(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {repeat_confirmation}
 		orelse Msg =:= {accept_confirmation} 
 		orelse Msg =:= {reject_confirmation} ->
     {keep_state, Data};
-s9(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+s9(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data};
-s9(_EventType, {_Pid, {price_adjustment, Price}, _Counter}, Data) ->
+s9(_EventType, {_Pid, {price_adjustment, _Price}, _Counter}, Data) ->
     {keep_state, Data};
-s9(_EventType, {_Pid, {confirm_date, Date}, _Counter}, Data) ->
+s9(_EventType, {_Pid, {confirm_date, _Date}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec send_s9_accept_offer(AgencyPid :: pid(), Data :: state_data()) -> ok.
@@ -132,11 +132,11 @@ s10(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {repeat_confirmation}
 		orelse Msg =:= {accept_confirmation} 
 		orelse Msg =:= {reject_confirmation} ->
     {keep_state, Data};
-s10(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+s10(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data};
-s10(_EventType, {_Pid, {price_adjustment, Price}, _Counter}, Data) ->
+s10(_EventType, {_Pid, {price_adjustment, _Price}, _Counter}, Data) ->
     {keep_state, Data};
-s10(_EventType, {_Pid, {confirm_date, Date}, _Counter}, Data) ->
+s10(_EventType, {_Pid, {confirm_date, _Date}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec send_s7_cancel_supplier(SupplierPid :: pid(), Data :: state_data()) -> ok.
@@ -197,7 +197,7 @@ s17(_EventType, {_Pid, {price_quote, _Price}, _Counter}, Data) ->
     {keep_state, Data};
 s17(_EventType, {_Pid, {price_adjustment, _Price}, _Counter}, Data) ->
     {keep_state, Data};
-s17(_EventType, {_Pid, {confirm_date, Date}, _Counter}, Data) ->
+s17(_EventType, {_Pid, {confirm_date, _Date}, _Counter}, Data) ->
     {keep_state, Data}.
 
 -spec send_s6_cancel_agency(AgencyPid :: pid(), Data :: state_data()) -> ok.
