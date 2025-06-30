@@ -1,0 +1,21 @@
+{application, asynch,
+ [{description, "An asynch application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {asynch_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, [
+    asynch_app,
+    asynch_sup,
+    a,
+    b,
+    c
+   ]},
+
+  {licenses, ["Apache-2.0"]},
+  {links, []}
+ ]}.
