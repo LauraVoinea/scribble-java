@@ -1,0 +1,9 @@
+//A --> B . C --> B
+module asynch;
+data <java> "java.lang.String" from "rt.jar" as Data;
+
+
+global protocol asynch(role A, role B, role C) {
+    ping() from A to B;
+    pong() from C to B;
+}
