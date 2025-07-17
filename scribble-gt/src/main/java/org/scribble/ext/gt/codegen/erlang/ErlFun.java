@@ -24,6 +24,23 @@ public class ErlFun implements ErlTerm {
         return spec;
     }
 
+    /** Add clauses from an iterable collection of FunClause objects. */
+    public void addClauses(Iterable<? extends FunClause> clauses) {
+        for (FunClause cl : clauses) {
+            this.addClause(cl.args, cl.guard, cl.body);
+        }
+    }
+
+    /** Prepend clauses from an iterable collection of FunClause objects. */
+    public void prependClauses(Iterable<? extends FunClause> clauses) {
+        List<FunClause> newClauses = new ArrayList<>();
+        for (FunClause cl : clauses) {
+            newClauses.add(new FunClause(cl.args, cl.guard, cl.body));
+        }
+        newClauses.addAll(this.clauses);
+        this.clauses = newClauses;
+    }
+
     /** Internal representation of a function clause: arguments, guard, and body. */
     static class FunClause {
         List<ErlTerm> args;

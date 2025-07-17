@@ -95,7 +95,7 @@ public class GTCommandLine2 extends CommandLine {
 
             Map<Role, GTEFSM> tmp = getEFSMS(s.local, comInvert);
             efsms.put(simple, tmp);
-            if (debug) {
+//            if (debug) {
                 for (Map.Entry<Role, GTEFSM> x : tmp.entrySet()) {
                     Role r = x.getKey();
                     GTEFSM efsm = x.getValue();
@@ -115,7 +115,7 @@ public class GTCommandLine2 extends CommandLine {
                     }
 
                 }
-            }
+//            }
             protocolLocalSystems.put(g, s.local);
 
         }

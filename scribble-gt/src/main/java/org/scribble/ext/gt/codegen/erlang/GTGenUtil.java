@@ -72,6 +72,11 @@ public class GTGenUtil {
         }
     }
 
+    // Return the number of mixed choices in the GTEFSM m
+    public static int getNumMixedChoices(GTEFSM m) {
+        return (int) m.S.stream().filter(x -> x.isEntry).count();
+    }
+
     public static Set<GTVEvent> getEvents(GTEFSM m) {
         //get all events from the GTEFSM m
         return m.delta.entrySet().stream()
@@ -79,6 +84,37 @@ public class GTGenUtil {
                         Stream.of((GTVEvent) x.getKey().right) : Stream.empty())
                 .collect(Collectors.toSet());
 
+    }
+
+    //get all events to be received in the GTEFSM m starting from state s
+    //skipping the events from state s directly; i.e. events to be received from the next state onwards
+    public static Set<GTVRecv> getRecvEvents(GTEFSM m, GTVState s) {
+        // skipping the events from state s directly; i.e., events to be received from the next state onwards
+        Set<GTVRecv> recvs = new HashSet<>();
+        Set<GTVState> visited = new HashSet<>();
+        Queue<GTVState> queue = new LinkedList<>();
+        visited.add(s);
+        queue.add(s);
+        while (!queue.isEmpty()) {
+            GTVState cur = queue.poll();
+            // collect receive events for states other than the starting state
+            if (!cur.equals(s)) {
+                filterEdgesByState(m, cur).keySet().stream()
+                    .filter(k -> k.right instanceof GTVRecv)
+                    .map(k -> (GTVRecv) k.right)
+                    .forEach(recvs::add);
+            }
+            // enqueue successors
+            filterEdgesByState(m, cur).values().stream()
+                .flatMap(Set::stream)
+                .map(pair -> pair.right)
+                .filter(next -> !visited.contains(next))
+                .forEach(next -> {
+                    visited.add(next);
+                    queue.add(next);
+                });
+        }
+        return recvs;
     }
 
     protected static Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filterEdgesByState(

@@ -154,8 +154,10 @@ public class GTCallbackModule {
         // Build a record update for state_data with:
         // - For each role (other than self) add a field <role>_pid bound to that role's PID variable.
         LinkedHashMap<String, ErlTerm> recFields = new LinkedHashMap<>();
-        recFields.put("mc_counter_1", new ErlAtom("0")); // you could later compute this dynamically.
-
+        // for each mixed choice in the EFSM add a field mc_counter_<i> initialized to 0
+        for (int i = 1; i <= GTGenUtil.getNumMixedChoices(efsm); i++) {
+            recFields.put("mc_counter_" + i, new ErlAtom("0"));
+        }
         ErlRecordUpdate stateRecord = new ErlRecordUpdate(null, "state_data");
         recFields.forEach(stateRecord::addField);
         ErlMatch assignData = new ErlMatch(new ErlVar("Data"), stateRecord);

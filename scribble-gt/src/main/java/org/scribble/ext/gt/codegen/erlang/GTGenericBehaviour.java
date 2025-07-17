@@ -181,6 +181,40 @@ public class GTGenericBehaviour {
     }
 
     /**
+     * Generate Postpone clauses for a given state; thios acts as a selective receive for
+     * gen_statem.
+     * For each event given by getRecvEvents for state s generate a clause that postpones the event
+     * @param s The state for which to generate the Postpone clause.
+     * @param efsm The  EFSM.
+     * @return The Erlang function representing the Postpone clause.
+     */
+    protected ErlFun genPostponeClauses(GTVState s, GTEFSM efsm) {
+        Set<GTVRecv> events = GTGenUtil.getRecvEvents(efsm, s);
+        ErlSeq bodySeq = new ErlSeq();
+        ErlVar eventTypeVar = new ErlVar("EventType");
+        ErlVar dataVar = new ErlVar("Data");
+
+        bodySeq.addExpression(new ErlTuple(Arrays.asList(
+                new ErlAtom("keep_state"),
+                new ErlVar("Data"),
+                new ErlList(Arrays.asList(new ErlAtom("postpone")))
+        )));
+        // Create the function with a clause for each event
+        ErlFun postponeClauses = new ErlFun(GTGenUtil.stateToFuncName(s));
+        for (GTVRecv e : events) {
+            String paramA = GTGenUtil.eventToParam(e);
+            List<ErlTerm> headArgs = Arrays.asList(
+                    new ErlVar("_EventType"),
+                    new ErlTuple(Arrays.asList(new ErlVar("_Pid"), new ErlVar("{"+ paramA + "}"))),
+                    new ErlVar("Data")
+            );
+            postponeClauses.addClause(headArgs, bodySeq);
+        }
+//        postponeFun.setSpec("postpone(EventType :: term(), {atom()}, state_data()) -> ok");
+        return postponeClauses;
+    }
+
+    /**
      * Generates the callback type definitions for all state functions in the given EFSM.
      * The callback type for each state function is derived from its spec string.
      *
@@ -387,6 +421,9 @@ public class GTGenericBehaviour {
                         "state_data()) -> \n\t " +
                         GTErlGenUtil.getNextStateReturnType(m, pair.right);
                 clauseFun.setSpec(spec);
+                // Add the Postpone clause for this state
+                ErlFun postponeFun = genPostponeClauses(s, m);
+                clauseFun.prependClauses(postponeFun.getClauses());
                 return clauseFun;
             });
         }).collect(Collectors.toList());
