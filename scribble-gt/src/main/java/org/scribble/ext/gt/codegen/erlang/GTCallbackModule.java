@@ -615,7 +615,6 @@ public class GTCallbackModule {
 
     protected List<ErlFun> generateExternalMixedNotEntry(GTEFSM m, GTVState s, Role self) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        System.err.println("=====MixedNotEntry=====> role " + self + " state " + s.id);
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
         List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs));

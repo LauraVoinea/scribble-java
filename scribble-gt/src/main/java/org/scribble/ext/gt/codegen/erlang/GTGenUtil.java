@@ -1,5 +1,6 @@
 package org.scribble.ext.gt.codegen.erlang;
 
+import org.scribble.core.type.name.Op;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
@@ -86,15 +87,84 @@ public class GTGenUtil {
 
     }
 
+//    gcEvents for state s:
+//            1. State s is not mixed and not a child of a mixed choice: gcEvents == null
+//            2. State s is mixed and not a child of MC: gcEvents == all receive events from both sides of the MC
+//    3. State s is a child of MC: gcEvents == all receive events from the other side of the parent MC.
+//    4. State s is a child of MC and an MC: gcEvents == all receive events from the other side of the parent MC ++ all all receive events from all branches of state s
+// filter out Map<Integer, Set<Op>> explicitCommiting
+    public static Set<GTVEvent> getGcEvents(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
+        StateKind kind = getStateKind(m, s);
+        if (kind == StateKind.END) {
+            return Collections.emptySet();
+        }
+        boolean isEntry = s.isEntry;
+//        boolean isChild = s.c != getNumMixedChoices(m) && !s.isEntry;
+        // 1. non-mixed and not child of MC: nothing to gc
+        if (!isEntry && s.c == GTVState.TOP_SCOPE) {
+            return null;
+        }
+        // collect all receive events reachable from s (both direct transitions and downstream)
+        Set<GTVRecv> branchRecvs = new HashSet<>();
+        // direct receive events at s
+        filterEdgesByState(m, s).keySet().stream()
+            .filter(k -> k.right instanceof GTVRecv)
+            .map(k -> (GTVRecv) k.right)
+            .forEach(recv -> {
+                System.err.println("state " + s + " direct recv: " + recv);
+                branchRecvs.add(recv);
+            });
+        // receive events from downstream states
+        getRecvEvents(m, s).forEach(recv -> {
+//            System.err.println("state " + s + " branch recv: " + recv);
+            branchRecvs.add(recv);
+        });
+        // 2. mixed entry and not child of MC
+        if (isEntry && s.c == getNumMixedChoices(m)) {
+//            System.err.println("==========> getGcEvents: Mixed entry state: " + s + " " + branchRecvs);
+            return new HashSet<>(branchRecvs);
+        }
+        // 3. for nested MC children: collect receives from all ancestor mixed-choice entries
+        List<GTVState> ancestors = m.S.stream()
+                .filter(x -> x.isEntry && x.c > s.c)
+                .collect(Collectors.toList());
+
+        // collect receive events from the other side of each ancestor MC
+        // for each ancestor MC, we collect the receive events from the other side of that MC
+        Set<GTVRecv> parentRecvs = ancestors.stream().flatMap(parent ->
+            filterEdgesByState(m, parent).entrySet().stream()
+                .filter(e ->
+                        e.getValue().stream().noneMatch(p -> p.right.equals(s)))
+                .map(e -> e.getKey().right)
+                .filter(r -> r instanceof GTVRecv)
+                .map(r -> (GTVRecv) r)
+        ).collect(Collectors.toSet());
+        // filter out explicitly committing operations
+        Set<Op> expOps = explicitCommiting.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
+        branchRecvs.removeIf(recv -> expOps.contains(recv.op));
+        parentRecvs.removeIf(recv -> expOps.contains(recv.op));
+        // 4. child of MC and an MC
+        Set<GTVEvent> result = new HashSet<>(parentRecvs);
+        result.addAll(branchRecvs);
+        System.err.println("====***======> getGcEvents: Mixed child state: " + s + " " + result);
+        return result;
+    }
+
     //get all events to be received in the GTEFSM m starting from state s
     //skipping the events from state s directly; i.e. events to be received from the next state onwards
     public static Set<GTVRecv> getRecvEvents(GTEFSM m, GTVState s) {
         // skipping the events from state s directly; i.e., events to be received from the next state onwards
+        // skipping events that match events in the starting state s
         Set<GTVRecv> recvs = new HashSet<>();
         Set<GTVState> visited = new HashSet<>();
         Queue<GTVState> queue = new LinkedList<>();
         visited.add(s);
         queue.add(s);
+        // collect receive events in starting state to filter out later
+        Set<GTVRecv> startRecvs = filterEdgesByState(m, s).keySet().stream()
+                .filter(k -> k.right instanceof GTVRecv)
+                .map(k -> (GTVRecv) k.right)
+                .collect(Collectors.toSet());
         while (!queue.isEmpty()) {
             GTVState cur = queue.poll();
             // collect receive events for states other than the starting state
@@ -102,6 +172,7 @@ public class GTGenUtil {
                 filterEdgesByState(m, cur).keySet().stream()
                     .filter(k -> k.right instanceof GTVRecv)
                     .map(k -> (GTVRecv) k.right)
+                    .filter(e -> !startRecvs.contains(e))
                     .forEach(recvs::add);
             }
             // enqueue successors

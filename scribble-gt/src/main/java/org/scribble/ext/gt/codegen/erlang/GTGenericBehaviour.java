@@ -28,7 +28,8 @@ public class GTGenericBehaviour {
     // GTLConfig rather that role for sigma.map.keySet()
     public void generateCode(String protocolName, GTLConfig r, GTEFSM efsm, Map<Integer, Set<Op>> explicitCommiting) throws IOException {
         this.role = r.self;
-        Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
+        System.err.println("Role " + r.self + "----Explicit committing: " + explicitCommiting);
+        Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName);
         Files.createDirectories(outputDirectory);
         String moduleName = "gen_" + role.toString().toLowerCase();
         String callbackModuleName = role.toString().toLowerCase();
@@ -64,7 +65,7 @@ public class GTGenericBehaviour {
                     break;
                 case BRANCH: {
                     //needs gc labels
-                    List<ErlFun> branchFuns = generateBranchAux(efsm, s);
+                    List<ErlFun> branchFuns = generateBranchAux(efsm, s, explicitCommiting);
                     functions.addAll(branchFuns);
                     break;
                 }
@@ -75,25 +76,25 @@ public class GTGenericBehaviour {
                 }
                 case INTERNAL_MIXED: {
                     //needs gc labels
-                    List<ErlFun> mixedFuns = generateInternalMixed(efsm, s);
+                    List<ErlFun> mixedFuns = generateInternalMixed(efsm, s, explicitCommiting);
                     functions.addAll(mixedFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_OI: {
                     //needs gc labels
-                    List<ErlFun> extOIFuns = generateExternalMixedOI(efsm, s);
+                    List<ErlFun> extOIFuns = generateExternalMixedOI(efsm, s, explicitCommiting);
                     functions.addAll(extOIFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_II: {
                     //needs gc labels
-                    List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s);
+                    List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s, explicitCommiting);
                     functions.addAll(extIIFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_NOT_ENTRY: {
                     //needs gc labels
-                    List<ErlFun> extNotEntryFuns = generateExternalMixedNotEntry(efsm, s);
+                    List<ErlFun> extNotEntryFuns = generateExternalMixedNotEntry(efsm, s, explicitCommiting);
                     functions.addAll(extNotEntryFuns);
                     break;
                 }
@@ -196,20 +197,20 @@ public class GTGenericBehaviour {
             String paramA = GTGenUtil.eventToParam(e);
             List<ErlTerm> headArgs = Arrays.asList(
                 new ErlVar("_EventType"),
-                new ErlTuple(Arrays.asList(new ErlVar("_Pid"), new ErlTuple(Arrays.asList(new ErlAtom(paramA))))),
+                new ErlTuple(Arrays.asList(new ErlVar("_Pid"), new ErlTuple(List.of(new ErlAtom(paramA))))),
                 new ErlVar("Data")
             );
             // build body per event
             ErlSeq bodySeq = new ErlSeq();
             ErlCall formatCall = new ErlCall("io", "format", Arrays.asList(
                 new ErlString("gen_" + this.role.toString().toLowerCase() + ": Postponing event ~p~n"),
-                new ErlList(Arrays.asList(new ErlAtom(paramA)))
+                new ErlList(List.of(new ErlAtom(paramA)))
             ));
             bodySeq.addExpression(formatCall);
             bodySeq.addExpression(new ErlTuple(Arrays.asList(
                 new ErlAtom("keep_state"),
                 new ErlVar("Data"),
-                new ErlList(Arrays.asList(new ErlAtom("postpone")))
+                new ErlList(List.of(new ErlAtom("postpone")))
             )));
             postponeClauses.addClause(headArgs, bodySeq);
         }
@@ -253,7 +254,7 @@ public class GTGenericBehaviour {
     private ErlFun generateStartLinkFun(String moduleName) {
         String funcName = "start_link";
         List<ErlTerm> headParams = Arrays.asList(new ErlVar("CallbackModule"), new ErlVar("Args"));
-        ErlCall ensureCall = new ErlCall("code", "ensure_loaded", Arrays.asList(new ErlVar("CallbackModule")));
+        ErlCall ensureCall = new ErlCall("code", "ensure_loaded", List.of(new ErlVar("CallbackModule")));
         ErlCase caseExpr = new ErlCase(ensureCall);
 
         // Clause 1:
@@ -288,12 +289,12 @@ public class GTGenericBehaviour {
                 new ErlVar("CallbackModule"),
                 new ErlVar("_Args")
         ));
-        List<ErlTerm> headArgs = Arrays.asList(head);
+        List<ErlTerm> headArgs = List.of(head);
 
         ErlSeq bodySeq = new ErlSeq();
         ErlCall formatCall = new ErlCall("io", "format", Arrays.asList(
                 new ErlString(callbackModuleName + ": Initializing with callback module ~p~n"),
-                new ErlList(Arrays.asList(new ErlVar("CallbackModule")))
+                new ErlList(List.of(new ErlVar("CallbackModule")))
         ));
         bodySeq.addExpression(formatCall);
 
@@ -305,7 +306,7 @@ public class GTGenericBehaviour {
         bodySeq.addExpression(putCall);
 
         //CallbackModule:init([])
-        ErlCall initCall = new ErlCall(new ErlVar("CallbackModule"), "init", Arrays.asList(
+        ErlCall initCall = new ErlCall(new ErlVar("CallbackModule"), "init", List.of(
                 new ErlList(Collections.emptyList())
         ));
         bodySeq.addExpression(initCall);
@@ -352,13 +353,12 @@ public class GTGenericBehaviour {
         return termFun;
     }
 
-    protected List<ErlFun> generateBranchAux(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateBranchAux(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
-        res.addAll(generateBranchAux(s, filt, m));
+        List<ErlFun> res = new LinkedList<>(generateBranchAux(s, filt, m));
         if(s.c > 0)
-            res.add(genGC(s, GTGenUtil.getEvents(m)));
+            res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
         return res;
     }
 
@@ -407,11 +407,11 @@ public class GTGenericBehaviour {
                 ErlSeq bodySeq = new ErlSeq();
 
                 bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                        new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                        new ErlCall("get", List.of(new ErlAtom("callback_module")))));
                 bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                         Arrays.asList(
                                 new ErlVar("EventType"),
-                                new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), payloadTuple)),
+                                new ErlTuple(Arrays.asList(new ErlVar(e.role +"Pid"), payloadTuple)),
                                 new ErlVar("Data")
                         )));
                 ErlFun clauseFun = new ErlFun(funcName);
@@ -447,7 +447,7 @@ public class GTGenericBehaviour {
             if (actions.size() == 1)
                 a = actions.iterator().next().left;
             else {
-                List<Pair<GTVAction, GTVState>> tmp = actions.stream().filter(y -> y.left instanceof GTVSendStar).collect(Collectors.toList());
+                List<Pair<GTVAction, GTVState>> tmp = actions.stream().filter(y -> y.left instanceof GTVSendStar).toList();
                 if (tmp.size() != 1) {
                     throw new RuntimeException("Shouldn't get in here: " + s);
                 }
@@ -470,15 +470,15 @@ public class GTGenericBehaviour {
                 String stateFuncName = GTGenUtil.stateToFuncName(s);
                 List<ErlTerm> stateParams = Arrays.asList(
                         new ErlVar("EventType"),
-                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                        new ErlTuple(List.of(new ErlAtom(paramA))),
                         new ErlVar("Data")
                 );
                 ErlSeq stateBody = new ErlSeq();
                 stateBody.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                        new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                        new ErlCall("get", List.of(new ErlAtom("callback_module")))));
                 stateBody.addExpression(new ErlCall(new ErlVar("CallbackModule"), stateFuncName, Arrays.asList(
                         new ErlVar("EventType"),
-                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                        new ErlTuple(List.of(new ErlAtom(paramA))),
                         new ErlVar("Data")
                 )));
                 ErlFun stateFunc = new ErlFun(stateFuncName);
@@ -571,11 +571,10 @@ public class GTGenericBehaviour {
     }
 
 
-    protected List<ErlFun> generateInternalMixed(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateInternalMixed(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         // Filter all transitions originating from state 's'.
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
-//        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
+        //        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
 //                GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVSendStar);
         // filter by GTVTau, since (12[] ▷1, A?a1())=[(ε, 13[] 1), (A!*Timeout, 10[] 1)] is handled by the same
         // clause as LHS both in the API and in the role code
@@ -597,7 +596,7 @@ public class GTGenericBehaviour {
 
                 List<ErlTerm> params = Arrays.asList(
                         new ErlVar("EventType"),
-                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
+                        new ErlTuple(List.of(new ErlAtom(paramA))),
                         //new ErlVar("Data")
                         new ErlMatch(dataPattern, new ErlVar("Data"))
                 );
@@ -613,11 +612,10 @@ public class GTGenericBehaviour {
 
 
                 bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                        new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                        new ErlCall("get", List.of(new ErlAtom("callback_module")))));
                 bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName, Arrays.asList(
                         new ErlVar("EventType"),
-                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
-//                        new ErlVar("Data")
+                        new ErlTuple(List.of(new ErlAtom(paramA))),
                         new ErlVar("NewData")
 
                 )));
@@ -631,9 +629,9 @@ public class GTGenericBehaviour {
                 clause.setSpec(rhsSpec);
                 return Stream.of(sendFunc, clause);
             });
-        }).collect(Collectors.toList());
+        }).toList();
 
-        res.addAll(rhsClauses.stream().flatMap(x -> x).collect(Collectors.toList()));
+        List<ErlFun> res = new LinkedList<>(rhsClauses.stream().flatMap(x -> x).toList());
 
         //LHS of Internal mixed choice
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
@@ -641,7 +639,7 @@ public class GTGenericBehaviour {
         res.addAll(lhs.entrySet().stream().map(entry -> {
             GTVRecv e = (GTVRecv) entry.getKey().right;
             String paramA = GTGenUtil.eventToParam(e);
-            Map<String, ErlTerm> fields = new HashMap<>();
+            Map<String, ErlTerm> fields = new HashMap();
 //          TODO:  fields.put("alice_pid", new ErlVar("AlicePid"));
             if(s.c > 0)
                 fields.put("mc_counter_" + s.c, new ErlVar("MC"));
@@ -663,7 +661,7 @@ public class GTGenericBehaviour {
                     new ErlMatch(dataPattern, new ErlVar("Data"))
             );
             ErlSeq bodySeq = new ErlSeq();
-            ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
+//            ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
         //     if(s.c > 0){
         //         recordUpdate.addField("mc_counter_" + s.c,
         //                 new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
@@ -673,10 +671,10 @@ public class GTGenericBehaviour {
         //     bodySeq.addExpression(match);
 //            bodySeq.addExpression(new ErlVar("Data"));
             bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                    new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                    new ErlCall("get", List.of(new ErlAtom("callback_module")))));
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName, Arrays.asList(
                     new ErlVar("EventType"),
-                    new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+ "Pid"), payloadTuple)),
+                    new ErlTuple(Arrays.asList(new ErlVar(e.role + "Pid"), payloadTuple)),
                 //     new ErlVar("NewData")
                     new ErlVar("Data")
             )));
@@ -690,25 +688,35 @@ public class GTGenericBehaviour {
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
             return clause;
-        }).collect(Collectors.toList()));
-        if(s.c > 0)
-            res.add(genGC(s, GTGenUtil.getEvents(m)));
-        return res;
+        }).toList());
+        // Prepend postpone clauses to each state-function clause
+        ErlFun postponeFun = genPostponeClauses(s, m);
+        List<ErlFun> updated = new LinkedList<>();
+        for (ErlFun f : res) {
+            if (f.getName().equals(funcName)) {
+                f.prependClauses(postponeFun.getClauses());
+            }
+            updated.add(f);
+        }
+        // Add garbage-collection function if needed
+        if (s.c > 0) {
+            updated.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+        }
+        return updated;
     }
 
     // ! |> ? -- events tau |> ? -- actions ! |> eps*
-    protected List<ErlFun> generateExternalMixedOI(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateExternalMixedOI(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVSend);
-        res.addAll(genExtMixLHSAux(s, lhs, m));
+        List<ErlFun> res = new LinkedList<>(genExtMixLHSAux(s, lhs, m));
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVRecv);
         res.addAll(genExtMixRHSAux(s, rhs, m));
         if(s.c > 0)
-            res.add(genGC(s, GTGenUtil.getEvents(m)));
+            res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
         return res;
     }
 
@@ -725,9 +733,7 @@ public class GTGenericBehaviour {
                     return actions.stream().flatMap(p -> {
                         ErlGuard guard = null;
                         List<ErlTerm> tupleElements = new ArrayList<>();
-                        if(entry.getKey().right instanceof GTVRecv){
-                            GTVRecv e = (GTVRecv) entry.getKey().right;
-                            Map<String, ErlTerm> fields = new LinkedHashMap<>();
+                        if(entry.getKey().right instanceof GTVRecv e){
 
                             // Build the payload tuple by mapping each element of p to an ErlVar.
                             List<ErlTerm> payload = new ArrayList<>();
@@ -737,7 +743,6 @@ public class GTGenericBehaviour {
                                     .map(elem -> new ErlVar(elem.toString()))
                                     .collect(Collectors.toList());
 
-                            ErlTuple payloadTuple = new ErlTuple(payload);
                             payload.addAll(payloadVars);
                             guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
                             tupleElements = Arrays.asList(
@@ -781,7 +786,7 @@ public class GTGenericBehaviour {
 
                         // Retrieve the callback module from the process dictionary (using erlang:get/1)
                         bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                                new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                                new ErlCall("get", List.of(new ErlAtom("callback_module")))));
 
                         // Callback call: CallbackModule:funcName(EventType, {paramA}, NewData)
                         bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
@@ -845,11 +850,11 @@ public class GTGenericBehaviour {
             ErlGuard guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
             ErlSeq bodySeq = new ErlSeq();
             bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                    new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                    new ErlCall("get", List.of(new ErlAtom("callback_module")))));
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                     Arrays.asList(
                             new ErlVar("EventType"),
-                            new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), payloadTuple)),
+                            new ErlTuple(Arrays.asList(new ErlVar(e.role +"Pid"), payloadTuple)),
                             new ErlVar("Data")
                     )));
             ErlFun clause = new ErlFun(funcName);
@@ -860,33 +865,34 @@ public class GTGenericBehaviour {
                     "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
+            // Add the Postpone clause for this state
+            ErlFun postponeFun = genPostponeClauses(s, m);
+            clause.prependClauses(postponeFun.getClauses());
             return clause;
         }).collect(Collectors.toList());
     }
 
     // ! |> ? -- events tau |> ? -- actions ! |> eps* -- entry
-    protected List<ErlFun> generateExternalMixedII(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateExternalMixedII(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
-        res.addAll(genExtMixLHSAux(s, lhs, m));
+        List<ErlFun> res = new LinkedList<>(genExtMixLHSAux(s, lhs, m));
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
         res.addAll(genExtMixRHSAux(s, rhs, m));
         if(s.c > 0)
-            res.add(genGC(s, GTGenUtil.getEvents(m)));
+            res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
         return res;
     }
 
-    protected List<ErlFun> generateExternalMixedNotEntry(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateExternalMixedNotEntry(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
-        res.addAll(generateBranchAux(s, lhs, m));
+        List<ErlFun> res = new LinkedList<>(generateBranchAux(s, lhs, m));
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhsTau =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
         res.addAll(generateSelectAux(s, lhsTau, m));
@@ -897,7 +903,7 @@ public class GTGenericBehaviour {
             Pair<GTVState, GTVEvent> key = entry.getKey();
             GTVRecv e = (GTVRecv) key.right;
             String paramA = GTGenUtil.eventToParam(e);
-            Map<String, ErlTerm> fields = new HashMap<>();
+            Map<String, ErlTerm> fields = new HashMap();
 //          TODO:  fields.put("role_pid", new ErlVar("RolePid"));
             fields.put("mc_counter_" + s.c, new ErlVar("MC"));
             ErlRecordPattern dataPattern = new ErlRecordPattern("state_data", fields);
@@ -918,11 +924,11 @@ public class GTGenericBehaviour {
             ErlGuard guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
             ErlSeq bodySeq = new ErlSeq();
             bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
-                    new ErlCall("get", Arrays.asList(new ErlAtom("callback_module")))));
+                    new ErlCall("get", List.of(new ErlAtom("callback_module")))));
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                     Arrays.asList(
                             new ErlVar("EventType"),
-                            new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), payloadTuple)),
+                            new ErlTuple(Arrays.asList(new ErlVar(e.role +"Pid"), payloadTuple)),
                             new ErlVar("Data")
                     )));
             ErlFun clause = new ErlFun(funcName);
@@ -933,30 +939,36 @@ public class GTGenericBehaviour {
                     "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
-
+            // Add the Postpone clause for this state
+            ErlFun postponeFun = genPostponeClauses(s, m);
+            clause.prependClauses(postponeFun.getClauses());
             return clause;
-        }).collect(Collectors.toList()));
+        }).toList());
         if(s.c > 0)
-            res.add(genGC(s, GTGenUtil.getEvents(m)));
+            res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
         return res;
     }
+
+    //Log gc
 
     // need s.c > 0 when calling
     protected ErlFun genGC(GTVState s, Set<GTVEvent> events) {
         String funcName = GTGenUtil.stateToFuncName(s);
         ErlVar stateDataVar = new ErlVar("Data");
+        ErlTuple result = new ErlTuple(
+                List.of(new ErlAtom("keep_state"), stateDataVar)
+        );
         ErlFun gcFun = new ErlFun(funcName);
-        ErlTuple result = new ErlTuple(List.of(new ErlAtom("keep_state"), stateDataVar));
         // list of GTVEvent events of type GTVRecv with payloads
         List<GTVRecv>  gcEventsPay = events.stream()
                 .filter(event -> event instanceof GTVRecv && !((GTVRecv) event).pay.isEmpty())
                 .map(event -> (GTVRecv) event)
-                .collect(Collectors.toList());
+                .toList();
         // list of GTVEvent events of type GTVRecv without payloads
         List<GTVRecv> gcEventsNoPay = events.stream()
                 .filter(event -> event instanceof GTVRecv && ((GTVRecv) event).pay.isEmpty())
                 .map(event -> (GTVRecv) event)
-                .collect(Collectors.toList());
+                .toList();
         if (!gcEventsNoPay.isEmpty()) {
             // Clause head: cast, {_Pid, Msg, _Counter}, Data
             List<ErlTerm> params = Arrays.asList(
@@ -975,39 +987,46 @@ public class GTGenericBehaviour {
                         .orElse(null);
 
             ErlGuard guard = new ErlGuard(guardExpr);
-            gcFun.addClause(params, guard, result);
-
-            String spec = funcName + "(" +
-                    "EventType :: term(), " +
-                    "term(), " +
-                    "state_data()) -> {keep_state, state_data()}";
-            gcFun.setSpec(spec);
+            // Build body: print Msg then keep_state
+            ErlSeq bodySeq = new ErlSeq();
+            ErlCall fmtNoPay = new ErlCall("io", "format", Arrays.asList(
+                    new ErlString("gen_" + this.role.toString().toLowerCase() + ": Garbage collecting event ~p~n"),
+                    new ErlList(List.of(new ErlVar("Msg")))
+            ));
+            bodySeq.addExpression(fmtNoPay);
+            bodySeq.addExpression(result);
+            gcFun.addClause(params, guard, bodySeq);
         }
         // For each GTVRecv event with payload, we generate a clause with the specific event and
         // its payload as a tuple in the clause head for pattern matching.
-        gcEventsPay.stream()
-                .map(event -> {
-                    // build the payload tuple: {eventName, PayloadElements…}
-                    ErlTuple payloadTuple = new ErlTuple(
-                            Stream.concat(
-                                    Stream.of(new ErlAtom(GTGenUtil.eventToParam(event))),
-                                    event.pay.elems.stream()
-                                            .map(elem -> new ErlVar(elem.toString()))
-                            ).collect(Collectors.toList())
-                    );
-
-                    // build clause parameters: {_EventType, {_Pid, {…}, _Counter}, Data}
-                    return List.of(
-                            new ErlVar("_EventType"),
-                            new ErlTuple(List.of(new ErlVar("_Pid"), payloadTuple, new ErlVar("_Counter"))),
-                            stateDataVar
-                    );
-                })
-                .forEach(params -> gcFun.addClause(params, null, result));
+        // For each GTVRecv event with payload, generate a clause that logs the payload then keeps state
+        for (GTVRecv event : gcEventsPay) {
+            String eventName = GTGenUtil.eventToParam(event);
+            // build the payload tuple: {eventName, PayloadElements…}
+            ErlTuple payloadTuple = new ErlTuple(
+                    Stream.concat(
+                            Stream.of(new ErlAtom(eventName)),
+                            event.pay.elems.stream().map(elem -> new ErlVar(elem.toString()))
+                    ).collect(Collectors.toList())
+            );
+            List<ErlTerm> params = List.of(
+                    new ErlVar("_EventType"),
+                    new ErlTuple(List.of(new ErlVar("_Pid"), payloadTuple, new ErlVar("_Counter"))),
+                    stateDataVar
+            );
+            // Build body: print payload tuple then keep_state
+            ErlSeq bodySeqPay = new ErlSeq();
+            ErlCall fmtPay = new ErlCall("io", "format", Arrays.asList(
+                    new ErlString("gen_" + this.role.toString().toLowerCase() + ": Garbage collecting event ~p~n"),
+                    new ErlList(List.of(payloadTuple))
+            ));
+            bodySeqPay.addExpression(fmtPay);
+            bodySeqPay.addExpression(result);
+            gcFun.addClause(params, null, bodySeqPay);
+        }
 
         return gcFun;
     }
 
 
-}
-
+ }
