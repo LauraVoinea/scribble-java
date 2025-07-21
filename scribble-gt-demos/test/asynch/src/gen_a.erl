@@ -22,7 +22,9 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, []);
+            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args},
+%%              []);
+   [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.

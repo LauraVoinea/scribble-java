@@ -1,7 +1,9 @@
 package org.scribble.ext.gt.codegen.erlang;
 
+import org.jetbrains.annotations.NotNull;
 import org.scribble.core.type.name.Op;
 import org.scribble.core.type.name.Role;
+import org.scribble.core.type.session.Payload;
 import org.scribble.ext.gt.core.model.efsm.GTEFSM;
 import org.scribble.ext.gt.core.model.efsm.GTVState;
 import org.scribble.ext.gt.core.model.efsm.event.*;
@@ -23,7 +25,7 @@ public class GTCallbackModule {
     // GTLConfig rather that role for sigma.map.keySet()
     public void generate(String protocolName, GTLConfig r, GTEFSM efsm) throws IOException {
         Role role = r.self;
-        Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
+        Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName);
         Files.createDirectories(outputDirectory);
         String moduleName = role.toString().toLowerCase();
         String behaviourName = "gen_" + role.toString().toLowerCase();
@@ -115,7 +117,7 @@ public class GTCallbackModule {
         GTErlGenUtil.writeStateFunctions(writer, aggregatedFuns);
 
         // Generate init/1 function
-        ErlFun connFun = genConnectionFunction(role, efsm, r.sigma.map.keySet());
+        ErlFun connFun = genConnectionFunction(role, r.sigma.map.keySet());
         connFun.write(writer);
         writer.writeLine("");
         writer.close();
@@ -172,11 +174,9 @@ public class GTCallbackModule {
 
         // Return tuple for init starts with ok rather than next_state
         ErlTerm retTuple = genNextState(efsm, initState);
-        if (retTuple instanceof ErlTuple) {
-            ErlTuple tuple = (ErlTuple) retTuple;
+        if (retTuple instanceof ErlTuple tuple) {
             List<ErlTerm> elements = new ArrayList<>(tuple.getElements());
-            if (!elements.isEmpty() && elements.get(0) instanceof ErlAtom) {
-                ErlAtom firstAtom = (ErlAtom) elements.get(0);
+            if (!elements.isEmpty() && elements.get(0) instanceof ErlAtom firstAtom) {
                 if ("next_state".equals(firstAtom.getValue())) {
                     // Replace "next_state" with "ok"
                     elements.set(0, new ErlAtom("ok"));
@@ -194,7 +194,7 @@ public class GTCallbackModule {
         return initFun;
     }
 
-    private ErlFun genConnectionFunction(Role self, GTEFSM efsm, Set<Role> roles) {
+    private ErlFun genConnectionFunction(Role self, Set<Role> roles) {
         // Function head: connection() ->
         List<ErlTerm> headArgs = List.of(new ErlVar("Data"));
 
@@ -245,13 +245,6 @@ public class GTCallbackModule {
 
 
         }
-        // TODO: Handle the case where a role's PID is still undefined after retrying.
-//        if
-//        CPid =:= undefined ->
-//                io:format("c is still not available after retrying. Exiting...~n", []),
-//        exit({error, no_c_pid}); [...]
-//        end,
-
 
         ErlRecordUpdate stateRecord = new ErlRecordUpdate(
                 new ErlVar("Data"), "state_data");
@@ -311,7 +304,7 @@ public class GTCallbackModule {
                 ));
                 // 3. Third argument: a match forcing Data to match a record pattern.
                 Map<String, ErlTerm> fields = new LinkedHashMap<>();
-                fields.put(e.role.toString().toLowerCase() + "_pid", new ErlVar(e.role.toString() + "Pid"));
+                fields.put(e.role.toString().toLowerCase() + "_pid", new ErlVar(e.role + "Pid"));
 
                 ErlRecordPattern recPattern = new ErlRecordPattern("state_data", fields);
                 ErlTerm arg3 = new ErlMatch(recPattern, new ErlVar("Data"));
@@ -320,11 +313,14 @@ public class GTCallbackModule {
                 // Build the clause body.
                 // For now, we wrap the raw next-state expression in an ErlAtom.
 
-                ErlTerm body = genNextState(m, pair.right);
+                ErlSeq bodySeq = new ErlSeq();
 
+                ErlCall logRcv = logRcv(s, payloadVars, e);
+                bodySeq.addExpression(logRcv);
+                bodySeq.addExpression(genNextState(m, pair.right));
                 // Create a new function clause with the given head and body.
                 ErlFun clause = new ErlFun(funName);
-                clause.addClause(headArgs, body);
+                clause.addClause(headArgs, bodySeq);
                 String spec = funName + "(" +
                         "cast, " +
                         "{pid(), {atom(), term()}}, " +
@@ -368,7 +364,7 @@ public class GTCallbackModule {
                 ));
 
                 Map<String, ErlTerm> fields = new LinkedHashMap<>();
-                fields.put(a.role.toString().toLowerCase() + "_pid", new ErlVar(a.role.toString() + "Pid"));
+                fields.put(a.role.toString().toLowerCase() + "_pid", new ErlVar(a.role + "Pid"));
 
                 ErlRecordPattern recPattern = new ErlRecordPattern("state_data", fields);
                 ErlTerm arg3 = new ErlMatch(recPattern, new ErlVar("Data"));
@@ -382,21 +378,7 @@ public class GTCallbackModule {
                 ));
                 bodySeq.addExpression(logSnd);
                 // First expression: gen_role:send_<paramA>(<Role>Pid, paramA)
-                String sendName = "send_" + "s" + s.id + "_" + paramA;
-                List<ErlTerm> payloadVars = a.pay.elems.stream()
-                        .map(elem -> new ErlVar(elem.toString()))
-                        .collect(Collectors.toList());
-                List<ErlTerm> params = new ArrayList<>();
-                params.add(new ErlVar(a.role.toString() + "Pid"));
-                params.addAll(payloadVars);
-                params.add(new ErlVar("Data"));
-                ErlCall sendCall = new ErlCall(
-                        new ErlAtom("gen_") + self.toString().toLowerCase(),
-//                        "send_" + paramA,
-                       sendName, params
-                );
-
-                bodySeq.addExpression(sendCall);
+                bodySeq.addExpression(sendFunCall(s, self, paramA, a.pay, a.role));
                 // Second expression: the next state expression.
                 ErlTerm nextStateExpr = genNextState(m, y.right);
                 bodySeq.addExpression(nextStateExpr);
@@ -412,8 +394,24 @@ public class GTCallbackModule {
                 clause.setSpec(spec);
                 return clause;
             });
-        }).collect(Collectors.toList()));
+        }).toList());
         return res;
+    }
+
+    private ErlCall sendFunCall(GTVState s, Role self, String paramA, Payload pay, Role role) {
+        String sendName = "send_" + "s" + s.id + "_" + paramA;
+        List<ErlTerm> payloadVars = pay.elems.stream()
+                .map(elem -> new ErlVar(elem.toString()))
+                .collect(Collectors.toList());
+        List<ErlTerm> params = new ArrayList<>();
+        params.add(new ErlVar(role.toString() + "Pid"));
+        params.addAll(payloadVars);
+        params.add(new ErlVar("Data"));
+        return new ErlCall(
+                new ErlAtom("gen_") + self.toString().toLowerCase(),
+//                        "send_" + paramA,
+               sendName, params
+        );
     }
 
 
@@ -449,7 +447,7 @@ public class GTCallbackModule {
         ErlTuple arg2 = new ErlTuple(List.of(new ErlAtom(paramA)));
 
         Map<String, ErlTerm> fields = new LinkedHashMap<>();
-        fields.put(a.role.toString().toLowerCase() + "_pid", new ErlVar(a.role.toString() + "Pid"));
+        fields.put(a.role.toString().toLowerCase() + "_pid", new ErlVar(a.role + "Pid"));
         ErlRecordPattern recPattern = new ErlRecordPattern("state_data", fields);
         ErlTerm arg3 = new ErlMatch(recPattern, new ErlVar("Data"));
         List<ErlTerm> tauHead = List.of(arg1, arg2, arg3);
@@ -464,19 +462,6 @@ public class GTCallbackModule {
         // Clause 1: Pattern "1" -> next state expression.
         rhsCase.addClause(new ErlAtom("1"),
                 new ErlTuple(Arrays.asList(new ErlAtom("keep_state"), new ErlVar("Data"))));
-        String sendName = "send_" + "s" + s.id + "_" + paramA;
-        List<ErlTerm> payload = a.pay.elems.stream()
-                .map(elem -> new ErlVar(elem.toString()))
-                .collect(Collectors.toList());
-        List<ErlTerm> params = new ArrayList<>();
-        params.add(new ErlVar(a.role.toString() + "Pid"));
-        params.addAll(payload);
-        params.add(new ErlVar("Data"));
-        ErlCall sendCall = new ErlCall(
-                new ErlAtom("gen_") + self.toString().toLowerCase(),
-//                        "send_" + paramA,
-                sendName, params
-        );
         ErlCall formatCall = new ErlCall("io", "format", List.of(
                 new ErlString(self.toString() + ": s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
                 new ErlList(Collections.emptyList())
@@ -485,7 +470,7 @@ public class GTCallbackModule {
 //        ErlCall rhsSendCall = new ErlCall(new ErlAtom("gen_" + self.toString().toLowerCase()), sendName,
 //                List.of(new ErlVar(a.role.toString() + "Pid"), new ErlVar("Data")));
         ErlSeq rhsBodySeq = new ErlSeq();
-        rhsBodySeq.addExpression(sendCall);
+        rhsBodySeq.addExpression(sendFunCall(s, self, paramA, a.pay, a.role));
         rhsBodySeq.addExpression(formatCall);
         ErlTerm rhsNextState = genNextState(m, sendStar.right);
         rhsBodySeq.addExpression(rhsNextState);
@@ -514,15 +499,16 @@ public class GTCallbackModule {
             GTVRecv e = (GTVRecv) key.right;
 
             // One clause per edge.
-            if (vs.size() != 1 && vs.stream().filter(y -> y.left instanceof GTVEpsilon).count() != 1) {
+            if (vs.size() != 1 &&
+                    vs.stream().filter(y -> y.left instanceof GTVEpsilon).count() != 1) {
                 throw new RuntimeException("Unexpected external branch clause: " + key + " , " + vs);
             }
             Pair<GTVAction, GTVState> succ = vs.iterator().next();
             String a1 = GTGenUtil.eventToParam(e);
 
-            List<ErlTerm> payloadVars = e.pay.elems.stream().map(
-                    elem -> new ErlVar(elem.toString())).
-                    collect(Collectors.toList());
+            List<ErlTerm> payloadVars = e.pay.elems.stream()
+                    .map(elem -> new ErlVar(elem.toString()))
+                    .collect(Collectors.toList());
             List<ErlTerm> tupleElements = new ArrayList<>();
             tupleElements.add(new ErlAtom(a1));
             tupleElements.addAll(payloadVars);
@@ -536,8 +522,8 @@ public class GTCallbackModule {
                     payloadTuple
             ));
 
-            Map<String, ErlTerm> lhsFields = new LinkedHashMap<>();
-            lhsFields.put(a.role.toString().toLowerCase() + "_pid", new ErlVar(a.role.toString() + "Pid"));
+//            Map<String, ErlTerm> lhsFields = new LinkedHashMap<>();
+//            lhsFields.put(a.role.toString().toLowerCase() + "_pid", new ErlVar(a.role.toString() + "Pid"));
             ErlRecordPattern lhsRecPattern = new ErlRecordPattern("state_data", fields);
             ErlTerm lhsData = new ErlMatch(lhsRecPattern, new ErlVar("Data"));
 
@@ -546,12 +532,11 @@ public class GTCallbackModule {
             // Generate the function for make_choice on external events.
             ErlFun sendFunc = genMakeChoice_a(e.op);
 
-//            ErlCall logRcv = new ErlCall("io", "format", List.of(
-//                    new ErlString(e.role.toString() + ": s" + s.id + " Received "
-//                            + headExtTuple.getElements() + " from " + a.role + " ~n"),
-//                    new ErlList(Collections.emptyList())
-//            ));
-
+            // Build the log call for receiving the external events
+            //add the elements one by one and have them as parameters to io:format
+            // Call: io:format("role: s<id> Received <element>: ~p, ..., <element> ~p from <role> ~n", [<element>, ..., <element>])
+            // Build the log call for receiving external events with payload placeholders
+            ErlCall logRcv = logRcv(s, payloadVars, e);
             // Build body as a case expression.
             // Call: make_choice_<a1>(Data)
             ErlCall extMakeChoiceCall = new ErlCall("make_choice_" + a1, List.of(new ErlVar("Data")));
@@ -563,12 +548,14 @@ public class GTCallbackModule {
 
 
             ErlSeq extBodySeq = new ErlSeq();
-            extBodySeq.addExpression(sendCall);
+            extBodySeq.addExpression(sendFunCall(s, self, paramA, a.pay, a.role));
             extBodySeq.addExpression(rhsNextState);
             extCase.addClause(new ErlAtom("2"), extBodySeq);
-
+            ErlSeq lhsBodySeq = new ErlSeq();
+            lhsBodySeq.addExpression(logRcv);
+            lhsBodySeq.addExpression(extCase);
             ErlFun extClause = new ErlFun(funName);
-            extClause.addClause(extHead, extCase);
+            extClause.addClause(extHead, lhsBodySeq);
             String lhsSpec = funName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
@@ -577,20 +564,33 @@ public class GTCallbackModule {
             extClause.setSpec(lhsSpec);
             // Return both the send function and the clause.
             return Stream.of(sendFunc, extClause);
-        }).collect(Collectors.toList());
+        }).toList();
 
         res.addAll(externalClauses);
         return res;
     }
 
+    private static @NotNull ErlCall logRcv(GTVState s, List<ErlTerm> payloadVars, GTVRecv event) {
+        Role sender = event.role;
+
+        List<ErlTerm> outputVars = new ArrayList<>(payloadVars);
+        outputVars.add(new ErlVar(sender + "Pid"));
+        String placeholderStr = " " + payloadVars.stream().map(v -> v.toString() + " ~p").collect(Collectors.joining(", "));
+        String fmt = event.role.toString() + ": s" + s.id + " Received " + GTGenUtil.eventToParam(event) +
+                      placeholderStr + " from " + sender + " ~p ~n";
+        return new ErlCall("io", "format", List.of(
+                new ErlString(fmt),
+                new ErlList(outputVars)
+        ));
+    }
+
 
     protected List<ErlFun> generateExternalMixedOI(GTEFSM m, GTVState s, Role self) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
-        res.addAll(generateSelectAux(m, s, lhs, self));
+        List<ErlFun> res = new LinkedList<>(generateSelectAux(m, s, lhs, self));
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVRecv);
@@ -601,11 +601,10 @@ public class GTCallbackModule {
 
     protected List<ErlFun> generateExternalMixedII(GTEFSM m, GTVState s) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
-        res.addAll(generateBranchAux(m, s, lhs));
+        List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs));
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
@@ -616,15 +615,18 @@ public class GTCallbackModule {
 
     protected List<ErlFun> generateExternalMixedNotEntry(GTEFSM m, GTVState s, Role self) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        List<ErlFun> res = new LinkedList<>();
-
+        System.err.println("=====MixedNotEntry=====> role " + self + " state " + s.id);
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
-        res.addAll(generateBranchAux(m, s, lhs));
+        List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs));
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs_tau =  // !!! -- ! |> ?
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
         res.addAll(generateSelectAux(m, s, lhs_tau, self));
+
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
+                GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
+        res.addAll(new LinkedList<>(generateBranchAux(m, s, rhs)));
 
         return res;
     }
@@ -683,73 +685,91 @@ public class GTCallbackModule {
             case SELECT:
             case INTERNAL_MIXED:
             case EXTERNAL_MIXED_OI: {
-                // Get all transitions from the successor state.
-                Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
-                        GTGenUtil.filterEdgesByState(m, succ);
-                String sName = GTGenUtil.stateToFuncName(succ);
-                // Filter for transitions whose event is a GTVTau.
-                Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> tauTransitions =
-                        filt.entrySet().stream()
-                                .filter(e -> e.getKey().right instanceof GTVTau)
-                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                // If exactly one tau transition exists then use that tau's event parameter.
-                if (tauTransitions.size() == 1) {
-                    Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> entry =
-                            tauTransitions.entrySet().iterator().next();
-                        GTVTau tau = (GTVTau) entry.getKey().right;
-                        String a = GTGenUtil.eventToParam(tau);
-                        // Return a tuple with the next state and the extra list.
-                        return new ErlTuple(List.of(
-                                new ErlAtom("next_state"),
-                                new ErlAtom(sName),
-                                new ErlVar("Data"),
-                                new ErlList(List.of(
-                                        new ErlTuple(List.of(
-                                                new ErlAtom("next_event"),
-                                                new ErlAtom("internal"),
-                                                new ErlTuple(List.of(new ErlAtom(a)))
-                                        ))
-                                ))
-                        ));
-                }
-                // Otherwise, build a case expression.
-                //TODO: fix labels!
-                ErlCall makeChoiceCall = new ErlCall("make_choice_" + sName, List.of(new ErlVar("Data")));
-                ErlCase caseExpr = new ErlCase(makeChoiceCall);
-                tauTransitions.forEach((key, actions) -> {
-                    GTVTau tau = (GTVTau) key.right;
-                    String a = GTGenUtil.eventToParam(tau);
-                    ErlAtom clausePattern = new ErlAtom(a);
-                    ErlTuple bodyTuple = new ErlTuple(List.of(
-                            new ErlAtom("next_state"),
-                            new ErlAtom(sName),
-                            new ErlVar("Data"),
-                            new ErlList(List.of(
-                                    new ErlTuple(List.of(
-                                            new ErlAtom("next_event"),
-                                            new ErlAtom("internal"),
-                                            new ErlTuple(List.of(new ErlAtom(a)))
-                                    ))
-                            ))
-                    ));
-                    caseExpr.addClause(clausePattern, bodyTuple);
-                });
-                return caseExpr;
+                return getErlNextState(m, succ);
             }
             case BRANCH:
             case EXTERNAL_MIXED_II:
-            case EXTERNAL_MIXED_NOT_ENTRY:
                 return new ErlTuple(List.of(
                         new ErlAtom("next_state"),
                         new ErlAtom(GTGenUtil.stateToFuncName(succ)),
                         new ErlVar("Data")
                 ));
+            case EXTERNAL_MIXED_NOT_ENTRY:
+                //check transitions from this state. If a transition is a send or send star then treat as above;
+                //otherwise treat as a branch.
+                Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
+                        GTGenUtil.filterEdgesByState(m, succ);
+                boolean hasSend = filt.values().stream()
+                        .flatMap(Set::stream)
+                        .anyMatch(pair -> pair.left instanceof GTVSend || pair.left instanceof GTVSendStar);
+                if (hasSend) {
+                    return getErlNextState(m, succ);
+                } else{
+                    return new ErlTuple(List.of(
+                            new ErlAtom("next_state"),
+                            new ErlAtom(GTGenUtil.stateToFuncName(succ)),
+                            new ErlVar("Data")
+                    ));
+                }
         }
         throw new RuntimeException("Shouldn't get here?");
     }
 
+    private static @NotNull ErlTerm getErlNextState(GTEFSM m, GTVState succ) {
+        // Get all transitions from the successor state.
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
+                GTGenUtil.filterEdgesByState(m, succ);
+        String sName = GTGenUtil.stateToFuncName(succ);
+        // Filter for transitions whose event is a GTVTau.
+        Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> tauTransitions =
+                filt.entrySet().stream()
+                        .filter(e -> e.getKey().right instanceof GTVTau)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        // If exactly one tau transition exists then use that tau's event parameter.
+        if (tauTransitions.size() == 1) {
+            Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> entry =
+                    tauTransitions.entrySet().iterator().next();
+                GTVTau tau = (GTVTau) entry.getKey().right;
+                String a = GTGenUtil.eventToParam(tau);
+                // Return a tuple with the next state and the extra list.
+            return new ErlTuple(List.of(
+                    new ErlAtom("next_state"),
+                    new ErlAtom(sName),
+                    new ErlVar("Data"),
+                    new ErlList(List.of(
+                            new ErlTuple(List.of(
+                                    new ErlAtom("next_event"),
+                                    new ErlAtom("internal"),
+                                    new ErlTuple(List.of(new ErlAtom(a)))
+                            ))
+                    ))
+            ));
+        }
+        // Otherwise, build a case expression.
+        //TODO: fix labels!
+        ErlCall makeChoiceCall = new ErlCall("make_choice_" + sName, List.of(new ErlVar("Data")));
+        ErlCase caseExpr = new ErlCase(makeChoiceCall);
+        tauTransitions.forEach((key, actions) -> {
+            GTVTau tau = (GTVTau) key.right;
+            String a = GTGenUtil.eventToParam(tau);
+            ErlAtom clausePattern = new ErlAtom(a);
+            ErlTuple bodyTuple = new ErlTuple(List.of(
+                    new ErlAtom("next_state"),
+                    new ErlAtom(sName),
+                    new ErlVar("Data"),
+                    new ErlList(List.of(
+                            new ErlTuple(List.of(
+                                    new ErlAtom("next_event"),
+                                    new ErlAtom("internal"),
+                                    new ErlTuple(List.of(new ErlAtom(a)))
+                            ))
+                    ))
+            ));
+            caseExpr.addClause(clausePattern, bodyTuple);
+        });
+        return caseExpr;
+    }
+
 
 }
-
-
 

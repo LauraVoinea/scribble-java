@@ -22,11 +22,12 @@ public class GTGenericBehaviour {
     private static final String OUTPUT_DIR = "./generated";
     private static final String ERL_EXTENSION = ".erl";
     private static final String HRL_EXTENSION = ".hrl";
+    private Role role;
 
     /** Generate and write the Erlang code for the generic behaviour module to a file. */
     // GTLConfig rather that role for sigma.map.keySet()
     public void generateCode(String protocolName, GTLConfig r, GTEFSM efsm, Map<Integer, Set<Op>> explicitCommiting) throws IOException {
-        Role role = r.self;
+        this.role = r.self;
         Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName.toString());
         Files.createDirectories(outputDirectory);
         String moduleName = "gen_" + role.toString().toLowerCase();
@@ -190,27 +191,28 @@ public class GTGenericBehaviour {
      */
     protected ErlFun genPostponeClauses(GTVState s, GTEFSM efsm) {
         Set<GTVRecv> events = GTGenUtil.getRecvEvents(efsm, s);
-        ErlSeq bodySeq = new ErlSeq();
-        ErlVar eventTypeVar = new ErlVar("EventType");
-        ErlVar dataVar = new ErlVar("Data");
-
-        bodySeq.addExpression(new ErlTuple(Arrays.asList(
-                new ErlAtom("keep_state"),
-                new ErlVar("Data"),
-                new ErlList(Arrays.asList(new ErlAtom("postpone")))
-        )));
-        // Create the function with a clause for each event
         ErlFun postponeClauses = new ErlFun(GTGenUtil.stateToFuncName(s));
         for (GTVRecv e : events) {
             String paramA = GTGenUtil.eventToParam(e);
             List<ErlTerm> headArgs = Arrays.asList(
-                    new ErlVar("_EventType"),
-                    new ErlTuple(Arrays.asList(new ErlVar("_Pid"), new ErlVar("{"+ paramA + "}"))),
-                    new ErlVar("Data")
+                new ErlVar("_EventType"),
+                new ErlTuple(Arrays.asList(new ErlVar("_Pid"), new ErlTuple(Arrays.asList(new ErlAtom(paramA))))),
+                new ErlVar("Data")
             );
+            // build body per event
+            ErlSeq bodySeq = new ErlSeq();
+            ErlCall formatCall = new ErlCall("io", "format", Arrays.asList(
+                new ErlString("gen_" + this.role.toString().toLowerCase() + ": Postponing event ~p~n"),
+                new ErlList(Arrays.asList(new ErlAtom(paramA)))
+            ));
+            bodySeq.addExpression(formatCall);
+            bodySeq.addExpression(new ErlTuple(Arrays.asList(
+                new ErlAtom("keep_state"),
+                new ErlVar("Data"),
+                new ErlList(Arrays.asList(new ErlAtom("postpone")))
+            )));
             postponeClauses.addClause(headArgs, bodySeq);
         }
-//        postponeFun.setSpec("postpone(EventType :: term(), {atom()}, state_data()) -> ok");
         return postponeClauses;
     }
 
