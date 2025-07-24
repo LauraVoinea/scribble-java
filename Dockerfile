@@ -73,3 +73,12 @@ RUN ./mvnw clean install \
       -Dmaven.test.skip=true \
       -Dlicense.skip \
       -Dmaven.repo.local=/root/.m2/repository
+
+
+# Copy demos before build
+COPY scribble-gt-demos   ./scribble-gt-demos
+
+RUN find /scribble-java/scribble-gt-demos/erlang/rabbitmq-server -type f -name '*.d' -delete
+
+WORKDIR /scribble-java/scribble-gt-demos/erlang/rabbitmq-server
+RUN make

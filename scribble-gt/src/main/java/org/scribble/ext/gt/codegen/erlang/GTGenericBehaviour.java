@@ -28,7 +28,6 @@ public class GTGenericBehaviour {
     // GTLConfig rather that role for sigma.map.keySet()
     public void generateCode(String protocolName, GTLConfig r, GTEFSM efsm, Map<Integer, Set<Op>> explicitCommiting) throws IOException {
         this.role = r.self;
-        System.err.println("Role " + r.self + "----Explicit committing: " + explicitCommiting);
         Path outputDirectory = Paths.get(OUTPUT_DIR, protocolName);
         Files.createDirectories(outputDirectory);
         String moduleName = "gen_" + role.toString().toLowerCase();
@@ -75,19 +74,16 @@ public class GTGenericBehaviour {
                     break;
                 }
                 case INTERNAL_MIXED: {
-                    //needs gc labels
                     List<ErlFun> mixedFuns = generateInternalMixed(efsm, s, explicitCommiting);
                     functions.addAll(mixedFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_OI: {
-                    //needs gc labels
                     List<ErlFun> extOIFuns = generateExternalMixedOI(efsm, s, explicitCommiting);
                     functions.addAll(extOIFuns);
                     break;
                 }
                 case EXTERNAL_MIXED_II: {
-                    //needs gc labels
                     List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s, explicitCommiting);
                     functions.addAll(extIIFuns);
                     break;
@@ -190,21 +186,57 @@ public class GTGenericBehaviour {
      * @param efsm The  EFSM.
      * @return The Erlang function representing the Postpone clause.
      */
+    //  s4(_EventType, {_Pid, {pong}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     protected ErlFun genPostponeClauses(GTVState s, GTEFSM efsm) {
-        Set<GTVRecv> events = GTGenUtil.getRecvEvents(efsm, s);
+        Set<Pair<GTVRecv, Integer>> events = GTGenUtil.getRecvEvents(efsm, s);
         ErlFun postponeClauses = new ErlFun(GTGenUtil.stateToFuncName(s));
-        for (GTVRecv e : events) {
+        for (Pair<GTVRecv, Integer> pr : events) {
+            GTVRecv e = pr.left;
+            int c = pr.right;
             String paramA = GTGenUtil.eventToParam(e);
+            // collect payload variables and build payload tuple alongside paramA
+            List<ErlTerm> payloadVars = e.pay.elems.stream()
+                    .map(elem -> new ErlVar(elem.toString()))
+                    .collect(Collectors.toList());
+            List<ErlTerm> tupleElements = new ArrayList<>();
+            tupleElements.add(new ErlAtom(paramA));
+            tupleElements.addAll(payloadVars);
+            ErlTuple payloadTuple = new ErlTuple(tupleElements);
+            // build the receive pattern, include Counter if in a mixed-choice state
+            ErlTerm pidPattern;
+            if (c > 0) {
+                pidPattern = new ErlTuple(Arrays.asList(
+                        new ErlVar("_Pid"),
+                        payloadTuple,
+                        new ErlVar("Counter")
+                ));
+            } else {
+                pidPattern = new ErlTuple(Arrays.asList(
+                        new ErlVar("_Pid"),
+                        payloadTuple
+                ));
+            }
+            // add guard and Data pattern when counter present
+            ErlGuard guard = null;
+            ErlTerm dataTerm = new ErlVar("Data");
+            if (c > 0) {
+                Map<String, ErlTerm> fields = new LinkedHashMap<>();
+                fields.put("mc_counter_" + c, new ErlVar("MC"));
+                ErlRecordPattern pattern = new ErlRecordPattern("state_data", fields);
+                dataTerm = new ErlMatch(pattern, new ErlVar("Data"));
+                guard = new ErlGuard(new ErlCall(new ErlOp(">="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
+            }
             List<ErlTerm> headArgs = Arrays.asList(
                 new ErlVar("_EventType"),
-                new ErlTuple(Arrays.asList(new ErlVar("_Pid"), new ErlTuple(List.of(new ErlAtom(paramA))))),
-                new ErlVar("Data")
+                pidPattern,
+                dataTerm
             );
             // build body per event
             ErlSeq bodySeq = new ErlSeq();
             ErlCall formatCall = new ErlCall("io", "format", Arrays.asList(
                 new ErlString("gen_" + this.role.toString().toLowerCase() + ": Postponing event ~p~n"),
-                new ErlList(List.of(new ErlAtom(paramA)))
+                // log paramA with payload variables
+                new ErlList(List.of(new ErlList(tupleElements)))
             ));
             bodySeq.addExpression(formatCall);
             bodySeq.addExpression(new ErlTuple(Arrays.asList(
@@ -212,7 +244,7 @@ public class GTGenericBehaviour {
                 new ErlVar("Data"),
                 new ErlList(List.of(new ErlAtom("postpone")))
             )));
-            postponeClauses.addClause(headArgs, bodySeq);
+            postponeClauses.addClause(headArgs, guard, bodySeq);
         }
         return postponeClauses;
     }
@@ -744,7 +776,7 @@ public class GTGenericBehaviour {
                                     .collect(Collectors.toList());
 
                             payload.addAll(payloadVars);
-                            guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
+                            guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC + 1"))));
                             tupleElements = Arrays.asList(
                                     new ErlVar(e.role.toString()+ "Pid"),
                                     new ErlTuple(payload),
@@ -771,19 +803,16 @@ public class GTGenericBehaviour {
                         ErlSeq bodySeq = new ErlSeq();
 
                         // Update the counter: Data#state_data{mc_counter_<s.c> = MC + 1}
-                        ErlVar data;
-                        if(s.c > 0){
-                            data = new ErlVar("NewData");
-                            ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
-                            recordUpdate.addField("mc_counter_" + s.c,
-                                    new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
-                            );
-                            bodySeq.addExpression(new ErlMatch(data, recordUpdate));
+                        ErlVar dataVar;
+                        if (s.c > 0) {
+                            dataVar = new ErlVar("NewData");
+                            ErlRecordUpdate recUpd = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
+                            recUpd.addField("mc_counter_" + s.c,
+                                    new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1"))));
+                            bodySeq.addExpression(new ErlMatch(dataVar, recUpd));
                         } else {
-                            data = new ErlVar("Data");
+                            dataVar = new ErlVar("Data");
                         }
-
-
                         // Retrieve the callback module from the process dictionary (using erlang:get/1)
                         bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                                 new ErlCall("get", List.of(new ErlAtom("callback_module")))));
@@ -792,12 +821,11 @@ public class GTGenericBehaviour {
                         bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                                 Arrays.asList(
                                         new ErlVar("EventType"),
-//                                        new ErlTuple(Arrays.asList(new ErlAtom(paramA))),
                                         new ErlTuple( tupleElements.stream()
                                                 .filter(elem -> !elem.toString().equals("Counter"))
                                                 .collect(Collectors.toList())
                                         ),
-                                data)));
+                                dataVar)));
 
                         ErlFun clause = new ErlFun(funcName);
                         clause.addClause(params, guard, bodySeq);
@@ -830,7 +858,6 @@ public class GTGenericBehaviour {
             String paramA = GTGenUtil.eventToParam(e);
 
             Map<String, ErlTerm> fields = new LinkedHashMap<>();
-            //TODO: add PIDs
             if(s.c > 0)
                 fields.put("mc_counter_" + s.c, new ErlVar("MC"));
             ErlRecordPattern pattern = new ErlRecordPattern("state_data", fields);
@@ -847,15 +874,27 @@ public class GTGenericBehaviour {
                     new ErlTuple(Arrays.asList(new ErlVar(e.role.toString()+"Pid"), payloadTuple, new ErlVar("Counter"))),
                     new ErlMatch(pattern, new ErlVar("Data"))
             );
-            ErlGuard guard = new ErlGuard(new ErlCall(new ErlOp("=:="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
+            ErlGuard guard = new ErlGuard(new ErlCall(new ErlOp("=:="),
+                                Arrays.asList(new ErlVar("Counter"), new ErlVar("MC + 1"))));
             ErlSeq bodySeq = new ErlSeq();
+            // Update the counter: Data#state_data{mc_counter_<s.c> = MC + 1}
+            ErlVar dataVar;
+            if (s.c > 0) {
+                dataVar = new ErlVar("NewData");
+                ErlRecordUpdate recUpd = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
+                recUpd.addField("mc_counter_" + s.c,
+                        new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1"))));
+                bodySeq.addExpression(new ErlMatch(dataVar, recUpd));
+            } else {
+                dataVar = new ErlVar("Data");
+            }
             bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                     new ErlCall("get", List.of(new ErlAtom("callback_module")))));
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName,
                     Arrays.asList(
                             new ErlVar("EventType"),
                             new ErlTuple(Arrays.asList(new ErlVar(e.role +"Pid"), payloadTuple)),
-                            new ErlVar("Data")
+                            dataVar
                     )));
             ErlFun clause = new ErlFun(funcName);
             clause.addClause(params, guard, bodySeq);

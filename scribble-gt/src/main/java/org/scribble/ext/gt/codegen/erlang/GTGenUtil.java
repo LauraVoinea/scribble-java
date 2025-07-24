@@ -111,17 +111,16 @@ public class GTGenUtil {
             .filter(k -> k.right instanceof GTVRecv)
             .map(k -> (GTVRecv) k.right)
             .forEach(recv -> {
-                System.err.println("state " + s + " direct recv: " + recv);
                 branchRecvs.add(recv);
             });
-        // receive events from downstream states
-        getRecvEvents(m, s).forEach(recv -> {
-//            System.err.println("state " + s + " branch recv: " + recv);
+        // receive events from downstream states (with state context)
+        getRecvEvents(m, s).forEach(pair -> {
+            GTVRecv recv = pair.left;
+            // int c = pair.right; // state context if needed
             branchRecvs.add(recv);
         });
         // 2. mixed entry and not child of MC
         if (isEntry && s.c == getNumMixedChoices(m)) {
-//            System.err.println("==========> getGcEvents: Mixed entry state: " + s + " " + branchRecvs);
             return new HashSet<>(branchRecvs);
         }
         // 3. for nested MC children: collect receives from all ancestor mixed-choice entries
@@ -146,16 +145,14 @@ public class GTGenUtil {
         // 4. child of MC and an MC
         Set<GTVEvent> result = new HashSet<>(parentRecvs);
         result.addAll(branchRecvs);
-        System.err.println("====***======> getGcEvents: Mixed child state: " + s + " " + result);
         return result;
     }
 
     //get all events to be received in the GTEFSM m starting from state s
     //skipping the events from state s directly; i.e. events to be received from the next state onwards
-    public static Set<GTVRecv> getRecvEvents(GTEFSM m, GTVState s) {
-        // skipping the events from state s directly; i.e., events to be received from the next state onwards
-        // skipping events that match events in the starting state s
-        Set<GTVRecv> recvs = new HashSet<>();
+    public static Set<Pair<GTVRecv, Integer>> getRecvEvents(GTEFSM m, GTVState s) {
+        // skipping events from s itself; collect events and their state context 'c'
+        Set<Pair<GTVRecv, Integer>> recvs = new HashSet<>();
         Set<GTVState> visited = new HashSet<>();
         Queue<GTVState> queue = new LinkedList<>();
         visited.add(s);
@@ -173,12 +170,17 @@ public class GTGenUtil {
                     .filter(k -> k.right instanceof GTVRecv)
                     .map(k -> (GTVRecv) k.right)
                     .filter(e -> !startRecvs.contains(e))
-                    .forEach(recvs::add);
+                    .forEach(e -> recvs.add(new Pair<>(e, cur.c)));
             }
             // enqueue successors
             filterEdgesByState(m, cur).values().stream()
-                .flatMap(Set::stream)
-                .map(pair -> pair.right)
+                 .flatMap(Set::stream)
+                     .map(pair -> pair.right)
+//-                .filter(next -> !visited.contains(next))
+//-                .forEach(next -> {
+//-                    visited.add(next);
+//-                    queue.add(next);
+//-                });
                 .filter(next -> !visited.contains(next))
                 .forEach(next -> {
                     visited.add(next);
