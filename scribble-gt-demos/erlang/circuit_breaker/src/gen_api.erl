@@ -249,7 +249,7 @@ s25(EventType, {shutdown_user}, Data) ->
     CallbackModule:s25(EventType, {shutdown_user}, Data).
 
 -spec send_s3_ready(UserPid :: pid(), _Data :: state_data()) -> ok.
-send_s3_ready(UserPid, Data) ->
+send_s3_ready(UserPid, _Data) ->
     gen_statem:cast(UserPid, {self(), {ready}}).
 
 -spec send_s23_shutdown_ack(ControllerPid :: pid(), Data :: state_data()) -> ok.
@@ -258,7 +258,7 @@ send_s23_shutdown_ack(ControllerPid, Data) ->
     gen_statem:cast(ControllerPid, {self(), {shutdown_ack}, Counter}).
 
 -spec send_s6_get_mode(ControllerPid :: pid(), _Data :: state_data()) -> ok.
-send_s6_get_mode(ControllerPid, Data) ->
+send_s6_get_mode(ControllerPid, _Data) ->
     gen_statem:cast(ControllerPid, {self(), {get_mode}}).
 
 -spec send_s18_error_ack(ControllerPid :: pid(), Data :: state_data()) -> ok.

@@ -192,7 +192,7 @@ s18(internal, {error_ack}, #state_data{controller_pid = ControllerPid} = Data) -
     gen_api:send_s18_error_ack(ControllerPid, Data),
     {next_state, s19, Data, [{next_event, internal, {cancel_ack}}]}.
 
--spec s1(cast, {ControllerPid, {start_controller}}, state_data()) ->
+-spec s1(cast, {pid(), {start_controller}}, state_data()) ->
     {next_state, s3, state_data(), [{next_event, internal, {ready}}]}.
 s1(cast, {ControllerPid, {start_controller}}, Data) ->
     NewData = connect(Data),

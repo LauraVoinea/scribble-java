@@ -125,7 +125,7 @@ send_s20_shutdown_storage(StoragePid, Data) ->
     gen_statem:cast(StoragePid, {self(), {shutdown_storage}, Counter}).
 
 -spec send_s1_start_storage(StoragePid :: pid(), _Data :: state_data()) -> ok.
-send_s1_start_storage(StoragePid, Data) ->
+send_s1_start_storage(StoragePid, _Data) ->
     gen_statem:cast(StoragePid, {self(), {start_storage}}).
 
 -spec s20(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
@@ -249,7 +249,7 @@ s19(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {shutdown_ack}
     {keep_state, Data}.
 
 -spec send_s3_start_controller(APIPid :: pid(), _Data :: state_data()) -> ok.
-send_s3_start_controller(APIPid, Data) ->
+send_s3_start_controller(APIPid, _Data) ->
     gen_statem:cast(APIPid, {self(), {start_controller}}).
 
 -spec send_s8_timeout_notice(StoragePid :: pid(), Data :: state_data()) -> ok.

@@ -72,7 +72,7 @@ s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {error_response}
     {keep_state, Data}.
 
 -spec send_s4_request(APIPid :: pid(), _Data :: state_data()) -> ok.
-send_s4_request(APIPid, Data) ->
+send_s4_request(APIPid, _Data) ->
     gen_statem:cast(APIPid, {self(), {request}}).
 
 s1(_EventType, {_Pid, {api_response}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->

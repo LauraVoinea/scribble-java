@@ -1,5 +1,5 @@
 -module(usr).
--behaviour(gen_usr).
+-behaviour(gen_user).
 
 -export([init/1, callback_mode/0, start_link/0, s1/3, s4/3, s8/3]).
 

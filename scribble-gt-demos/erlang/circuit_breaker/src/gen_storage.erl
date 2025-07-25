@@ -55,7 +55,7 @@ s3(EventType, {hard_ping}, Data) ->
     CallbackModule:s3(EventType, {hard_ping}, Data).
 
 -spec send_s3_hard_ping(ControllerPid :: pid(), _Data :: state_data()) -> ok.
-send_s3_hard_ping(ControllerPid, Data) ->
+send_s3_hard_ping(ControllerPid, _Data) ->
     gen_statem:cast(ControllerPid, {self(), {hard_ping}}).
 
 -spec s12(term(), {pid(), {atom(), term()}}, state_data()) -> {next_state, s8, state_data()}.
