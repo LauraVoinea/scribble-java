@@ -58,7 +58,11 @@ s3(internal, {hard_ping}, #state_data{controller_pid = ControllerPid} = Data) ->
 s12(cast, {ControllerPid, {storage_restart}}, #state_data{controller_pid = ControllerPid} = Data) ->
     {next_state, s8, Data}.
 
--spec s8(cast, {pid(), {atom()}}, state_data()) -> {next_state, s9, state_data(), [{next_event, internal, {'storage_reponse'}}]} | {next_state, s12, state_data()} | {next_state, s15, state_data()} | {next_state, s8, state_data()}.
+-spec s8(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s9, state_data(), [{next_event, internal, {'storage_reponse'}}]} |
+    {next_state, s12, state_data()} |
+    {next_state, s15, state_data()} |
+    {next_state, s8, state_data()}.
 s8(cast, {APIPid, {storage_request}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s9, Data, [{next_event, internal, {'storage_reponse'}}]};
 s8(cast, {APIPid, {cancel_ack}}, #state_data{api_pid = APIPid} = Data) ->
@@ -72,15 +76,15 @@ s8(cast, {ControllerPid, {timeout_notice}}, #state_data{controller_pid = Control
 s15(cast, {ControllerPid, {shutdown_storage}}, #state_data{controller_pid = ControllerPid} = Data) ->
     {stop, normal, Data}.
 
--spec s9(internal, {atom()}, state_data()) -> {next_state, s8, state_data()}.
+-spec s9(internal, {atom()}, state_data()) ->
+    {next_state, s8, state_data()}.
 s9(internal, {storage_reponse}, #state_data{api_pid = APIPid} = Data) ->
     io:format("Storage: s9 Sending storage_reponse to API ~n", []),
     gen_storage:send_s9_storage_reponse(APIPid, Data),
     {next_state, s8, Data}.
 
 -spec s1(cast | info, {pid(), {atom()}} | {atom(), pid()}, state_data()) -> 
-    {next_state, s3, state_data(), [{next_event, internal, {hard_ping}}]} |
-    {keep_state, state_data()}.
+    {next_state, s3, state_data(), [{next_event, internal, {hard_ping}}]}.
 s1(cast, {ControllerPid, {start_storage}}, Data) ->
     io:format("Storage: s1 Received start_storage from Controller ~p~n", [ControllerPid]),
     NewData = connect(Data),

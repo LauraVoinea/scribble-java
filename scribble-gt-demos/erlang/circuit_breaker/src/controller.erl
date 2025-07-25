@@ -65,7 +65,11 @@ s3(internal, {start_controller}, #state_data{api_pid = APIPid} = Data) ->
 s4(cast, {StoragePid, {hard_ping}}, #state_data{storage_pid = StoragePid} = Data) ->
     {next_state, s6, Data}.
 
--spec s11(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s12, state_data()} | {next_state, s15, state_data()} | {next_state, s19, state_data()} | {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]}.
+-spec s11(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s12, state_data()} |
+    {next_state, s15, state_data()} |
+    {next_state, s19, state_data()} |
+    {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]}.
 s11(internal, {service_operational}, #state_data{api_pid = APIPid} = Data) ->
     io:format("Controller: s11 Sending service_operational to API ~n", []),
     gen_controller:send_s11_service_operational(APIPid, Data),
@@ -81,7 +85,10 @@ s11(internal, {shutdown_api}, #state_data{api_pid = APIPid} = Data) ->
 s11(cast, {APIPid, {timeout}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s8, Data, [{next_event, internal, {timeout_notice}}]}.
 
--spec s6(cast, {pid(), {atom()}}, state_data()) -> {next_state, s11, state_data()} | {next_state, s11, state_data(), [term()]}.
+-spec s6(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s11, state_data(), [{next_event, internal, {error_notice}}]} |
+    {next_state, s11, state_data(), [{next_event, internal, {service_operational}}]} |
+    {next_state, s11, state_data(), [{next_event, internal, {shutdown_api}}]}.
 s6(cast, {APIPid, {get_mode}}, #state_data{api_pid = APIPid} = Data) ->
     case make_choice_s11(Data) of
         1 ->
@@ -98,13 +105,17 @@ s8(internal, {timeout_notice}, #state_data{storage_pid = StoragePid} = Data) ->
     gen_controller:send_s8_timeout_notice(StoragePid, Data),
     {next_state, s6, Data}.
 
--spec s12(cast, {pid(), {atom()}}, state_data()) -> {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]} | {next_state, s6, state_data()}.
+-spec s12(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]} |
+    {next_state, s6, state_data()}.
 s12(cast, {APIPid, {timeout}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s8, Data, [{next_event, internal, {timeout_notice}}]};
 s12(cast, {APIPid, {ack}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s6, Data}.
 
--spec s15(cast, {pid(), {atom()}}, state_data()) -> {next_state, s16, state_data(), [{next_event, internal, {storage_restart}}]} | {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]}.
+-spec s15(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s16, state_data(), [{next_event, internal, {storage_restart}}]} | {
+        next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]}.
 s15(cast, {APIPid, {error_ack}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s16, Data, [{next_event, internal, {storage_restart}}]};
 s15(cast, {APIPid, {timeout}}, #state_data{api_pid = APIPid} = Data) ->
@@ -120,13 +131,16 @@ s16(internal, {storage_restart}, #state_data{storage_pid = StoragePid} = Data) -
     gen_controller:send_s16_storage_restart(StoragePid, Data),
     {next_state, s6, Data}.
 
--spec s19(cast, {pid(), {atom()}}, state_data()) -> {next_state, s20, state_data(), [{next_event, internal, {shutdown_storage}}]} | {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]}.
+-spec s19(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s20, state_data(), [{next_event, internal, {shutdown_storage}}]} |
+    {next_state, s8, state_data(), [{next_event, internal, {timeout_notice}}]}.
 s19(cast, {APIPid, {shutdown_ack}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s20, Data, [{next_event, internal, {shutdown_storage}}]};
 s19(cast, {APIPid, {timeout}}, #state_data{api_pid = APIPid} = Data) ->
     {next_state, s8, Data, [{next_event, internal, {timeout_notice}}]}.
 
--spec s1(internal, {atom()}, state_data()) -> {next_state, s3, state_data(), [{next_event, internal, {start_controller}}]}.
+-spec s1(internal, {atom()}, state_data()) ->
+    {next_state, s3, state_data(), [{next_event, internal, {start_controller}}]}.
 s1(internal, {start_storage},  Data) ->
     NewData = connect(Data),
     io:format("Controller: s1 Sending start_storage to Storage ~n", []),
