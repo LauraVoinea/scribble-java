@@ -28,9 +28,7 @@
 -type state_data() :: #state_data{mc_counter_2 :: integer(), mc_counter_1 :: integer(), bob_pid :: pid() | undefined, alice_pid :: pid() | undefined}.
 
 -callback s3(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s5(EventType :: term(), term(), state_data()) -> {keep_state, state_data()}.
 -callback s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s11(EventType :: term(), term(), state_data()) -> {keep_state, state_data()}.
 -callback s12(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback s14(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
@@ -41,9 +39,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_seller, {CallbackModule, Args}, 
-            % []);
-            [{debug, [trace, {log_to_file, "seller_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_seller, {CallbackModule, Args}, []);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -69,18 +65,25 @@ send_s11_response_timeout(BobPid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(BobPid, {self(), {response_timeout}, Counter}).
 
--spec s5(EventType :: term(), term(), state_data()) -> {keep_state, state_data()}.
 s5(EventType, {not_available}, #state_data{mc_counter_2 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_2 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {not_available}, NewData);
+s5(_EventType, {_Pid, {reject_quote}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_seller: Postponing event ~p~n", [[reject_quote]]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {accept_quote}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_seller: Postponing event ~p~n", [[accept_quote]]),
+    {keep_state, Data, [postpone]};
 s5(EventType, {AlicePid, {request_title, Title}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {AlicePid, {request_title, Title}}, Data);
 s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_quote} 
 		orelse Msg =:= {accept_quote} ->
+    io:format("gen_seller: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data};
-s5(_EventType, {_Pid, {request_title, _Title}, _Counter}, Data) ->
+s5(_EventType, {_Pid, {request_title, Title}, _Counter}, Data) ->
+    io:format("gen_seller: Garbage collecting event ~p~n", [{request_title, Title}]),
     {keep_state, Data}.
 
 s6(EventType, {price_quote}, Data) ->
@@ -96,7 +99,6 @@ s9(EventType, {response_timeout}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s9(EventType, {response_timeout}, Data).
 
--spec s11(EventType :: term(), term(), state_data()) -> {keep_state, state_data()}.
 s11(EventType, {response_timeout}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -109,8 +111,10 @@ s11(EventType, {BobPid, {reject_quote}, Counter}, #state_data{mc_counter_1 = MC}
     CallbackModule:s11(EventType, {BobPid, {reject_quote}}, Data);
 s11(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_quote} 
 		orelse Msg =:= {accept_quote} ->
+    io:format("gen_seller: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data};
-s11(_EventType, {_Pid, {request_title, _Title}, _Counter}, Data) ->
+s11(_EventType, {_Pid, {request_title, Title}, _Counter}, Data) ->
+    io:format("gen_seller: Garbage collecting event ~p~n", [{request_title, Title}]),
     {keep_state, Data}.
 
 -spec send_s5_not_available(AlicePid :: pid(), Data :: state_data()) -> ok.

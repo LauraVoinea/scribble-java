@@ -36,6 +36,11 @@ init([]) ->
     io:format("seller initialized ~n", []),
     {ok, s5, Data, [{next_event, internal, {not_available}}]}.
 
+-spec s5(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s6, state_data(), [{next_event, internal, {price_quote}}]} |
+    {stop, normal, state_data()} |
+    {keep_state, state_data()} |
+    {next_state, s3, state_data(), [{next_event, internal, {not_available}}]}.
 s5(internal, {not_available}, Data) ->
     Data1 = connection(Data),
     AlicePid = Data1#state_data.alice_pid,

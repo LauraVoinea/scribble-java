@@ -54,7 +54,7 @@ s5(cast, {_SellerPid, {not_available}}, Data) ->
 
 -spec s6(internal, {atom()}, state_data()) -> {next_state, s9, state_data()}.
 s6(internal, {contribution}, #state_data{bob_pid = BobPid} = Data) ->
-    Amount = 42, % Example contribution amount
+    Amount = 42, % Example amount
     io:format("Alice: s6 Sending contribution ~p to Bob ~n", [Amount]),
     gen_alice:send_s6_contribution(BobPid, Amount, Data),
     {next_state, s9, Data}.
