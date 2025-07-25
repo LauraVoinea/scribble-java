@@ -123,7 +123,7 @@ public class GTGenericBehaviour {
         writer.writeLine("");
 
         // Generate start_link/2 function
-        ErlFun startLinkFun = generateStartLinkFun(moduleName);
+        ErlFun startLinkFun = generateStartLinkFun(moduleName, callbackModuleName);
         startLinkFun.write(writer);
         writer.writeLine("");
 
@@ -267,9 +267,6 @@ public class GTGenericBehaviour {
         // Build the callback type definitions in Erlang syntax.
         StringBuilder sb = new StringBuilder();
         for (String spec : callbackTypes) {
-            // Each spec should look like:
-            //   myFunction(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, state_data()}
-            // prepend "-callback " and append a trailing period.
             if (spec.startsWith("init")) {
                 spec = spec.replace("{CallbackModule :: module(), Args :: list()}", "Args :: list()");
             }
@@ -283,7 +280,7 @@ public class GTGenericBehaviour {
     }
 
 
-    private ErlFun generateStartLinkFun(String moduleName) {
+    private ErlFun generateStartLinkFun(String moduleName, String callbackModuleName) {
         String funcName = "start_link";
         List<ErlTerm> headParams = Arrays.asList(new ErlVar("CallbackModule"), new ErlVar("Args"));
         ErlCall ensureCall = new ErlCall("code", "ensure_loaded", List.of(new ErlVar("CallbackModule")));
@@ -296,7 +293,15 @@ public class GTGenericBehaviour {
         ErlTuple arg1 = new ErlTuple(Arrays.asList(new ErlAtom("local"), new ErlVar("CallbackModule")));
         ErlAtom arg2 = new ErlAtom(moduleName);
         ErlTuple arg3 = new ErlTuple(Arrays.asList(new ErlVar("CallbackModule"), new ErlVar("Args")));
-        ErlList arg4 = new ErlList(Collections.emptyList());
+        // Configure debug options: trace and log to file
+        ErlAtom debugAtom = new ErlAtom("debug");
+        ErlAtom traceAtom = new ErlAtom("trace");
+        ErlAtom logToFileAtom = new ErlAtom("log_to_file");
+        ErlString logFile = new ErlString(callbackModuleName + "_debug.log");
+        ErlTuple logToFileTuple = new ErlTuple(Arrays.asList(logToFileAtom, logFile));
+        ErlList debugOptions = new ErlList(Arrays.asList(traceAtom, logToFileTuple));
+        ErlTuple debugOption = new ErlTuple(Arrays.asList(debugAtom, debugOptions));
+        ErlList arg4 = new ErlList(Arrays.asList(debugOption));
         ErlCall startLinkCall = new ErlCall(new ErlAtom("gen_statem"), "start_link",
                 Arrays.asList(arg1, arg2, arg3, arg4));
         caseExpr.addClause(pattern1, startLinkCall);
@@ -454,7 +459,6 @@ public class GTGenericBehaviour {
                         )));
                 ErlFun clauseFun = new ErlFun(funcName);
                 clauseFun.addClause(headArgs, guard, bodySeq);
-                //TODO: specific specs for payloads
                 String spec = funcName + "(" +
                         "term(), " +
                         "{pid(), {atom(), term()}}, " +
@@ -632,7 +636,6 @@ public class GTGenericBehaviour {
                 List<ErlTerm> params = Arrays.asList(
                         new ErlVar("EventType"),
                         new ErlTuple(List.of(new ErlAtom(paramA))),
-                        //new ErlVar("Data")
                         new ErlMatch(dataPattern, new ErlVar("Data"))
                 );
                 ErlSeq bodySeq = new ErlSeq();
@@ -700,7 +703,6 @@ public class GTGenericBehaviour {
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName, Arrays.asList(
                     new ErlVar("EventType"),
                     new ErlTuple(Arrays.asList(new ErlVar(e.role + "Pid"), payloadTuple)),
-                //     new ErlVar("NewData")
                     new ErlVar("Data")
             )));
             ErlFun clause = new ErlFun(funcName);

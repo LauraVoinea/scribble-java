@@ -61,7 +61,7 @@ usage() {
   -v                         Scribble debug info (verbose console output)
   --verbose                  Echo the java command before execution
 
-  -run-scribble-examples     Run default operations for all examples in
+  -run-scribble-examples     Validate and generate code for all examples under
                             scribble-gt-demos/scribble/
   -run-erlang-examples       Run compile, start, and stop on all Erlang OTP app examples under
                             scribble-gt-demos/erlang/

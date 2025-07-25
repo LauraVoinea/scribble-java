@@ -51,7 +51,7 @@ public class GTCallbackModule {
                 case END:
                     break;
                 case BRANCH: {
-                    List<ErlFun> branchFuns = generateBranch(efsm, s);
+                    List<ErlFun> branchFuns = generateBranch(efsm, s, role);
                     functions.addAll(branchFuns);
                     break;
                 }
@@ -71,7 +71,7 @@ public class GTCallbackModule {
                     break;
                 }
                 case EXTERNAL_MIXED_II: {
-                    List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s);
+                    List<ErlFun> extIIFuns = generateExternalMixedII(efsm, s, role);
                     functions.addAll(extIIFuns);
                     break;
                 }
@@ -267,15 +267,15 @@ public class GTCallbackModule {
     }
 
 
-    protected List<ErlFun> generateBranch(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateBranch(GTEFSM m, GTVState s, Role self) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
-        return generateBranchAux(m, s, filt);
+        return generateBranchAux(m, s, filt, self);
     }
 
 
     protected List<ErlFun> generateBranchAux(
             GTEFSM m, GTVState s,
-            Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> edges) {
+            Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> edges, Role self) {
         return edges.entrySet().stream().flatMap(entry -> {
             Pair<GTVState, GTVEvent> key = entry.getKey();
             // Expecting a receive event
@@ -315,7 +315,7 @@ public class GTCallbackModule {
 
                 ErlSeq bodySeq = new ErlSeq();
 
-                ErlCall logRcv = logRcv(s, payloadVars, e);
+                ErlCall logRcv = logRcv(self, s, payloadVars, e);
                 bodySeq.addExpression(logRcv);
                 bodySeq.addExpression(genNextState(m, pair.right));
                 // Create a new function clause with the given head and body.
@@ -536,7 +536,7 @@ public class GTCallbackModule {
             //add the elements one by one and have them as parameters to io:format
             // Call: io:format("role: s<id> Received <element>: ~p, ..., <element> ~p from <role> ~n", [<element>, ..., <element>])
             // Build the log call for receiving external events with payload placeholders
-            ErlCall logRcv = logRcv(s, payloadVars, e);
+            ErlCall logRcv = logRcv(self, s, payloadVars, e);
             // Build body as a case expression.
             // Call: make_choice_<a1>(Data)
             ErlCall extMakeChoiceCall = new ErlCall("make_choice_" + a1, List.of(new ErlVar("Data")));
@@ -570,13 +570,13 @@ public class GTCallbackModule {
         return res;
     }
 
-    private static @NotNull ErlCall logRcv(GTVState s, List<ErlTerm> payloadVars, GTVRecv event) {
+    private static @NotNull ErlCall logRcv(Role self, GTVState s, List<ErlTerm> payloadVars, GTVRecv event) {
         Role sender = event.role;
 
         List<ErlTerm> outputVars = new ArrayList<>(payloadVars);
         outputVars.add(new ErlVar(sender + "Pid"));
         String placeholderStr = " " + payloadVars.stream().map(v -> v.toString() + " ~p").collect(Collectors.joining(", "));
-        String fmt = event.role.toString() + ": s" + s.id + " Received " + GTGenUtil.eventToParam(event) +
+        String fmt = self + ": s" + s.id + " Received " + GTGenUtil.eventToParam(event) +
                       placeholderStr + " from " + sender + " ~p ~n";
         return new ErlCall("io", "format", List.of(
                 new ErlString(fmt),
@@ -594,21 +594,21 @@ public class GTCallbackModule {
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVRecv);
-        res.addAll(generateBranchAux(m, s, rhs));
+        res.addAll(generateBranchAux(m, s, rhs, self));
 
         return res;
     }
 
-    protected List<ErlFun> generateExternalMixedII(GTEFSM m, GTVState s) {
+    protected List<ErlFun> generateExternalMixedII(GTEFSM m, GTVState s, Role self) {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
-        List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs));
+        List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs, self));
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
-        res.addAll(generateBranchAux(m, s, rhs));
+        res.addAll(generateBranchAux(m, s, rhs, self));
 
         return res;
     }
@@ -617,7 +617,7 @@ public class GTCallbackModule {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt = GTGenUtil.filterEdgesByState(m, s);
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilon);
-        List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs));
+        List<ErlFun> res = new LinkedList<>(generateBranchAux(m, s, lhs, self));
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> lhs_tau =  // !!! -- ! |> ?
                 GTGenUtil.filterEdgesByEvent(filt, x -> x instanceof GTVTau);
@@ -625,7 +625,7 @@ public class GTCallbackModule {
 
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> rhs =
                 GTGenUtil.filterEdgesByAnyAction(filt, x -> x instanceof GTVEpsilonStar);
-        res.addAll(new LinkedList<>(generateBranchAux(m, s, rhs)));
+        res.addAll(new LinkedList<>(generateBranchAux(m, s, rhs, self)));
 
         return res;
     }
