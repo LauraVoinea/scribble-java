@@ -41,7 +41,9 @@ connect(Data) ->
     end,
     Data#state_data{srv_pid = SrvPid, alice_pid = AlicePid}.
 
--spec s3(internal, {atom()}, state_data()) -> {next_state, s7, state_data()} | {next_state, s7, state_data(), [term()]}.
+-spec s3(internal, {atom()}, state_data()) ->
+    {next_state, s7, state_data(), [{next_event, internal, {sum}}]} |
+    {next_state, s7, state_data(), [{next_event, internal, {diff}}]}.
 s3(internal, {second}, #state_data{srv_pid = SrvPid} = Data) ->
     io:format("Carol: s3 Sending second to Srv ~n", []),
 
@@ -71,7 +73,10 @@ s11(cast, {SrvPid, {result_diff, Result}}, #state_data{srv_pid = SrvPid} = Data)
     io:format("Carol: s11 Received result_diff ~p from Srv ~n", [Result]),
     {next_state, s12, Data, [{next_event, internal, {diff_result}}]}.
 
--spec s7(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s8, state_data()} | {next_state, s11, state_data()} | {next_state, s5, state_data(), [{next_event, internal, {cancel}}]}.
+-spec s7(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s8, state_data()} |
+    {next_state, s11, state_data()} |
+    {next_state, s5, state_data(), [{next_event, internal, {cancel}}]}.
 s7(internal, {sum}, #state_data{srv_pid = SrvPid} = Data) ->
     io:format("Carol: s7 Sending sum to Srv ~n", []),
     gen_carol:send_s7_sum(SrvPid, Data),

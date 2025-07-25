@@ -42,7 +42,8 @@ connect(Data) ->
     end,
     Data#state_data{srv_pid = SrvPid, carol_pid = CarolPid}.
 
--spec s4(cast, {pid(), {atom(), integer()} | {atom()}}, state_data()) -> {stop, normal, state_data()} | {stop, normal, state_data()} | {stop, normal, state_data()}.
+-spec s4(cast, {pid(), {atom(), integer()} | {atom()}}, state_data()) ->
+    {stop, normal, state_data()}.
 s4(cast, {_CarolPid, {diff_result, Result}}, Data) ->
     Data1 = connect(Data),
     io:format("Alice: s4 Received diff_result ~p from Carol ~n", [Result]),
