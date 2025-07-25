@@ -1,12 +1,20 @@
 -module(gen_supplier).
 -behaviour(gen_statem).
 
--export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, s5/3, send_s6_confirm_date/3, s6/3]).
+-export([init/1, 
+	 callback_mode/0, 
+	 code_change/4, 
+	 terminate/3, 
+	 start_link/2, 
+	 s5/3, 
+	 send_s6_confirm_date/3, 
+	 s6/3
+	 ]).
 
 -include("supplier.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), agency_pid :: pid() | undefined, client_pid :: pid() | undefined}.
 
--callback s5(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {stop, normal, state_data()} | {ok, s5, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
+-callback s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {ok, s5, state_data()} | {stop, normal, state_data()}.
 -callback s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s5, state_data()}.
@@ -16,9 +24,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_supplier, {CallbackModule, Args}, 
-            % []);
-            [{debug, [trace, {log_to_file, "supplier_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_supplier, {CallbackModule, Args}, []);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -34,27 +40,30 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
--spec s5(EventType :: term(), {pid(), {term()}, integer()} | term(), state_data()) -> {stop, normal, state_data()} | {ok, s5, state_data()} | {stop, normal, state_data()} | {keep_state, state_data()}.
-s5(EventType, {ClientPid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+-spec s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {ok, s5, state_data()} | {stop, normal, state_data()}.
+s5(EventType, {ClientPid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {ClientPid, {cancel_booking}}, NewData);
-s5(EventType, {ClientPid, {provide_address, Address}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s5(EventType, {ClientPid, {provide_address, Address}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {ClientPid, {provide_address, Address}}, NewData);
-s5(EventType, {ClientPid, {resubmitting}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s5(EventType, {ClientPid, {resubmitting}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {ClientPid, {resubmitting}}, NewData);
-s5(EventType, {ClientPid, {cancel_supplier}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
+s5(EventType, {ClientPid, {cancel_supplier}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
+    NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
-    CallbackModule:s5(EventType, {ClientPid, {cancel_supplier}}, Data);
+    CallbackModule:s5(EventType, {ClientPid, {cancel_supplier}}, NewData);
 s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {resubmitting} 
 		orelse Msg =:= {cancel_booking} 
 		orelse Msg =:= {cancel_supplier} ->
+    io:format("gen_supplier: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data};
-s5(_EventType, {_Pid, {provide_address, _Address}, _Counter}, Data) ->
+s5(_EventType, {_Pid, {provide_address, Address}, _Counter}, Data) ->
+    io:format("gen_supplier: Garbage collecting event ~p~n", [{provide_address, Address}]),
     {keep_state, Data}.
 
 -spec s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.

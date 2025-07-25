@@ -46,6 +46,10 @@ s3(internal, {booking_request}, Data) ->
     gen_client:send_s3_booking_request(AgencyPid, Destination, Data),
     {next_state, s4, Data1}.
 
+-spec s4(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s9, state_data(), [{next_event, internal, {accept_offer}}]} |
+    {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} |
+    {next_state, s11, state_data(), [{next_event, internal, {provide_address}}]}.
 s4(cast, {AgencyPid, {price_quote, Price}}, #state_data{agency_pid = AgencyPid} = Data) ->
     io:format("Client: s4 Received price_quote from Agency ~p with Price ~p~n", [AgencyPid, Price]),
     case make_choice_s9(Data) of
@@ -67,11 +71,15 @@ s11(internal, {provide_address}, #state_data{supplier_pid = SupplierPid} = Data)
     gen_client:send_s11_provide_address(SupplierPid, Address, Data),
     {next_state, s12, Data}.
 
+-spec s6(internal, {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {cancel_agency}}]}.
 s6(internal, {cancel_agency}, #state_data{agency_pid = AgencyPid} = Data) ->
     io:format("Client: s6 Sending cancel_agency to Agency ~n", []),
     gen_client:send_s6_cancel_agency(AgencyPid, Data),
     {next_state, s7, Data, [{next_event, internal, {cancel_supplier}}]}.
 
+-spec s10(cast, {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} |
+    {next_state, s11, state_data(), [{next_event, internal, {provide_address}}]}.
 s10(cast, {AgencyPid, {price_adjustment, Price}}, #state_data{agency_pid = AgencyPid} = Data) ->
     io:format("Client: s10 Received price_adjustment from Agency ~p~n", [Price]),
     {next_state, s6, Data, [{next_event, internal, {cancel_agency}}]};
@@ -130,6 +138,7 @@ s14(cast, {AgencyPid, {reject_confirmation}}, #state_data{agency_pid = AgencyPid
 -spec make_choice_s9(state_data()) -> integer().
 make_choice_s9(_Data) ->
     rand:uniform(3).
+
 -spec s17(cast, {pid(), {atom(), term()} | {atom()}}, state_data()) -> 
     {next_state, s18, state_data(), [{next_event, internal, {resubmitting}}]} | 
     {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]}.

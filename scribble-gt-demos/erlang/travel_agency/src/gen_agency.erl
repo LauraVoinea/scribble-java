@@ -1,15 +1,32 @@
 -module(gen_agency).
 -behaviour(gen_statem).
 
--export([init/1, callback_mode/0, code_change/4, terminate/3, start_link/2, s3/3, send_s4_price_quote/3, s4/3, send_s8_price_adjustment/3, s8/3, send_s9_accept_confirmation/2, s9/3, send_s11_reject_confirmation/2, s11/3, send_s13_repeat_confirmation/2, s13/3, s6/3]).
+-export([init/1, 
+	 callback_mode/0, 
+	 code_change/4, 
+	 terminate/3, 
+	 start_link/2, 
+	 s3/3, 
+	 send_s4_price_quote/3, 
+	 s4/3, 
+	 send_s8_price_adjustment/3, 
+	 s8/3, 
+	 send_s9_accept_confirmation/2, 
+	 s9/3, 
+	 send_s11_reject_confirmation/2, 
+	 s11/3, 
+	 send_s13_repeat_confirmation/2, 
+	 s13/3, 
+	 s6/3
+	 ]).
 
 -include("agency.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), client_pid :: pid() | undefined, supplier_pid :: pid() | undefined}.
 
 -callback s11(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s6(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
+-callback s6(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
 -callback s13(EventType :: term(), {atom()}, state_data()) -> {ok, s3, state_data()}.
--callback s8(EventType :: term(), {atom()} | term(), state_data()) -> {next_state, s6, state_data()} | {keep_state, state_data()}.
+-callback s8(EventType :: term(), {atom()}, state_data()) -> {next_state, s6, state_data()}.
 -callback s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s3, state_data()}.
@@ -19,9 +36,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_agency, {CallbackModule, Args}, 
-            % []);
-            [{debug, [trace, {log_to_file, "agency_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_agency, {CallbackModule, Args}, []);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -37,6 +52,18 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
+s3(_EventType, {_Pid, {cancel_agency}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_agency: Postponing event ~p~n", [[cancel_agency]]),
+    {keep_state, Data, [postpone]};
+s3(_EventType, {_Pid, {resubmit_request}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_agency: Postponing event ~p~n", [[resubmit_request]]),
+    {keep_state, Data, [postpone]};
+s3(_EventType, {_Pid, {accept_offer}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_agency: Postponing event ~p~n", [[accept_offer]]),
+    {keep_state, Data, [postpone]};
+s3(_EventType, {_Pid, {reject_offer}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_agency: Postponing event ~p~n", [[reject_offer]]),
+    {keep_state, Data, [postpone]};
 s3(EventType, {ClientPid, {booking_request, Destination}}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {ClientPid, {booking_request, Destination}}, Data).
@@ -60,16 +87,12 @@ s11(EventType, {reject_confirmation}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s11(EventType, {reject_confirmation}, Data).
 
--spec s6(term() | EventType :: term(), {pid(), {atom(), term()}} | term(), state_data()) -> {stop, normal, state_data()} | {keep_state, state_data()}.
+-spec s6(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
 s6(EventType, {ClientPid, {cancel_agency}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s6(EventType, {ClientPid, {cancel_agency}}, Data);
-s6(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_offer} 
-		orelse Msg =:= {accept_offer} 
-		orelse Msg =:= {cancel_agency} 
-		orelse Msg =:= {resubmit_request} ->
-    {keep_state, Data};
-s6(_EventType, {_Pid, {booking_request, _Destination}, _Counter}, Data) ->
+s6(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {cancel_agency} ->
+    io:format("gen_agency: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
 -spec s13(EventType :: term(), {atom()}, state_data()) -> {ok, s3, state_data()}.
@@ -82,7 +105,13 @@ send_s9_accept_confirmation(ClientPid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(ClientPid, {self(), {accept_confirmation}, Counter}).
 
--spec s8(EventType :: term(), {atom()} | term(), state_data()) -> {next_state, s6, state_data()} | {keep_state, state_data()}.
+-spec s8(EventType :: term(), {atom()}, state_data()) -> {next_state, s6, state_data()}.
+s8(_EventType, {_Pid, {cancel_agency}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+    io:format("gen_agency: Postponing event ~p~n", [[cancel_agency]]),
+    {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {booking_request, Destination}}, Data) ->
+    io:format("gen_agency: Postponing event ~p~n", [[booking_request, Destination]]),
+    {keep_state, Data, [postpone]};
 s8(EventType, {price_adjustment}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -100,8 +129,7 @@ s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_offer}
 		orelse Msg =:= {accept_offer} 
 		orelse Msg =:= {cancel_agency} 
 		orelse Msg =:= {resubmit_request} ->
-    {keep_state, Data};
-s8(_EventType, {_Pid, {booking_request, _Destination}, _Counter}, Data) ->
+    io:format("gen_agency: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
 -spec s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.

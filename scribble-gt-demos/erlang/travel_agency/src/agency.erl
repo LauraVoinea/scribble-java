@@ -85,7 +85,7 @@ s8(internal, {price_adjustment}, #state_data{client_pid = ClientPid} = Data) ->
             io:format("Agency: s8 Waiting for Client ~n", []),
             {keep_state, Data};
         2 ->
-            Price = 100, % Example price, replace with actual logic
+            Price = 100, % Example price
             io:format("Agency: s8 Sending price_adjustment to Client ~p ~n", [Price]),
             gen_agency:send_s8_price_adjustment(ClientPid, Price, Data),
             {next_state, s6, Data}
@@ -96,7 +96,7 @@ s8(cast, {ClientPid, {reject_offer}}, #state_data{client_pid = ClientPid} = Data
         1 ->
             {next_state, s11, Data, [{next_event, internal, {reject_confirmation}}]};
         2 ->
-            Price = 100, % Example price, replace with actual logic
+            Price = 100, % Example price
             io:format("Agency: s8 Sending price_adjustment to Client ~p ~n", [Price]),
             gen_agency:send_s8_price_adjustment(ClientPid, Price, Data),
             {next_state, s6, Data}
@@ -108,7 +108,7 @@ s8(cast, {ClientPid, {resubmit_request}}, #state_data{client_pid = ClientPid} = 
         1 ->
             {next_state, s13, Data, [{next_event, internal, {repeat_confirmation}}]};
         2 ->
-            Price = 100, % Example price, replace with actual logic
+            Price = 100, % Example price
             io:format("Agency: s8 Sending price_adjustment to Client ~p ~n", [Price]),
             gen_agency:send_s8_price_adjustment(ClientPid, Price, Data),
             {next_state, s6, Data}
@@ -119,7 +119,7 @@ s8(cast, {ClientPid, {accept_offer}}, #state_data{client_pid = ClientPid} = Data
         1 ->
             {next_state, s9, Data, [{next_event, internal, {accept_confirmation}}]};
         2 ->
-            Price = 100, % Example price, replace with actual logic
+            Price = 100, % Example price
             io:format("Agency: s8 Sending price_adjustment to Client ~p ~n", [Price]),
             gen_agency:send_s8_price_adjustment(ClientPid, Price, Data),
             {next_state, s6, Data}
