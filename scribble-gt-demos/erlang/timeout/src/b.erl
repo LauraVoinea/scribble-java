@@ -29,12 +29,16 @@ init([]) ->
     io:format("b initialized ~n", []),
     {ok, s5, Data, [{next_event, internal, {'TOa'}}]}.
 
--spec s3(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
+-spec s3(internal, {atom()}, state_data()) ->
+    {stop, normal, state_data()}.
 s3(internal, {'TOc'}, #state_data{c_pid = CPid} = Data) ->
     io:format("B: s3 Sending TOc to C ~n", []),
     gen_b:send_s3_TOc(CPid, Data),
     {stop, normal, Data}.
-
+-spec s5(internal, {atom()} | {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s6, state_data(), [{next_event, internal, {a3}}]} |
+    {next_state, s3, state_data(), [{next_event, internal, {'TOc'}}]} |
+    {stop, normal, state_data()}.
 s5(internal, {'TOa'}, Data) ->
     NewData = connection(Data),
     APid = NewData#state_data.a_pid,
@@ -56,6 +60,8 @@ s5(cast, {APid, {a1}}, #state_data{a_pid = APid} = Data) ->
             {next_state, s3, Data, [{next_event, internal, {'TOc'}}]}
     end.
 
+-spec s6(internal, {atom(), term()}, state_data()) ->
+    {next_state, s7, state_data(), [{next_event, internal, {a4}}]}.
 s6(internal, {a3}, #state_data{c_pid = CPid} = Data) ->
     io:format("B: s6 Sending a3 to C ~n", []),
     gen_b:send_s6_a3(CPid, Data),
