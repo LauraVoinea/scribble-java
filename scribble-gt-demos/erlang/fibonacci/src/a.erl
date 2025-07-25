@@ -34,7 +34,10 @@ init([]) ->
             {ok, s5, Data, [{next_event, internal, {stop}}]}
     end.
 
--spec s5(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s6, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()}.
+-spec s5(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s6, state_data()} |
+    {next_state, s9, state_data()} |
+    {stop, normal, state_data()}.
 s5(internal, {fibonacci}, Data) ->
     BPid = case Data#state_data.b_pid of
             undefined ->
@@ -44,7 +47,7 @@ s5(internal, {fibonacci}, Data) ->
         end,
     NewData = Data#state_data{b_pid = BPid},
     io:format("A: s5 Sending fibonacci to b ~p~n", [NewData#state_data.curr_value]),
-    gen_a:send_s5_fibonacci(BPid, NewData),
+    gen_a:send_s5_fibonacci(BPid, NewData#state_data.curr_value, NewData),
     {next_state, s6, NewData};
 s5(internal, {stop}, Data) ->
     BPid = case Data#state_data.b_pid of
@@ -58,7 +61,9 @@ s5(internal, {stop}, Data) ->
 s5(cast, {BPid, {error}}, #state_data{b_pid = BPid} = Data) ->
     {stop, normal, Data}.
 
--spec s6(cast, {pid(), {atom(), integer()}}, state_data()) -> {ok, s5, state_data()} | {next_state, s5, state_data(), [term()]}.  % fixed semicolon to period
+-spec s6(cast, {pid(), {atom(), integer()}}, state_data()) ->
+    {next_state, s5, state_data(), [{next_event, internal, {fibonacci}}]} |
+    {next_state, s5, state_data(), [{next_event, internal, {stop}}]}.
 s6(cast, {BPid, {fibonacci, Num}}, #state_data{b_pid = BPid, curr_value = Curr} = Data) ->
     % Compute next Fibonacci number
     Next = Curr + Num,
@@ -69,7 +74,8 @@ s6(cast, {BPid, {fibonacci, Num}}, #state_data{b_pid = BPid, curr_value = Curr} 
         2 -> {next_state, s5, NewData, [{next_event, internal, {stop}}]}
     end.
 
--spec s9(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()} | {stop, normal, state_data()}.
+-spec s9(cast, {pid(), {atom(), term()}}, state_data()) -> {
+    stop, normal, state_data()}.
 s9(cast, {BPid, {ack}}, #state_data{b_pid = BPid} = Data) ->
     {stop, normal, Data};
 s9(cast, {BPid, {error}}, #state_data{b_pid = BPid} = Data) ->

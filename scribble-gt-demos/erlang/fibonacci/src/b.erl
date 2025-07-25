@@ -79,7 +79,7 @@ s6(internal, {fibonacci}, #state_data{a_pid = APid, prev_value = Prev, curr_valu
     Next = Prev + Curr,
     NewData = Data#state_data{curr_value = Next},
     io:format("B: s6 Sending fibonacci ~p to a~n", [NewData#state_data.curr_value]),
-    gen_b:send_s6_fibonacci(APid, NewData),
+    gen_b:send_s6_fibonacci(APid,NewData#state_data.curr_value, NewData),
     {next_state, s5, NewData, [{next_event, internal, {error}}]}.
 
 -define(ERROR_INTERVAL, 5).
