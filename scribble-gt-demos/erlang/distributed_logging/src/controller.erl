@@ -82,8 +82,9 @@ make_choice_s13(_Data) ->
     rand:uniform(2).
 
 -spec s9(internal | EventType :: term(), {atom()} | {pid(), {term(), integer()}}, state_data()) -> 
-    {next_state, s5, state_data()} | {next_state, s13, state_data()} | 
-    {next_state, s13, state_data(), [term()]} | 
+    {next_state, s5, state_data()} |
+    {next_state, s13, state_data(), [{next_event, internal, {restart_logging}}]} |
+    {next_state, s13, state_data(), [{next_event, internal, {stop_logging}}]} |
     {next_state, s10, state_data(), [{next_event, internal, {success_ack}}]} |
     {keep_state, state_data()}.
 s9(internal, {timeout}, #state_data{logs_pid = LogsPid} = Data) ->

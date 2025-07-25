@@ -42,7 +42,9 @@ s5(internal, {ack}, #state_data{controller_pid = ControllerPid} = Data) ->
     gen_logs:send_s5_ack(ControllerPid, Data),
     {next_state, s6, Data}.
 
--spec s6(cast, {pid(), {atom(), term()}}, state_data()) -> {next_state, s9, state_data()} | {next_state, s9, state_data(), [term()]}.
+-spec s6(cast, {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s9, state_data(), [{next_event, internal, {log_success}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {log_failure}}]}.
 s6(cast, {ControllerPid, {restart, Int}}, #state_data{controller_pid = ControllerPid} = Data) ->
     io:format("Logs: s6 Received restart ~p from Controller ~p~n", [Int, ControllerPid]),
     case make_choice_s9(Data) of
@@ -52,7 +54,10 @@ s6(cast, {ControllerPid, {restart, Int}}, #state_data{controller_pid = Controlle
             {next_state, s9, Data, [{next_event, internal, {log_failure}}]}
     end.
 
--spec s10(cast, {pid(), {atom()}}, state_data()) -> {next_state, s5, state_data(), [{next_event, internal, {ack}}]} | {next_state, s9, state_data()} | {next_state, s9, state_data(), [term()]}.
+-spec s10(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s5, state_data(), [{next_event, internal, {ack}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {log_success}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {log_failure}}]}.
 s10(cast, {ControllerPid, {timeout}}, #state_data{controller_pid = ControllerPid} = Data) ->
     {next_state, s5, Data, [{next_event, internal, {ack}}]};
 s10(cast, {ControllerPid, {success_ack}}, #state_data{controller_pid = ControllerPid} = Data) ->
@@ -63,7 +68,11 @@ s10(cast, {ControllerPid, {success_ack}}, #state_data{controller_pid = Controlle
             {next_state, s9, Data, [{next_event, internal, {log_failure}}]}
     end.
 
--spec s13(cast, {pid(), {atom(), term()} | {atom()}}, state_data()) -> {next_state, s9, state_data()} | {next_state, s9, state_data(), [term()]} | {next_state, s5, state_data(), [{next_event, internal, {ack}}]} | {stop, normal, state_data()}.
+-spec s13(cast, {pid(), {atom(), term()} | {atom()}}, state_data()) ->
+    {next_state, s9, state_data(), [{next_event, internal, {log_success}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {log_failure}}]} |
+    {next_state, s5, state_data(), [{next_event, internal, {ack}}]} |
+    {stop, normal, state_data()}.
 s13(cast, {ControllerPid, {restart_logging, Int}}, #state_data{controller_pid = ControllerPid} = Data) ->
     io:format("Logs: s13 Received restart_logging ~p from Controller ~p~n", [Int, ControllerPid]),
     case make_choice_s9(Data) of
@@ -79,7 +88,10 @@ s13(cast, {ControllerPid, {stop_logging, Int}}, #state_data{controller_pid = Con
     io:format("Logs: s13 Received stop_logging ~p from Controller ~p~n", [Int, ControllerPid]),
     {stop, normal, Data}.
 
--spec s9(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s10, state_data()} | {next_state, s13, state_data()} | {next_state, s5, state_data(), [{next_event, internal, {ack}}]}.
+-spec s9(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s10, state_data()} |
+    {next_state, s13, state_data()} |
+    {next_state, s5, state_data(), [{next_event, internal, {ack}}]}.
 s9(internal, {log_success}, #state_data{controller_pid = ControllerPid} = Data) ->
     io:format("Logs: s9 Sending log_success to Controller ~n", []),
     Int = make_choice_s9(Data),
@@ -98,8 +110,8 @@ make_choice_s9(_Data) ->
     rand:uniform(2).
 
 -spec s1(cast, {pid(), {atom(), term()}}, state_data()) -> 
-    {next_state, s9, state_data()} | 
-    {next_state, s9, state_data(), [term()]}.
+    {next_state, s9, state_data(), [{next_event, internal, {log_success}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {log_failure}}]}.
 s1(cast, {ControllerPid, {start_logging, Int}}, Data) ->
     io:format("Logs: s1 Received start_logging ~p from Controller ~p~n", [Int, ControllerPid]),
     Data1 = connect(Data),
