@@ -20,13 +20,17 @@ init([]) ->
     io:format("c initialized ~n", []),
     {ok, s1, Data, [{next_event, internal, {login}}]}.
 
--spec s3(cast, {pid(), {atom()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
+-spec s3(cast, {pid(), {atom()}}, state_data()) ->
+    {next_state, s5, state_data()} |
+    {stop, normal, state_data()}.
 s3(cast, {APid, {login_success}}, #state_data{a_pid = APid} = Data) ->
     {next_state, s5, Data};
 s3(cast, {APid, {login_failed}}, #state_data{a_pid = APid} = Data) ->
     {stop, normal, Data}.
 
--spec s5(cast, {pid(), {atom(), term(), term()}}, state_data()) -> {next_state, s8, state_data()} | {next_state, s8, state_data(), [term()]}.
+-spec s5(cast, {pid(), {atom(), term(), term()}}, state_data()) ->
+    {next_state, s8, state_data(), [{next_event, internal, {pay}}]} |
+    {next_state, s8, state_data(), [{next_event, internal, {quit}}]}.
 s5(cast, {SPid, {account, Balance, Overdraft}}, #state_data{s_pid = SPid} = Data) ->
     io:format("C: s5 Received account from S balance: ~p; overdraft: ~p~n", [Balance, Overdraft]),
     case make_choice_s8(Data) of
@@ -54,7 +58,10 @@ s13(cast, {SPid, {timeout}}, #state_data{s_pid = SPid} = Data) ->
     io:format("C: s13 Received timeout from S ~n", []),
     {stop, normal, Data}.
 
--spec s8(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) -> {next_state, s13, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()}.
+-spec s8(internal | cast, {atom()} | {pid(), {atom(), term()}}, state_data()) ->
+    {next_state, s13, state_data()} |
+    {next_state, s9, state_data()} |
+    {stop, normal, state_data()}.
 s8(internal, {quit}, #state_data{s_pid = SPid} = Data) ->
     io:format("C: s8 Sending quit to S ~n", []),
     gen_c:send_s8_quit(SPid, Data),

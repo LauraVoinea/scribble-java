@@ -94,7 +94,9 @@ s9(internal, {confirmation}, #state_data{c_pid = CPid} = Data) ->
 make_choice_quit(_Data) ->
     rand:uniform(2).
 
--spec s1(cast, {pid() | undefined, {atom()} | {atom(), term()} }, state_data()) -> {next_state, s4, state_data(), [{next_event, internal, {account}}]} | {stop, normal, state_data()}.
+-spec s1(cast, {pid() | undefined, {atom()} | {atom(), term()} }, state_data()) -> {
+    next_state, s4, state_data(), [{next_event, internal, {account}}]} |
+    {stop, normal, state_data()}.
 s1(cast, {APid, {login_accepted}}, Data) ->
     io:format("S: s1 Received login_accepted from A ~p ~n", [APid]),
     Data1 = connection(Data),

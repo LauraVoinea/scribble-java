@@ -20,7 +20,9 @@ init([]) ->
     io:format("a initialized ~n", []),
     {ok, s1, Data}.
 
--spec s3(internal, {atom()}, state_data()) -> {next_state, s4, state_data(), [{next_event, internal, {login_accepted}}]} | {next_state, s12, state_data(), [{next_event, internal, {auth_fail}}]}.
+-spec s3(internal, {atom()}, state_data()) ->
+    {next_state, s4, state_data(), [{next_event, internal, {login_accepted}}]} |
+    {next_state, s12, state_data(), [{next_event, internal, {auth_fail}}]}.
 s3(internal, {login_success}, #state_data{c_pid = CPid} = Data) ->
     io:format("A: s3 Sending login_success to C ~n", []),
     gen_a:send_s3_login_success(CPid, Data),
@@ -44,7 +46,6 @@ s12(internal, {auth_fail}, #state_data{s_pid = SPid} = Data) ->
 
 -spec s8(cast, {pid(), {atom()}}, state_data()) -> 
     {next_state, s8, state_data()} | 
-    {stop, normal, state_data()} | 
     {stop, normal, state_data()}.
 s8(cast, {CPid, {keep_alive}}, #state_data{c_pid = CPid} = Data) ->
     io:format("A: s8 Received keep_alive from C ~n", []),
@@ -61,8 +62,8 @@ make_choice_s3(_Data) ->
     rand:uniform(2).
 
 -spec s1(cast, {pid(), {atom(), term(), term()}}, state_data()) -> 
-    {next_state, s3, state_data()} | 
-    {next_state, s3, state_data(), [term()]}.
+    {next_state, s3, state_data(), [{next_event, internal, {login_success}}]} |
+    {next_state, s3, state_data(), [{next_event, internal, {login_failed}}]}.
 s1(cast, {_CPid, {login, Id, Password}}, Data) ->
     io:format("A: s1 Received login request from C ~p ~p ~n", [Id, Password]),
     Data1 = connection(Data),
