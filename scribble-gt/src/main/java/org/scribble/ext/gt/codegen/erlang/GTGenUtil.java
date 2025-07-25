@@ -116,8 +116,9 @@ public class GTGenUtil {
         // receive events from downstream states (with state context)
         getRecvEvents(m, s).forEach(pair -> {
             GTVRecv recv = pair.left;
-            // int c = pair.right; // state context if needed
-            branchRecvs.add(recv);
+            if (pair.right > 0) {
+                branchRecvs.add(recv);
+            }
         });
         // 2. mixed entry and not child of MC
         if (isEntry && s.c == getNumMixedChoices(m)) {

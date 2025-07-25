@@ -1,6 +1,4 @@
-*DBG* client enter gen_c in state s4
-*DBG* client consume internal init_state in state s4
-*DBG* client receive cast {<0.85.0>,{a2},1} in state s4
-*DBG* client consume cast {<0.85.0>,{a2},1} in state s4 => s5
-*DBG* client receive cast {<0.87.0>,{a6},1} in state s5
-*DBG* client terminate normal in state s5
+*DBG* c enter gen_c in state s4
+*DBG* c consume internal init_state in state s4
+*DBG* c receive cast {<0.178.0>,{'TOc'},1} in state s4
+*DBG* c terminate normal in state s4

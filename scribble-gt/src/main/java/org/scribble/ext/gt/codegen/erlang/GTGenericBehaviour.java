@@ -391,6 +391,12 @@ public class GTGenericBehaviour {
         List<ErlFun> res = new LinkedList<>(generateBranchAux(s, filt, m));
         if(s.c > 0)
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+        // Add the Postpone clauses for this state to each state-function
+        ErlFun postponeFun = genPostponeClauses(s, m);
+        res.stream()
+            .filter(f -> f.getName().equals(postponeFun.getName()))
+            .findFirst()
+            .ifPresent(f -> f.prependClauses(postponeFun.getClauses()));
         return res;
     }
 
@@ -455,9 +461,6 @@ public class GTGenericBehaviour {
                         "state_data()) -> \n\t " +
                         GTErlGenUtil.getNextStateReturnType(m, pair.right);
                 clauseFun.setSpec(spec);
-                // Add the Postpone clause for this state
-                ErlFun postponeFun = genPostponeClauses(s, m);
-                clauseFun.prependClauses(postponeFun.getClauses());
                 return clauseFun;
             });
         }).collect(Collectors.toList());
@@ -672,7 +675,6 @@ public class GTGenericBehaviour {
             GTVRecv e = (GTVRecv) entry.getKey().right;
             String paramA = GTGenUtil.eventToParam(e);
             Map<String, ErlTerm> fields = new HashMap();
-//          TODO:  fields.put("alice_pid", new ErlVar("AlicePid"));
             if(s.c > 0)
                 fields.put("mc_counter_" + s.c, new ErlVar("MC"));
             ErlRecordPattern dataPattern = new ErlRecordPattern("state_data", fields);
@@ -693,15 +695,6 @@ public class GTGenericBehaviour {
                     new ErlMatch(dataPattern, new ErlVar("Data"))
             );
             ErlSeq bodySeq = new ErlSeq();
-//            ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
-        //     if(s.c > 0){
-        //         recordUpdate.addField("mc_counter_" + s.c,
-        //                 new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
-        //         );
-        //     }
-        //     ErlMatch match = new ErlMatch(new ErlVar("NewData"), recordUpdate);
-        //     bodySeq.addExpression(match);
-//            bodySeq.addExpression(new ErlVar("Data"));
             bodySeq.addExpression(new ErlMatch(new ErlVar("CallbackModule"),
                     new ErlCall("get", List.of(new ErlAtom("callback_module")))));
             bodySeq.addExpression(new ErlCall(new ErlVar("CallbackModule"), funcName, Arrays.asList(
@@ -721,20 +714,17 @@ public class GTGenericBehaviour {
             clause.setSpec(lhsSpec);
             return clause;
         }).toList());
-        // Prepend postpone clauses to each state-function clause
-        ErlFun postponeFun = genPostponeClauses(s, m);
-        List<ErlFun> updated = new LinkedList<>();
-        for (ErlFun f : res) {
-            if (f.getName().equals(funcName)) {
-                f.prependClauses(postponeFun.getClauses());
-            }
-            updated.add(f);
-        }
         // Add garbage-collection function if needed
         if (s.c > 0) {
-            updated.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+            res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
         }
-        return updated;
+        // Add the Postpone clauses for this state to each state-function
+        ErlFun postponeFun = genPostponeClauses(s, m);
+        res.stream()
+                .filter(f -> f.getName().equals(postponeFun.getName()))
+                .findFirst()
+                .ifPresent(f -> f.prependClauses(postponeFun.getClauses()));
+        return res;
     }
 
     // ! |> ? -- events tau |> ? -- actions ! |> eps*
@@ -749,6 +739,13 @@ public class GTGenericBehaviour {
         res.addAll(genExtMixRHSAux(s, rhs, m));
         if(s.c > 0)
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+
+        // Add the Postpone clauses for this state to each matching state-function
+        ErlFun postponeFun = genPostponeClauses(s, m);
+        res.stream()
+            .filter(f -> f.getName().equals(postponeFun.getName()))
+            .findFirst()
+            .ifPresent(f -> f.prependClauses(postponeFun.getClauses()));
         return res;
     }
 
@@ -904,9 +901,6 @@ public class GTGenericBehaviour {
                     "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
-            // Add the Postpone clause for this state
-            ErlFun postponeFun = genPostponeClauses(s, m);
-            clause.prependClauses(postponeFun.getClauses());
             return clause;
         }).collect(Collectors.toList());
     }
@@ -943,7 +937,6 @@ public class GTGenericBehaviour {
             GTVRecv e = (GTVRecv) key.right;
             String paramA = GTGenUtil.eventToParam(e);
             Map<String, ErlTerm> fields = new HashMap();
-//          TODO:  fields.put("role_pid", new ErlVar("RolePid"));
             fields.put("mc_counter_" + s.c, new ErlVar("MC"));
             ErlRecordPattern dataPattern = new ErlRecordPattern("state_data", fields);
 
@@ -978,17 +971,19 @@ public class GTGenericBehaviour {
                     "state_data()) -> \n\t" +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
-            // Add the Postpone clause for this state
-            ErlFun postponeFun = genPostponeClauses(s, m);
-            clause.prependClauses(postponeFun.getClauses());
             return clause;
         }).toList());
         if(s.c > 0)
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+
+        // Add the Postpone clauses for this state to each state-function
+        ErlFun postponeFun = genPostponeClauses(s, m);
+        res.stream()
+                .filter(f -> f.getName().equals(postponeFun.getName()))
+                .findFirst()
+                .ifPresent(f -> f.prependClauses(postponeFun.getClauses()));
         return res;
     }
-
-    //Log gc
 
     // need s.c > 0 when calling
     protected ErlFun genGC(GTVState s, Set<GTVEvent> events) {
