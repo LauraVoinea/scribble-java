@@ -926,6 +926,13 @@ public class GTGenericBehaviour {
         res.addAll(genExtMixRHSAux(s, rhs, m));
         if(s.c > 0)
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+
+        // Add the Postpone clauses for this state to each state-function
+        ErlFun postponeFun = genPostponeClauses(s, m);
+        res.stream()
+                .filter(f -> f.getName().equals(postponeFun.getName()))
+                .findFirst()
+                .ifPresent(f -> f.prependClauses(postponeFun.getClauses()));
         return res;
     }
 
