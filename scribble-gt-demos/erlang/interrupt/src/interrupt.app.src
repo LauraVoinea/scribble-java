@@ -1,0 +1,20 @@
+{application, interrupt,
+ [{description, "An asynch application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {interrupt_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, [
+    interrupt_app,
+    interrupt_sup,
+    p,
+    q
+   ]},
+
+  {licenses, ["Apache-2.0"]},
+  {links, []}
+ ]}.
