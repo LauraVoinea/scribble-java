@@ -16,9 +16,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class GTErlGenUtil {
-    protected static final String OUTPUT_DIR = "./test";
-    protected static final String ERL_EXTENSION = ".erl";
-    private static final Pattern SPEC_PATTERN = Pattern.compile("^([^\\(]+)\\((.*)\\)\\s*->\\s*(.+)$");
+//    private static final Pattern SPEC_PATTERN = Pattern.compile("^([^\\(]+)\\((.*)\\)\\s*->\\s*(.+)$");
+    private static final Pattern SPEC_PATTERN =
+            Pattern.compile(
+                    "^([^\\(]+)\\((.*)\\)\\s*->\\s*(.+?(?:\\|.+?)*)$",
+                    Pattern.DOTALL
+            );
 
     static String genStateDataType(GTEFSM efsm, Set<Role> roles) {
         // Generate counter fields for every state in the EFSM.
@@ -35,11 +38,6 @@ public class GTErlGenUtil {
         List<String> allFields = new ArrayList<>();
         allFields.addAll(counterFields);
         allFields.addAll(rolePidFields);
-        //Generate -type state_data() :: #state_data{
-        //    alice_pid :: pid() | undefined,
-        //    mc_counter_1 :: non_neg_integer()
-        //}.
-
 
         return "-type state_data() :: #state_data{" + String.join(", ", allFields) + "}.";
     }
@@ -54,17 +52,30 @@ public class GTErlGenUtil {
         for (Map.Entry<String, List<ErlFun>> entry : groupedStateFunctions.entrySet()) {
             String funName = entry.getKey();
             ErlFun aggregated = new ErlFun(funName);
-            // Combine clauses from all functions in the group.
+            // Combine clauses from all functions in the group, removing duplicates.
+            Set<String> seenClauses = new HashSet<>();
             for (ErlFun clauseFun : entry.getValue()) {
                 for (ErlFun.FunClause fc : clauseFun.getClauses()) {
-                    aggregated.addClause(fc.args, fc.guard, fc.body);
+                    String key = fc.args.toString() + "|" + (fc.guard != null ? fc.guard.toString() : "") + "|" + fc.body.toString();
+                    if (seenClauses.add(key)) {
+                        aggregated.addClause(fc.args, fc.guard, fc.body);
+                    }
                 }
             }
-            // Aggregate specs from all functions in the group.
-            String aggregatedSpec = entry.getValue().stream()
+            // Aggregate and deduplicate specs from all functions in the group.
+            List<String> specsList = entry.getValue().stream()
                     .map(ErlFun::getSpec)
                     .filter(spec -> spec != null && !spec.isEmpty())
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), specs -> aggregateSpec(specs)));
+                    .distinct()
+                    .collect(Collectors.toList());
+            String aggregatedSpec = "";
+            if (!specsList.isEmpty()) {
+                aggregatedSpec = aggregateSpec(specsList);
+                if (aggregatedSpec.isEmpty()) {
+                    // Fall back to first raw spec if aggregation failed
+                    aggregatedSpec = specsList.get(0);
+                }
+            }
             if (!aggregatedSpec.isEmpty()) {
                 aggregated.setSpec(aggregatedSpec);
             }
@@ -81,13 +92,42 @@ public class GTErlGenUtil {
      * @param stateFunctions The list of generated state functions.
      */
     protected static void writeStateFunctions(FileWriter writer, List<ErlFun> stateFunctions) throws IOException {
+
         for (ErlFun fun : stateFunctions) {
-//            writer.writeLine("%% State function: " + fun.getName());
-            //TODO: pretty spec
+            // 1) pretty‐print the spec
+            String rawSpec = fun.getSpec();
+            if (rawSpec != null && !rawSpec.isEmpty()) {
+                // split head and return‐type parts
+                String[] parts = rawSpec.split("->", 2);
+                String head = parts[0].trim();
+                String body = (parts.length > 1 ? parts[1].trim() : "");
+                // pretty-print spec with '|' at line ends and '.' after last alt
+                String[] alts = body.split("\\|");
+                if (alts.length > 1) {
+                    // multi-line spec: newline after ->
+                    writer.writeLine("-spec " + head + " ->");
+                    for (int i = 0; i < alts.length; i++) {
+                        String alt = alts[i].trim();
+                        if (i < alts.length - 1) {
+                            writer.writeLine("    " + alt + " |");
+                        } else {
+                            writer.writeLine("    " + alt + ".");
+                        }
+                    }
+                } else if (alts.length == 1) {
+                    // single alternative
+                    String alt = alts[0].trim();
+                    writer.writeLine("-spec " + head + " -> " + alt + ".");
+                }
+            }
+            // 2) write just the clauses (skip auto‐spec)
+            fun.setSpec(null);
             fun.write(writer);
+            fun.setSpec(rawSpec);
             writer.writeLine("");
         }
     }
+
 
     private static List<String> splitParams(String paramStr) {
         List<String> params = new ArrayList<>();
@@ -108,7 +148,7 @@ public class GTErlGenUtil {
                 current.append(c);
             }
         }
-        if (current.length() > 0) {
+        if (!current.isEmpty()) {
             params.add(current.toString().trim());
         }
         return params;
@@ -123,7 +163,6 @@ public class GTErlGenUtil {
         for (String spec : specs) {
             Matcher matcher = SPEC_PATTERN.matcher(spec);
             if (!matcher.matches()) {
-                //TODO: handle
                 continue;
             }
             String funName = matcher.group(1).trim();
@@ -169,8 +208,13 @@ public class GTErlGenUtil {
                 })
                 .collect(Collectors.toList());
 
-        // Aggregate return parts (RHS) by joining with " | ".
-        String aggregatedRHS = String.join(" | ", rhsList);
+        // Split individual RHS alternatives, then remove duplicates while preserving order.
+        List<String> allAlts = rhsList.stream()
+                .flatMap(r -> Arrays.stream(r.split("\\|")))
+                .map(String::trim)
+                .collect(Collectors.toList());
+        List<String> distinctRhs = new ArrayList<>(new LinkedHashSet<>(allAlts));
+        String aggregatedRHS = String.join(" | ", distinctRhs);
 
         // Build and return the unified aggregated spec.
         return baseFunName + "(" + String.join(", ", aggregatedParams) + ") -> " + aggregatedRHS;
@@ -187,7 +231,7 @@ public class GTErlGenUtil {
                 Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                         GTGenUtil.filterEdgesByState(m, succ);
                 String sName = GTGenUtil.stateToFuncName(succ);
-                // Filter for transitions whose event is a GTVTau.
+                // Filter for transitions for which the event is a GTVTau.
                 Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> tauTransitions =
                         filt.entrySet().stream()
                                 .filter(e -> e.getKey().right instanceof GTVTau)
@@ -208,9 +252,20 @@ public class GTErlGenUtil {
                     if (succ.equals(m.init))
                         return "{ok, " + sName + ", state_data()} | {next_state, " + sName + ", state_data(), [term()]}";
                     // Return a union of possible return types.
-                    return "{next_state, " + sName + ", state_data()} | " +
-                            "{next_state, " + sName + ", state_data(), [term()]}"
-                            + " | \n\t {keep_state, state_data()}";
+                    StringBuilder returnType = new StringBuilder();
+                    for (Pair<GTVState, GTVEvent> key : tauTransitions.keySet()) {
+                        GTVTau tau = (GTVTau) key.right;
+                        String a = GTGenUtil.eventToParam(tau);
+                        if (tauTransitions.get(key).size() == 1) {
+                            returnType.append("{next_state, ")
+                                    .append(sName).append(", state_data(), ")
+                                    .append("[{next_event, internal, {")
+                                    .append(new ErlAtom(a)).append("}}]} | \n\t ");
+                        }
+                    }
+
+                    returnType.append("{keep_state, state_data()}");
+                    return returnType.toString();
                 }
             }
             case BRANCH:

@@ -186,10 +186,11 @@ public class GTGenericBehaviour {
      * @param efsm The  EFSM.
      * @return The Erlang function representing the Postpone clause.
      */
-    //  s4(_EventType, {_Pid, {pong}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     protected ErlFun genPostponeClauses(GTVState s, GTEFSM efsm) {
         Set<Pair<GTVRecv, Integer>> events = GTGenUtil.getRecvEvents(efsm, s);
         ErlFun postponeClauses = new ErlFun(GTGenUtil.stateToFuncName(s));
+        // add type spec for postpone clauses
+        String funcName = postponeClauses.getName();
         for (Pair<GTVRecv, Integer> pr : events) {
             GTVRecv e = pr.left;
             int c = pr.right;
@@ -462,7 +463,7 @@ public class GTGenericBehaviour {
                 String spec = funcName + "(" +
                         "term(), " +
                         "{pid(), {atom(), term()}}, " +
-                        "state_data()) -> \n\t " +
+                        "state_data()) ->  {keep_state, state_data(), [postpone]} | " +
                         GTErlGenUtil.getNextStateReturnType(m, pair.right);
                 clauseFun.setSpec(spec);
                 return clauseFun;
@@ -525,7 +526,7 @@ public class GTGenericBehaviour {
                 String spec = stateFuncName + "(" +
                         "EventType :: term(), " +
                         "{atom()}, " +
-                        "state_data()) -> \n\t" +
+                        "state_data()) -> " +
                         GTErlGenUtil.getNextStateReturnType(m, y.right);
                 stateFunc.setSpec(spec);
                 return Stream.of(sendFunc, stateFunc);
@@ -555,7 +556,10 @@ public class GTGenericBehaviour {
         List<ErlTerm> sendParams = new ArrayList<>();
         sendParams.add(role);
         sendParams.addAll(payloadVars);
-        sendParams.add(new ErlVar("Data"));
+        if (s.c > 0)
+            sendParams.add(new ErlVar("Data"));
+        else
+            sendParams.add(new ErlVar("_Data"));
 
         // Build the body sequence.
         ErlSeq sendBody = new ErlSeq();
@@ -623,7 +627,7 @@ public class GTGenericBehaviour {
 
         List<Stream<ErlFun>> rhsClauses = rhs.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
-            //RHS of Internal mixed choice??
+            //RHS of Internal mixed choice
             return actions.stream().filter(p -> p.left instanceof GTVSendStar).map(p -> {
                 GTVSendStar a = (GTVSendStar) p.left;
                 String paramA = GTGenUtil.sendToParam(a);
@@ -642,7 +646,7 @@ public class GTGenericBehaviour {
                 ErlRecordUpdate recordUpdate = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
                 if(s.c > 0){
                      recordUpdate.addField("mc_counter_" + s.c,
-                             new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1")))
+                             new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlInteger(1)))
                      );
                 }
                      ErlMatch match = new ErlMatch(new ErlVar("NewData"), recordUpdate);
@@ -662,7 +666,7 @@ public class GTGenericBehaviour {
                 String rhsSpec = funcName + "(" +
                         "EventType :: term(), " +
                         "{atom()}, " +
-                        "state_data()) -> \n\t " +
+                        "state_data()) -> " +
                         GTErlGenUtil.getNextStateReturnType(m, p.right);
                 clause.setSpec(rhsSpec);
                 return Stream.of(sendFunc, clause);
@@ -711,7 +715,7 @@ public class GTGenericBehaviour {
             String lhsSpec = funcName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
-                    "state_data()) -> \n\t" +
+                    "state_data()) -> {keep_state, state_data(), [postpone]} | " +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
             return clause;
@@ -725,7 +729,10 @@ public class GTGenericBehaviour {
         res.stream()
                 .filter(f -> f.getName().equals(postponeFun.getName()))
                 .findFirst()
-                .ifPresent(f -> f.prependClauses(postponeFun.getClauses()));
+                .ifPresent(f -> {
+                    f.prependClauses(postponeFun.getClauses());
+//                    System.err.println("====2=====> " + role + " Spec" + f.getSpec());
+                });
         return res;
     }
 
@@ -807,7 +814,7 @@ public class GTGenericBehaviour {
                             dataVar = new ErlVar("NewData");
                             ErlRecordUpdate recUpd = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
                             recUpd.addField("mc_counter_" + s.c,
-                                    new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1"))));
+                                    new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlInteger(1))));
                             bodySeq.addExpression(new ErlMatch(dataVar, recUpd));
                         } else {
                             dataVar = new ErlVar("Data");
@@ -831,7 +838,7 @@ public class GTGenericBehaviour {
                         String lhsSpec = funcName + "(" +
                                 "EventType :: term(), " +
                                 "{pid(), {term()}, integer()}, " +
-                                "state_data()) -> \n\t" +
+                                "state_data()) -> " +
                                 GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
                         clause.setSpec(lhsSpec);
 
@@ -882,7 +889,7 @@ public class GTGenericBehaviour {
                 dataVar = new ErlVar("NewData");
                 ErlRecordUpdate recUpd = new ErlRecordUpdate(new ErlVar("Data"), "state_data");
                 recUpd.addField("mc_counter_" + s.c,
-                        new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlAtom("1"))));
+                        new ErlCall(new ErlOp("+"), Arrays.asList(new ErlVar("MC"), new ErlInteger(1))));
                 bodySeq.addExpression(new ErlMatch(dataVar, recUpd));
             } else {
                 dataVar = new ErlVar("Data");
@@ -900,7 +907,7 @@ public class GTGenericBehaviour {
             String lhsSpec = funcName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
-                    "state_data()) -> \n\t" +
+                    "state_data()) ->  {keep_state, state_data(), [postpone]} | " +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
             return clause;
@@ -970,7 +977,7 @@ public class GTGenericBehaviour {
             String lhsSpec = funcName + "(" +
                     "EventType :: term(), " +
                     "{pid(), {term()}, integer()}, " +
-                    "state_data()) -> \n\t" +
+                    "state_data()) ->  {keep_state, state_data(), [postpone]} | " +
                     GTErlGenUtil.getNextStateReturnType(m, entry.getValue().iterator().next().right);
             clause.setSpec(lhsSpec);
             return clause;

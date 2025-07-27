@@ -39,6 +39,10 @@ public class ErlFun implements ErlTerm {
         }
         newClauses.addAll(this.clauses);
         this.clauses = newClauses;
+        // Update arity based on clause arguments
+        if (!newClauses.isEmpty()) {
+            this.arity = String.valueOf(newClauses.get(0).args.size());
+        }
     }
 
     /** Internal representation of a function clause: arguments, guard, and body. */

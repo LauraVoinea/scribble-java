@@ -18,9 +18,9 @@ public class ErlAtom implements ErlTerm {
             return "undefined";
         }
         // If the value is numeric, output as a number literal (no quotes)
-        if (value.matches("-?\\d+")) {
-            return value;
-        }
+//        if (value.matches("-?\\d+")) {
+//            return value;
+//        }
         // If value is a valid unquoted atom (starts with lowercase, followed by alphanumeric or underscore)
         if (value.matches("[a-z][A-Za-z0-9_]*")) {
             return value;

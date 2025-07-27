@@ -158,7 +158,7 @@ public class GTCallbackModule {
         LinkedHashMap<String, ErlTerm> recFields = new LinkedHashMap<>();
         // for each mixed choice in the EFSM add a field mc_counter_<i> initialized to 0
         for (int i = 1; i <= GTGenUtil.getNumMixedChoices(efsm); i++) {
-            recFields.put("mc_counter_" + i, new ErlAtom("0"));
+            recFields.put("mc_counter_" + i, new ErlInteger(0));
         }
         ErlRecordUpdate stateRecord = new ErlRecordUpdate(null, "state_data");
         recFields.forEach(stateRecord::addField);
@@ -230,7 +230,7 @@ public class GTCallbackModule {
                     new ErlList(Collections.emptyList())
             ));
             undefinedSeq.addExpression(formatCallCase);
-            ErlCall sleepCall = new ErlCall("timer", "sleep", List.of(new ErlAtom("1000")));
+            ErlCall sleepCall = new ErlCall("timer", "sleep", List.of(new ErlInteger(1000)));
             undefinedSeq.addExpression(sleepCall);
             // Retry: whereis(r)
             ErlCall whereisCall2 = new ErlCall("whereis", List.of(new ErlAtom(rName)));
@@ -346,7 +346,7 @@ public class GTCallbackModule {
         List<ErlFun> res = new LinkedList<>();
         //only generate make_choice_s if multiple edges
         if(edges.size() > 1) {
-            res.add(genMakeChoice_s(s));
+            res.add(genMakeChoice_s(s, edges.size()));
         }
         res.addAll(edges.entrySet().stream().flatMap(entry -> {
             Set<Pair<GTVAction, GTVState>> actions = entry.getValue();
@@ -409,7 +409,6 @@ public class GTCallbackModule {
         params.add(new ErlVar("Data"));
         return new ErlCall(
                 new ErlAtom("gen_") + self.toString().toLowerCase(),
-//                        "send_" + paramA,
                sendName, params
         );
     }
@@ -460,7 +459,7 @@ public class GTCallbackModule {
 
 
         // Clause 1: Pattern "1" -> next state expression.
-        rhsCase.addClause(new ErlAtom("1"),
+        rhsCase.addClause(new ErlInteger(1),
                 new ErlTuple(Arrays.asList(new ErlAtom("keep_state"), new ErlVar("Data"))));
         ErlCall formatCall = new ErlCall("io", "format", List.of(
                 new ErlString(self.toString() + ": s" + s.id + " Sending " + paramA + " to " + a.role + " ~n"),
@@ -474,7 +473,7 @@ public class GTCallbackModule {
         rhsBodySeq.addExpression(formatCall);
         ErlTerm rhsNextState = genNextState(m, sendStar.right);
         rhsBodySeq.addExpression(rhsNextState);
-        rhsCase.addClause(new ErlAtom("2"), rhsBodySeq);
+        rhsCase.addClause(new ErlInteger(2), rhsBodySeq);
         String rhsSpec = funName + "(" +
                 "internal, " +
                 "{atom()}, " +
@@ -542,7 +541,7 @@ public class GTCallbackModule {
             ErlCall extMakeChoiceCall = new ErlCall("make_choice_" + a1, List.of(new ErlVar("Data")));
             ErlCase extCase = new ErlCase(extMakeChoiceCall);
             // Clause 1: Pattern "1" -> next state expression.
-            extCase.addClause(new ErlAtom("1"), genNextState(m, succ.right));
+            extCase.addClause(new ErlInteger(1), genNextState(m, succ.right));
             // Clause 2: Pattern "2" -> send call then next state.
             //RHS choice; send RHS label
 
@@ -550,7 +549,7 @@ public class GTCallbackModule {
             ErlSeq extBodySeq = new ErlSeq();
             extBodySeq.addExpression(sendFunCall(s, self, paramA, a.pay, a.role));
             extBodySeq.addExpression(rhsNextState);
-            extCase.addClause(new ErlAtom("2"), extBodySeq);
+            extCase.addClause(new ErlInteger(2), extBodySeq);
             ErlSeq lhsBodySeq = new ErlSeq();
             lhsBodySeq.addExpression(logRcv);
             lhsBodySeq.addExpression(extCase);
@@ -631,7 +630,7 @@ public class GTCallbackModule {
     }
 
 
-    protected ErlFun genMakeChoice_s(GTVState s) {
+    protected ErlFun genMakeChoice_s(GTVState s, int numChoices) {
         String funName = "make_choice_" + GTGenUtil.stateToFuncName(s);
 
         ErlVar dataVar = new ErlVar("_Data");
@@ -640,7 +639,7 @@ public class GTCallbackModule {
         ErlCall uniformCall = new ErlCall(
                 new ErlAtom("rand"),
                 "uniform",
-                List.of(new ErlInteger(2))
+                List.of(new ErlInteger(numChoices))
         );
 
         // Create a new Erlang function representation and add the clause.
@@ -745,13 +744,13 @@ public class GTCallbackModule {
             ));
         }
         // Otherwise, build a case expression.
-        //TODO: fix labels!
         ErlCall makeChoiceCall = new ErlCall("make_choice_" + sName, List.of(new ErlVar("Data")));
         ErlCase caseExpr = new ErlCase(makeChoiceCall);
-        tauTransitions.forEach((key, actions) -> {
-            GTVTau tau = (GTVTau) key.right;
+        int idx = 1;
+        for (Map.Entry<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> entry : tauTransitions.entrySet()) {
+            GTVTau tau = (GTVTau) entry.getKey().right;
             String a = GTGenUtil.eventToParam(tau);
-            ErlAtom clausePattern = new ErlAtom(a);
+            ErlInteger clausePattern = new ErlInteger(idx++);
             ErlTuple bodyTuple = new ErlTuple(List.of(
                     new ErlAtom("next_state"),
                     new ErlAtom(sName),
@@ -765,7 +764,7 @@ public class GTCallbackModule {
                     ))
             ));
             caseExpr.addClause(clausePattern, bodyTuple);
-        });
+        }
         return caseExpr;
     }
 
