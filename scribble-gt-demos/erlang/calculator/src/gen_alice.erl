@@ -40,13 +40,13 @@ init({CallbackModule, _Args}) ->
 -spec s4(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
     {stop, normal, state_data()} |
     {keep_state, state_data(), [postpone]}.
-s4(_EventType, {_Pid, {cancel}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {cancel}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[cancel]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {sum_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {sum_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[sum_result, Result]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {diff_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {diff_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[diff_result, Result]]),
     {keep_state, Data, [postpone]};
 s4(EventType, {CarolPid, {diff_result, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->

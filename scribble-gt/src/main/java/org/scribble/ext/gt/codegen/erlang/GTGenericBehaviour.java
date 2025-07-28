@@ -192,14 +192,12 @@ public class GTGenericBehaviour {
         // separate downstream recvs and direct transitions
         Set<Pair<GTVRecv, Integer>> downstreamEvents = GTGenUtil.getRecvEvents(efsm, s);
         Set<Pair<GTVRecv, Integer>> directEvents = new HashSet<>();
-        System.err.println("----BOOO----> " + s + " <Downstream Events > " + downstreamEvents);
         if (s.c > 0) {
             directEvents = GTGenUtil.filterEdgesByState(efsm, s).keySet().stream()
                 .filter(k -> k.right instanceof GTVRecv)
                 .map(k -> new Pair<>((GTVRecv) k.right, s.c))
                 .collect(Collectors.toSet());
         }
-        System.err.println("----B111----> " + s + " <directEvents Events > " + directEvents);
 
         Set<Pair<GTVRecv, Integer>> events = new LinkedHashSet<>(downstreamEvents);
         events.addAll(directEvents);

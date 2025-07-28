@@ -109,23 +109,16 @@ public class GTGenUtil {
 // filter out Map<Integer, Set<Op>> explicitCommiting
     public static Set<GTVEvent> getGcEvents(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         StateKind kind = getStateKind(m, s);
-        System.err.println("=1=> " + s + " <><> "   + kind + " <><> isEntry " + s.isEntry
-                + " <><> c " + s.c + " <><> numMixedChoices " + getNumMixedChoices(m)
-        + " <><> recvars " + s.recvars);
         if (kind == StateKind.END) {
             return Collections.emptySet();
         }
         boolean isEntry = s.isEntry;
-//        boolean isChild = s.c != getNumMixedChoices(m) && !s.isEntry;
         // 1. non-mixed and not child of MC: nothing to gc
         if (!isEntry && s.c == GTVState.TOP_SCOPE) {
             if(s.recvars.isEmpty()) {
-                System.err.println("=1=> " + s + " is not mixed and not a child of MC: no gc events");
                 return Collections.emptySet();
             }
         }
-        System.err.println("=3=> " + s + " <><> "   + kind + " <><> isEntry " + isEntry
-                + " <><> c " + s.c + " <><> numMixedChoices " + getNumMixedChoices(m) + "\n\n");
         // collect all receive events reachable from s (both direct transitions and downstream)
         Set<GTVRecv> branchRecvs = new HashSet<>();
         // direct receive events at s

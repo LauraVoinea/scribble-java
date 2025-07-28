@@ -51,13 +51,13 @@ send_s6_a5(APid, Data) ->
     {next_state, s5, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s4(_EventType, {_Pid, {a3}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {a3}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_c: Postponing event ~p~n", [[a3]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {'TOc'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {'TOc'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_c: Postponing event ~p~n", [['TOc']]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {a2}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {a2}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_c: Postponing event ~p~n", [[a2]]),
     {keep_state, Data, [postpone]};
 s4(EventType, {APid, {a2}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->

@@ -237,7 +237,10 @@ elif [ "$run_copy_erlang" = 1 ]; then
     DEST_DIR="$SCRIBHOME/scribble-gt-demos/erlang/$DEMO_NAME/src"
     echo "Copying gen_*.erl from $SRC_DIR to $DEST_DIR"
     mkdir -p "$DEST_DIR"
-    cp "$SRC_DIR"/gen_*.erl "$DEST_DIR"/
+    for file in "$SRC_DIR"/gen_*.erl; do
+        echo "Copying $(basename "${file}") from $SRC_DIR to $DEST_DIR"
+        cp "$file" "$DEST_DIR"/
+    done
     exit 0
 elif [ "$run_copy_all_erlang" = 1 ]; then
     for src in "$SCRIBHOME"/generated/*/; do
@@ -247,7 +250,10 @@ elif [ "$run_copy_all_erlang" = 1 ]; then
             | tr '[:upper:]' '[:lower:]')
         DEST_DIR="$SCRIBHOME/scribble-gt-demos/erlang/$demo/src"
         mkdir -p "$DEST_DIR"
-        cp "$SCRIBHOME/generated/$proto"/gen_*.erl "$DEST_DIR"/
+        for file in "$SCRIBHOME/generated/$proto"/gen_*.erl; do
+            echo "Copying $(basename "${file}") from $SCRIBHOME/generated/$proto to $DEST_DIR"
+            cp "$file" "$DEST_DIR"/
+        done
     done
     exit 0
 fi

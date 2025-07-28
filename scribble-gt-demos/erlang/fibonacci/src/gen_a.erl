@@ -48,13 +48,13 @@ init({CallbackModule, _Args}) ->
     {next_state, s9, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s5(_EventType, {_Pid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s5(_EventType, {_Pid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[ack]]),
     {keep_state, Data, [postpone]};
-s5(_EventType, {_Pid, {fibonacci, Num}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s5(_EventType, {_Pid, {fibonacci, Num}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[fibonacci, Num]]),
     {keep_state, Data, [postpone]};
-s5(_EventType, {_Pid, {error}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s5(_EventType, {_Pid, {error}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[error]]),
     {keep_state, Data, [postpone]};
 s5(EventType, {fibonacci}, #state_data{mc_counter_1 = MC} = Data) ->

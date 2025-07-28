@@ -57,22 +57,22 @@ init({CallbackModule, _Args}) ->
     {next_state, s5, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s4(_EventType, {_Pid, {purchase_confirmed}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {purchase_confirmed}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[purchase_confirmed]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {cancel_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {cancel_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[cancel_confirmation]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[response_timeout]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {contribution, Amount}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {contribution, Amount}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[contribution, Amount]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {not_available}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {not_available}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[not_available]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {price_quote, Price}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {price_quote, Price}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[price_quote, Price]]),
     {keep_state, Data, [postpone]};
 s4(EventType, {SellerPid, {price_quote, Price}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC + 1 ->
@@ -171,13 +171,13 @@ s12(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {cancel_confirmation}
     {next_state, s9, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s8(_EventType, {_Pid, {purchase_confirmed}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s8(_EventType, {_Pid, {purchase_confirmed}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[purchase_confirmed]]),
     {keep_state, Data, [postpone]};
-s8(_EventType, {_Pid, {cancel_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s8(_EventType, {_Pid, {cancel_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[cancel_confirmation]]),
     {keep_state, Data, [postpone]};
-s8(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s8(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_bob: Postponing event ~p~n", [[response_timeout]]),
     {keep_state, Data, [postpone]};
 s8(EventType, {reject_quote}, #state_data{mc_counter_1 = MC} = Data) ->

@@ -139,16 +139,16 @@ s13(_EventType, {_Pid, {account, Balance, Overdraft}, _Counter}, Data) ->
     {next_state, s9, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s8(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s8(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_c: Postponing event ~p~n", [[quit_ack]]),
     {keep_state, Data, [postpone]};
 s8(_EventType, {_Pid, {account, Balance, Overdraft}}, Data) ->
     io:format("gen_c: Postponing event ~p~n", [[account, Balance, Overdraft]]),
     {keep_state, Data, [postpone]};
-s8(_EventType, {_Pid, {confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s8(_EventType, {_Pid, {confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_c: Postponing event ~p~n", [[confirmation]]),
     {keep_state, Data, [postpone]};
-s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_c: Postponing event ~p~n", [[timeout]]),
     {keep_state, Data, [postpone]};
 s8(EventType, {quit}, #state_data{mc_counter_1 = MC} = Data) ->

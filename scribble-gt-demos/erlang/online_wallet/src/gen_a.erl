@@ -78,13 +78,13 @@ s12(EventType, {auth_fail}, Data) ->
     {next_state, s8, state_data()} |
     {stop, normal, state_data()} |
     {keep_state, state_data(), [postpone]}.
-s8(_EventType, {_Pid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s8(_EventType, {_Pid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[keep_alive]]),
     {keep_state, Data, [postpone]};
-s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[timeout]]),
     {keep_state, Data, [postpone]};
-s8(_EventType, {_Pid, {end_session}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s8(_EventType, {_Pid, {end_session}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[end_session]]),
     {keep_state, Data, [postpone]};
 s8(EventType, {CPid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->

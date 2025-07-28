@@ -191,19 +191,19 @@ s13(_EventType, {_Pid, {stop_logging, Int}, _Counter}, Data) ->
     {keep_state, state_data(), [postpone]} |
     {next_state, s5, state_data(), [{next_event, internal, {ack}}]} |
     {keep_state, state_data()}.
-s9(_EventType, {_Pid, {success_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {success_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_logs: Postponing event ~p~n", [[success_ack]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {stop_logging, Int}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {stop_logging, Int}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_logs: Postponing event ~p~n", [[stop_logging, Int]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {restart, Int}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {restart, Int}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_logs: Postponing event ~p~n", [[restart, Int]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {restart_logging, Int}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {restart_logging, Int}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_logs: Postponing event ~p~n", [[restart_logging, Int]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s9(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_logs: Postponing event ~p~n", [[timeout]]),
     {keep_state, Data, [postpone]};
 s9(EventType, {log_success}, #state_data{mc_counter_1 = MC} = Data) ->

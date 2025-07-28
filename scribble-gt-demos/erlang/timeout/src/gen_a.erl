@@ -49,13 +49,13 @@ init({CallbackModule, _Args}) ->
     {next_state, s5, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s4(_EventType, {_Pid, {a4}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {a4}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[a4]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {a5}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {a5}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [[a5]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {'TOa'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {'TOa'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_a: Postponing event ~p~n", [['TOa']]),
     {keep_state, Data, [postpone]};
 s4(EventType, {a1}, #state_data{mc_counter_1 = MC} = Data) ->

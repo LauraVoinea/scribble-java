@@ -46,16 +46,16 @@ init({CallbackModule, _Args}) ->
     {keep_state, state_data()} |
     {ok, s5, state_data()} |
     {keep_state, state_data(), [postpone]}.
-s5(_EventType, {_Pid, {provide_address, Address}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s5(_EventType, {_Pid, {provide_address, Address}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_supplier: Postponing event ~p~n", [[provide_address, Address]]),
     {keep_state, Data, [postpone]};
-s5(_EventType, {_Pid, {cancel_supplier}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s5(_EventType, {_Pid, {cancel_supplier}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_supplier: Postponing event ~p~n", [[cancel_supplier]]),
     {keep_state, Data, [postpone]};
-s5(_EventType, {_Pid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s5(_EventType, {_Pid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_supplier: Postponing event ~p~n", [[cancel_booking]]),
     {keep_state, Data, [postpone]};
-s5(_EventType, {_Pid, {resubmitting}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s5(_EventType, {_Pid, {resubmitting}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_supplier: Postponing event ~p~n", [[resubmitting]]),
     {keep_state, Data, [postpone]};
 s5(EventType, {ClientPid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->

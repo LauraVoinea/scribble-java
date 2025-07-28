@@ -127,22 +127,22 @@ send_s15_cancel_booking(SupplierPid, Data) ->
     {keep_state, state_data(), [postpone]} |
     {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} |
     {keep_state, state_data()}.
-s9(_EventType, {_Pid, {repeat_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {repeat_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_client: Postponing event ~p~n", [[repeat_confirmation]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {reject_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {reject_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_client: Postponing event ~p~n", [[reject_confirmation]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {accept_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {accept_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_client: Postponing event ~p~n", [[accept_confirmation]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s9(_EventType, {_Pid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_client: Postponing event ~p~n", [[confirm_date, Date]]),
     {keep_state, Data, [postpone]};
 s9(_EventType, {_Pid, {price_quote, Price}}, Data) ->
     io:format("gen_client: Postponing event ~p~n", [[price_quote, Price]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s9(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_client: Postponing event ~p~n", [[price_adjustment, Price]]),
     {keep_state, Data, [postpone]};
 s9(EventType, {accept_offer}, #state_data{mc_counter_1 = MC} = Data) ->

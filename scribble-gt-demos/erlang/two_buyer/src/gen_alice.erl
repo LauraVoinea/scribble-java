@@ -49,19 +49,19 @@ init({CallbackModule, _Args}) ->
     {next_state, s5, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s4(_EventType, {_Pid, {purchase_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {purchase_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[purchase_notification]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {cancel_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {cancel_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[cancel_notification]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[response_timeout]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {price_quote, Price}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {price_quote, Price}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[price_quote, Price]]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {not_available}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {not_available}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[not_available]]),
     {keep_state, Data, [postpone]};
 s4(EventType, {request_title}, #state_data{mc_counter_2 = MC} = Data) ->
@@ -124,13 +124,13 @@ s6(EventType, {contribution}, Data) ->
 -spec s9(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
     {stop, normal, state_data()} |
     {keep_state, state_data(), [postpone]}.
-s9(_EventType, {_Pid, {purchase_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s9(_EventType, {_Pid, {purchase_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[purchase_notification]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {cancel_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s9(_EventType, {_Pid, {cancel_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[cancel_notification]]),
     {keep_state, Data, [postpone]};
-s9(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s9(_EventType, {_Pid, {response_timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_alice: Postponing event ~p~n", [[response_timeout]]),
     {keep_state, Data, [postpone]};
 s9(EventType, {BobPid, {purchase_notification}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->

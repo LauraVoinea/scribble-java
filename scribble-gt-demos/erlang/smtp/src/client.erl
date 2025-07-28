@@ -212,7 +212,7 @@ s19(internal, {'Quit'}, #state_data{s_pid = SPid} = Data) ->
     {next_state, s5, state_data(), [{next_event, internal, {'QuitCommit'}}]} |
     {keep_state, state_data()}.
 s1(cast, {SPid, {'220'}}, Data) ->
-    NewData = connection(Data),
+    NewData = Data#state_data{s_pid = SPid},
     io:format("C: connection ~p ~n", [NewData]),
     io:format("C: s1 Received 220  from S ~p ~n", [SPid]),
     case make_choice_s5(Data) of
@@ -387,17 +387,3 @@ s27(internal, {'Rcpt'}, #state_data{s_pid = SPid} = Data) ->
     io:format("C: s27 Sending Rcpt to S ~n", []),
     gen_c:send_s27_Rcpt(SPid, Data),
     {next_state, s28, Data}.
-
--spec connection(state_data()) -> state_data().
-connection(Data) ->
-    io:format("c connected ~n", []),
-    SPid = case whereis(s) of
-        undefined ->
-            io:format("s is not available yet. Will retry...~n", []),
-            timer:sleep(1000),
-            whereis(s);
-        Pid_s ->
-            Pid_s
-    end,
-    Data#state_data{s_pid = SPid}.
-

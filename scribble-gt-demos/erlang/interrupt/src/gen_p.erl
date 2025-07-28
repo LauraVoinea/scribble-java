@@ -53,10 +53,10 @@ send_s4_Start(QPid, Data) ->
     {next_state, s6, state_data()} |
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
-s4(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s4(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_p: Postponing event ~p~n", [['Ack']]),
     {keep_state, Data, [postpone]};
-s4(_EventType, {_Pid, {'Interrupt'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s4(_EventType, {_Pid, {'Interrupt'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_p: Postponing event ~p~n", [['Interrupt']]),
     {keep_state, Data, [postpone]};
 s4(EventType, {'Start'}, #state_data{mc_counter_1 = MC} = Data) ->

@@ -77,13 +77,13 @@ s5(EventType, {cancel}, Data) ->
     {keep_state, state_data(), [postpone]} |
     {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} |
     {keep_state, state_data()}.
-s7(_EventType, {_Pid, {result_diff, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s7(_EventType, {_Pid, {result_diff, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_carol: Postponing event ~p~n", [[result_diff, Result]]),
     {keep_state, Data, [postpone]};
-s7(_EventType, {_Pid, {result_sum, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
+s7(_EventType, {_Pid, {result_sum, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC + 1 ->
     io:format("gen_carol: Postponing event ~p~n", [[result_sum, Result]]),
     {keep_state, Data, [postpone]};
-s7(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+s7(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC + 1 ->
     io:format("gen_carol: Postponing event ~p~n", [[timeout]]),
     {keep_state, Data, [postpone]};
 s7(EventType, {sum}, #state_data{mc_counter_1 = MC} = Data) ->
