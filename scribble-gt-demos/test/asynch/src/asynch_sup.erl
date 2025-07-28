@@ -19,13 +19,13 @@ start_link() ->
 init([]) ->
     SupFlags = #{strategy => one_for_one, intensity => 5, period => 10},
     ChildSpecs = [
-        #{id => a,
-            start => {a, start_link, []},
+        #{id => b,
+            start => {b, start_link, []},
             restart => temporary,
             shutdown => 5000,
             type => worker},
-        #{id => b,
-            start => {b, start_link, []},
+        #{id => a,
+            start => {a, start_link, []},
             restart => temporary,
             shutdown => 5000,
             type => worker},

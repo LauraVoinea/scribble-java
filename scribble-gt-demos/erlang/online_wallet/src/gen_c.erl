@@ -24,11 +24,12 @@
 -include("c.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), a_pid :: pid() | undefined, s_pid :: pid() | undefined}.
 
--callback s3(term(), {pid(), {atom(), term()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
+-callback s3(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s5, state_data()} | {stop, normal, state_data()}.
+-callback s5(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s8, state_data(), [{next_event, internal, {pay}}]} | {next_state, s8, state_data(), [{next_event, internal, {quit}}]} | {keep_state, state_data()}.
 -callback s10(EventType :: term(), {atom()}, state_data()) -> {next_state, s5, state_data()}.
--callback s13(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
--callback s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s13, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()}.
--callback s9(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
+-callback s13(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s14, state_data(), [{next_event, internal, {end_session}}]} | {keep_state, state_data()} | {stop, normal, state_data()}.
+-callback s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s13, state_data()} | {next_state, s9, state_data()} | {keep_state, state_data(), [postpone]} | {stop, normal, state_data()}.
+-callback s9(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s10, state_data(), [{next_event, internal, {keep_alive}}]} | {keep_state, state_data()} | {stop, normal, state_data()}.
 -callback s14(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback s1(EventType :: term(), {atom()}, state_data()) -> {next_state, s3, state_data()}.
 -callback init(Args :: list()) -> 
@@ -39,8 +40,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_c, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "c_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_c, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "c_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -56,7 +56,10 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
--spec s3(term(), {pid(), {atom(), term()}}, state_data()) -> {next_state, s5, state_data()} | {stop, normal, state_data()}.
+-spec s3(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s5, state_data()} |
+    {stop, normal, state_data()}.
 s3(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [[quit_ack]]),
     {keep_state, Data, [postpone]};
@@ -76,6 +79,11 @@ s3(EventType, {APid, {login_failed}}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {APid, {login_failed}}, Data).
 
+-spec s5(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s8, state_data(), [{next_event, internal, {pay}}]} |
+    {next_state, s8, state_data(), [{next_event, internal, {quit}}]} |
+    {keep_state, state_data()}.
 s5(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [[quit_ack]]),
     {keep_state, Data, [postpone]};
@@ -87,25 +95,50 @@ s5(_EventType, {_Pid, {confirmation}, Counter}, #state_data{mc_counter_1 = MC} =
     {keep_state, Data, [postpone]};
 s5(EventType, {SPid, {account, Balance, Overdraft}}, Data) ->
     CallbackModule = get(callback_module),
-    CallbackModule:s5(EventType, {SPid, {account, Balance, Overdraft}}, Data).
+    CallbackModule:s5(EventType, {SPid, {account, Balance, Overdraft}}, Data);
+s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {quit_ack} 
+		orelse Msg =:= {confirmation} ->
+    io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
+    {keep_state, Data};
+s5(_EventType, {_Pid, {account, Balance, Overdraft}, _Counter}, Data) ->
+    io:format("gen_c: Garbage collecting event ~p~n", [{account, Balance, Overdraft}]),
+    {keep_state, Data}.
 
 -spec s10(EventType :: term(), {atom()}, state_data()) -> {next_state, s5, state_data()}.
 s10(EventType, {keep_alive}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s10(EventType, {keep_alive}, Data).
 
--spec s13(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
+-spec s13(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s14, state_data(), [{next_event, internal, {end_session}}]} |
+    {keep_state, state_data()} |
+    {stop, normal, state_data()}.
+s13(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [[quit_ack]]),
+    {keep_state, Data, [postpone]};
+s13(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [[timeout]]),
+    {keep_state, Data, [postpone]};
 s13(EventType, {SPid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s13(EventType, {SPid, {quit_ack}}, Data);
 s13(EventType, {SPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s13(EventType, {SPid, {timeout}}, Data);
-s13(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {quit_ack} ->
+s13(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {quit_ack} 
+		orelse Msg =:= {confirmation} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
+    {keep_state, Data};
+s13(_EventType, {_Pid, {account, Balance, Overdraft}, _Counter}, Data) ->
+    io:format("gen_c: Garbage collecting event ~p~n", [{account, Balance, Overdraft}]),
     {keep_state, Data}.
 
--spec s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s13, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()}.
+-spec s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s13, state_data()} |
+    {next_state, s9, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {stop, normal, state_data()}.
 s8(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [[quit_ack]]),
     {keep_state, Data, [postpone]};
@@ -114,6 +147,9 @@ s8(_EventType, {_Pid, {account, Balance, Overdraft}}, Data) ->
     {keep_state, Data, [postpone]};
 s8(_EventType, {_Pid, {confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [[confirmation]]),
+    {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [[timeout]]),
     {keep_state, Data, [postpone]};
 s8(EventType, {quit}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
@@ -133,12 +169,22 @@ s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {timeout}
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
--spec s9(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
+-spec s9(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s10, state_data(), [{next_event, internal, {keep_alive}}]} |
+    {keep_state, state_data()} |
+    {stop, normal, state_data()}.
 s9(_EventType, {_Pid, {quit_ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [[quit_ack]]),
     {keep_state, Data, [postpone]};
 s9(_EventType, {_Pid, {account, Balance, Overdraft}}, Data) ->
     io:format("gen_c: Postponing event ~p~n", [[account, Balance, Overdraft]]),
+    {keep_state, Data, [postpone]};
+s9(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [[timeout]]),
+    {keep_state, Data, [postpone]};
+s9(_EventType, {_Pid, {confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [[confirmation]]),
     {keep_state, Data, [postpone]};
 s9(EventType, {SPid, {confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),

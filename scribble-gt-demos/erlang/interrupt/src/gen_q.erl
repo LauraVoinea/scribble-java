@@ -53,6 +53,9 @@ s4(_EventType, {_Pid, {'More'}, Counter}, #state_data{mc_counter_1 = MC} = Data)
 s4(_EventType, {_Pid, {'Stop'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_q: Postponing event ~p~n", [['Stop']]),
     {keep_state, Data, [postpone]};
+s4(_EventType, {_Pid, {'Start'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_q: Postponing event ~p~n", [['Start']]),
+    {keep_state, Data, [postpone]};
 s4(EventType, {'Interrupt'}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -71,6 +74,12 @@ s4(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Stop'}
     {next_state, s9, state_data(), [{next_event, internal, {'Ack'}}]} |
     {keep_state, state_data()} |
     {next_state, s6, state_data()}.
+s6(_EventType, {_Pid, {'More'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_q: Postponing event ~p~n", [['More']]),
+    {keep_state, Data, [postpone]};
+s6(_EventType, {_Pid, {'Stop'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_q: Postponing event ~p~n", [['Stop']]),
+    {keep_state, Data, [postpone]};
 s6(EventType, {PPid, {'Stop'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s6(EventType, {PPid, {'Stop'}}, Data);

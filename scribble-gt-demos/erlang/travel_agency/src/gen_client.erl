@@ -33,11 +33,16 @@
 -type state_data() :: #state_data{mc_counter_1 :: integer(), agency_pid :: pid() | undefined, supplier_pid :: pid() | undefined}.
 
 -callback s3(EventType :: term(), {atom()}, state_data()) -> {next_state, s4, state_data()}.
+-callback s4(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s9, state_data(), [{next_event, internal, {accept_offer}}]} | {next_state, s9, state_data(), [{next_event, internal, {resubmit_request}}]} | {next_state, s9, state_data(), [{next_event, internal, {reject_offer}}]} | {keep_state, state_data()}.
+-callback s6(EventType :: term(), {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {cancel_supplier}}]} | {keep_state, state_data()}.
 -callback s7(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s9(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s10, state_data()} | {next_state, s17, state_data()} | {next_state, s14, state_data()}.
+-callback s9(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s10, state_data()} | {next_state, s17, state_data()} | {next_state, s14, state_data()} | {keep_state, state_data(), [postpone]} | {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} | {keep_state, state_data()}.
 -callback s11(EventType :: term(), {atom()}, state_data()) -> {next_state, s12, state_data()}.
--callback s12(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
+-callback s10(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} | {keep_state, state_data()} | {next_state, s11, state_data(), [{next_event, internal, {provide_address}}]}.
+-callback s12(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {stop, normal, state_data()}.
 -callback s15(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-callback s14(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} | {keep_state, state_data()} | {next_state, s15, state_data(), [{next_event, internal, {cancel_booking}}]}.
+-callback s17(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s18, state_data(), [{next_event, internal, {resubmitting}}]} | {keep_state, state_data()} | {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]}.
 -callback s18(EventType :: term(), {atom()}, state_data()) -> {ok, s3, state_data(), [{next_event, internal, {booking_request}}]}.
 -callback init(Args :: list()) -> 
 	{ok, s3, state_data(), [{next_event, internal, {booking_request}}]}.
@@ -47,7 +52,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_client, {CallbackModule, Args}, []);
+            gen_statem:start_link({local, CallbackModule}, gen_client, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "client_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -68,6 +73,12 @@ s3(EventType, {booking_request}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {booking_request}, Data).
 
+-spec s4(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s9, state_data(), [{next_event, internal, {accept_offer}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {resubmit_request}}]} |
+    {next_state, s9, state_data(), [{next_event, internal, {reject_offer}}]} |
+    {keep_state, state_data()}.
 s4(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_client: Postponing event ~p~n", [[price_adjustment, Price]]),
     {keep_state, Data, [postpone]};
@@ -87,6 +98,9 @@ s4(EventType, {AgencyPid, {price_quote, Price}}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s4(EventType, {AgencyPid, {price_quote, Price}}, Data).
 
+-spec s6(EventType :: term(), {atom()}, state_data()) ->
+    {next_state, s7, state_data(), [{next_event, internal, {cancel_supplier}}]} |
+    {keep_state, state_data()}.
 s6(EventType, {cancel_agency}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s6(EventType, {cancel_agency}, Data).
@@ -106,7 +120,13 @@ send_s15_cancel_booking(SupplierPid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(SupplierPid, {self(), {cancel_booking}, Counter}).
 
--spec s9(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s10, state_data()} | {next_state, s17, state_data()} | {next_state, s14, state_data()}.
+-spec s9(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s10, state_data()} |
+    {next_state, s17, state_data()} |
+    {next_state, s14, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} |
+    {keep_state, state_data()}.
 s9(_EventType, {_Pid, {repeat_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_client: Postponing event ~p~n", [[repeat_confirmation]]),
     {keep_state, Data, [postpone]};
@@ -121,6 +141,9 @@ s9(_EventType, {_Pid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 =
     {keep_state, Data, [postpone]};
 s9(_EventType, {_Pid, {price_quote, Price}}, Data) ->
     io:format("gen_client: Postponing event ~p~n", [[price_quote, Price]]),
+    {keep_state, Data, [postpone]};
+s9(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[price_adjustment, Price]]),
     {keep_state, Data, [postpone]};
 s9(EventType, {accept_offer}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
@@ -174,8 +197,19 @@ s11(EventType, {provide_address}, Data) ->
 send_s3_booking_request(AgencyPid, Destination, _Data) ->
     gen_statem:cast(AgencyPid, {self(), {booking_request, Destination}}).
 
+-spec s10(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} |
+    {keep_state, state_data()} |
+    {next_state, s11, state_data(), [{next_event, internal, {provide_address}}]}.
 s10(_EventType, {_Pid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_client: Postponing event ~p~n", [[confirm_date, Date]]),
+    {keep_state, Data, [postpone]};
+s10(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[price_adjustment, Price]]),
+    {keep_state, Data, [postpone]};
+s10(_EventType, {_Pid, {accept_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[accept_confirmation]]),
     {keep_state, Data, [postpone]};
 s10(EventType, {AgencyPid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
@@ -183,11 +217,16 @@ s10(EventType, {AgencyPid, {price_adjustment, Price}, Counter}, #state_data{mc_c
 s10(EventType, {AgencyPid, {accept_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s10(EventType, {AgencyPid, {accept_confirmation}}, Data);
-s10(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {accept_confirmation} ->
+s10(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {accept_confirmation} 
+		orelse Msg =:= {repeat_confirmation} 
+		orelse Msg =:= {reject_confirmation} ->
     io:format("gen_client: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data};
 s10(_EventType, {_Pid, {confirm_date, Date}, _Counter}, Data) ->
     io:format("gen_client: Garbage collecting event ~p~n", [{confirm_date, Date}]),
+    {keep_state, Data};
+s10(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+    io:format("gen_client: Garbage collecting event ~p~n", [{price_quote, Price}]),
     {keep_state, Data}.
 
 -spec send_s7_cancel_supplier(SupplierPid :: pid(), Data :: state_data()) -> ok.
@@ -195,12 +234,25 @@ send_s7_cancel_supplier(SupplierPid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(SupplierPid, {self(), {cancel_supplier}, Counter}).
 
--spec s12(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
+-spec s12(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {stop, normal, state_data()}.
+s12(_EventType, {_Pid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[confirm_date, Date]]),
+    {keep_state, Data, [postpone]};
 s12(EventType, {SupplierPid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s12(EventType, {SupplierPid, {confirm_date, Date}}, Data);
+s12(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {accept_confirmation} 
+		orelse Msg =:= {repeat_confirmation} 
+		orelse Msg =:= {reject_confirmation} ->
+    io:format("gen_client: Garbage collecting event ~p~n", [Msg]),
+    {keep_state, Data};
 s12(_EventType, {_Pid, {confirm_date, Date}, _Counter}, Data) ->
     io:format("gen_client: Garbage collecting event ~p~n", [{confirm_date, Date}]),
+    {keep_state, Data};
+s12(_EventType, {_Pid, {price_quote, Price}, _Counter}, Data) ->
+    io:format("gen_client: Garbage collecting event ~p~n", [{price_quote, Price}]),
     {keep_state, Data}.
 
 -spec s15(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
@@ -208,16 +260,36 @@ s15(EventType, {cancel_booking}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s15(EventType, {cancel_booking}, Data).
 
+-spec s14(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]} |
+    {keep_state, state_data()} |
+    {next_state, s15, state_data(), [{next_event, internal, {cancel_booking}}]}.
+s14(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[price_adjustment, Price]]),
+    {keep_state, Data, [postpone]};
+s14(_EventType, {_Pid, {reject_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[reject_confirmation]]),
+    {keep_state, Data, [postpone]};
 s14(EventType, {AgencyPid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s14(EventType, {AgencyPid, {price_adjustment, Price}}, Data);
 s14(EventType, {AgencyPid, {reject_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s14(EventType, {AgencyPid, {reject_confirmation}}, Data);
-s14(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {reject_confirmation} ->
+s14(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {accept_confirmation} 
+		orelse Msg =:= {reject_confirmation} ->
     io:format("gen_client: Garbage collecting event ~p~n", [Msg]),
+    {keep_state, Data};
+s14(_EventType, {_Pid, {confirm_date, Date}, _Counter}, Data) ->
+    io:format("gen_client: Garbage collecting event ~p~n", [{confirm_date, Date}]),
     {keep_state, Data}.
 
+-spec s17(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s18, state_data(), [{next_event, internal, {resubmitting}}]} |
+    {keep_state, state_data()} |
+    {next_state, s6, state_data(), [{next_event, internal, {cancel_agency}}]}.
 s17(_EventType, {_Pid, {reject_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_client: Postponing event ~p~n", [[reject_confirmation]]),
     {keep_state, Data, [postpone]};
@@ -229,6 +301,12 @@ s17(_EventType, {_Pid, {confirm_date, Date}, Counter}, #state_data{mc_counter_1 
     {keep_state, Data, [postpone]};
 s17(_EventType, {_Pid, {price_quote, Price}}, Data) ->
     io:format("gen_client: Postponing event ~p~n", [[price_quote, Price]]),
+    {keep_state, Data, [postpone]};
+s17(_EventType, {_Pid, {price_adjustment, Price}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[price_adjustment, Price]]),
+    {keep_state, Data, [postpone]};
+s17(_EventType, {_Pid, {repeat_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_client: Postponing event ~p~n", [[repeat_confirmation]]),
     {keep_state, Data, [postpone]};
 s17(EventType, {AgencyPid, {repeat_confirmation}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),

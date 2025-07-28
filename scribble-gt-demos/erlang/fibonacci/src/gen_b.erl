@@ -17,7 +17,7 @@
 -include("b.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), a_pid :: pid() | undefined}.
 
--callback s5(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-callback s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {keep_state, state_data(), [postpone]} | {next_state, s9, state_data(), [{next_event, internal, {ack}}]} | {keep_state, state_data()} | {next_state, s6, state_data(), [{next_event, internal, {fibonacci}}]}.
 -callback s6(EventType :: term(), {atom()}, state_data()) -> {ok, s5, state_data(), [{next_event, internal, {error}}]}.
 -callback s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
@@ -28,8 +28,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_b, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "b_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_b, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "b_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -45,7 +44,18 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
--spec s5(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-spec s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()}, state_data()) ->
+    {stop, normal, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s9, state_data(), [{next_event, internal, {ack}}]} |
+    {keep_state, state_data()} |
+    {next_state, s6, state_data(), [{next_event, internal, {fibonacci}}]}.
+s5(_EventType, {_Pid, {stop}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_b: Postponing event ~p~n", [[stop]]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {fibonacci, Num}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_b: Postponing event ~p~n", [[fibonacci, Num]]),
+    {keep_state, Data, [postpone]};
 s5(EventType, {error}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),

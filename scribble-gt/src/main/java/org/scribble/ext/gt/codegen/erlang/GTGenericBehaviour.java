@@ -182,15 +182,30 @@ public class GTGenericBehaviour {
      * Generate Postpone clauses for a given state; thios acts as a selective receive for
      * gen_statem.
      * For each event given by getRecvEvents for state s generate a clause that postpones the event
-     * @param s The state for which to generate the Postpone clause.
+     *
+     * @param s    The state for which to generate the Postpone clause.
      * @param efsm The  EFSM.
+     * @param b
      * @return The Erlang function representing the Postpone clause.
      */
-    protected ErlFun genPostponeClauses(GTVState s, GTEFSM efsm) {
-        Set<Pair<GTVRecv, Integer>> events = GTGenUtil.getRecvEvents(efsm, s);
+    protected ErlFun genPostponeClauses(GTVState s, GTEFSM efsm, boolean b) {
+        // separate downstream recvs and direct transitions
+        Set<Pair<GTVRecv, Integer>> downstreamEvents = GTGenUtil.getRecvEvents(efsm, s);
+        Set<Pair<GTVRecv, Integer>> directEvents = new HashSet<>();
+        System.err.println("----BOOO----> " + s + " <Downstream Events > " + downstreamEvents);
+        if (s.c > 0) {
+            directEvents = GTGenUtil.filterEdgesByState(efsm, s).keySet().stream()
+                .filter(k -> k.right instanceof GTVRecv)
+                .map(k -> new Pair<>((GTVRecv) k.right, s.c))
+                .collect(Collectors.toSet());
+        }
+        System.err.println("----B111----> " + s + " <directEvents Events > " + directEvents);
+
+        Set<Pair<GTVRecv, Integer>> events = new LinkedHashSet<>(downstreamEvents);
+        events.addAll(directEvents);
+
         ErlFun postponeClauses = new ErlFun(GTGenUtil.stateToFuncName(s));
         // add type spec for postpone clauses
-        String funcName = postponeClauses.getName();
         for (Pair<GTVRecv, Integer> pr : events) {
             GTVRecv e = pr.left;
             int c = pr.right;
@@ -225,7 +240,12 @@ public class GTGenericBehaviour {
                 fields.put("mc_counter_" + c, new ErlVar("MC"));
                 ErlRecordPattern pattern = new ErlRecordPattern("state_data", fields);
                 dataTerm = new ErlMatch(pattern, new ErlVar("Data"));
-                guard = new ErlGuard(new ErlCall(new ErlOp(">="), Arrays.asList(new ErlVar("Counter"), new ErlVar("MC"))));
+                // use >= for direct recvs, > for downstream
+                String op = directEvents.contains(pr) ? ">" : ">=";
+                ErlVar mcVar = new ErlVar("MC");
+                if (b)
+                    mcVar = new ErlVar("MC + 1");
+                guard = new ErlGuard(new ErlCall(new ErlOp(op), Arrays.asList(new ErlVar("Counter"), mcVar)));
             }
             List<ErlTerm> headArgs = Arrays.asList(
                 new ErlVar("_EventType"),
@@ -314,6 +334,7 @@ public class GTGenericBehaviour {
 
         ErlFun startLinkFun = new ErlFun(funcName);
         startLinkFun.addClause(headParams, caseExpr);
+
         startLinkFun.setSpec("start_link(CallbackModule :: module(), Args :: list()) ->\n" +
                 "    {ok, pid()} | {error, term()}");
         return startLinkFun;
@@ -395,10 +416,11 @@ public class GTGenericBehaviour {
         Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt =
                 GTGenUtil.filterEdgesByState(m, s);
         List<ErlFun> res = new LinkedList<>(generateBranchAux(s, filt, m));
-        if(s.c > 0)
+        if(s.c > 0 || !s.recvars.isEmpty() && GTGenUtil.isOnMixedChoicePath(m, s)) {
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
+        }
         // Add the Postpone clauses for this state to each state-function
-        ErlFun postponeFun = genPostponeClauses(s, m);
+        ErlFun postponeFun = genPostponeClauses(s, m, false);
         res.stream()
             .filter(f -> f.getName().equals(postponeFun.getName()))
             .findFirst()
@@ -725,13 +747,12 @@ public class GTGenericBehaviour {
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
         }
         // Add the Postpone clauses for this state to each state-function
-        ErlFun postponeFun = genPostponeClauses(s, m);
+        ErlFun postponeFun = genPostponeClauses(s, m, false);
         res.stream()
                 .filter(f -> f.getName().equals(postponeFun.getName()))
                 .findFirst()
                 .ifPresent(f -> {
                     f.prependClauses(postponeFun.getClauses());
-//                    System.err.println("====2=====> " + role + " Spec" + f.getSpec());
                 });
         return res;
     }
@@ -750,7 +771,7 @@ public class GTGenericBehaviour {
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
 
         // Add the Postpone clauses for this state to each matching state-function
-        ErlFun postponeFun = genPostponeClauses(s, m);
+        ErlFun postponeFun = genPostponeClauses(s, m, true);
         res.stream()
             .filter(f -> f.getName().equals(postponeFun.getName()))
             .findFirst()
@@ -928,7 +949,7 @@ public class GTGenericBehaviour {
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
 
         // Add the Postpone clauses for this state to each state-function
-        ErlFun postponeFun = genPostponeClauses(s, m);
+        ErlFun postponeFun = genPostponeClauses(s, m, true);
         res.stream()
                 .filter(f -> f.getName().equals(postponeFun.getName()))
                 .findFirst()
@@ -993,7 +1014,7 @@ public class GTGenericBehaviour {
             res.add(genGC(s, GTGenUtil.getGcEvents(m, s, explicitCommiting)));
 
         // Add the Postpone clauses for this state to each state-function
-        ErlFun postponeFun = genPostponeClauses(s, m);
+        ErlFun postponeFun = genPostponeClauses(s, m, false);
         res.stream()
                 .filter(f -> f.getName().equals(postponeFun.getName()))
                 .findFirst()

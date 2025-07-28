@@ -65,6 +65,10 @@ usage() {
                             scribble-gt-demos/scribble/
   -run-erlang-examples       Run compile, start, and stop on all Erlang OTP app examples under
                             scribble-gt-demos/erlang/
+  -clean-erlang-examples     Clean only Erlang OTP app examples under
+                            scribble-gt-demos/erlang/
+  -copy-erlang-demos <ProtocolName>  Copy generated gen_<role>.erl files from generated/<ProtocolName> to scribble-gt-demos/erlang/<ProtocolName>/src
+  -copy-all-erlang-demos       Copy gen_*.erl from every generated/<ProtocolName> into scribble-gt-demos/erlang/<protocolName>/src
 
   -gt-gen-erlang 
             Generate Erlang code.
@@ -125,6 +129,9 @@ run_clean_all=0 # Flag for cleaning entire workspace
 run_gt_gen_erlang=0 # Flag for Erlang code generation
 run_gt_gen_erlang_role=0 # Flag for Erlang role generation
 run_gt_gen_efsm=0 # Flag for EFSM generation + dot-to-png conversion
+run_clean_erlang=0 # Flag for cleaning Erlang examples only
+run_copy_erlang=0 # Flag for copying generated Erlang modules to demos
+run_copy_all_erlang=0 # Flag for copying all protocols to Erlang demos
 
 while true; do
     case "$1" in
@@ -150,7 +157,20 @@ while true; do
         -run-erlang-examples)
             run_erlang_examples=1
             shift
-            ;; 
+            ;;
+        -clean-erlang-examples)
+            run_clean_erlang=1
+            shift
+            ;;
+        -copy-erlang-demos)
+            run_copy_erlang=1
+            PROTOCOL_NAME="$2"
+            shift 2
+            ;;
+        -copy-all-erlang-demos)
+            run_copy_all_erlang=1
+            shift
+            ;;
         -gt-gen-erlang)
             run_gt_gen_erlang=1
             PROTOCOL_NAME="$2"
@@ -196,6 +216,38 @@ elif [ "$run_clean_all" = 1 ]; then
         [ -d "$dir" ] || continue
         echo "Rebar3 clean: $dir"
         (cd "$dir" && rebar3 clean)
+    done
+    exit 0
+elif [ "$run_clean_erlang" = 1 ]; then
+    ERL_DIR="$SCRIBHOME/scribble-gt-demos/erlang"
+    echo "Cleaning Erlang example builds in: $ERL_DIR"
+    for dir in "$ERL_DIR"/*/; do
+        [ -d "$dir" ] || continue
+        echo "Rebar3 clean: $(basename "$dir")"
+        (cd "$dir" && rebar3 clean)
+    done
+    exit 0
+elif [ "$run_copy_erlang" = 1 ]; then
+    SRC_DIR="$SCRIBHOME/generated/$PROTOCOL_NAME"
+    # Convert protocol name to lowercase (portable) to match demo folder
+    # Convert CamelCase ProtocolName to snake_case demo folder
+    DEMO_NAME=$(printf "%s" "$PROTOCOL_NAME" \
+        | sed -E 's/([a-z0-9])([A-Z])/\1_\2/g' \
+        | tr '[:upper:]' '[:lower:]')
+    DEST_DIR="$SCRIBHOME/scribble-gt-demos/erlang/$DEMO_NAME/src"
+    echo "Copying gen_*.erl from $SRC_DIR to $DEST_DIR"
+    mkdir -p "$DEST_DIR"
+    cp "$SRC_DIR"/gen_*.erl "$DEST_DIR"/
+    exit 0
+elif [ "$run_copy_all_erlang" = 1 ]; then
+    for src in "$SCRIBHOME"/generated/*/; do
+        proto=${src#"$SCRIBHOME"/generated/}; proto=${proto%/}
+        demo=$(printf "%s" "$proto" \
+            | sed -E 's/([a-z0-9])([A-Z])/\1_\2/g' \
+            | tr '[:upper:]' '[:lower:]')
+        DEST_DIR="$SCRIBHOME/scribble-gt-demos/erlang/$demo/src"
+        mkdir -p "$DEST_DIR"
+        cp "$SCRIBHOME/generated/$proto"/gen_*.erl "$DEST_DIR"/
     done
     exit 0
 fi
@@ -275,4 +327,3 @@ else
     # Original execution path for single file or specific options
     scribblec "$ARGS"
 fi
-

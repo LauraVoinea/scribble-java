@@ -20,9 +20,11 @@
 -include("a.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), c_pid :: pid() | undefined, s_pid :: pid() | undefined}.
 
+-callback s3(EventType :: term(), {atom()}, state_data()) -> {next_state, s4, state_data(), [{next_event, internal, {login_accepted}}]} | {keep_state, state_data()} | {next_state, s12, state_data(), [{next_event, internal, {auth_fail}}]}.
 -callback s4(EventType :: term(), {atom()}, state_data()) -> {next_state, s8, state_data()}.
 -callback s12(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s8, state_data()} | {stop, normal, state_data()} | {stop, normal, state_data()}.
+-callback s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s8, state_data()} | {stop, normal, state_data()} | {keep_state, state_data(), [postpone]}.
+-callback s1(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s3, state_data(), [{next_event, internal, {login_success}}]} | {next_state, s3, state_data(), [{next_event, internal, {login_failed}}]} | {keep_state, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s1, state_data()}.
 
@@ -31,8 +33,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -52,6 +53,10 @@ init({CallbackModule, _Args}) ->
 send_s12_auth_fail(SPid, _Data) ->
     gen_statem:cast(SPid, {self(), {auth_fail}}).
 
+-spec s3(EventType :: term(), {atom()}, state_data()) ->
+    {next_state, s4, state_data(), [{next_event, internal, {login_accepted}}]} |
+    {keep_state, state_data()} |
+    {next_state, s12, state_data(), [{next_event, internal, {auth_fail}}]}.
 s3(EventType, {login_success}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {login_success}, Data);
@@ -69,7 +74,19 @@ s12(EventType, {auth_fail}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s12(EventType, {auth_fail}, Data).
 
--spec s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s8, state_data()} | {stop, normal, state_data()} | {stop, normal, state_data()}.
+-spec s8(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s8, state_data()} |
+    {stop, normal, state_data()} |
+    {keep_state, state_data(), [postpone]}.
+s8(_EventType, {_Pid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[keep_alive]]),
+    {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[timeout]]),
+    {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {end_session}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[end_session]]),
+    {keep_state, Data, [postpone]};
 s8(EventType, {CPid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -100,6 +117,11 @@ send_s4_login_accepted(SPid, _Data) ->
 send_s3_login_failed(CPid, _Data) ->
     gen_statem:cast(CPid, {self(), {login_failed}}).
 
+-spec s1(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s3, state_data(), [{next_event, internal, {login_success}}]} |
+    {next_state, s3, state_data(), [{next_event, internal, {login_failed}}]} |
+    {keep_state, state_data()}.
 s1(_EventType, {_Pid, {keep_alive}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_a: Postponing event ~p~n", [[keep_alive]]),
     {keep_state, Data, [postpone]};

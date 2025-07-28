@@ -16,9 +16,9 @@
 -include("a.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), b_pid :: pid() | undefined}.
 
--callback s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s6, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()}.
--callback s6(term(), {pid(), {atom(), term()}}, state_data()) -> {ok, s5, state_data()} | {next_state, s5, state_data(), [term()]}.
--callback s9(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()} | {stop, normal, state_data()}.
+-callback s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s6, state_data()} | {next_state, s9, state_data()} | {keep_state, state_data(), [postpone]} | {stop, normal, state_data()}.
+-callback s6(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {ok, s5, state_data()} | {next_state, s5, state_data(), [term()]}.
+-callback s9(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s5, state_data()} | {next_state, s5, state_data(), [term()]}.
 
@@ -27,8 +27,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_a, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "a_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -44,12 +43,19 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
--spec s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s6, state_data()} | {next_state, s9, state_data()} | {stop, normal, state_data()}.
+-spec s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s6, state_data()} |
+    {next_state, s9, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {stop, normal, state_data()}.
 s5(_EventType, {_Pid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_a: Postponing event ~p~n", [[ack]]),
     {keep_state, Data, [postpone]};
 s5(_EventType, {_Pid, {fibonacci, Num}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_a: Postponing event ~p~n", [[fibonacci, Num]]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {error}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[error]]),
     {keep_state, Data, [postpone]};
 s5(EventType, {fibonacci}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
@@ -71,12 +77,18 @@ s5(_EventType, {_Pid, {fibonacci, Num}, _Counter}, Data) ->
     io:format("gen_a: Garbage collecting event ~p~n", [{fibonacci, Num}]),
     {keep_state, Data}.
 
--spec s6(term(), {pid(), {atom(), term()}}, state_data()) -> {ok, s5, state_data()} | {next_state, s5, state_data(), [term()]}.
+-spec s6(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {ok, s5, state_data()} |
+    {next_state, s5, state_data(), [term()]}.
 s6(_EventType, {_Pid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_a: Postponing event ~p~n", [[ack]]),
     {keep_state, Data, [postpone]};
 s6(_EventType, {_Pid, {error}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_a: Postponing event ~p~n", [[error]]),
+    {keep_state, Data, [postpone]};
+s6(_EventType, {_Pid, {fibonacci, Num}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[fibonacci, Num]]),
     {keep_state, Data, [postpone]};
 s6(EventType, {BPid, {fibonacci, Num}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
@@ -93,7 +105,15 @@ send_s5_fibonacci(BPid, Num, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(BPid, {self(), {fibonacci, Num}, Counter}).
 
--spec s9(term(), {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()} | {stop, normal, state_data()}.
+-spec s9(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {stop, normal, state_data()}.
+s9(_EventType, {_Pid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[ack]]),
+    {keep_state, Data, [postpone]};
+s9(_EventType, {_Pid, {error}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_a: Postponing event ~p~n", [[error]]),
+    {keep_state, Data, [postpone]};
 s9(EventType, {BPid, {ack}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s9(EventType, {BPid, {ack}}, Data);

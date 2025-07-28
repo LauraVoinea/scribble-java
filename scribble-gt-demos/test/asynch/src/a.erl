@@ -51,5 +51,5 @@ connection(Data) ->
                Pid_c ->
                    Pid_c
            end,
-    Data#state_data{b_pid = BPid, c_pid = CPid}.
+    Data#state_data{b_pid = BPid}.
 

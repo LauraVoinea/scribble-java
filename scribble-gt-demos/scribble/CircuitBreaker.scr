@@ -2,47 +2,47 @@ module CircuitBreaker;
 
 // example from  https://arxiv.org/pdf/2204.13464.pdf
 /*
-global protocol CircuitBreaker(role API, role Controller, role Storage, role User){
+global protocol CircuitBreaker(role API, role Controller, role Storage, role Usr){
      Start() from Controller to Storage;
      Start() from Controller to API ;
      
      HardPing() from Storage to Controller;
      rec Loop {
-         Request() from User to API;
+         Request() from Usr to API;
          GetMode() from API to Controller;
          mixed {
              choice at Controller {
                  Up() from Controller to API;
                  Request() from API to Storage;
                  Reponse() from Storage to API;
-                 Response() from API to User;
+                 Response() from API to Usr;
                  continue Loop;
              } or {
                  Failure() from Controller to API;
                  Restart() from Controller to Storage;
-                 Failure() from API to User;
+                 Failure() from API to Usr;
                  continue Loop;
              } or {
                  Stop() from Controller to API;
                  Stop() from Controller to Storage;
-                 Stop() from API to User;
+                 Stop() from API to Usr;
              }
          } () or Controller -> API() {
             Error() from API to Controller;
-            Error() from API to User;
+            Error() from API to Usr;
             Stop() from Controller to Storage;
          }
      }
  }
  */
 
- global protocol CircuitBreaker(role API, role Controller, role Storage, role User){
+ global protocol CircuitBreaker(role API, role Controller, role Storage, role Usr){
      start_storage() from Controller to Storage;
      start_controller() from Controller to API;
      hard_ping() from Storage to Controller;
-     ready() from API to User;
+     ready() from API to Usr;
      rec Loop {
-         request() from User to API;
+         request() from Usr to API;
          get_mode() from API to Controller;
          mixed{
              choice at Controller{ //Processing branch
@@ -50,26 +50,26 @@ global protocol CircuitBreaker(role API, role Controller, role Storage, role Use
                  ack() from API to Controller; // extra message for left commiting
                  storage_request() from API to Storage;
                  storage_reponse() from Storage to API;
-                 api_response() from API to User;
+                 api_response() from API to Usr;
                  continue Loop;
              } or { // Failure handling branch
                  error_notice() from Controller to API;
                  error_ack() from API to Controller; // extra message for left commiting
                  cancel_ack() from API to Storage; // extra message for projection
                  storage_restart() from Controller to Storage;
-                 error_response() from API to User;
+                 error_response() from API to Usr;
                  continue Loop;
              } or { //Termination branch
                  shutdown_api() from Controller to API;
                  shutdown_ack() from API to Controller; // extra message for left commiting
                  prepare_shutdown() from API to Storage; // extra message
                  shutdown_storage() from Controller to Storage;
-                 shutdown_user() from API to User;
+                 shutdown_user() from API to Usr;
              }
          } or Controller -> API{
             timeout() from API to Controller;
             timeout_notice() from Controller to Storage;
-            timeout_notice() from API to User;
+            timeout_notice() from API to Usr;
             continue Loop;
          }
      }

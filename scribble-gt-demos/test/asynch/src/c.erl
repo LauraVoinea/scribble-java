@@ -36,13 +36,13 @@ s1(internal, {pong}, Data) ->
 connection(Data) ->
     io:format("c connected ~n", []),
     APid = case whereis(a) of
-        undefined ->
-            io:format("a is not available yet. Will retry...~n", []),
-            timer:sleep(1000),
-            whereis(a);
-        Pid_a ->
-            Pid_a
-    end,
+               undefined ->
+                   io:format("a is not available yet. Will retry...~n", []),
+                   timer:sleep(1000),
+                   whereis(a);
+               Pid_a ->
+                   Pid_a
+           end,
     BPid = case whereis(b) of
         undefined ->
             io:format("b is not available yet. Will retry...~n", []),
@@ -51,5 +51,5 @@ connection(Data) ->
         Pid_b ->
             Pid_b
     end,
-    Data#state_data{a_pid = APid, b_pid = BPid}.
+    Data#state_data{b_pid = BPid}.
 

@@ -204,7 +204,7 @@ s19(cast, {CPid, {'Auth'}}, #state_data{c_pid = CPid} = Data) ->
 s1(internal, {'220'}, Data) ->
     NewData = connection(Data),
     CPid = NewData#state_data.c_pid,
-    io:format("S: s1 Sending 220 to C ~n", []),
+    io:format("S: s1 Sending 220 to C ~p ~n", [CPid]),
     gen_s:send_s1_220(CPid, Data),
     {next_state, s5, NewData, [{next_event, internal, {'Timeout'}}]}.
 

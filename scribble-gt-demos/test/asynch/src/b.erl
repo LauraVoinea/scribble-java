@@ -25,11 +25,6 @@ init([]) ->
     io:format("b initialized ~n", []),
     {ok, s1, Data}.
 
--spec s3(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
-s3(cast, {CPid, {pong}}, Data) ->
-    io:format("b: pong received in s3~n", []),
-    {stop, normal, Data}.
-
 %% s1 handles ping by transitioning and pong by postponing;
 %% pong becomes a post-event that will be handled in s3 and
 %% has priority over the next event in the queue.
@@ -38,10 +33,12 @@ s3(cast, {CPid, {pong}}, Data) ->
 s1(cast, {APid, {ping}}, Data) ->
     io:format("b: ping received in s1, connecting~n", []),
     Data1 = connection(Data),
-    {next_state, s3, Data1};
-s1(cast, {CPid, {pong}}, Data) ->
-    io:format("b: pong received in s1, postponing~n", []),
-    {keep_state, Data, [postpone]}.
+    {next_state, s3, Data1}.
+
+-spec s3(cast, {pid(), {atom(), term()}}, state_data()) -> {stop, normal, state_data()}.
+s3(cast, {CPid, {pong}}, Data) ->
+    io:format("b: pong received in s3~n", []),
+    {stop, normal, Data}.
 
 -spec connection(state_data()) -> state_data().
 connection(Data) ->

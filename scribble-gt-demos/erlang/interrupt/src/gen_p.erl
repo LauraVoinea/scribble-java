@@ -56,6 +56,9 @@ send_s4_Start(QPid, Data) ->
 s4(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_p: Postponing event ~p~n", [['Ack']]),
     {keep_state, Data, [postpone]};
+s4(_EventType, {_Pid, {'Interrupt'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_p: Postponing event ~p~n", [['Interrupt']]),
+    {keep_state, Data, [postpone]};
 s4(EventType, {'Start'}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -82,6 +85,9 @@ send_s6_Stop(QPid, Data) ->
 s6(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_p: Postponing event ~p~n", [['Ack']]),
     {keep_state, Data, [postpone]};
+s6(_EventType, {_Pid, {'Interrupt'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_p: Postponing event ~p~n", [['Interrupt']]),
+    {keep_state, Data, [postpone]};
 s6(EventType, {'Stop'}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s6(EventType, {'Stop'}, Data);
@@ -98,6 +104,12 @@ s6(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ack'} ->
 -spec s9(term(), {pid(), {atom(), term()}}, state_data()) ->
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
+s9(_EventType, {_Pid, {'Interrupt'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_p: Postponing event ~p~n", [['Interrupt']]),
+    {keep_state, Data, [postpone]};
+s9(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_p: Postponing event ~p~n", [['Ack']]),
+    {keep_state, Data, [postpone]};
 s9(EventType, {QPid, {'Ack'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s9(EventType, {QPid, {'Ack'}}, Data);

@@ -14,7 +14,7 @@
 -include("supplier.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), agency_pid :: pid() | undefined, client_pid :: pid() | undefined}.
 
--callback s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {ok, s5, state_data()} | {stop, normal, state_data()}.
+-callback s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {next_state, s6, state_data(), [{next_event, internal, {confirm_date}}]} | {keep_state, state_data()} | {ok, s5, state_data()} | {keep_state, state_data(), [postpone]}.
 -callback s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s5, state_data()}.
@@ -24,7 +24,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_supplier, {CallbackModule, Args}, []);
+            gen_statem:start_link({local, CallbackModule}, gen_supplier, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "supplier_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -40,7 +40,24 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
--spec s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {ok, s5, state_data()} | {stop, normal, state_data()}.
+-spec s5(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
+    {stop, normal, state_data()} |
+    {next_state, s6, state_data(), [{next_event, internal, {confirm_date}}]} |
+    {keep_state, state_data()} |
+    {ok, s5, state_data()} |
+    {keep_state, state_data(), [postpone]}.
+s5(_EventType, {_Pid, {provide_address, Address}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_supplier: Postponing event ~p~n", [[provide_address, Address]]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {cancel_supplier}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_supplier: Postponing event ~p~n", [[cancel_supplier]]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_supplier: Postponing event ~p~n", [[cancel_booking]]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {resubmitting}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_supplier: Postponing event ~p~n", [[resubmitting]]),
+    {keep_state, Data, [postpone]};
 s5(EventType, {ClientPid, {cancel_booking}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC + 1 ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),

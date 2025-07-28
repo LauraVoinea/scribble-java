@@ -1,5 +1,5 @@
 -module(usr).
--behaviour(gen_user).
+-behaviour(gen_usr).
 
 -export([init/1, callback_mode/0, start_link/0, s1/3, s4/3, s8/3]).
 
@@ -8,7 +8,7 @@
 
 -spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
-    gen_user:start_link(?MODULE, []).
+    gen_usr:start_link(?MODULE, []).
 
 -spec callback_mode() -> state_functions.
 callback_mode() ->
@@ -58,7 +58,7 @@ s1(cast, {APIPid, {ready}}, Data) ->
 -spec s4(internal, {atom()}, state_data()) -> {next_state, s8, state_data()}.
 s4(internal, {request}, #state_data{api_pid = APIPid} = Data) ->
     io:format("User: s4 Sending request to API ~n", []),
-    gen_user:send_s4_request(APIPid, Data),
+    gen_usr:send_s4_request(APIPid, Data),
     {next_state, s8, Data}.
 
 -spec s8(cast, {pid(), {atom()}}, state_data()) -> 

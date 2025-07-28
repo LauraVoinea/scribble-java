@@ -19,10 +19,11 @@
 -include("srv.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), carol_pid :: pid() | undefined, alice_pid :: pid() | undefined}.
 
--callback s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-callback s3(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s6, state_data(), [{next_event, internal, {timeout}}]} | {keep_state, state_data()}.
+-callback s6(EventType :: term(), {atom()} | {pid(), {term()}, integer()}, state_data()) -> {stop, normal, state_data()} | {keep_state, state_data(), [postpone]} | {next_state, s7, state_data(), [{next_event, internal, {result_sum}}]} | {keep_state, state_data()} | {next_state, s9, state_data(), [{next_event, internal, {result_diff}}]}.
 -callback s7(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s1(term(), {pid(), {atom(), term()}}, state_data()) -> {next_state, s3, state_data()}.
+-callback s1(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s3, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s1, state_data()}.
 
@@ -31,8 +32,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_srv, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "srv_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_srv, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "srv_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -48,6 +48,10 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
+-spec s3(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s6, state_data(), [{next_event, internal, {timeout}}]} |
+    {keep_state, state_data()}.
 s3(_EventType, {_Pid, {diff}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_srv: Postponing event ~p~n", [[diff]]),
     {keep_state, Data, [postpone]};
@@ -63,7 +67,18 @@ send_s6_timeout(CarolPid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(CarolPid, {self(), {timeout}, Counter}).
 
--spec s6(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-spec s6(EventType :: term(), {atom()} | {pid(), {term()}, integer()}, state_data()) ->
+    {stop, normal, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s7, state_data(), [{next_event, internal, {result_sum}}]} |
+    {keep_state, state_data()} |
+    {next_state, s9, state_data(), [{next_event, internal, {result_diff}}]}.
+s6(_EventType, {_Pid, {diff}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_srv: Postponing event ~p~n", [[diff]]),
+    {keep_state, Data, [postpone]};
+s6(_EventType, {_Pid, {sum}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_srv: Postponing event ~p~n", [[sum]]),
+    {keep_state, Data, [postpone]};
 s6(EventType, {timeout}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -99,7 +114,9 @@ send_s7_result_sum(CarolPid, Result, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(CarolPid, {self(), {result_sum, Result}, Counter}).
 
--spec s1(term(), {pid(), {atom(), term()}}, state_data()) -> {next_state, s3, state_data()}.
+-spec s1(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s3, state_data()}.
 s1(_EventType, {_Pid, {second, Number}}, Data) ->
     io:format("gen_srv: Postponing event ~p~n", [[second, Number]]),
     {keep_state, Data, [postpone]};

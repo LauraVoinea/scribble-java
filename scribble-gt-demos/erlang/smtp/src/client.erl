@@ -213,6 +213,7 @@ s19(internal, {'Quit'}, #state_data{s_pid = SPid} = Data) ->
     {keep_state, state_data()}.
 s1(cast, {SPid, {'220'}}, Data) ->
     NewData = connection(Data),
+    io:format("C: connection ~p ~n", [NewData]),
     io:format("C: s1 Received 220  from S ~p ~n", [SPid]),
     case make_choice_s5(Data) of
         1 ->

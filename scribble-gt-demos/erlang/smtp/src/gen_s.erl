@@ -150,6 +150,9 @@ s33(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data
 s33(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
     {keep_state, Data, [postpone]};
+s33(_EventType, {_Pid, {'Data'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Data']]),
+    {keep_state, Data, [postpone]};
 s33(EventType, {'Timeout'}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -157,9 +160,7 @@ s33(EventType, {'Timeout'}, #state_data{mc_counter_1 = MC} = Data) ->
 s33(EventType, {CPid, {'Data'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s33(EventType, {CPid, {'Data'}}, Data);
-s33(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ehlo'} 
-		orelse Msg =:= {'QuitCommit'} 
-		orelse Msg =:= {'Mail'} 
+s33(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Mail'} 
 		orelse Msg =:= {'Subject'} 
 		orelse Msg =:= {'Bogus'} 
 		orelse Msg =:= {'Rcpt'} 
@@ -201,6 +202,12 @@ s11(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data
     {keep_state, Data, [postpone]};
 s11(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
+    {keep_state, Data, [postpone]};
+s11(_EventType, {_Pid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Quit']]),
+    {keep_state, Data, [postpone]};
+s11(_EventType, {_Pid, {'StartTls'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['StartTls']]),
     {keep_state, Data, [postpone]};
 s11(EventType, {CPid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
@@ -251,6 +258,12 @@ s13(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data
     {keep_state, Data, [postpone]};
 s13(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
+    {keep_state, Data, [postpone]};
+s13(_EventType, {_Pid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Quit']]),
+    {keep_state, Data, [postpone]};
+s13(_EventType, {_Pid, {'Ehlo1'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Ehlo1']]),
     {keep_state, Data, [postpone]};
 s13(EventType, {CPid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
@@ -318,6 +331,15 @@ s36(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data
 s36(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
     {keep_state, Data, [postpone]};
+s36(_EventType, {_Pid, {'DataLine'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['DataLine']]),
+    {keep_state, Data, [postpone]};
+s36(_EventType, {_Pid, {'EndOfData'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['EndOfData']]),
+    {keep_state, Data, [postpone]};
+s36(_EventType, {_Pid, {'Subject'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Subject']]),
+    {keep_state, Data, [postpone]};
 s36(EventType, {CPid, {'Subject'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s36(EventType, {CPid, {'Subject'}}, Data);
@@ -327,9 +349,7 @@ s36(EventType, {CPid, {'DataLine'}, Counter}, #state_data{mc_counter_1 = MC} = D
 s36(EventType, {CPid, {'EndOfData'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s36(EventType, {CPid, {'EndOfData'}}, Data);
-s36(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ehlo'} 
-		orelse Msg =:= {'QuitCommit'} 
-		orelse Msg =:= {'Mail'} 
+s36(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Mail'} 
 		orelse Msg =:= {'Subject'} 
 		orelse Msg =:= {'Bogus'} 
 		orelse Msg =:= {'Rcpt'} 
@@ -366,6 +386,12 @@ s19(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data
     {keep_state, Data, [postpone]};
 s19(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
+    {keep_state, Data, [postpone]};
+s19(_EventType, {_Pid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Quit']]),
+    {keep_state, Data, [postpone]};
+s19(_EventType, {_Pid, {'Auth'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Auth']]),
     {keep_state, Data, [postpone]};
 s19(EventType, {CPid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
@@ -445,6 +471,12 @@ s5(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
     {keep_state, Data, [postpone]};
 s5(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {'Ehlo'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Ehlo']]),
+    {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {'QuitCommit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['QuitCommit']]),
     {keep_state, Data, [postpone]};
 s5(EventType, {'Timeout'}, #state_data{mc_counter_2 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_2 = MC + 1},
@@ -576,6 +608,12 @@ s22(_EventType, {_Pid, {'Bogus'}, Counter}, #state_data{mc_counter_2 = MC} = Dat
 s22(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Rcpt']]),
     {keep_state, Data, [postpone]};
+s22(_EventType, {_Pid, {'Quit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Quit']]),
+    {keep_state, Data, [postpone]};
+s22(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Mail']]),
+    {keep_state, Data, [postpone]};
 s22(EventType, {CPid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s22(EventType, {CPid, {'Mail'}}, Data);
@@ -644,6 +682,12 @@ s27(_EventType, {_Pid, {'Subject'}, Counter}, #state_data{mc_counter_1 = MC} = D
     {keep_state, Data, [postpone]};
 s27(_EventType, {_Pid, {'Mail'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_s: Postponing event ~p~n", [['Mail']]),
+    {keep_state, Data, [postpone]};
+s27(_EventType, {_Pid, {'Bogus'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Bogus']]),
+    {keep_state, Data, [postpone]};
+s27(_EventType, {_Pid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_s: Postponing event ~p~n", [['Rcpt']]),
     {keep_state, Data, [postpone]};
 s27(EventType, {CPid, {'Rcpt'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),

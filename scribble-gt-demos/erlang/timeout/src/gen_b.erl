@@ -20,6 +20,8 @@
 -type state_data() :: #state_data{mc_counter_1 :: integer(), a_pid :: pid() | undefined, c_pid :: pid() | undefined}.
 
 -callback s3(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-callback s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()}, state_data()) -> {next_state, s3, state_data(), [{next_event, internal, {'TOc'}}]} | {keep_state, state_data()} | {keep_state, state_data(), [postpone]} | {next_state, s6, state_data(), [{next_event, internal, {a3}}]}.
+-callback s6(EventType :: term(), {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {a4}}]} | {keep_state, state_data()}.
 -callback s7(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s5, state_data(), [{next_event, internal, {'TOa'}}]}.
@@ -29,8 +31,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_b, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "b_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_b, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "b_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -51,6 +52,14 @@ s3(EventType, {'TOc'}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {'TOc'}, Data).
 
+-spec s5(EventType :: term(), {atom()} | {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s3, state_data(), [{next_event, internal, {'TOc'}}]} |
+    {keep_state, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s6, state_data(), [{next_event, internal, {a3}}]}.
+s5(_EventType, {_Pid, {a1}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_b: Postponing event ~p~n", [[a1]]),
+    {keep_state, Data, [postpone]};
 s5(EventType, {'TOa'}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -62,6 +71,9 @@ s5(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {a1} ->
     io:format("gen_b: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
+-spec s6(EventType :: term(), {atom()}, state_data()) ->
+    {next_state, s7, state_data(), [{next_event, internal, {a4}}]} |
+    {keep_state, state_data()}.
 s6(EventType, {a3}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s6(EventType, {a3}, Data).

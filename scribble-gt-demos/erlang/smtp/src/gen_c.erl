@@ -113,23 +113,43 @@ send_s22_Quit(SPid, Data) ->
 -spec s51(term(), {pid(), {atom(), term()}}, state_data()) ->
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
+s51(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Ack']]),
+    {keep_state, Data, [postpone]};
 s51(EventType, {SPid, {'Ack'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s51(EventType, {SPid, {'Ack'}}, Data);
-s51(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ack'} ->
+s51(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ack'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
 -spec s53(term(), {pid(), {atom(), term()}}, state_data()) ->
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
+s53(_EventType, {_Pid, {'AckCommit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['AckCommit']]),
+    {keep_state, Data, [postpone]};
+s53(_EventType, {_Pid, {'Timeout'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Timeout']]),
+    {keep_state, Data, [postpone]};
 s53(EventType, {SPid, {'Timeout'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s53(EventType, {SPid, {'Timeout'}}, Data);
 s53(EventType, {SPid, {'AckCommit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s53(EventType, {SPid, {'AckCommit'}}, Data);
-s53(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'AckCommit'} ->
+s53(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'535'} 
+		orelse Msg =:= {'235'} 
+		orelse Msg =:= {'250d'} 
+		orelse Msg =:= {'220'} 
+		orelse Msg =:= {'EhloCommit'} 
+		orelse Msg =:= {'Ack'} 
+		orelse Msg =:= {'221'} 
+		orelse Msg =:= {'354'} 
+		orelse Msg =:= {'250'} 
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -157,6 +177,9 @@ s33(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data)
 s33(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['250']]),
     {keep_state, Data, [postpone]};
+s33(_EventType, {_Pid, {'Timeout'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Timeout']]),
+    {keep_state, Data, [postpone]};
 s33(EventType, {'Data'}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
     CallbackModule = get(callback_module),
@@ -168,7 +191,8 @@ s33(EventType, {SPid, {'Timeout'}, Counter}, #state_data{mc_counter_1 = MC} = Da
 s33(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -211,6 +235,12 @@ s34(_EventType, {_Pid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s34(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['250']]),
     {keep_state, Data, [postpone]};
+s34(_EventType, {_Pid, {'Timeout'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Timeout']]),
+    {keep_state, Data, [postpone]};
+s34(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['354']]),
+    {keep_state, Data, [postpone]};
 s34(EventType, {SPid, {'Timeout'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s34(EventType, {SPid, {'Timeout'}}, Data);
@@ -220,7 +250,8 @@ s34(EventType, {SPid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) 
 s34(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'354'} 
 		orelse Msg =:= {'221'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -259,6 +290,9 @@ s12(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s12(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s12(_EventType, {_Pid, {'220'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['220']]),
+    {keep_state, Data, [postpone]};
 s12(EventType, {SPid, {'220'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s12(EventType, {SPid, {'220'}}, Data);
@@ -270,7 +304,8 @@ s12(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'535'}
 		orelse Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -298,6 +333,12 @@ s15(_EventType, {_Pid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s15(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s15(_EventType, {_Pid, {'250d'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250d']]),
+    {keep_state, Data, [postpone]};
+s15(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250']]),
+    {keep_state, Data, [postpone]};
 s15(EventType, {SPid, {'250d'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s15(EventType, {SPid, {'250d'}}, Data);
@@ -310,7 +351,8 @@ s15(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'535'}
 		orelse Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -464,6 +506,9 @@ s5(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) 
 s5(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s5(_EventType, {_Pid, {'Timeout'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Timeout']]),
+    {keep_state, Data, [postpone]};
 s5(EventType, {'Ehlo'}, #state_data{mc_counter_2 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_2 = MC + 1},
     CallbackModule = get(callback_module),
@@ -525,6 +570,12 @@ s6(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) 
 s6(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s6(_EventType, {_Pid, {'EhloCommit'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['EhloCommit']]),
+    {keep_state, Data, [postpone]};
+s6(_EventType, {_Pid, {'Timeout'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Timeout']]),
+    {keep_state, Data, [postpone]};
 s6(EventType, {SPid, {'Timeout'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s6(EventType, {SPid, {'Timeout'}}, Data);
@@ -540,7 +591,8 @@ s6(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'535'}
 		orelse Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -574,6 +626,12 @@ s8(_EventType, {_Pid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data) 
 s8(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {'250d'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250d']]),
+    {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250']]),
+    {keep_state, Data, [postpone]};
 s8(EventType, {SPid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s8(EventType, {SPid, {'250'}}, Data);
@@ -588,7 +646,8 @@ s8(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'535'}
 		orelse Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -622,6 +681,12 @@ s20(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s20(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s20(_EventType, {_Pid, {'535'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['535']]),
+    {keep_state, Data, [postpone]};
+s20(_EventType, {_Pid, {'235'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['235']]),
+    {keep_state, Data, [postpone]};
 s20(EventType, {SPid, {'535'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s20(EventType, {SPid, {'535'}}, Data);
@@ -633,7 +698,8 @@ s20(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'535'}
 		orelse Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -654,13 +720,17 @@ s41(_EventType, {_Pid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s41(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s41(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250']]),
+    {keep_state, Data, [postpone]};
 s41(EventType, {SPid, {'250'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s41(EventType, {SPid, {'250'}}, Data);
 s41(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -672,10 +742,14 @@ send_s11_Quit(SPid, Data) ->
 -spec s44(term(), {pid(), {atom(), term()}}, state_data()) ->
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
+s44(_EventType, {_Pid, {'221'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['221']]),
+    {keep_state, Data, [postpone]};
 s44(EventType, {SPid, {'221'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s44(EventType, {SPid, {'221'}}, Data);
-s44(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'221'} ->
+s44(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'221'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -710,6 +784,12 @@ s23(_EventType, {_Pid, {'221'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s23(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s23(_EventType, {_Pid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['501']]),
+    {keep_state, Data, [postpone]};
+s23(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250']]),
+    {keep_state, Data, [postpone]};
 s23(EventType, {SPid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s23(EventType, {SPid, {'250'}}, Data);
@@ -719,7 +799,8 @@ s23(EventType, {SPid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data) 
 s23(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
@@ -745,23 +826,31 @@ s28(_EventType, {_Pid, {'501'}, Counter}, #state_data{mc_counter_2 = MC} = Data)
 s28(_EventType, {_Pid, {'354'}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_c: Postponing event ~p~n", [['354']]),
     {keep_state, Data, [postpone]};
+s28(_EventType, {_Pid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['250']]),
+    {keep_state, Data, [postpone]};
 s28(EventType, {SPid, {'250'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s28(EventType, {SPid, {'250'}}, Data);
 s28(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'221'} 
 		orelse Msg =:= {'354'} 
 		orelse Msg =:= {'250'} 
-		orelse Msg =:= {'501'} ->
+		orelse Msg =:= {'501'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 
 -spec s49(term(), {pid(), {atom(), term()}}, state_data()) ->
     {keep_state, state_data(), [postpone]} |
     {stop, normal, state_data()}.
+s49(_EventType, {_Pid, {'Ack'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter > MC ->
+    io:format("gen_c: Postponing event ~p~n", [['Ack']]),
+    {keep_state, Data, [postpone]};
 s49(EventType, {SPid, {'Ack'}, Counter}, #state_data{mc_counter_2 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s49(EventType, {SPid, {'Ack'}}, Data);
-s49(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ack'} ->
+s49(_EventType, {_Pid, Msg, _Counter}, Data) when Msg =:= {'Ack'} 
+		orelse Msg =:= {'AckCommit'} ->
     io:format("gen_c: Garbage collecting event ~p~n", [Msg]),
     {keep_state, Data}.
 

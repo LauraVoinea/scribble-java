@@ -26,10 +26,14 @@
 -include("carol.hrl").
 -type state_data() :: #state_data{mc_counter_1 :: integer(), srv_pid :: pid() | undefined, alice_pid :: pid() | undefined}.
 
+-callback s3(EventType :: term(), {atom()}, state_data()) -> {next_state, s7, state_data(), [{next_event, internal, {sum}}]} | {next_state, s7, state_data(), [{next_event, internal, {diff}}]} | {keep_state, state_data()}.
 -callback s5(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
--callback s7(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s8, state_data()} | {next_state, s11, state_data()}.
+-callback s7(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s8, state_data()} | {next_state, s11, state_data()} | {keep_state, state_data(), [postpone]} | {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} | {keep_state, state_data()}.
+-callback s8(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} | {keep_state, state_data()} | {next_state, s9, state_data(), [{next_event, internal, {sum_result}}]}.
 -callback s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-callback s11(term(), {pid(), {atom(), term()}}, state_data()) -> {keep_state, state_data(), [postpone]} | {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} | {keep_state, state_data()} | {next_state, s12, state_data(), [{next_event, internal, {diff_result}}]}.
 -callback s12(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
+-callback s1(EventType :: term(), {atom()}, state_data()) -> {next_state, s3, state_data(), [{next_event, internal, {second}}]} | {keep_state, state_data()}.
 -callback init(Args :: list()) -> 
 	{ok, s1, state_data(), [{next_event, internal, {first}}]}.
 
@@ -38,8 +42,7 @@
 start_link(CallbackModule, Args) ->
     case code:ensure_loaded(CallbackModule) of
         {module, CallbackModule} ->
-            gen_statem:start_link({local, CallbackModule}, gen_carol, {CallbackModule, Args},
-              [{debug, [trace, {log_to_file, "carol_debug.log"}]}]);
+            gen_statem:start_link({local, CallbackModule}, gen_carol, {CallbackModule, Args}, [{debug, [trace, {log_to_file, "carol_debug.log"}]}]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -55,6 +58,10 @@ init({CallbackModule, _Args}) ->
     put(callback_module, CallbackModule),
     CallbackModule:init([]).
 
+-spec s3(EventType :: term(), {atom()}, state_data()) ->
+    {next_state, s7, state_data(), [{next_event, internal, {sum}}]} |
+    {next_state, s7, state_data(), [{next_event, internal, {diff}}]} |
+    {keep_state, state_data()}.
 s3(EventType, {second}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s3(EventType, {second}, Data).
@@ -64,12 +71,20 @@ s5(EventType, {cancel}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s5(EventType, {cancel}, Data).
 
--spec s7(EventType :: term(), {pid(), {term()}, integer()}, state_data()) -> {next_state, s8, state_data()} | {next_state, s11, state_data()}.
+-spec s7(EventType :: term(), {pid(), {term()}, integer()}, state_data()) ->
+    {next_state, s8, state_data()} |
+    {next_state, s11, state_data()} |
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} |
+    {keep_state, state_data()}.
 s7(_EventType, {_Pid, {result_diff, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_carol: Postponing event ~p~n", [[result_diff, Result]]),
     {keep_state, Data, [postpone]};
 s7(_EventType, {_Pid, {result_sum, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter >= MC ->
     io:format("gen_carol: Postponing event ~p~n", [[result_sum, Result]]),
+    {keep_state, Data, [postpone]};
+s7(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_carol: Postponing event ~p~n", [[timeout]]),
     {keep_state, Data, [postpone]};
 s7(EventType, {sum}, #state_data{mc_counter_1 = MC} = Data) ->
     NewData = Data#state_data{mc_counter_1 = MC + 1},
@@ -98,6 +113,17 @@ send_s5_cancel(AlicePid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(AlicePid, {self(), {cancel}, Counter}).
 
+-spec s8(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} |
+    {keep_state, state_data()} |
+    {next_state, s9, state_data(), [{next_event, internal, {sum_result}}]}.
+s8(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_carol: Postponing event ~p~n", [[timeout]]),
+    {keep_state, Data, [postpone]};
+s8(_EventType, {_Pid, {result_sum, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_carol: Postponing event ~p~n", [[result_sum, Result]]),
+    {keep_state, Data, [postpone]};
 s8(EventType, {SrvPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s8(EventType, {SrvPid, {timeout}}, Data);
@@ -106,6 +132,9 @@ s8(EventType, {SrvPid, {result_sum, Result}, Counter}, #state_data{mc_counter_1 
     CallbackModule:s8(EventType, {SrvPid, {result_sum, Result}}, Data);
 s8(_EventType, {_Pid, {result_sum, Result}, _Counter}, Data) ->
     io:format("gen_carol: Garbage collecting event ~p~n", [{result_sum, Result}]),
+    {keep_state, Data};
+s8(_EventType, {_Pid, {result_diff, Result}, _Counter}, Data) ->
+    io:format("gen_carol: Garbage collecting event ~p~n", [{result_diff, Result}]),
     {keep_state, Data}.
 
 -spec s9(EventType :: term(), {atom()}, state_data()) -> {stop, normal, state_data()}.
@@ -113,12 +142,26 @@ s9(EventType, {sum_result}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s9(EventType, {sum_result}, Data).
 
+-spec s11(term(), {pid(), {atom(), term()}}, state_data()) ->
+    {keep_state, state_data(), [postpone]} |
+    {next_state, s5, state_data(), [{next_event, internal, {cancel}}]} |
+    {keep_state, state_data()} |
+    {next_state, s12, state_data(), [{next_event, internal, {diff_result}}]}.
+s11(_EventType, {_Pid, {result_diff, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_carol: Postponing event ~p~n", [[result_diff, Result]]),
+    {keep_state, Data, [postpone]};
+s11(_EventType, {_Pid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter > MC ->
+    io:format("gen_carol: Postponing event ~p~n", [[timeout]]),
+    {keep_state, Data, [postpone]};
 s11(EventType, {SrvPid, {timeout}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s11(EventType, {SrvPid, {timeout}}, Data);
 s11(EventType, {SrvPid, {result_diff, Result}, Counter}, #state_data{mc_counter_1 = MC} = Data) when Counter =:= MC ->
     CallbackModule = get(callback_module),
     CallbackModule:s11(EventType, {SrvPid, {result_diff, Result}}, Data);
+s11(_EventType, {_Pid, {result_sum, Result}, _Counter}, Data) ->
+    io:format("gen_carol: Garbage collecting event ~p~n", [{result_sum, Result}]),
+    {keep_state, Data};
 s11(_EventType, {_Pid, {result_diff, Result}, _Counter}, Data) ->
     io:format("gen_carol: Garbage collecting event ~p~n", [{result_diff, Result}]),
     {keep_state, Data}.
@@ -156,6 +199,9 @@ send_s7_diff(SrvPid, Data) ->
     Counter = Data#state_data.mc_counter_1,
     gen_statem:cast(SrvPid, {self(), {diff}, Counter}).
 
+-spec s1(EventType :: term(), {atom()}, state_data()) ->
+    {next_state, s3, state_data(), [{next_event, internal, {second}}]} |
+    {keep_state, state_data()}.
 s1(EventType, {first}, Data) ->
     CallbackModule = get(callback_module),
     CallbackModule:s1(EventType, {first}, Data).

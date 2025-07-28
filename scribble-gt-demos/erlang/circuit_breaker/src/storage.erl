@@ -4,7 +4,7 @@
 -export([init/1, callback_mode/0, start_link/0, s1/3, s3/3, s8/3, s9/3, s12/3, s15/3]).
 
 -include("storage.hrl").
--type state_data() :: #state_data{mc_counter_1 :: integer(), api_pid :: pid() | undefined, user_pid :: pid() | undefined, controller_pid :: pid() | undefined}.
+-type state_data() :: #state_data{mc_counter_1 :: integer(), api_pid :: pid() | undefined, usr_pid :: pid() | undefined, controller_pid :: pid() | undefined}.
 
 -spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
@@ -46,7 +46,7 @@ connect(Data) ->
         Pid2 ->
             Pid2
     end,
-    Data#state_data{controller_pid = ControllerPid, api_pid = APIPid, user_pid = UserPid}.
+    Data#state_data{controller_pid = ControllerPid, api_pid = APIPid, usr_pid = UserPid}.
 
 -spec s3(internal, {atom()}, state_data()) -> {next_state, s8, state_data()}.
 s3(internal, {hard_ping}, #state_data{controller_pid = ControllerPid} = Data) ->

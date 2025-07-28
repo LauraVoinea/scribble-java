@@ -27,7 +27,7 @@
 ]).
 
 -include("api.hrl").
--type state_data() :: #state_data{mc_counter_1 :: integer(), storage_pid :: pid() | undefined, user_pid :: pid() | undefined, controller_pid :: pid() | undefined}.
+-type state_data() :: #state_data{mc_counter_1 :: integer(), storage_pid :: pid() | undefined, usr_pid :: pid() | undefined, controller_pid :: pid() | undefined}.
 
 -spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
@@ -44,14 +44,14 @@ init([]) ->
     {ok, s1, Data}.
 
 -spec s3(internal, {atom()}, state_data()) -> {next_state, s5, state_data()}.
-s3(internal, {ready}, #state_data{user_pid = UserPid} = Data) ->
+s3(internal, {ready}, #state_data{usr_pid = UserPid} = Data) ->
     io:format("API: s3 Sending ready to User ~n", []),
     gen_api:send_s3_ready(UserPid, Data),
     {next_state, s5, Data}.
 
 -spec s5(cast, {atom(), {request}}, state_data()) ->
     {next_state, s6, state_data(), [{next_event, internal, {get_mode}}]}.
-s5(cast, {UserPid, {request}}, #state_data{user_pid = UserPid} = Data) ->
+s5(cast, {UserPid, {request}}, #state_data{usr_pid = UserPid} = Data) ->
     io:format("User: s5 Received request  from User ~p ~n", [UserPid]),
     {next_state, s6, Data, [{next_event, internal, {get_mode}}]}.
 
@@ -67,7 +67,7 @@ make_choice_service_operational(_Data) ->
     rand:uniform(2).
 
 -spec s8(internal, {atom()}, state_data()) -> {next_state, s5, state_data()}.
-s8(internal, {timeout_notice}, #state_data{user_pid = UserPid} = Data) ->
+s8(internal, {timeout_notice}, #state_data{usr_pid = UserPid} = Data) ->
     io:format("API: s8 Sending timeout_notice to User ~n", []),
     gen_api:send_s8_timeout_notice(UserPid, Data),
     {next_state, s5, Data}.
@@ -77,7 +77,7 @@ make_choice_shutdown_api(_Data) ->
     rand:uniform(2).
 
 -spec s20(internal, {atom()}, state_data()) -> {next_state, s5, state_data()}.
-s20(internal, {error_response}, #state_data{user_pid = UserPid} = Data) ->
+s20(internal, {error_response}, #state_data{usr_pid = UserPid} = Data) ->
     io:format("API: s20 Sending error_response to User ~n", []),
     gen_api:send_s20_error_response(UserPid, Data),
     {next_state, s5, Data}.
@@ -157,7 +157,7 @@ s12(internal, {ack}, #state_data{controller_pid = ControllerPid} = Data) ->
     {next_state, s13, Data, [{next_event, internal, {storage_request}}]}.
 
 -spec s15(internal, {atom()}, state_data()) -> {next_state, s5, state_data()}.
-s15(internal, {api_response}, #state_data{user_pid = UserPid} = Data) ->
+s15(internal, {api_response}, #state_data{usr_pid = UserPid} = Data) ->
     io:format("API: s15 Sending api_response to User ~n", []),
     gen_api:send_s15_api_response(UserPid, Data),
     {next_state, s5, Data}.
@@ -167,7 +167,7 @@ make_choice_error_notice(_Data) ->
     rand:uniform(2).
 
 -spec s25(internal, {atom()}, state_data()) -> {stop, normal, state_data()}.
-s25(internal, {shutdown_user}, #state_data{user_pid = UserPid} = Data) ->
+s25(internal, {shutdown_user}, #state_data{usr_pid = UserPid} = Data) ->
     io:format("API: s25 Sending shutdown_user to User ~n", []),
     gen_api:send_s25_shutdown_user(UserPid, Data),
     {stop, normal, Data}.
@@ -215,5 +215,5 @@ connect(Data) ->
     StoragePid = retry_whereis(storage),
     ControllerPid = retry_whereis(controller),
     UserPid = retry_whereis(usr),
-    Data#state_data{storage_pid = StoragePid, controller_pid = ControllerPid, user_pid = UserPid}.
+    Data#state_data{storage_pid = StoragePid, controller_pid = ControllerPid, usr_pid = UserPid}.
 
