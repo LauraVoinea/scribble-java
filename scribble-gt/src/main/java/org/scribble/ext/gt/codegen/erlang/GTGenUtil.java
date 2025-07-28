@@ -77,6 +77,20 @@ public class GTGenUtil {
     public static int getNumMixedChoices(GTEFSM m) {
         return (int) m.S.stream().filter(x -> x.isEntry).count();
     }
+    // Returns true if the FSM contains any mixed choices
+    public static boolean hasMixedChoices(GTEFSM m) {
+        return getNumMixedChoices(m) > 0;
+    }
+    // Checks whether state s is part of a mixed-choice path in m
+    public static boolean isOnMixedChoicePath(GTEFSM m, GTVState s) {
+        if (!hasMixedChoices(m)) {
+            return false;
+        }
+        // A state lies on a mixed-choice path if it's reachable from any mixed-entry state
+        return m.S.stream()
+            .filter(entry -> entry.isEntry)
+            .anyMatch(entry -> reachable(entry, s, m));
+    }
 
     public static Set<GTVEvent> getEvents(GTEFSM m) {
         //get all events from the GTEFSM m
@@ -95,6 +109,9 @@ public class GTGenUtil {
 // filter out Map<Integer, Set<Op>> explicitCommiting
     public static Set<GTVEvent> getGcEvents(GTEFSM m, GTVState s, Map<Integer, Set<Op>> explicitCommiting) {
         StateKind kind = getStateKind(m, s);
+        System.err.println("=1=> " + s + " <><> "   + kind + " <><> isEntry " + s.isEntry
+                + " <><> c " + s.c + " <><> numMixedChoices " + getNumMixedChoices(m)
+        + " <><> recvars " + s.recvars);
         if (kind == StateKind.END) {
             return Collections.emptySet();
         }
@@ -102,8 +119,13 @@ public class GTGenUtil {
 //        boolean isChild = s.c != getNumMixedChoices(m) && !s.isEntry;
         // 1. non-mixed and not child of MC: nothing to gc
         if (!isEntry && s.c == GTVState.TOP_SCOPE) {
-            return null;
+            if(s.recvars.isEmpty()) {
+                System.err.println("=1=> " + s + " is not mixed and not a child of MC: no gc events");
+                return Collections.emptySet();
+            }
         }
+        System.err.println("=3=> " + s + " <><> "   + kind + " <><> isEntry " + isEntry
+                + " <><> c " + s.c + " <><> numMixedChoices " + getNumMixedChoices(m) + "\n\n");
         // collect all receive events reachable from s (both direct transitions and downstream)
         Set<GTVRecv> branchRecvs = new HashSet<>();
         // direct receive events at s
@@ -126,19 +148,12 @@ public class GTGenUtil {
         }
         // 3. for nested MC children: collect receives from all ancestor mixed-choice entries
         List<GTVState> ancestors = m.S.stream()
-                .filter(x -> x.isEntry && x.c > s.c)
+                .filter(x -> x.isEntry && x.c >= s.c)
                 .collect(Collectors.toList());
 
         // collect receive events from the other side of each ancestor MC
         // for each ancestor MC, we collect the receive events from the other side of that MC
-        Set<GTVRecv> parentRecvs = ancestors.stream().flatMap(parent ->
-            filterEdgesByState(m, parent).entrySet().stream()
-                .filter(e ->
-                        e.getValue().stream().noneMatch(p -> p.right.equals(s)))
-                .map(e -> e.getKey().right)
-                .filter(r -> r instanceof GTVRecv)
-                .map(r -> (GTVRecv) r)
-        ).collect(Collectors.toSet());
+        Set<GTVRecv> parentRecvs = getOtherBranchRecvs(m, s);
         // filter out explicitly committing operations
         Set<Op> expOps = explicitCommiting.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         branchRecvs.removeIf(recv -> expOps.contains(recv.op));
@@ -177,11 +192,6 @@ public class GTGenUtil {
             filterEdgesByState(m, cur).values().stream()
                  .flatMap(Set::stream)
                      .map(pair -> pair.right)
-//-                .filter(next -> !visited.contains(next))
-//-                .forEach(next -> {
-//-                    visited.add(next);
-//-                    queue.add(next);
-//-                });
                 .filter(next -> !visited.contains(next))
                 .forEach(next -> {
                     visited.add(next);
@@ -207,5 +217,77 @@ public class GTGenUtil {
             Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> filt, Predicate<GTVAction> p) {
         return filt.entrySet().stream().filter(x -> x.getValue().stream().anyMatch(y -> p.test(y.left)))
                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> null, LinkedHashMap::new));
+    }
+
+    /**
+     * Check if target state 'to' is reachable from 'from' in EFSM m.
+     */
+    public static boolean reachable(GTVState from, GTVState to, GTEFSM m) {
+        Set<GTVState> visited = new HashSet<>();
+        Queue<GTVState> queue = new LinkedList<>();
+        visited.add(from);
+        queue.add(from);
+        while (!queue.isEmpty()) {
+            GTVState cur = queue.poll();
+            if (cur.equals(to)) {
+                return true;
+            }
+            // explore successors
+            for (var entry : filterEdgesByState(m, cur).values()) {
+                for (var pair : entry) {
+                    GTVState nxt = pair.right;
+                    if (!visited.contains(nxt)) {
+                        visited.add(nxt);
+                        queue.add(nxt);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Collect all GTVRecv events (direct and downstream) reachable from start state.
+     */
+    private static Set<GTVRecv> collectRecvsFromState(GTEFSM m, GTVState start) {
+        Set<GTVRecv> recvs = new HashSet<>();
+        // direct receives at start
+        filterEdgesByState(m, start).keySet().stream()
+            .filter(k -> k.right instanceof GTVRecv)
+            .map(k -> (GTVRecv) k.right)
+            .forEach(recvs::add);
+        // downstream receives
+        getRecvEvents(m, start).stream().map(p -> p.left).forEach(recvs::add);
+        return recvs;
+    }
+
+    /**
+     * Given a state s on one branch of a mixed-choice entry, return the GTVRecv events on the other branch.
+     */
+    public static Set<GTVRecv> getOtherBranchRecvs(GTEFSM m, GTVState s) {
+        // collect recvs from other branches of all ancestor mixed-choice entries
+        List<GTVState> mcs = m.S.stream()
+            .filter(x -> x.isEntry && x.c >= s.c)
+            .collect(Collectors.toList());
+        Set<GTVRecv> allRecvs = new HashSet<>();
+        for (GTVState mc : mcs) {
+            Map<Pair<GTVState, GTVEvent>, Set<Pair<GTVAction, GTVState>>> edges = filterEdgesByState(m, mc);
+            Optional<Pair<GTVState, GTVEvent>> optMyEntry = edges.entrySet().stream()
+                .filter(e -> e.getValue().stream().anyMatch(pair -> reachable(pair.right, s, m)))
+                .map(Map.Entry::getKey)
+                .findFirst();
+            if (optMyEntry.isEmpty()) {
+                continue; // no branch reaches s in this MC
+            }
+            Pair<GTVState, GTVEvent> myEntry = optMyEntry.get();
+            allRecvs.addAll(
+                edges.entrySet().stream()
+                    .filter(e -> !e.getKey().equals(myEntry))
+                    .flatMap(e -> e.getValue().stream())
+                    .flatMap(pair -> collectRecvsFromState(m, pair.right).stream())
+                    .collect(Collectors.toSet())
+            );
+        }
+        return allRecvs;
     }
 }
