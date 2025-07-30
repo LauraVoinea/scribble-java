@@ -74,7 +74,7 @@ The programmer can complete the program as follows.
         startup.  This may include:
         -   Launching a process for each role in the protocol.
         -   Distributing the initial contact information (process IDs) so the
-            roles know how to communicate with each other.
+            roles know how to communicate with each other (the connection function generated in `<role>.erl` can be used for that.
         -   Providing supervision of these processes for fault-tolerance.
 
 
@@ -284,7 +284,7 @@ The following demonstrates usages and key flags.  Assume we are in the
   ./mMST.sh scribble-gt-demos/scribble/<FileName.scr>
   ```
   This will run the tool on the specified `.scr` file (from the pre-written
-  examples).  The output is printed to console.
+  examples).  There is no console output unless there is an error.
 
 - Generate the Erlang code for all roles in a protocol and write to file(s):
   ```sh
@@ -305,7 +305,7 @@ The following demonstrates usages and key flags.  Assume we are in the
   ```sh
   ./mMST.sh -gt-gen-efsm <ProtocolName> <Role> scribble-gt-demos/scribble/<FileName.scr>
   ```
-  The output will be written to
+  This generates a .dot and a .png file. The output will be written to
   `scribble-java/generated/<ProtocolName>`.
 
 - Remove generated files and build artifacts from the Erlang examples:

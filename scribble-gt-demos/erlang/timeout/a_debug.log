@@ -1,8 +1,0 @@
-*DBG* a enter gen_a in state s4
-*DBG* a receive internal {a1} in state s4
-*DBG* a consume internal init_state in state s4
-*DBG* a receive internal {a2} in state s5
-*DBG* a consume internal {a1} in state s4 => s5
-*DBG* a consume internal {a2} in state s5 => s6
-*DBG* a receive cast {<0.178.0>,{'TOa'},1} in state s6
-*DBG* a terminate normal in state s6

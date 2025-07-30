@@ -1,6 +1,0 @@
-*DBG* b enter gen_b in state s5
-*DBG* b receive internal {'TOa'} in state s5
-*DBG* b consume internal init_state in state s5
-*DBG* b receive internal {'TOc'} in state s3
-*DBG* b consume internal {'TOa'} in state s5 => s3
-*DBG* b terminate normal in state s3

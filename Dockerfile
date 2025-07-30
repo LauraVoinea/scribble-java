@@ -82,3 +82,6 @@ RUN ./mvnw clean install \
 #
 #WORKDIR /scribble-java/scribble-gt-demos/erlang/rabbitmq-server
 #RUN make
+
+
+
